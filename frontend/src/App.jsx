@@ -1,18 +1,18 @@
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
       
-      <div className="bg-white p-8 rounded-xl shadow-lg text-center">
-        <h1 className="text-3xl font-bold text-blue-600 mb-4">
-          Tailwind CSS is Working 🚀
+      <div className="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md w-full border-t-8 border-indigo-600">
+        <h1 className="text-4xl font-extrabold text-indigo-700 mb-4 animate-bounce">
+          Tailwind CSS 4.0
         </h1>
 
-        <p className="text-gray-600 mb-6">
-          If you see this styled box, Tailwind is installed correctly.
+        <p className="text-slate-600 mb-8 text-lg">
+          If you see this styled card and the bouncing heading, Tailwind is working perfectly!
         </p>
 
-        <button className="bg-green-50 hover:bg-green-600 text-white px-6 py-2 rounded-lg">
-          Test Button
+        <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full transition-transform hover:scale-105 shadow-lg">
+          It Works!
         </button>
       </div>
 
