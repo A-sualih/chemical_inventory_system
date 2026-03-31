@@ -2,13 +2,15 @@ import Sidebar from "./Sidebar";
 
 const Layout = ({ children }) => {
   return (
-    <div className="flex">
+    <div className="flex bg-secondary-50 min-h-screen">
       <Sidebar />
-      <div className="flex-1 p-6 bg-gray-100 min-h-screen">
-        {children}
-      </div>
+      <main className="flex-1 p-8 lg:p-12 overflow-y-auto">
+        <div className="max-w-7xl mx-auto">
+          {children}
+        </div>
+      </main>
     </div>
   );
 };
 
-export default Layout;
+export default Layout;
