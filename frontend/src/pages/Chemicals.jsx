@@ -120,5 +120,4 @@ const Chemicals = () => {
     </Layout>
   );
 };
-
-export default Chemicals;
+export default Chemicals;

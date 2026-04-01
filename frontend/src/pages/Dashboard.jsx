@@ -12,9 +12,9 @@ const Dashboard = () => {
 
   const recentActivity = [
     { user: "Ahmed Sualih", action: "Approved request for Acetone", time: "14 mins ago", code: "REQ-0932" },
-    { user: "Dr. Sarah Lin", action: "Updated storage location for HCl", time: "2 hours ago", code: "LOC-4412" },
-    { user: "System", action: "Automated stock alert: Sulfuric Acid", time: "5 hours ago", code: "ALT-0012" },
-    { user: "Ahmed Sualih", action: "New chemical registered: KMnO4", time: "Yesterday", code: "REG-8821" },
+    { user: "Amir Mesfin", action: "Updated storage location for HCl", time: "2 hours ago", code: "LOC-4412" },
+    { user: "Abu mahi", action: "Automated stock alert: Sulfuric Acid", time: "5 hours ago", code: "ALT-0012" },
+    { user: "Tesegazeab", action: "New chemical registered: KMnO4", time: "Yesterday", code: "REG-8821" },
   ];
 
   return (
@@ -109,4 +109,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Dashboard;
