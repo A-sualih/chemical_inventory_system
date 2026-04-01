@@ -6,8 +6,16 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Role-Permission mapping
+  const rolePermissions = {
+    "Admin": ["inventory:manage", "requests:approve", "reports:view", "roles:manage"],
+    "Lab Manager": ["inventory:manage", "requests:approve", "reports:view"],
+    "Lab Technician": ["inventory:manage"],
+    "Safety Officer": ["reports:view"],
+    "Viewer/Auditor": ["reports:view"]
+  };
+
   useEffect(() => {
-    // Initializing with a default "Ahmed Sualih" admin for demo
     const savedUser = localStorage.getItem('cims_user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
@@ -25,12 +33,19 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('cims_user');
   };
 
+  const hasPermission = (permission) => {
+    if (!user) return false;
+    const permissions = rolePermissions[user.role] || [];
+    return permissions.includes(permission);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, hasPermission }}>
       {children}
     </AuthContext.Provider>
   );
 };
+
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

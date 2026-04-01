@@ -34,12 +34,32 @@ const Sidebar = () => {
       )
     },
     { 
-      name: "Security Logs", 
+      name: "Compliance", 
+      path: "/reports", 
+      roles: ["Admin", "Lab Manager", "Safety Officer", "Viewer/Auditor"],
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 2v-6m-8 13h12a2 2 0 002-2V5a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+      )
+    },
+    { 
+      name: "Master Audit", 
       path: "/audit", 
       roles: ["Admin"],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      )
+    },
+    { 
+      name: "Role Manager", 
+      path: "/roles", 
+      roles: ["Admin"],
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
         </svg>
       )
     },
@@ -50,17 +70,21 @@ const Sidebar = () => {
   );
 
   const getInitials = (name) => {
-    return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '--';
+    if (!name) return "--";
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
   };
 
   const getRoleBadgeStyle = (role) => {
     switch (role) {
       case "Admin": return "text-red-400 bg-red-400/10 border-red-500/20";
-      case "Researcher": return "text-blue-400 bg-blue-400/10 border-blue-500/20";
-      case "Technician": return "text-green-400 bg-green-400/10 border-green-500/20";
+      case "Lab Manager": return "text-primary-400 bg-primary-400/10 border-primary-500/20";
+      case "Safety Officer": return "text-orange-400 bg-orange-400/10 border-orange-500/20";
+      case "Lab Technician": return "text-green-400 bg-green-400/10 border-green-500/20";
+      case "Viewer/Auditor": return "text-secondary-400 bg-secondary-400/10 border-secondary-500/20";
       default: return "text-secondary-400 bg-secondary-400/10 border-secondary-500/20";
     }
   };
+
 
   return (
     <div className="w-72 h-screen sticky top-0 bg-secondary-950 text-white flex flex-col items-stretch border-r border-white/5 shadow-2xl z-50">

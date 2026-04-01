@@ -1,115 +1,174 @@
 import { useState } from "react";
 import Layout from "../layout/Layout";
+import { useAuth } from "../AuthContext";
+import ChemicalForm from "./ChemicalForm";
 
 const Chemicals = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [editingChemical, setEditingChemical] = useState(null);
+  const [showArchived, setShowArchived] = useState(false);
+  const { hasPermission, user } = useAuth();
 
-  const chemicalData = [
-    { id: "C001", name: "Acetone", formula: "C3H6O", grade: "ACS/HPLC", qty: "2.5L", status: "In Stock", location: "Shelf A-12" },
-    { id: "C002", name: "Hydrochloric Acid", formula: "HCl", grade: "Technical", qty: "5.0L", status: "Low Stock", location: "Acid Safe 2" },
-    { id: "C003", name: "Ethanol 95%", formula: "C2H5OH", grade: "USP", qty: "1.0L", status: "In Stock", location: "Flammables C-4" },
-    { id: "C004", name: "Sodium Hydroxide", formula: "NaOH", grade: "AR", qty: "500g", status: "In Stock", location: "Shelf B-2" },
-    { id: "C005", name: "Sulfuric Acid", formula: "H2SO4", grade: "ACS", qty: "0.2L", status: "Out of Stock", location: "Acid Safe 1" },
-    { id: "C006", name: "Methanol", formula: "CH3OH", grade: "HPLC", qty: "4.0L", status: "In Stock", location: "Flammables C-2" },
-    { id: "C007", name: "Dichloromethane", formula: "CH2Cl2", grade: "Anhydrous", qty: "1.2L", status: "Low Stock", location: "Shelf A-5" },
-    { id: "C008", name: "Potassium Permanganate", formula: "KMnO4", grade: "AR", qty: "250g", status: "In Stock", location: "Oxidizers D-1" },
-  ];
+  const [chemicals, setChemicals] = useState([
+    { id: "C001", name: "Acetone", formula: "C3H6O", grade: "ACS/HPLC", qty: "2.5L", status: "In Stock", location: "Shelf A-12", archived: false, history: [{ user: "Admin", action: "Created", date: "2026-01-10" }] },
+    { id: "C002", name: "Hydrochloric Acid", formula: "HCl", grade: "Technical", qty: "5.0L", status: "Low Stock", location: "Acid Safe 2", archived: false, history: [{ user: "Admin", action: "Created", date: "2026-01-12" }] },
+    { id: "C003", name: "Ethanol 95%", formula: "C2H5OH", grade: "USP", qty: "1.0L", status: "In Stock", location: "Flammables C-4", archived: false, history: [{ user: "Ahmed", action: "Created", date: "2026-02-05" }] },
+    { id: "C004", name: "Sodium Hydroxide", formula: "NaOH", grade: "AR", qty: "500g", status: "In Stock", location: "Shelf B-2", archived: true, history: [{ user: "Admin", action: "Archived", date: "2026-03-20" }] },
+  ]);
 
-  const filtered = chemicalData.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    c.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const canManage = hasPermission("inventory:manage");
+
+  const toggleArchive = (id) => {
+    if (!window.confirm("Archive this chemical for compliance? (Soft delete)")) return;
+    setChemicals(chemicals.map(c => 
+      c.id === id ? { ...c, archived: true, status: "Archived", history: [...c.history, { user: user.name, action: "Archived", date: new Date().toISOString().split('T')[0] }] } : c
+    ));
+  };
+
+  const handleSave = (formData) => {
+    if (editingChemical) {
+      setChemicals(chemicals.map(c => c.id === editingChemical.id ? { ...c, ...formData, 
+        history: [...c.history, { user: user.name, action: "Modified", date: new Date().toISOString().split('T')[0] }] 
+      } : c));
+    } else {
+      const newChem = {
+        ...formData,
+        id: `C00${chemicals.length + 1}`,
+        status: "In Stock",
+        archived: false,
+        history: [{ user: user.name, action: "Created", date: new Date().toISOString().split('T')[0] }]
+      };
+      setChemicals([...chemicals, newChem]);
+    }
+    setShowForm(false);
+    setEditingChemical(null);
+  };
+
+  const filtered = chemicals.filter(c => {
+    const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.id.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch && (showArchived ? c.archived : !c.archived);
+  });
 
   return (
     <Layout>
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold heading-font text-secondary-900">Chemical Repository</h1>
-          <p className="text-secondary-500 text-sm mt-1">Master inventory of all chemical assets</p>
+          <h1 className="text-4xl font-black heading-font text-secondary-900 tracking-tight">Chemical Repository</h1>
+          <p className="text-secondary-500 text-sm mt-1 font-medium">Compliance-ready lifecycle management.</p>
         </div>
-        <button className="bg-primary-600 hover:bg-primary-500 text-white px-6 py-2.5 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-primary-600/20 active:scale-95">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-          </svg>
-          New Entry
-        </button>
+        <div className="flex gap-4">
+           <button 
+             onClick={() => setShowArchived(!showArchived)}
+             className={`px-6 py-2.5 rounded-2xl font-bold text-sm transition-all border ${
+               showArchived ? 'bg-secondary-900 text-white border-secondary-900' : 'bg-white text-secondary-600 border-secondary-200'
+             }`}
+           >
+             {showArchived ? "View Active" : "View Archive"}
+           </button>
+           {canManage && (
+             <button 
+               onClick={() => { setEditingChemical(null); setShowForm(true); }}
+               className="bg-primary-600 hover:bg-primary-500 text-white px-6 py-2.5 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-primary-600/20 active:scale-95"
+             >
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                 <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+               </svg>
+               Enroll Chemical
+             </button>
+           )}
+        </div>
       </div>
 
-      <div className="bg-white/80 backdrop-blur-md rounded-[2.5rem] border border-secondary-100 shadow-xl overflow-hidden mb-6">
-        <div className="p-6 border-b border-secondary-100 bg-secondary-50/50 flex flex-col md:flex-row gap-4 justify-between items-center">
-          <div className="relative w-full max-w-md">
+      <div className="bg-white rounded-[3rem] border border-secondary-100 shadow-xl overflow-hidden mb-6">
+        <div className="p-8 border-b border-white flex flex-col md:flex-row gap-6 justify-between items-center bg-gradient-to-r from-secondary-50/50 to-transparent">
+          <div className="relative w-full max-w-xl">
             <input 
               type="text" 
-              placeholder="Search by name, ID or formula..." 
-              className="w-full bg-white border border-secondary-200 rounded-2xl pl-12 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500/20 outline-none hover:border-primary-300 transition-colors"
+              placeholder="Search by name, ID or CAS..." 
+              className="w-full bg-white border border-secondary-200 rounded-[1.5rem] pl-14 pr-4 py-4 text-sm focus:ring-4 focus:ring-primary-500/10 outline-none hover:border-primary-300 transition-all font-medium"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 absolute left-4 top-3.5 text-secondary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 absolute left-5 top-4 text-secondary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <div className="flex gap-2">
-            <button className="px-4 py-2 text-sm font-semibold text-secondary-600 hover:bg-white rounded-xl transition-colors">Export .CSV</button>
-            <button className="px-4 py-2 text-sm font-semibold text-secondary-600 hover:bg-white rounded-xl transition-colors">Print Batch</button>
+          <div className="flex gap-4">
+             <div className="text-right">
+                <div className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">Repository Status</div>
+                <div className="text-sm font-bold text-secondary-900">{filtered.length} Objects Loaded</div>
+             </div>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto p-4 pt-0">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-secondary-50 text-secondary-500 uppercase text-[10px] font-bold tracking-widest border-b border-secondary-100">
-                <th className="px-6 py-4">ID / Formula</th>
-                <th className="px-6 py-4">Common Name</th>
-                <th className="px-6 py-4">Grade</th>
-                <th className="px-6 py-4">Stock level</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Location</th>
-                <th className="px-6 py-4 text-center">Actions</th>
+              <tr className="bg-secondary-50/50 text-secondary-500 uppercase text-[10px] font-black tracking-[0.2em] border-b border-secondary-100">
+                <th className="px-8 py-6">Identity / CAS</th>
+                <th className="px-8 py-6">Lifecycle Status</th>
+                <th className="px-8 py-6 text-center">Actions</th>
               </tr>
             </thead>
+
             <tbody className="divide-y divide-secondary-50">
               {filtered.map((item) => (
-                <tr key={item.id} className="hover:bg-primary-50/30 transition-colors group">
-                  <td className="px-6 py-5">
-                    <div className="font-bold text-secondary-900 text-sm tracking-tight">{item.id}</div>
-                    <div className="text-[10px] text-secondary-400 font-mono mt-0.5">{item.formula}</div>
+                <tr key={item.id} className="hover:bg-primary-50/30 transition-all group cursor-pointer" onClick={() => { if(canManage) { setEditingChemical(item); setShowForm(true); } }}>
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-4">
+                       <div className="w-12 h-12 rounded-2xl bg-secondary-900 text-white flex items-center justify-center font-black text-xs shadow-lg">
+                          {item.id}
+                       </div>
+                       <div>
+                          <div className="font-bold text-secondary-900 text-lg leading-tight tracking-tight">{item.name}</div>
+                          <div className="text-xs text-secondary-400 font-mono mt-1 flex items-center gap-2">
+                             <span className="bg-secondary-100 px-1.5 py-0.5 rounded uppercase font-bold text-[9px] text-secondary-600">CAS</span> {item.cas || item.formula}
+                          </div>
+                       </div>
+                    </div>
                   </td>
-                  <td className="px-6 py-5">
-                    <div className="font-semibold text-secondary-900">{item.name}</div>
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-4">
+                       <div className="flex-1 min-w-[120px]">
+                          <span className={`inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1.5 rounded-lg border shadow-sm ${
+                            item.archived ? 'bg-red-50 text-red-700 border-red-100' :
+                            item.status === 'In Stock' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-orange-50 text-orange-700 border-orange-100'
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${item.archived ? 'bg-red-500' : item.status === 'In Stock' ? 'bg-green-500' : 'bg-orange-500'}`}></span>
+                            {item.status}
+                          </span>
+                       </div>
+                       <div className="text-xs text-secondary-500">
+                          <div className="font-bold">{item.location}</div>
+                          <div className="text-[10px] text-secondary-400 mt-0.5 uppercase tracking-widest">{item.qty} Remaining</div>
+                       </div>
+                    </div>
                   </td>
-                  <td className="px-6 py-5">
-                    <span className="px-2 py-1 bg-secondary-100 rounded text-[10px] font-bold text-secondary-600 border border-secondary-200">{item.grade}</span>
-                  </td>
-                  <td className="px-6 py-5 font-medium text-secondary-800 text-sm">
-                    {item.qty}
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className={`flex items-center gap-1.5 text-xs font-bold ${
-                      item.status === 'In Stock' ? 'text-green-600' : 
-                      item.status === 'Low Stock' ? 'text-orange-500' : 'text-red-500'
-                    }`}>
-                      <span className={`w-2 h-2 rounded-full ${
-                        item.status === 'In Stock' ? 'bg-green-500' : 
-                        item.status === 'Low Stock' ? 'bg-orange-500' : 'bg-red-500 animate-pulse'
-                      }`}></span>
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-5 text-sm text-secondary-500 font-medium italic">
-                    {item.location}
-                  </td>
-                  <td className="px-6 py-5 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-2 text-secondary-400 hover:text-primary-600 bg-white rounded-lg border border-secondary-100 shadow-sm transition-all" title="Edit">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                      </svg>
-                    </button>
-                    <button className="p-2 text-secondary-400 hover:text-red-500 bg-white rounded-lg border border-secondary-100 shadow-sm transition-all" title="Delete">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                  <td className="px-8 py-6" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex justify-center gap-3">
+                      {!item.archived && canManage && (
+                        <>
+                          <button 
+                            className="w-10 h-10 flex items-center justify-center text-secondary-400 hover:text-primary-600 bg-white rounded-xl border border-secondary-200 shadow-sm transition-all hover:scale-110" 
+                            title="Edit Record"
+                            onClick={() => { setEditingChemical(item); setShowForm(true); }}
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                          </button>
+                          <button 
+                            className="w-10 h-10 flex items-center justify-center text-secondary-400 hover:text-red-500 bg-white rounded-xl border border-secondary-200 shadow-sm transition-all hover:scale-110" 
+                            title="Archive (Soft Delete)"
+                            onClick={() => toggleArchive(item.id)}
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          </button>
+                        </>
+                      )}
+                      <button className="w-10 h-10 flex items-center justify-center text-secondary-400 hover:text-secondary-900 bg-white rounded-xl border border-secondary-200 shadow-sm transition-all" title="View Full History">
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -117,6 +176,14 @@ const Chemicals = () => {
           </table>
         </div>
       </div>
+
+      {showForm && (
+        <ChemicalForm 
+          initialData={editingChemical} 
+          onClose={() => setShowForm(false)} 
+          onSave={handleSave} 
+        />
+      )}
     </Layout>
   );
 };
