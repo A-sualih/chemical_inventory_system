@@ -3,6 +3,8 @@ import { AuthProvider, useAuth } from "./AuthContext";
 import Dashboard from "./pages/Dashboard";
 import Chemicals from "./pages/Chemicals";
 import Login from "./pages/Login";
+import Reports from "./pages/Reports";
+import AdminOnly from "./pages/AdminOnly";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -28,11 +30,25 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="/chemicals" element={
-            <ProtectedRoute allowedRoles={["Admin", "Researcher", "Technician"]}>
+            <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer/Auditor"]}>
               <Chemicals />
             </ProtectedRoute>
           } />
-          {/* Default redirect for unknown paths */}
+          <Route path="/reports" element={
+            <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer/Auditor"]}>
+              <Reports />
+            </ProtectedRoute>
+          } />
+          <Route path="/audit" element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <AdminOnly title="Master Audit Logs" description="Review all system security events and role modifications." />
+            </ProtectedRoute>
+          } />
+          <Route path="/roles" element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <AdminOnly title="Role Management" description="Assign and configure fine-grained permissions for all personnel." />
+            </ProtectedRoute>
+          } />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
@@ -40,4 +56,5 @@ function App() {
   );
 }
 
-export default App;
+export default App;
+
