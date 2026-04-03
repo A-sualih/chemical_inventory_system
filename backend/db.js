@@ -91,6 +91,36 @@ async function initDb() {
     );
   `);
 
+  // Disposals table (1.13 Waste Management)
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS disposals (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      chemical_id TEXT,
+      user_id INTEGER,
+      quantity REAL,
+      method TEXT,
+      regulatory_log TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(chemical_id) REFERENCES chemicals(id),
+      FOREIGN KEY(user_id) REFERENCES users(id)
+    );
+  `);
+
+  // Locations table (1.5 Storage)
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS locations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      building TEXT,
+      room TEXT,
+      cabinet TEXT,
+      shelf TEXT,
+      capacity REAL,
+      current_load REAL DEFAULT 0,
+      safety_warnings TEXT
+    );
+  `);
+
   // Seed default admin user
   const adminExists = await db.get('SELECT * FROM users WHERE email = ?', ['admin@lab.com']);
   if (!adminExists) {

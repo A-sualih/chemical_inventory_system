@@ -51,7 +51,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/register', async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
   const db = await getDb();
 
   try {
@@ -59,8 +59,9 @@ router.post('/register', async (req, res) => {
     if (existing) return res.status(400).json({ error: 'Email already in use' });
 
     const hash = await bcrypt.hash(password, 10);
-    // New registrants default to 'Viewer/Auditor'
-    await db.run('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)', [name, email, hash, 'Viewer/Auditor']);
+    // Allow role selection for local setup
+    const userRole = role || 'Viewer/Auditor';
+    await db.run('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)', [name, email, hash, userRole]);
     
     res.status(201).json({ message: 'User registered successfully' });
   } catch (err) {
@@ -68,11 +69,44 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// Reset password (Mock email sending)
+router.post('/reset-password', async (req, res) => {
+  const { email } = req.body;
+  const db = await getDb();
+  const user = await db.get('SELECT id FROM users WHERE email = ?', [email]);
+  
+  // Always return success to prevent email enumeration attacks
+  if (user) {
+    console.log(`[Email Service] Sent reset logic to ${email}`);
+  }
+  
+  // Simulating email delay
+  setTimeout(() => {
+    res.json({ message: 'If that email matches an account, we have sent a reset link to it.' });
+  }, 1000);
+});
+
 // Admin ONLY: Get all users
 router.get('/users', authenticate, requireRole(['Admin']), async (req, res) => {
   const db = await getDb();
   const users = await db.all('SELECT id, name, email, role, status FROM users');
   res.json(users);
+});
+
+// Admin ONLY: Update a user's role
+router.put('/users/:id/role', authenticate, requireRole(['Admin']), async (req, res) => {
+  const db = await getDb();
+  const { role } = req.body;
+  if (!['Admin', 'Lab Manager', 'Lab Technician', 'Safety Officer', 'Viewer/Auditor'].includes(role)) {
+    return res.status(400).json({ error: 'Invalid role provided.' });
+  }
+
+  try {
+    await db.run('UPDATE users SET role = ? WHERE id = ?', [role, req.params.id]);
+    res.json({ message: 'Role updated successfully', role });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update role' });
+  }
 });
 
 module.exports = router;

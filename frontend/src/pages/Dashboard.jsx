@@ -52,9 +52,16 @@ const Dashboard = () => {
     <Layout>
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-4">
         <div>
-          <h1 className="text-4xl font-black heading-font text-secondary-950 tracking-tight leading-none">
-            Welcome back, <span className="text-primary-600">{user?.name?.split(' ')[0] || "Guest"}</span>
-          </h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-4xl font-black heading-font text-secondary-950 tracking-tight leading-none">
+              Welcome back, <span className="text-primary-600">{user?.name?.split(' ')[0] || "Guest"}</span>
+            </h1>
+            {user?.role && (
+              <span className="px-3 py-1 bg-primary-100 text-primary-700 text-xs font-bold uppercase tracking-widest rounded-lg border border-primary-200 shadow-sm mt-1">
+                {user.role}
+              </span>
+            )}
+          </div>
           <p className="text-secondary-500 mt-2 font-medium">System status is <span className="text-green-600 font-bold">Optimal</span> • Last audit 14h ago</p>
         </div>
         

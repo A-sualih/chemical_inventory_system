@@ -4,6 +4,7 @@ const { initDb } = require('./db');
 
 const authRoutes = require('./routes/auth');
 const chemicalRoutes = require('./routes/chemicals');
+const inventoryRoutes = require('./routes/inventory');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -21,6 +22,7 @@ initDb().then(() => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/chemicals', chemicalRoutes);
+app.use('/api/inventory', inventoryRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });

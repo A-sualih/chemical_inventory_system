@@ -16,11 +16,19 @@ const Login = () => {
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [lockTimer, setLockTimer] = useState(0);
 
+  const { sessionExpired, setSessionExpired } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (currentUser) navigate("/");
   }, [currentUser, navigate]);
+
+  useEffect(() => {
+    if (sessionExpired) {
+       setError("Your session has expired due to inactivity. Please log in again.");
+       setSessionExpired(false);
+    }
+  }, [sessionExpired, setSessionExpired]);
 
   useEffect(() => {
     let interval;
@@ -62,9 +70,9 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await axios.post('/api/auth/register', { name, email, password });
+      await axios.post('/api/auth/register', { name, email, password, role });
       setIsLoading(false);
-      alert(`Account for ${name} created! Wait for role assignment.`);
+      alert(`Account for ${name} created as ${role}!`);
       setView("login");
     } catch (err) {
       setIsLoading(false);
@@ -90,14 +98,18 @@ const Login = () => {
     }
   };
 
-  const handleForgotPassword = (e) => {
+  const handleForgotPassword = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const { data } = await axios.post('/api/auth/reset-password', { email });
       setIsLoading(false);
-      alert("Password reset link sent to your email!");
+      alert(data.message);
       setView("login");
-    }, 1500);
+    } catch {
+      setIsLoading(false);
+      alert("Error sending reset password link");
+    }
   };
 
   const renderView = () => {
