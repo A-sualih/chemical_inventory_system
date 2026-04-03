@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "../layout/Layout";
 import { useAuth } from "../AuthContext";
 import ChemicalForm from "./ChemicalForm";
+import axios from "axios";
 
 const Chemicals = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -10,39 +11,46 @@ const Chemicals = () => {
   const [showArchived, setShowArchived] = useState(false);
   const { hasPermission, user } = useAuth();
 
-  const [chemicals, setChemicals] = useState([
-    { id: "C001", name: "Acetone", formula: "C3H6O", grade: "ACS/HPLC", qty: "2.5L", status: "In Stock", location: "Shelf A-12", archived: false, history: [{ user: "Admin", action: "Created", date: "2026-01-10" }] },
-    { id: "C002", name: "Hydrochloric Acid", formula: "HCl", grade: "Technical", qty: "5.0L", status: "Low Stock", location: "Acid Safe 2", archived: false, history: [{ user: "Admin", action: "Created", date: "2026-01-12" }] },
-    { id: "C003", name: "Ethanol 95%", formula: "C2H5OH", grade: "USP", qty: "1.0L", status: "In Stock", location: "Flammables C-4", archived: false, history: [{ user: "Ahmed", action: "Created", date: "2026-02-05" }] },
-    { id: "C004", name: "Sodium Hydroxide", formula: "NaOH", grade: "AR", qty: "500g", status: "In Stock", location: "Shelf B-2", archived: true, history: [{ user: "Admin", action: "Archived", date: "2026-03-20" }] },
-  ]);
+  const [chemicals, setChemicals] = useState([]);
+  
+  useEffect(() => {
+    fetchChemicals();
+  }, []);
+
+  const fetchChemicals = async () => {
+    try {
+      const { data } = await axios.get('/api/chemicals');
+      setChemicals(data);
+    } catch (err) {
+      console.error("Error fetching chemicals", err);
+    }
+  };
 
   const canManage = hasPermission("inventory:manage");
 
-  const toggleArchive = (id) => {
+  const toggleArchive = async (id) => {
     if (!window.confirm("Archive this chemical for compliance? (Soft delete)")) return;
-    setChemicals(chemicals.map(c => 
-      c.id === id ? { ...c, archived: true, status: "Archived", history: [...c.history, { user: user.name, action: "Archived", date: new Date().toISOString().split('T')[0] }] } : c
-    ));
+    try {
+      await axios.delete(`/api/chemicals/${id}`);
+      fetchChemicals();
+    } catch (err) {
+      alert("Error archiving chemical.");
+    }
   };
 
-  const handleSave = (formData) => {
-    if (editingChemical) {
-      setChemicals(chemicals.map(c => c.id === editingChemical.id ? { ...c, ...formData, 
-        history: [...c.history, { user: user.name, action: "Modified", date: new Date().toISOString().split('T')[0] }] 
-      } : c));
-    } else {
-      const newChem = {
-        ...formData,
-        id: `C00${chemicals.length + 1}`,
-        status: "In Stock",
-        archived: false,
-        history: [{ user: user.name, action: "Created", date: new Date().toISOString().split('T')[0] }]
-      };
-      setChemicals([...chemicals, newChem]);
+  const handleSave = async (formData) => {
+    try {
+      if (editingChemical) {
+        await axios.put(`/api/chemicals/${editingChemical.id}`, formData);
+      } else {
+        await axios.post('/api/chemicals', formData);
+      }
+      setShowForm(false);
+      setEditingChemical(null);
+      fetchChemicals();
+    } catch (err) {
+      alert("Error saving chemical data: " + (err.response?.data?.error || err.message));
     }
-    setShowForm(false);
-    setEditingChemical(null);
   };
 
   const filtered = chemicals.filter(c => {
@@ -141,7 +149,7 @@ const Chemicals = () => {
                        </div>
                        <div className="text-xs text-secondary-500">
                           <div className="font-bold">{item.location}</div>
-                          <div className="text-[10px] text-secondary-400 mt-0.5 uppercase tracking-widest">{item.qty} Remaining</div>
+                          <div className="text-[10px] text-secondary-400 mt-0.5 uppercase tracking-widest">{item.quantity} {item.unit} Remaining</div>
                        </div>
                     </div>
                   </td>

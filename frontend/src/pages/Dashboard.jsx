@@ -1,21 +1,36 @@
+import { useState, useEffect } from "react";
 import Layout from "../layout/Layout";
 import { useAuth } from "../AuthContext";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const [dbStats, setDbStats] = useState({ total: 0, flammables: 0, lowStock: 0, auditScore: "94%" });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const { data } = await axios.get('/api/chemicals/stats');
+        setDbStats(data);
+      } catch (err) {
+        console.error("Failed to fetch dashboard stats", err);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const stats = [
-    { label: "Total Chemicals", value: "842", sub: "Active Listings", color: "primary", icon: (
+    { label: "Total Chemicals", value: dbStats.total.toString().padStart(3, '0'), sub: "Active Listings", color: "primary", icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" /></svg>
     )},
-    { label: "Flammables", value: "124", sub: "Class 3 Assets", color: "orange", icon: (
+    { label: "Flammables", value: dbStats.flammables.toString().padStart(3, '0'), sub: "Class 3 Assets", color: "orange", icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.99 7.99 0 0120 13a7.99 7.99 0 01-2.343 5.657z" /></svg>
     )},
-    { label: "Critical Stock", value: "08", sub: "Reorder Required", color: "red", icon: (
+    { label: "Critical Stock", value: dbStats.lowStock.toString().padStart(2, '0'), sub: "Reorder Required", color: "red", icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
     )},
-    { label: "Safety Audit", value: "94%", sub: "Passing Score", color: "green", icon: (
+    { label: "Safety Audit", value: dbStats.auditScore, sub: "Passing Score", color: "green", icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
     )},
   ];

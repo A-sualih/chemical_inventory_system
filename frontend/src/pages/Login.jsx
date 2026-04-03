@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { useAuth } from "../AuthContext";
 
 const Login = () => {
@@ -34,60 +35,59 @@ const Login = () => {
     return () => clearInterval(interval);
   }, [lockTimer, view]);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
-    setTimeout(() => {
-      if (email === "lock@test.com") {
-        setError("Account locked. Too many failed attempts.");
-        setFailedAttempts(3);
+    // Simulate OTP step but pre-validate credentials
+    try {
+      const { data } = await axios.post('/api/auth/login', { email, password });
+      setIsLoading(false);
+      setView("mfa"); // Go to MFA step if credentials are correct
+    } catch (err) {
+      setIsLoading(false);
+      const msg = err.response?.data?.error || "Invalid credentials.";
+      setError(msg);
+      const newAttempts = failedAttempts + 1;
+      setFailedAttempts(newAttempts);
+      if (newAttempts >= 5) {
         setView("locked");
-        setLockTimer(30);
-        setIsLoading(false);
-        return;
+        setLockTimer(15 * 60);
       }
-
-      if (password === "wrong") {
-        const newAttempts = failedAttempts + 1;
-        setFailedAttempts(newAttempts);
-        setError(`Invalid credentials. Attempt ${newAttempts}/3.`);
-        if (newAttempts >= 3) {
-          setView("locked");
-          setLockTimer(30);
-        }
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(false);
-      setView("mfa");
-    }, 1200);
+    }
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      await axios.post('/api/auth/register', { name, email, password });
       setIsLoading(false);
-      alert(`Account for ${name} created as ${role}!`);
+      alert(`Account for ${name} created! Wait for role assignment.`);
       setView("login");
-    }, 1500);
+    } catch (err) {
+      setIsLoading(false);
+      alert(err.response?.data?.error || "Registration failed");
+    }
   };
 
-  const handleMfa = (e) => {
+  const handleMfa = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
+    
+    if (otp === "123456") {
+      const res = await login(email, password);
       setIsLoading(false);
-      if (otp === "123456") {
-        login({ email, name, role });
+      if (res.success) {
         navigate("/");
       } else {
-        setError("Invalid OTP code. Try 123456");
+        setError(res.error);
       }
-    }, 1500);
+    } else {
+      setIsLoading(false);
+      setError("Invalid OTP code. Try 123456");
+    }
   };
 
   const handleForgotPassword = (e) => {

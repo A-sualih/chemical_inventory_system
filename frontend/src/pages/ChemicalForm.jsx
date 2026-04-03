@@ -1,7 +1,17 @@
 import { useState } from "react";
 
 const ChemicalForm = ({ initialData, onClose, onSave }) => {
-  const [formData, setFormData] = useState(initialData || {
+  const [formData, setFormData] = useState(initialData ? {
+    ...initialData,
+    cas: initialData.cas_number || "",
+    iupac: initialData.iupac_name || "",
+    storageTemp: initialData.storage_temp || "",
+    storageHumidity: initialData.storage_humidity || "",
+    batch: initialData.batch_number || "",
+    expiry: initialData.expiry_date || "",
+    sdsAttached: initialData.sds_attached === 1,
+    ghs: initialData.ghs_classes || []
+  } : {
     name: "",
     iupac: "",
     cas: "",
