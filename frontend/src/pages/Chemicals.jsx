@@ -138,7 +138,7 @@ const Chemicals = () => {
                   </td>
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-4">
-                       <div className="flex-1 min-w-[120px]">
+                       <div className="flex-1 min-w-[120px] mb-2 md:mb-0">
                           <span className={`inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1.5 rounded-lg border shadow-sm ${
                             item.archived ? 'bg-red-50 text-red-700 border-red-100' :
                             item.status === 'In Stock' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-orange-50 text-orange-700 border-orange-100'
@@ -146,6 +146,13 @@ const Chemicals = () => {
                             <span className={`w-1.5 h-1.5 rounded-full ${item.archived ? 'bg-red-500' : item.status === 'In Stock' ? 'bg-green-500' : 'bg-orange-500'}`}></span>
                             {item.status}
                           </span>
+                       </div>
+                       
+                       <div className="flex gap-1">
+                         {(item.ghs_classes || []).map(cat => {
+                            const emoji = cat === 'Flammable' ? '🔥' : cat === 'Toxic' ? '💀' : cat === 'Irritant' ? '⚠️' : cat === 'Biohazard' ? '☣️' : cat === 'Corrosive' ? '🧪' : cat === 'Environmental' ? '🌊' : cat === 'Explosive' ? '💣' : '⚡';
+                            return <span key={cat} title={cat} className="w-8 h-8 flex items-center justify-center bg-secondary-50 border border-secondary-200 rounded-lg text-lg hover:scale-110 transition-transform cursor-help">{emoji}</span>
+                         })}
                        </div>
                        <div className="text-xs text-secondary-500">
                           <div className="font-bold">{item.location}</div>

@@ -34,6 +34,20 @@ const Sidebar = () => {
       )
     },
     { 
+      name: "Master Ledger", 
+      path: "/logs", 
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+      )
+    },
+    { 
+      name: "Requests", 
+      path: "/requests", 
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+      )
+    },
+    { 
       name: "Compliance", 
       path: "/reports", 
       roles: ["Admin", "Lab Manager", "Safety Officer", "Viewer/Auditor"],

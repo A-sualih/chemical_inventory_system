@@ -49,10 +49,21 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     }
   };
 
-  const toggleGhs = (cat) => {
-    const newGhs = formData.ghs.includes(cat)
-      ? formData.ghs.filter(c => c !== cat)
-      : [...formData.ghs, cat];
+  const ghsMap = [
+    { cat: "Flammable", emoji: "🔥" },
+    { cat: "Toxic", emoji: "💀" },
+    { cat: "Irritant", emoji: "⚠️" },
+    { cat: "Biohazard", emoji: "☣️" },
+    { cat: "Corrosive", emoji: "🧪" },
+    { cat: "Environmental", emoji: "🌊" },
+    { cat: "Explosive", emoji: "💣" },
+    { cat: "Oxidizer", emoji: "⚡" }
+  ];
+
+  const toggleGhs = (catStr) => {
+    const newGhs = formData.ghs.includes(catStr)
+      ? formData.ghs.filter(c => c !== catStr)
+      : [...formData.ghs, catStr];
     setFormData({ ...formData, ghs: newGhs });
   };
 
@@ -73,15 +84,17 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-widest text-secondary-400 block mb-3">Hazard Classification (GHS)</label>
                 <div className="grid grid-cols-4 gap-2">
-                  {["🔥", "💀", "⚠️", "☣️", "🧪", "🌊", "💣", "⚡"].map((emoji, i) => (
+                  {ghsMap.map((item) => (
                     <button 
-                      key={i} 
-                      onClick={() => toggleGhs(i)}
+                      key={item.cat} 
+                      type="button"
+                      onClick={() => toggleGhs(item.cat)}
                       className={`h-12 rounded-xl flex items-center justify-center text-xl transition-all border-2 ${
-                        formData.ghs.includes(i) ? 'bg-white border-primary-500 shadow-md ring-4 ring-primary-500/10' : 'bg-white border-transparent'
+                        formData.ghs.includes(item.cat) ? 'bg-white border-primary-500 shadow-md ring-4 ring-primary-500/10' : 'bg-white border-transparent'
                       }`}
+                      title={item.cat}
                     >
-                      {emoji}
+                      {item.emoji}
                     </button>
                   ))}
                 </div>

@@ -5,6 +5,9 @@ import Chemicals from "./pages/Chemicals";
 import Login from "./pages/Login";
 import Reports from "./pages/Reports";
 import AdminOnly from "./pages/AdminOnly";
+import ChemicalForm from './pages/ChemicalForm';
+import Requests from './pages/Requests';
+import InventoryLogs from './pages/InventoryLogs';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -34,6 +37,10 @@ function App() {
               <Chemicals />
             </ProtectedRoute>
           } />
+          <Route path="/chemicals/new" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician"]}><ChemicalForm /></ProtectedRoute>} />
+          <Route path="/chemicals/edit/:id" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician"]}><ChemicalForm /></ProtectedRoute>} />
+          <Route path="/requests" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer/Auditor"]}><Requests /></ProtectedRoute>} />
+          <Route path="/logs" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer/Auditor"]}><InventoryLogs /></ProtectedRoute>} />
           <Route path="/reports" element={
             <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer/Auditor"]}>
               <Reports />
