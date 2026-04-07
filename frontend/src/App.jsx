@@ -8,6 +8,7 @@ import AdminOnly from "./pages/AdminOnly";
 import ChemicalForm from './pages/ChemicalForm';
 import Requests from './pages/Requests';
 import InventoryLogs from './pages/InventoryLogs';
+import MFADemo from "./pages/MFADemo";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -27,6 +28,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/mfa-demo" element={<MFADemo />} />
           <Route path="/" element={
             <ProtectedRoute>
               <Dashboard />
