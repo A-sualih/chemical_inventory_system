@@ -7,7 +7,7 @@ const Login = () => {
   const { login, user: currentUser } = useAuth();
   const [view, setView] = useState("login");
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("Ahmed Sualih");
+  const [name, setName] = useState("Ahmed Sualih ");
   const [role, setRole] = useState("Admin");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
@@ -190,7 +190,7 @@ const Login = () => {
             <form onSubmit={handleForgotPassword} className="space-y-6">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Email Address</label>
-                <input type="email" placeholder="name@company.com" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary-500/50 outline-none transition-all" required />
+                <input type="email" placeholder="appfactory.com" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary-500/50 outline-none transition-all" required />
               </div>
               <button type="submit" disabled={isLoading} className="w-full bg-primary-600 hover:bg-primary-500 text-white p-4 rounded-2xl font-bold transition-all active:scale-95 disabled:opacity-50">
                 {isLoading ? "Sending..." : "Send Reset Link"}
@@ -295,7 +295,7 @@ const Login = () => {
             </form>
 
             <p className="mt-8 text-center text-sm text-secondary-500">
-              Don't have an account? <button onClick={() => setView("register")} className="text-primary-400 font-semibold hover:underline">Request access</button>
+              Don't have an account? <button onClick={() => setView("register")} className="text-primary-400 font-semibold hover:underline">Signu UP</button>
             </p>
           </div>
         );
@@ -342,7 +342,7 @@ const Login = () => {
 
       {/* Subtle Bottom Footer */}
       <p className="absolute bottom-8 text-secondary-600 text-[10px] uppercase tracking-[0.2em] font-bold">
-        Secure Access Provided by DeepMind Tech
+        Secure Access Provided by GoldenBatch Tech
       </p>
     </div>
   );
