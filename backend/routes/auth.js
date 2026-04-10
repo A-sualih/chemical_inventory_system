@@ -36,11 +36,16 @@ const router = express.Router();
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   const db = await getDb();
-  
+
   try {
     const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
     if (!user) {
       return res.status(400).json({ error: 'Invalid email or password' });
+    }
+
+    // Check status
+    if (user.status === 'Inactive') {
+      return res.status(403).json({ error: 'Your account has been suspended. Please contact the administrator.' });
     }
 
     // Check lock
@@ -49,7 +54,7 @@ router.post('/login', async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    
+
     if (!isMatch) {
       // Increment failed attempts
       const failed = user.failed_attempts + 1;
@@ -67,7 +72,7 @@ router.post('/login', async (req, res) => {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         // Store temp secret/otp for verification
         await db.run('UPDATE users SET mfa_temp_secret = ? WHERE id = ?', [otp, user.id]);
-        
+
         // Mock SMS sending to console and attempt Twilio
         console.log(`[SMS OTP] Sending ${otp} to ${user.mfa_phone}`);
         if (process.env.TWILIO_ACCOUNT_SID !== 'your_twilio_sid') {
@@ -78,7 +83,7 @@ router.post('/login', async (req, res) => {
               to: user.mfa_phone
             });
           } catch (err) {
-             console.error("Twilio send failed:", err.message);
+            console.error("Twilio send failed:", err.message);
           }
         }
       }
@@ -111,7 +116,7 @@ router.post('/register', async (req, res) => {
     // Only an Admin can promote roles via the dashboard
     const userRole = ROLES.VIEWER;
     await db.run('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)', [name, email, hash, userRole]);
-    
+
     res.status(201).json({ message: 'User registered successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -123,12 +128,12 @@ router.post('/reset-password', async (req, res) => {
   const { email } = req.body;
   const db = await getDb();
   const user = await db.get('SELECT id FROM users WHERE email = ?', [email]);
-  
+
   // Always return success to prevent email enumeration attacks
   if (user) {
     console.log(`[Email Service] Sent reset logic to ${email}`);
   }
-  
+
   // Simulating email delay
   setTimeout(() => {
     res.json({ message: 'If that email matches an account, we have sent a reset link to it.' });
@@ -142,6 +147,30 @@ router.get('/users', authenticate, requireRole(['Admin']), async (req, res) => {
   res.json(users);
 });
 
+// Admin ONLY: Delete a user account permanently
+router.delete('/users/:id', authenticate, requireRole([ROLES.ADMIN]), async (req, res) => {
+  const { id } = req.params;
+  const db = await getDb();
+
+  try {
+    const user = await db.get('SELECT name, email FROM users WHERE id = ?', [id]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (user.email === 'admin@lab.com') return res.status(400).json({ error: 'Cannot delete the primary system admin' });
+
+    console.log(`[ADMIN DELETE] Attempting to delete user ${id} (${user.email})...`);
+    await db.run('DELETE FROM users WHERE id = ?', [id]);
+    console.log(`[ADMIN DELETE] User ${id} deleted successfully. Proceeding to audit log.`);
+
+    await logAudit(db, req.user.id, 'DELETE_USER', 'users', id, `Admin deleted account for ${user.email}`);
+    console.log(`[ADMIN DELETE] Audit logged for user ${id}.`);
+
+    res.json({ message: `Account for ${user.name} has been deleted permanently.` });
+  } catch (err) {
+    console.error('[ADMIN DELETE ERROR]:', err);
+    res.status(500).json({ error: 'Database error: ' + err.message });
+  }
+});
+
 // Admin ONLY: Update a user's role
 router.put('/users/:id/role', authenticate, requireRole([ROLES.ADMIN]), async (req, res) => {
   const db = await getDb();
@@ -153,13 +182,57 @@ router.put('/users/:id/role', authenticate, requireRole([ROLES.ADMIN]), async (r
   try {
     const targetUser = await db.get('SELECT name, role FROM users WHERE id = ?', [req.params.id]);
     await db.run('UPDATE users SET role = ? WHERE id = ?', [role, req.params.id]);
-    
-    await logAudit(db, req.user.id, 'CHANGE_ROLE', 'users', req.params.id, 
+
+    await logAudit(db, req.user.id, 'CHANGE_ROLE', 'users', req.params.id,
       `Changed role of ${targetUser.name} from ${targetUser.role} to ${role}`);
 
     res.json({ message: 'Role updated successfully', role });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update role' });
+  }
+});
+// Admin ONLY: Toggle User Status (Activate/Deactivate)
+router.put('/users/:id/status', authenticate, requireRole([ROLES.ADMIN]), async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body; // 'Active' or 'Inactive'
+  const db = await getDb();
+  try {
+    const user = await db.get('SELECT name, email FROM users WHERE id = ?', [id]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (user.email === 'admin@lab.com') return res.status(400).json({ error: 'Cannot deactivate the primary system admin' });
+    await db.run('UPDATE users SET status = ? WHERE id = ?', [status, id]);
+
+    await logAudit(db, req.user.id, 'STATUS_CHANGE', 'users', id, `Admin changed status of ${user.email} to ${status}`);
+
+    res.json({ message: `User ${user.name} is now ${status}.`, status });
+  } catch (err) {
+    res.status(500).json({ error: 'Database error: ' + err.message });
+  }
+});
+
+// Admin ONLY: Reset a user's password (manual override)
+router.put('/users/:id/reset-password', authenticate, requireRole([ROLES.ADMIN]), async (req, res) => {
+  const { id } = req.params;
+  const db = await getDb();
+
+  try {
+    const tempPassword = 'Reset' + Math.floor(1000 + Math.random() * 9000);
+    const hash = await bcrypt.hash(tempPassword, 10);
+
+    const user = await db.get('SELECT name, email FROM users WHERE id = ?', [id]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    await db.run('UPDATE users SET password = ? WHERE id = ?', [hash, id]);
+
+    await logAudit(db, req.user.id, 'PASSWORD_RESET', 'users', id, `Admin reset password for ${user.email}`);
+
+    res.json({
+      message: `Password for ${user.name} has been reset successfully.`,
+      tempPassword
+    });
+  } catch (err) {
+    console.error('Password Reset Error:', err);
+    res.status(500).json({ error: 'Database error: ' + err.message });
   }
 });
 
@@ -169,7 +242,7 @@ router.put('/users/:id/role', authenticate, requireRole([ROLES.ADMIN]), async (r
 router.post('/mfa/verify', async (req, res) => {
   const { userId, code } = req.body;
   const db = await getDb();
-  
+
   try {
     const user = await db.get('SELECT * FROM users WHERE id = ?', [userId]);
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -216,9 +289,9 @@ router.get('/mfa/setup/totp', authenticate, async (req, res) => {
 
   QRCode.toDataURL(secret.otpauth_url, (err, data_url) => {
     if (err) return res.status(500).json({ error: 'QR Code generation failed' });
-    res.json({ 
-       secret: secret.base32,
-       qrCode: data_url 
+    res.json({
+      secret: secret.base32,
+      qrCode: data_url
     });
   });
 });

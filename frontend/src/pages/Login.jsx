@@ -122,34 +122,6 @@ const Login = () => {
 
   const renderView = () => {
     switch (view) {
-      case "register":
-        return (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-2xl font-bold text-white mb-2 heading-font">Create Account</h2>
-            <p className="text-secondary-400 text-sm mb-8">Join the CIMS network today.</p>
-            <form onSubmit={handleRegister} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Full Name</label>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your full name" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary-500/50 outline-none transition-all" required />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Email Address</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary-500/50 outline-none transition-all" required />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Password</label>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary-500/50 outline-none transition-all" required />
-              </div>
-              <button type="submit" disabled={isLoading} className="w-full bg-primary-600 hover:bg-primary-500 text-white p-4 rounded-2xl font-bold transition-all shadow-lg shadow-primary-600/20 active:scale-95 disabled:opacity-50">
-                {isLoading ? "Creating Account..." : "Register Now"}
-              </button>
-            </form>
-            <p className="mt-8 text-center text-sm text-secondary-500">
-              Already have an account? <button onClick={() => setView("login")} className="text-primary-400 font-semibold hover:underline">Sign In</button>
-            </p>
-          </div>
-        );
 
       case "mfa":
         return (
@@ -292,9 +264,6 @@ const Login = () => {
               </button>
             </form>
 
-            <p className="mt-8 text-center text-sm text-secondary-500">
-              Don't have an account? <button onClick={() => setView("register")} className="text-primary-400 font-semibold hover:underline">Signu UP</button>
-            </p>
           </div>
         );
     }
@@ -311,23 +280,9 @@ const Login = () => {
       <div className="absolute top-8 right-8 z-20 flex gap-2">
         <button 
           onClick={() => setView("login")} 
-          className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all glass ${
-            view === "login" 
-            ? "bg-white/95 text-secondary-950 shadow-lg" 
-            : "text-white/60 hover:bg-white/10 hover:text-white"
-          }`}
+          className="px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all glass bg-white/95 text-secondary-950 shadow-lg"
         >
-          Login
-        </button>
-        <button 
-          onClick={() => setView("register")} 
-          className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all glass ${
-            view === "register" 
-            ? "bg-white/95 text-secondary-950 shadow-lg" 
-            : "text-white/60 hover:bg-white/10 hover:text-white"
-          }`}
-        >
-          Register
+          Secure Portal
         </button>
       </div>
 
