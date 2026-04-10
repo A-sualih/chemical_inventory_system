@@ -25,10 +25,10 @@ const Requests = () => {
   };
 
   useEffect(() => {
-    if (hasPermission("requests:approve")) {
+    if (hasPermission("requests:view_all") || hasPermission("requests:view_own")) {
       fetchRequests();
     } else {
-      setLoading(false); // Only Admins/Managers can list all requests for now
+      setLoading(false);
     }
   }, [hasPermission]);
 
@@ -69,31 +69,33 @@ const Requests = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Make a Request Panel */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm lg:col-span-1 h-fit">
-          <h2 className="text-xl font-bold mb-4">Request Chemicals</h2>
-          <form onSubmit={handleSubmitRequest} className="space-y-4">
-            <div>
-              <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Chemical ID</label>
-              <input type="text" value={chemicalId} onChange={(e) => setChemicalId(e.target.value)} required className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none mt-1" placeholder="e.g. CHEM-123" />
-            </div>
-            <div>
-              <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Quantity</label>
-              <input type="number" step="0.01" value={quantity} onChange={(e) => setQuantity(e.target.value)} required className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none mt-1" />
-            </div>
-            <div>
-              <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Justification</label>
-              <textarea value={justification} onChange={(e) => setJustification(e.target.value)} required className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none mt-1" rows="3" placeholder="Reason for request..."></textarea>
-            </div>
-            <button type="submit" className="w-full bg-primary-600 hover:bg-primary-500 text-white p-3 rounded-xl font-bold transition-all mt-4">
-              Submit Request
-            </button>
-          </form>
-        </div>
+        {hasPermission("requests:submit") && (
+          <div className="bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm lg:col-span-1 h-fit">
+            <h2 className="text-xl font-bold mb-4">Request Chemicals</h2>
+            <form onSubmit={handleSubmitRequest} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Chemical ID</label>
+                <input type="text" value={chemicalId} onChange={(e) => setChemicalId(e.target.value)} required className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none mt-1" placeholder="e.g. CHEM-123" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Quantity</label>
+                <input type="number" step="0.01" value={quantity} onChange={(e) => setQuantity(e.target.value)} required className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none mt-1" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Justification</label>
+                <textarea value={justification} onChange={(e) => setJustification(e.target.value)} required className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none mt-1" rows="3" placeholder="Reason for request..."></textarea>
+              </div>
+              <button type="submit" className="w-full bg-primary-600 hover:bg-primary-500 text-white p-3 rounded-xl font-bold transition-all mt-4">
+                Submit Request
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* Approval Dashboard */}
-        {hasPermission("requests:approve") && (
-          <div className="bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm lg:col-span-2">
-            <h2 className="text-xl font-bold mb-4">Pending Approvals</h2>
+        {(hasPermission("requests:view_all") || hasPermission("requests:view_own")) && (
+          <div className={`bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm ${hasPermission("requests:submit") ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+            <h2 className="text-xl font-bold mb-4">{hasPermission("requests:approve") ? "Pending Approvals" : "My Requests"}</h2>
             {loading ? <p className="text-sm text-secondary-400">Loading requests...</p> : (
               <div className="space-y-4">
                 {requests.length === 0 && <p className="text-sm text-secondary-500">No requests found.</p>}
@@ -120,7 +122,7 @@ const Requests = () => {
                         <span className="block text-[10px] uppercase text-secondary-400 font-bold mb-0.5">Quantity</span>
                         <span className="font-mono font-bold">{req.quantity}</span>
                       </div>
-                      {req.status === 'Pending' && (
+                      {req.status === 'Pending' && hasPermission("requests:approve") && (
                         <div className="grid grid-cols-2 gap-2 mt-1">
                           <button onClick={() => handleAction(req.id, 'Approved')} className="bg-green-500 hover:bg-green-400 text-white rounded-lg p-1 transition-colors">
                             <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>

@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const chemicalRoutes = require('./routes/chemicals');
 const inventoryRoutes = require('./routes/inventory');
 const reportsRoutes = require('./routes/reports');
+const auditRoutes = require('./routes/audit');
 
 const app = express();
 const PORT = 5001;
@@ -25,6 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/chemicals', chemicalRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/audit', auditRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });

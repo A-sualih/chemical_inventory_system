@@ -9,13 +9,31 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
 
-  // Role-Permission mapping
+  // Role-Permission mapping based on RBAC table
   const rolePermissions = {
-    "Admin": ["inventory:manage", "requests:approve", "reports:view", "roles:manage", "system:audit"],
-    "Lab Manager": ["inventory:manage", "requests:approve", "reports:view"],
-    "Lab Technician": ["inventory:manage", "requests:create"],
-    "Safety Officer": ["reports:view", "safety:manage", "audit:view"],
-    "Viewer/Auditor": ["reports:view", "audit:view"]
+    "Admin": [
+      "chemicals:view", "chemicals:create", "chemicals:edit", "chemicals:delete",
+      "requests:submit", "requests:approve", "requests:view_all",
+      "reports:view_all", "reports:view_safety",
+      "roles:manage", "audit:view", "inventory:update_stock"
+    ],
+    "Lab Manager": [
+      "chemicals:view", "chemicals:create", "chemicals:edit",
+      "requests:submit", "requests:approve", "requests:view_all",
+      "reports:view_all", "reports:view_safety",
+      "audit:view", "inventory:update_stock"
+    ],
+    "Lab Technician": [
+      "chemicals:view", "chemicals:create", "chemicals:edit",
+      "requests:submit", "requests:view_own",
+      "inventory:update_stock"
+    ],
+    "Safety Officer": [
+      "chemicals:view", "reports:view_safety", "audit:view"
+    ],
+    "Viewer / Auditor": [
+      "chemicals:view", "reports:view_all", "audit:view"
+    ]
   };
 
   const logout = () => {

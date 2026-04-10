@@ -1,6 +1,6 @@
 const express = require('express');
 const { getDb } = require('../db');
-const { authenticate, requireRole } = require('../authMiddleware');
+const { authenticate, requireRole, ROLES } = require('../authMiddleware');
 
 const router = express.Router();
 
@@ -35,7 +35,7 @@ router.get('/', authenticate, async (req, res) => {
 });
 
 // Add new chemical (Manager, Tech, Admin)
-router.post('/', authenticate, requireRole(['Admin', 'Lab Manager', 'Lab Technician']), async (req, res) => {
+router.post('/', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLES.LAB_TECHNICIAN]), async (req, res) => {
   const db = await getDb();
   const data = req.body;
   
@@ -62,8 +62,8 @@ router.post('/', authenticate, requireRole(['Admin', 'Lab Manager', 'Lab Technic
   }
 });
 
-// Update a chemical
-router.put('/:id', authenticate, requireRole(['Admin', 'Lab Manager', 'Lab Technician']), async (req, res) => {
+// Update a chemical (Admin, Manager, Tech)
+router.put('/:id', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLES.LAB_TECHNICIAN]), async (req, res) => {
   const db = await getDb();
   const id = req.params.id;
   const data = req.body;
@@ -85,8 +85,8 @@ router.put('/:id', authenticate, requireRole(['Admin', 'Lab Manager', 'Lab Techn
   }
 });
 
-// Archive (Soft Delete) chemical
-router.delete('/:id', authenticate, requireRole(['Admin', 'Lab Manager']), async (req, res) => {
+// Archive (Soft Delete) chemical (Admin, Manager ONLY)
+router.delete('/:id', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER]), async (req, res) => {
   const db = await getDb();
   try {
     await db.run('UPDATE chemicals SET archived = 1, status = "Archived" WHERE id = ?', [req.params.id]);

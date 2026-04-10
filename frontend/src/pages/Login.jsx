@@ -43,16 +43,27 @@ const Login = () => {
     return () => clearInterval(interval);
   }, [lockTimer, view]);
 
+  const [userId, setUserId] = useState(null);
+  const [mfaType, setMfaType] = useState("");
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
-    // Simulate OTP step but pre-validate credentials
     try {
       const { data } = await axios.post('/api/auth/login', { email, password });
       setIsLoading(false);
-      setView("mfa"); // Go to MFA step if credentials are correct
+      
+      if (data.requireMfa) {
+        setUserId(data.userId);
+        setMfaType(data.mfaType);
+        setView("mfa");
+      } else {
+        const res = await login(email, password);
+        if (res.success) navigate("/");
+        else setError(res.error);
+      }
     } catch (err) {
       setIsLoading(false);
       const msg = err.response?.data?.error || "Invalid credentials.";
@@ -83,18 +94,16 @@ const Login = () => {
   const handleMfa = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
     
-    if (otp === "123456") {
-      const res = await login(email, password);
+    try {
+      const { data } = await axios.post('/api/auth/mfa/verify', { userId, code: otp });
+      // Authenticate with the returned token
+      localStorage.setItem('token', data.token);
+      window.location.reload(); // Simple way to trigger AuthContext refresh
+    } catch (err) {
       setIsLoading(false);
-      if (res.success) {
-        navigate("/");
-      } else {
-        setError(res.error);
-      }
-    } else {
-      setIsLoading(false);
-      setError("Invalid OTP code. Try 123456");
+      setError(err.response?.data?.error || "Invalid verification code.");
     }
   };
 

@@ -60,7 +60,7 @@ const InventoryLogs = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Rapid Logging Panel */}
-        {hasPermission("inventory:manage") && (
+        {hasPermission("inventory:update_stock") && (
           <div className="bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm lg:col-span-1 h-fit">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-primary-100 text-primary-600 flex items-center justify-center">
@@ -98,7 +98,7 @@ const InventoryLogs = () => {
         )}
 
         {/* Master Logging Table */}
-        <div className={`bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm ${hasPermission("inventory:manage") ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+        <div className={`bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm ${hasPermission("inventory:update_stock") ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
           <h2 className="text-xl font-bold mb-4">Master Ledger</h2>
           {loading ? <p className="text-sm text-secondary-400">Loading ledger...</p> : (
             <div className="overflow-x-auto">

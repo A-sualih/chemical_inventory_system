@@ -27,12 +27,24 @@ async function initDb() {
       name TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
-      role TEXT DEFAULT 'Viewer/Auditor',
+      role TEXT DEFAULT 'Viewer / Auditor',
       status TEXT DEFAULT 'Active',
       failed_attempts INTEGER DEFAULT 0,
-      locked_until DATETIME
+      locked_until DATETIME,
+      mfa_type TEXT DEFAULT 'none',
+      mfa_secret TEXT,
+      mfa_temp_secret TEXT,
+      mfa_phone TEXT,
+      mfa_enabled BOOLEAN DEFAULT 0
     );
   `);
+
+  // Fallback migrations for existing users
+  await db.exec(`ALTER TABLE users ADD COLUMN mfa_type TEXT DEFAULT 'none'`).catch(() => {});
+  await db.exec(`ALTER TABLE users ADD COLUMN mfa_secret TEXT`).catch(() => {});
+  await db.exec(`ALTER TABLE users ADD COLUMN mfa_temp_secret TEXT`).catch(() => {});
+  await db.exec(`ALTER TABLE users ADD COLUMN mfa_phone TEXT`).catch(() => {});
+  await db.exec(`ALTER TABLE users ADD COLUMN mfa_enabled BOOLEAN DEFAULT 0`).catch(() => {});
 
   // Chemicals table (1.3 Lifecycle)
   await db.exec(`
@@ -118,6 +130,20 @@ async function initDb() {
       capacity REAL,
       current_load REAL DEFAULT 0,
       safety_warnings TEXT
+    );
+  `);
+
+  // Audit Logs (Used by Admin, Manager, Safety, Auditor)
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      action TEXT NOT NULL,
+      details TEXT,
+      resource TEXT,
+      resource_id TEXT,
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(user_id) REFERENCES users(id)
     );
   `);
 

@@ -70,11 +70,11 @@ const AdminOnlyPage = ({ title, description }) => {
                         className="w-full bg-white border border-secondary-200 rounded-xl p-2 text-sm focus:ring-2 focus:ring-primary-500/20 outline-none"
                         disabled={u.email === 'admin@lab.com'} // Prevent lockout
                      >
-                       <option value="Admin">System Admin</option>
+                       <option value="Admin">Admin</option>
                        <option value="Lab Manager">Lab Manager</option>
                        <option value="Lab Technician">Lab Technician</option>
                        <option value="Safety Officer">Safety Officer</option>
-                       <option value="Viewer/Auditor">Viewer/Auditor</option>
+                       <option value="Viewer / Auditor">Viewer / Auditor</option>
                      </select>
                    </div>
                  </div>
@@ -86,16 +86,24 @@ const AdminOnlyPage = ({ title, description }) => {
           <h2 className="text-lg font-bold mb-4">System Access Policies</h2>
           <div className="space-y-4 text-xs">
              <div className="bg-white/10 p-4 rounded-xl border border-white/5">
-                <strong className="text-primary-400 block mb-1">Admin</strong>
-                <p className="text-secondary-400">Master control over user roles, database schema, and compliance audits.</p>
+                <strong className="text-primary-400 block mb-1">Admin (Full Control)</strong>
+                <p className="text-secondary-400">Highest authority. Can manage chemicals, approve requests, assign roles, and view all reports/logs.</p>
              </div>
              <div className="bg-white/10 p-4 rounded-xl border border-white/5">
-                <strong className="text-primary-400 block mb-1">Lab Manager</strong>
-                <p className="text-secondary-400">Can manage inventory, approve supply requests, and archive chemicals.</p>
+                <strong className="text-primary-400 block mb-1">Lab Manager (Operations)</strong>
+                <p className="text-secondary-400">Manages lab activities. Can CRUD chemicals, approve requests, and monitor inventory/reports.</p>
              </div>
              <div className="bg-white/10 p-4 rounded-xl border border-white/5">
-                <strong className="text-primary-400 block mb-1">Lab Technician</strong>
-                <p className="text-secondary-400">Can add standard chemicals and log inventory usage.</p>
+                <strong className="text-primary-400 block mb-1">Lab Technician (Daily User)</strong>
+                <p className="text-secondary-400">Works with chemicals. Can create entries, update quantities, and submit requests.</p>
+             </div>
+             <div className="bg-white/10 p-4 rounded-xl border border-white/5">
+                <strong className="text-primary-400 block mb-1">Safety Officer (Safety Control)</strong>
+                <p className="text-secondary-400">Focuses on hazard & compliance. Can view all chemicals, hazard info, and safety reports.</p>
+             </div>
+             <div className="bg-white/10 p-4 rounded-xl border border-white/5">
+                <strong className="text-primary-400 block mb-1">Viewer / Auditor (Read-Only)</strong>
+                <p className="text-secondary-400">External or internal auditor. Can view chemicals, reports, and audit logs without making changes.</p>
              </div>
           </div>
         </div>

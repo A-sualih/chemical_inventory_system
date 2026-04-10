@@ -26,7 +26,9 @@ const Chemicals = () => {
     }
   };
 
-  const canManage = hasPermission("inventory:manage");
+  const canCreate = hasPermission("chemicals:create");
+  const canEdit = hasPermission("chemicals:edit");
+  const canDelete = hasPermission("chemicals:delete");
 
   const toggleArchive = async (id) => {
     if (!window.confirm("Archive this chemical for compliance? (Soft delete)")) return;
@@ -74,7 +76,7 @@ const Chemicals = () => {
            >
              {showArchived ? "View Active" : "View Archive"}
            </button>
-           {canManage && (
+           {canCreate && (
              <button 
                onClick={() => { setEditingChemical(null); setShowForm(true); }}
                className="bg-primary-600 hover:bg-primary-500 text-white px-6 py-2.5 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-primary-600/20 active:scale-95"
@@ -122,7 +124,7 @@ const Chemicals = () => {
 
             <tbody className="divide-y divide-secondary-50">
               {filtered.map((item) => (
-                <tr key={item.id} className="hover:bg-primary-50/30 transition-all group cursor-pointer" onClick={() => { if(canManage) { setEditingChemical(item); setShowForm(true); } }}>
+                <tr key={item.id} className={`hover:bg-primary-50/30 transition-all group cursor-pointer ${!canEdit ? 'pointer-events-none' : ''}`} onClick={() => { if(canEdit) { setEditingChemical(item); setShowForm(true); } }}>
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-4">
                        <div className="w-12 h-12 rounded-2xl bg-secondary-900 text-white flex items-center justify-center font-black text-xs shadow-lg">
@@ -162,22 +164,26 @@ const Chemicals = () => {
                   </td>
                   <td className="px-8 py-6" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-center gap-3">
-                      {!item.archived && canManage && (
+                      {!item.archived && (
                         <>
-                          <button 
-                            className="w-10 h-10 flex items-center justify-center text-secondary-400 hover:text-primary-600 bg-white rounded-xl border border-secondary-200 shadow-sm transition-all hover:scale-110" 
-                            title="Edit Record"
-                            onClick={() => { setEditingChemical(item); setShowForm(true); }}
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                          </button>
-                          <button 
-                            className="w-10 h-10 flex items-center justify-center text-secondary-400 hover:text-red-500 bg-white rounded-xl border border-secondary-200 shadow-sm transition-all hover:scale-110" 
-                            title="Archive (Soft Delete)"
-                            onClick={() => toggleArchive(item.id)}
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                          </button>
+                          {canEdit && (
+                            <button 
+                              className="w-10 h-10 flex items-center justify-center text-secondary-400 hover:text-primary-600 bg-white rounded-xl border border-secondary-200 shadow-sm transition-all hover:scale-110" 
+                              title="Edit Record"
+                              onClick={() => { setEditingChemical(item); setShowForm(true); }}
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button 
+                              className="w-10 h-10 flex items-center justify-center text-secondary-400 hover:text-red-500 bg-white rounded-xl border border-secondary-200 shadow-sm transition-all hover:scale-110" 
+                              title="Archive (Soft Delete)"
+                              onClick={() => toggleArchive(item.id)}
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                          )}
                         </>
                       )}
                       <button className="w-10 h-10 flex items-center justify-center text-secondary-400 hover:text-secondary-900 bg-white rounded-xl border border-secondary-200 shadow-sm transition-all" title="View Full History">

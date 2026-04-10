@@ -1,6 +1,6 @@
 const express = require('express');
 const { getDb } = require('../db');
-const { authenticate, requireRole } = require('../authMiddleware');
+const { authenticate, requireRole, ROLES } = require('../authMiddleware');
 
 const router = express.Router();
 
@@ -21,8 +21,8 @@ router.get('/logs', authenticate, async (req, res) => {
   }
 });
 
-// Submit a new transaction (Add/Remove stock)
-router.post('/transaction', authenticate, requireRole(['Admin', 'Lab Manager', 'Lab Technician']), async (req, res) => {
+// Submit a new transaction (Add/Remove stock) (Admin, Manager, Tech)
+router.post('/transaction', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLES.LAB_TECHNICIAN]), async (req, res) => {
   const db = await getDb();
   const { chemical_id, action, quantity_change, reason } = req.body;
   const user_id = req.user.id;
@@ -76,17 +76,28 @@ router.post('/requests', authenticate, async (req, res) => {
   }
 });
 
-// View requests (Admin, Manager)
-router.get('/requests', authenticate, requireRole(['Admin', 'Lab Manager']), async (req, res) => {
+// View requests (Admin, Manager see all, others see own)
+router.get('/requests', authenticate, async (req, res) => {
   const db = await getDb();
+  const isAdminOrManager = [ROLES.ADMIN, ROLES.LAB_MANAGER].includes(req.user.role);
+  
   try {
-    const requests = await db.all(`
+    let query = `
       SELECT r.*, c.name as chemical_name, u.name as user_name 
       FROM requests r 
       JOIN chemicals c ON r.chemical_id = c.id 
       JOIN users u ON r.user_id = u.id 
-      ORDER BY r.created_at DESC
-    `);
+    `;
+    let params = [];
+    
+    if (!isAdminOrManager) {
+      query += ' WHERE r.user_id = ?';
+      params.push(req.user.id);
+    }
+    
+    query += ' ORDER BY r.created_at DESC';
+    
+    const requests = await db.all(query, params);
     res.json(requests);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -94,7 +105,7 @@ router.get('/requests', authenticate, requireRole(['Admin', 'Lab Manager']), asy
 });
 
 // Update request status (Admin, Manager)
-router.put('/requests/:id', authenticate, requireRole(['Admin', 'Lab Manager']), async (req, res) => {
+router.put('/requests/:id', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER]), async (req, res) => {
   const db = await getDb();
   const { status } = req.body;
   if (!['Approved', 'Rejected'].includes(status)) return res.status(400).json({ error: 'Invalid status' });

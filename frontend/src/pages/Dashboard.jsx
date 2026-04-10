@@ -5,7 +5,7 @@ import Layout from "../layout/Layout";
 import { useAuth } from "../AuthContext";
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const [dbStats, setDbStats] = useState({ total: 0, flammables: 0, lowStock: 0, auditScore: "94%" });
 
   useEffect(() => {
@@ -77,10 +77,12 @@ const Dashboard = () => {
              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
              Search SDS
            </button>
-           <Link to="/chemicals" className="bg-secondary-950 text-white px-5 py-2.5 rounded-2xl text-sm font-bold hover:bg-black transition-all flex items-center gap-2 shadow-xl shadow-secondary-900/10">
-             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
-             New Inventory
-           </Link>
+            {hasPermission("chemicals:create") && (
+              <Link to="/chemicals" className="bg-secondary-950 text-white px-5 py-2.5 rounded-2xl text-sm font-bold hover:bg-black transition-all flex items-center gap-2 shadow-xl shadow-secondary-900/10">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+                New Inventory
+              </Link>
+            )}
         </div>
       </div>
 
@@ -131,39 +133,41 @@ const Dashboard = () => {
           </div>
 
           {/* Pending Approvals Section */}
-          <div className="bg-secondary-950 rounded-[3rem] p-10 text-white relative overflow-hidden shadow-2xl">
-             <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 blur-[100px] rounded-full"></div>
-             <h2 className="text-2xl font-black mb-8 heading-font relative z-10">Pending Approvals</h2>
-             <div className="space-y-4 relative z-10">
-                {recentRequests.map((req, i) => (
-                  <div key={i} className="bg-white/5 border border-white/10 p-5 rounded-2xl flex items-center justify-between hover:bg-white/10 transition-all group">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-bold text-sm">
-                          {req.item[0]}
-                       </div>
-                       <div>
-                          <div className="font-bold text-sm tracking-tight">{req.item}</div>
-                          <div className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest mt-0.5">REQ BY {req.user.toUpperCase()} • {req.time}</div>
-                       </div>
+          {hasPermission("requests:approve") && (
+            <div className="bg-secondary-950 rounded-[3rem] p-10 text-white relative overflow-hidden shadow-2xl">
+               <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 blur-[100px] rounded-full"></div>
+               <h2 className="text-2xl font-black mb-8 heading-font relative z-10">Pending Approvals</h2>
+               <div className="space-y-4 relative z-10">
+                  {recentRequests.map((req, i) => (
+                    <div key={i} className="bg-white/5 border border-white/10 p-5 rounded-2xl flex items-center justify-between hover:bg-white/10 transition-all group">
+                      <div className="flex items-center gap-4">
+                         <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-bold text-sm">
+                            {req.item[0]}
+                         </div>
+                         <div>
+                            <div className="font-bold text-sm tracking-tight">{req.item}</div>
+                            <div className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest mt-0.5">REQ BY {req.user.toUpperCase()} • {req.time}</div>
+                         </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                         <span className={`text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider ${
+                           req.status === 'Approved' ? 'bg-green-500/20 text-green-400' :
+                           req.status === 'Denied' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'
+                         }`}>
+                            {req.status}
+                         </span>
+                         <Link to="/requests" className="p-2 rounded-lg bg-white/5 hover:bg-white text-white hover:text-secondary-950 transition-all opacity-0 group-hover:opacity-100">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                         </Link>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                       <span className={`text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider ${
-                         req.status === 'Approved' ? 'bg-green-500/20 text-green-400' :
-                         req.status === 'Denied' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'
-                       }`}>
-                          {req.status}
-                       </span>
-                       <button className="p-2 rounded-lg bg-white/5 hover:bg-white text-white hover:text-secondary-950 transition-all opacity-0 group-hover:opacity-100">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-                       </button>
-                    </div>
-                  </div>
-                ))}
-             </div>
-             <button className="w-full mt-8 py-4 rounded-2xl bg-primary-600 hover:bg-primary-500 text-white font-bold transition-all shadow-xl shadow-primary-600/20 active:scale-[0.98]">
-                Go to Request Center
-             </button>
-          </div>
+                  ))}
+               </div>
+               <Link to="/requests" className="block text-center w-full mt-8 py-4 rounded-2xl bg-primary-600 hover:bg-primary-500 text-white font-bold transition-all shadow-xl shadow-primary-600/20 active:scale-[0.98]">
+                  Go to Request Center
+               </Link>
+            </div>
+          )}
 
           {/* Inventory Trend (Local) */}
           <div className="bg-white rounded-[3rem] p-10 border border-secondary-100 shadow-sm relative overflow-hidden">
@@ -233,33 +237,34 @@ const Dashboard = () => {
               <button className="w-full mt-8 text-xs font-black text-secondary-400 hover:text-secondary-950 transition-colors uppercase tracking-[0.2em]">Manage All Expiries</button>
            </div>
 
-           {/* Live Activity (Local) */}
-           <div className="bg-secondary-950 rounded-[3rem] p-10 border border-white/5 shadow-2xl relative overflow-hidden">
-              <div className="absolute top-[-20%] right-[-20%] w-[60%] h-[60%] bg-primary-600/10 rounded-full blur-[80px]"></div>
-              <h2 className="text-xl font-black text-white mb-6 heading-font relative z-10">Live Activity</h2>
-              <div className="space-y-6 relative z-10">
-                {recentActivity.map((activity, i) => (
-                  <div key={i} className="flex gap-4">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary-500 mt-2 shadow-[0_0_8px_rgba(59,130,246,0.6)]"></div>
-                    <div>
-                      <div className="text-sm font-semibold text-white leading-tight">
-                        {activity.user}
-                      </div>
-                      <div className="text-xs text-secondary-400 mt-1 leading-snug">
-                        {activity.action}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-[9px] font-bold text-secondary-500 uppercase tracking-widest">{activity.time}</span>
-                        <span className="text-[9px] font-mono text-primary-400/80 bg-primary-900/40 px-1.5 py-0.5 rounded leading-none">{activity.code}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            {hasPermission("audit:view") && (
+              <div className="bg-secondary-950 rounded-[3rem] p-10 border border-white/5 shadow-2xl relative overflow-hidden">
+                 <div className="absolute top-[-20%] right-[-20%] w-[60%] h-[60%] bg-primary-600/10 rounded-full blur-[80px]"></div>
+                 <h2 className="text-xl font-black text-white mb-6 heading-font relative z-10">Live Activity</h2>
+                 <div className="space-y-6 relative z-10">
+                   {recentActivity.map((activity, i) => (
+                     <div key={i} className="flex gap-4">
+                       <div className="w-1.5 h-1.5 rounded-full bg-primary-500 mt-2 shadow-[0_0_8px_rgba(59,130,246,0.6)]"></div>
+                       <div>
+                         <div className="text-sm font-semibold text-white leading-tight">
+                           {activity.user}
+                         </div>
+                         <div className="text-xs text-secondary-400 mt-1 leading-snug">
+                           {activity.action}
+                         </div>
+                         <div className="flex items-center gap-2 mt-1.5">
+                           <span className="text-[9px] font-bold text-secondary-500 uppercase tracking-widest">{activity.time}</span>
+                           <span className="text-[9px] font-mono text-primary-400/80 bg-primary-900/40 px-1.5 py-0.5 rounded leading-none">{activity.code}</span>
+                         </div>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+                 <Link to="/inventory" className="block text-center w-full mt-8 py-3 rounded-2xl bg-white/5 border border-white/10 text-white text-xs font-bold hover:bg-white hover:text-secondary-950 transition-all">
+                   View All Audit Logs
+                 </Link>
               </div>
-              <button className="w-full mt-8 py-3 rounded-2xl bg-white/5 border border-white/10 text-white text-xs font-bold hover:bg-white hover:text-secondary-950 transition-all">
-                View All Audit Logs
-              </button>
-           </div>
+            )}
         </div>
       </div>
     </Layout>

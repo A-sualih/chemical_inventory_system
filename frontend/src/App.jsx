@@ -9,6 +9,7 @@ import ChemicalForm from './pages/ChemicalForm';
 import Requests from './pages/Requests';
 import InventoryLogs from './pages/InventoryLogs';
 import MFADemo from "./pages/MFADemo";
+import MFASetup from "./pages/MFASetup";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -29,6 +30,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/mfa-demo" element={<MFADemo />} />
+          <Route path="/mfa-setup" element={<ProtectedRoute><MFASetup /></ProtectedRoute>} />
           <Route path="/" element={
             <ProtectedRoute>
               <Dashboard />

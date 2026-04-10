@@ -306,7 +306,7 @@ function configDotenv (options) {
       }
     }
 
-    _log(`injecting env (${keysCount}) from ${shortPaths.join(',')} ${dim(`// tip: ${_getRandomTip()}`)}`)
+    _log(`injected env (${keysCount}) from ${shortPaths.join(',')} ${dim(`// tip: ${_getRandomTip()}`)}`)
   }
 
   if (lastError) {

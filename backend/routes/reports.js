@@ -1,11 +1,11 @@
 const express = require('express');
 const { getDb } = require('../db');
-const { authenticate, requireRole } = require('../authMiddleware');
+const { authenticate, requireRole, ROLES } = require('../authMiddleware');
 
 const router = express.Router();
 
 // Generate comprehensive Analytics Report (1.10)
-router.get('/analytics', authenticate, requireRole(['Admin', 'Lab Manager', 'Safety Officer', 'Viewer/Auditor']), async (req, res) => {
+router.get('/analytics', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLES.SAFETY_OFFICER, ROLES.VIEWER]), async (req, res) => {
   const db = await getDb();
   try {
     // KPI 1: Inventory Health
