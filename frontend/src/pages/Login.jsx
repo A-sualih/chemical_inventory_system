@@ -7,8 +7,7 @@ const Login = () => {
   const { login, user: currentUser } = useAuth();
   const [view, setView] = useState("login");
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("Ahmed Sualih ");
-  const [role, setRole] = useState("Admin");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -81,9 +80,9 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await axios.post('/api/auth/register', { name, email, password, role });
+      await axios.post('/api/auth/register', { name, email, password });
       setIsLoading(false);
-      alert(`Account for ${name} created as ${role}!`);
+      alert(`Account for ${name} created! Access level will be assigned by an Admin.`);
       setView("login");
     } catch (err) {
       setIsLoading(false);
@@ -131,26 +130,16 @@ const Login = () => {
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Full Name</label>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ahmed Sualih" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary-500/50 outline-none transition-all" required />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Role Type</label>
-                <select value={role} onChange={(e) => setRole(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary-500/50 outline-none appearance-none cursor-pointer">
-                  <option value="Admin" className="bg-secondary-900">System Admin</option>
-                  <option value="Lab Manager" className="bg-secondary-900">Lab Manager</option>
-                  <option value="Lab Technician" className="bg-secondary-900">Lab Technician</option>
-                  <option value="Safety Officer" className="bg-secondary-900">Safety Officer</option>
-                  <option value="Viewer/Auditor" className="bg-secondary-900">Viewer/Auditor</option>
-                </select>
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your full name" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary-500/50 outline-none transition-all" required />
               </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Email Address</label>
-                <input type="email" placeholder="appfacory@.com" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary-500/50 outline-none transition-all" required />
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary-500/50 outline-none transition-all" required />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Password</label>
-                <input type="password" placeholder="••••••••" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary-500/50 outline-none transition-all" required />
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary-500/50 outline-none transition-all" required />
               </div>
               <button type="submit" disabled={isLoading} className="w-full bg-primary-600 hover:bg-primary-500 text-white p-4 rounded-2xl font-bold transition-all shadow-lg shadow-primary-600/20 active:scale-95 disabled:opacity-50">
                 {isLoading ? "Creating Account..." : "Register Now"}

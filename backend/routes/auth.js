@@ -107,8 +107,9 @@ router.post('/register', async (req, res) => {
     if (existing) return res.status(400).json({ error: 'Email already in use' });
 
     const hash = await bcrypt.hash(password, 10);
-    // Allow role selection for local setup
-    const userRole = role || ROLES.VIEWER;
+    // User registration always defaults to Viewer / Auditor
+    // Only an Admin can promote roles via the dashboard
+    const userRole = ROLES.VIEWER;
     await db.run('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)', [name, email, hash, userRole]);
     
     res.status(201).json({ message: 'User registered successfully' });
