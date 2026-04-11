@@ -1,34 +1,35 @@
 const express = require('express');
-const { getDb } = require('../db');
+const Chemical = require('../models/Chemical');
 const { authenticate, requireRole, ROLES } = require('../authMiddleware');
 
 const router = express.Router();
 
 // Get stats for Dashboard
 router.get('/stats', authenticate, async (req, res) => {
-  const db = await getDb();
   try {
-    const totalCount = await db.get('SELECT COUNT(*) as count FROM chemicals WHERE archived = 0');
-    const flammables = await db.get('SELECT COUNT(*) as count FROM chemicals WHERE ghs_classes LIKE "%0%" AND archived = 0'); // Quick hack: index 0 is 🔥
-    const lowStock = await db.get('SELECT COUNT(*) as count FROM chemicals WHERE status = "Low Stock" AND archived = 0');
+    const totalCount = await Chemical.countDocuments({ archived: false });
+    // Quick hack: find if ghs_classes contains index 0 (Flame)
+    const flammables = await Chemical.countDocuments({ ghs_classes: '0', archived: false });
+    const lowStock = await Chemical.countDocuments({ status: "Low Stock", archived: false });
+    
     const stats = {
-      total: totalCount.count,
-      flammables: flammables.count,
-      lowStock: lowStock.count,
+      total: totalCount,
+      flammables: flammables,
+      lowStock: lowStock,
       auditScore: "94%"
     };
     res.json(stats);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
 // Get all non-archived chemicals
 router.get('/', authenticate, async (req, res) => {
-  const db = await getDb();
   try {
-    const chemicals = await db.all('SELECT * FROM chemicals WHERE archived = 0 ORDER BY created_at DESC');
-    res.json(chemicals.map(c => ({...c, ghs_classes: JSON.parse(c.ghs_classes || '[]')})));
+    const chemicals = await Chemical.find({ archived: false }).sort({ createdAt: -1 });
+    res.json(chemicals);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -36,26 +37,35 @@ router.get('/', authenticate, async (req, res) => {
 
 // Add new chemical (Manager, Tech, Admin)
 router.post('/', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLES.LAB_TECHNICIAN]), async (req, res) => {
-  const db = await getDb();
   const data = req.body;
   
-  // Generate a mock ID for now
-  const result = await db.get('SELECT COUNT(*) as count FROM chemicals');
-  const idValue = `C${String(result.count + 1).padStart(3, '0')}`;
-  
   try {
-    await db.run(`INSERT INTO chemicals 
-      (id, name, iupac_name, cas_number, formula, quantity, unit, state, purity, storage_temp, storage_humidity, supplier, batch_number, expiry_date, ghs_classes, sds_attached, location, status) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        idValue, data.name, data.iupac, data.cas, data.formula, data.quantity, data.unit, data.state, 
-        data.purity, data.storageTemp, data.storageHumidity, data.supplier, data.batch, data.expiry,
-        JSON.stringify(data.ghs || []), data.sdsAttached ? 1 : 0, data.location || 'Pending Assignment', 'In Stock'
-      ]
-    );
+    const count = await Chemical.countDocuments({});
+    const idValue = `C${String(count + 1).padStart(3, '0')}`;
+    
+    const newChem = new Chemical({
+      id: idValue,
+      name: data.name,
+      iupac_name: data.iupac,
+      cas_number: data.cas,
+      formula: data.formula,
+      quantity: data.quantity,
+      unit: data.unit,
+      state: data.state,
+      purity: data.purity,
+      storage_temp: data.storageTemp,
+      storage_humidity: data.storageHumidity,
+      supplier: data.supplier,
+      batch_number: data.batch,
+      expiry_date: data.expiry,
+      ghs_classes: data.ghs || [],
+      sds_attached: !!data.sdsAttached,
+      location: data.location || 'Pending Assignment',
+      status: 'In Stock'
+    });
 
-    const newChem = await db.get('SELECT * FROM chemicals WHERE id = ?', [idValue]);
-    res.status(201).json({...newChem, ghs_classes: JSON.parse(newChem.ghs_classes || '[]')});
+    await newChem.save();
+    res.status(201).json(newChem);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
@@ -64,32 +74,47 @@ router.post('/', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLE
 
 // Update a chemical (Admin, Manager, Tech)
 router.put('/:id', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLES.LAB_TECHNICIAN]), async (req, res) => {
-  const db = await getDb();
-  const id = req.params.id;
+  const id = req.params.id; // This is the 'id' field, not _id
   const data = req.body;
 
   try {
-    await db.run(`UPDATE chemicals SET 
-      name = ?, iupac_name = ?, cas_number = ?, formula = ?, quantity = ?, unit = ?, state = ?, purity = ?, 
-      storage_temp = ?, storage_humidity = ?, supplier = ?, batch_number = ?, expiry_date = ?, 
-      ghs_classes = ?, sds_attached = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-      [
-        data.name, data.iupac, data.cas, data.formula, data.quantity, data.unit, data.state, 
-        data.purity, data.storageTemp, data.storageHumidity, data.supplier, data.batch, data.expiry,
-        JSON.stringify(data.ghs || []), data.sdsAttached ? 1 : 0, id
-      ]
-    );
-    res.json({ message: 'Updated successfully' });
+    const chemical = await Chemical.findOne({ id: id });
+    if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
+
+    chemical.name = data.name;
+    chemical.iupac_name = data.iupac;
+    chemical.cas_number = data.cas;
+    chemical.formula = data.formula;
+    chemical.quantity = data.quantity;
+    chemical.unit = data.unit;
+    chemical.state = data.state;
+    chemical.purity = data.purity;
+    chemical.storage_temp = data.storageTemp;
+    chemical.storage_humidity = data.storageHumidity;
+    chemical.supplier = data.supplier;
+    chemical.batch_number = data.batch;
+    chemical.expiry_date = data.expiry;
+    chemical.ghs_classes = data.ghs || [];
+    chemical.sds_attached = !!data.sdsAttached;
+
+    await chemical.save();
+    res.json({ message: 'Updated successfully', chemical });
   } catch(err) {
+    console.error(err);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
 // Archive (Soft Delete) chemical (Admin, Manager ONLY)
 router.delete('/:id', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER]), async (req, res) => {
-  const db = await getDb();
   try {
-    await db.run('UPDATE chemicals SET archived = 1, status = "Archived" WHERE id = ?', [req.params.id]);
+    const chemical = await Chemical.findOne({ id: req.params.id });
+    if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
+
+    chemical.archived = true;
+    chemical.status = 'Archived';
+    await chemical.save();
+
     res.json({ message: 'Archived successfully' });
   } catch(err) {
     res.status(500).json({ error: 'Server error' });

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 
@@ -7,7 +7,6 @@ const Login = () => {
   const { login, user: currentUser } = useAuth();
   const [view, setView] = useState("login");
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -76,19 +75,6 @@ const Login = () => {
     }
   };
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      await axios.post('/api/auth/register', { name, email, password });
-      setIsLoading(false);
-      alert(`Account for ${name} created! Access level will be assigned by an Admin.`);
-      setView("login");
-    } catch (err) {
-      setIsLoading(false);
-      alert(err.response?.data?.error || "Registration failed");
-    }
-  };
 
   const handleMfa = async (e) => {
     e.preventDefault();
@@ -264,6 +250,14 @@ const Login = () => {
               </button>
             </form>
 
+            <div className="mt-8 text-center px-1">
+              <p className="text-secondary-400 text-sm font-medium">
+                New to CIMS?{" "}
+                <Link to="/register" className="text-primary-400 hover:text-primary-300 transition-colors">
+                  Create Account
+                </Link>
+              </p>
+            </div>
           </div>
         );
     }

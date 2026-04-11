@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./AuthContext";
 import Dashboard from "./pages/Dashboard";
 import Chemicals from "./pages/Chemicals";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Reports from "./pages/Reports";
 import AdminOnly from "./pages/AdminOnly";
 import ChemicalForm from './pages/ChemicalForm';
@@ -29,6 +30,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/mfa-demo" element={<MFADemo />} />
           <Route path="/mfa-setup" element={<ProtectedRoute><MFASetup /></ProtectedRoute>} />
           <Route path="/" element={

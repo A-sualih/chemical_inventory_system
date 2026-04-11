@@ -1,21 +1,29 @@
 const express = require('express');
-const { getDb } = require('../db');
+const Chemical = require('../models/Chemical');
+const InventoryLog = require('../models/InventoryLog');
+const Request = require('../models/Request');
 const { authenticate, requireRole, ROLES } = require('../authMiddleware');
 
 const router = express.Router();
 
 // Get inventory transactions
 router.get('/logs', authenticate, async (req, res) => {
-  const db = await getDb();
   try {
-    const logs = await db.all(`
-      SELECT l.*, c.name as chemical_name, u.name as user_name 
-      FROM inventory_logs l 
-      JOIN chemicals c ON l.chemical_id = c.id 
-      JOIN users u ON l.user_id = u.id 
-      ORDER BY l.timestamp DESC LIMIT 100
-    `);
-    res.json(logs);
+    const logs = await InventoryLog.find()
+      .populate('user_id', 'name')
+      .sort({ timestamp: -1 })
+      .limit(100);
+    
+    const logsWithNames = await Promise.all(logs.map(async log => {
+      const chem = await Chemical.findOne({ id: log.chemical_id });
+      return {
+        ...log.toObject(),
+        chemical_name: chem ? chem.name : 'Unknown',
+        user_name: log.user_id ? log.user_id.name : 'Unknown'
+      };
+    }));
+    
+    res.json(logsWithNames);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -23,53 +31,54 @@ router.get('/logs', authenticate, async (req, res) => {
 
 // Submit a new transaction (Add/Remove stock) (Admin, Manager, Tech)
 router.post('/transaction', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLES.LAB_TECHNICIAN]), async (req, res) => {
-  const db = await getDb();
   const { chemical_id, action, quantity_change, reason } = req.body;
   const user_id = req.user.id;
 
   try {
-    await db.run('BEGIN TRANSACTION');
-
-    // Make sure chemical exists
-    const chem = await db.get('SELECT quantity FROM chemicals WHERE id = ?', [chemical_id]);
-    if (!chem) throw new Error("Chemical not found");
+    const chem = await Chemical.findOne({ id: chemical_id });
+    if (!chem) return res.status(404).json({ error: "Chemical not found" });
 
     let newQty = chem.quantity;
     if (action === 'IN') {
-      newQty += quantity_change;
+      newQty += Number(quantity_change);
     } else if (action === 'OUT' || action === 'DISPOSAL') {
-      newQty -= quantity_change;
-      if (newQty < 0) throw new Error("Insufficient stock");
+      newQty -= Number(quantity_change);
+      if (newQty < 0) return res.status(400).json({ error: "Insufficient stock" });
     }
 
     // Update chemical quantity
-    await db.run('UPDATE chemicals SET quantity = ?, status = ? WHERE id = ?', [
-      newQty, 
-      newQty < 5 ? 'Low Stock' : 'In Stock',
-      chemical_id
-    ]);
+    chem.quantity = newQty;
+    chem.status = newQty < 5 ? 'Low Stock' : 'In Stock';
+    await chem.save();
 
     // Insert log
-    await db.run(`INSERT INTO inventory_logs (chemical_id, user_id, action, quantity_change, reason) VALUES (?, ?, ?, ?, ?)`,
-      [chemical_id, user_id, action, quantity_change, reason]
-    );
+    const log = new InventoryLog({
+      chemical_id,
+      user_id,
+      action,
+      quantity_change,
+      reason
+    });
+    await log.save();
 
-    await db.run('COMMIT');
     res.status(201).json({ message: 'Transaction recorded successfully', newQty });
   } catch (err) {
-    await db.run('ROLLBACK');
     res.status(400).json({ error: err.message });
   }
 });
 
 // Submit a request (All users)
 router.post('/requests', authenticate, async (req, res) => {
-  const db = await getDb();
   const { chemical_id, quantity, justification } = req.body;
   
   try {
-    await db.run(`INSERT INTO requests (chemical_id, user_id, quantity, justification) VALUES (?, ?, ?, ?)`, 
-      [chemical_id, req.user.id, quantity, justification]);
+    const newRequest = new Request({
+      chemical_id,
+      user_id: req.user.id,
+      quantity,
+      justification
+    });
+    await newRequest.save();
     res.status(201).json({ message: 'Request submitted successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -78,27 +87,28 @@ router.post('/requests', authenticate, async (req, res) => {
 
 // View requests (Admin, Manager see all, others see own)
 router.get('/requests', authenticate, async (req, res) => {
-  const db = await getDb();
   const isAdminOrManager = [ROLES.ADMIN, ROLES.LAB_MANAGER].includes(req.user.role);
   
   try {
-    let query = `
-      SELECT r.*, c.name as chemical_name, u.name as user_name 
-      FROM requests r 
-      JOIN chemicals c ON r.chemical_id = c.id 
-      JOIN users u ON r.user_id = u.id 
-    `;
-    let params = [];
-    
+    let query = {};
     if (!isAdminOrManager) {
-      query += ' WHERE r.user_id = ?';
-      params.push(req.user.id);
+      query.user_id = req.user.id;
     }
     
-    query += ' ORDER BY r.created_at DESC';
+    const requests = await Request.find(query)
+      .populate('user_id', 'name')
+      .sort({ created_at: -1 });
     
-    const requests = await db.all(query, params);
-    res.json(requests);
+    const requestsWithNames = await Promise.all(requests.map(async r => {
+      const chem = await Chemical.findOne({ id: r.chemical_id });
+      return {
+        ...r.toObject(),
+        chemical_name: chem ? chem.name : 'Unknown',
+        user_name: r.user_id ? r.user_id.name : 'Unknown'
+      };
+    }));
+    
+    res.json(requestsWithNames);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -106,12 +116,16 @@ router.get('/requests', authenticate, async (req, res) => {
 
 // Update request status (Admin, Manager)
 router.put('/requests/:id', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER]), async (req, res) => {
-  const db = await getDb();
   const { status } = req.body;
   if (!['Approved', 'Rejected'].includes(status)) return res.status(400).json({ error: 'Invalid status' });
 
   try {
-    await db.run('UPDATE requests SET status = ? WHERE id = ?', [status, req.params.id]);
+    const request = await Request.findById(req.params.id);
+    if (!request) return res.status(404).json({ error: 'Request not found' });
+    
+    request.status = status;
+    await request.save();
+    
     res.json({ message: 'Request updated' });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });

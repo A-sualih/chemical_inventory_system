@@ -1,49 +1,67 @@
 const express = require('express');
-const { getDb } = require('../db');
+const Chemical = require('../models/Chemical');
+const Disposal = require('../models/Disposal');
+const Request = require('../models/Request');
+const InventoryLog = require('../models/InventoryLog');
 const { authenticate, requireRole, ROLES } = require('../authMiddleware');
 
 const router = express.Router();
 
 // Generate comprehensive Analytics Report (1.10)
 router.get('/analytics', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLES.SAFETY_OFFICER, ROLES.VIEWER]), async (req, res) => {
-  const db = await getDb();
   try {
     // KPI 1: Inventory Health
-    const totalChemicals = await db.get('SELECT COUNT(*) as count FROM chemicals WHERE archived = 0');
-    const lowStock = await db.get('SELECT COUNT(*) as count FROM chemicals WHERE status = ? AND archived = 0', ['Low Stock']);
+    const totalCount = await Chemical.countDocuments({ archived: false });
+    const lowStockCount = await Chemical.countDocuments({ status: 'Low Stock', archived: false });
     
     // KPI 2: Hazards Distribution
-    const flammables = await db.get('SELECT COUNT(*) as count FROM chemicals WHERE ghs_classes LIKE ? AND archived = 0', ['%Flammable%']);
-    const toxics = await db.get('SELECT COUNT(*) as count FROM chemicals WHERE ghs_classes LIKE ? AND archived = 0', ['%Toxic%']);
-    const corrosives = await db.get('SELECT COUNT(*) as count FROM chemicals WHERE ghs_classes LIKE ? AND archived = 0', ['%Corrosive%']);
+    // Note: In a real app, you'd use a better pattern match for GHS classes
+    const flammables = await Chemical.countDocuments({ ghs_classes: /Flammable/i, archived: false });
+    const toxics = await Chemical.countDocuments({ ghs_classes: /Toxic/i, archived: false });
+    const corrosives = await Chemical.countDocuments({ ghs_classes: /Corrosive/i, archived: false });
 
     // KPI 3: Recent Activity (Last 30 Days)
-    const recentDisposals = await db.get('SELECT SUM(quantity) as total_disposed FROM disposals WHERE created_at >= date(\'now\', \'-30 days\')');
-    const recentRequests = await db.get('SELECT COUNT(*) as count FROM requests WHERE created_at >= date(\'now\', \'-30 days\') AND status = ?', ['Approved']);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const recentDisposals = await Disposal.aggregate([
+      { $match: { created_at: { $gte: thirtyDaysAgo } } },
+      { $group: { _id: null, total_disposed: { $sum: "$quantity" } } }
+    ]);
+    const recentRequestsCount = await Request.countDocuments({ 
+      created_at: { $gte: thirtyDaysAgo }, 
+      status: 'Approved' 
+    });
 
-    // Usage Trends (Aggregated by action type over time)
-    const usageData = await db.all(`
-      SELECT action, SUM(quantity_change) as total, strftime('%Y-%m', timestamp) as month
-      FROM inventory_logs
-      GROUP BY action, month
-      ORDER BY month DESC LIMIT 12
-    `);
+    // Usage Trends
+    const usageData = await InventoryLog.aggregate([
+      { 
+        $group: { 
+          _id: { 
+            action: "$action", 
+            month: { $dateToString: { format: "%Y-%m", date: "$timestamp" } } 
+          }, 
+          total: { $sum: "$quantity_change" } 
+        } 
+      },
+      { $sort: { "_id.month": -1 } },
+      { $limit: 12 }
+    ]);
 
     res.json({
       summary: {
-        total: totalChemicals.count,
-        low_stock: lowStock.count,
-        disposed_30d: Math.round(recentDisposals.total_disposed || 0) + ' L/kg',
-        approved_requests_30d: recentRequests.count
+        total: totalCount,
+        low_stock: lowStockCount,
+        disposed_30d: (recentDisposals[0]?.total_disposed || 0).toFixed(1) + ' L/kg',
+        approved_requests_30d: recentRequestsCount
       },
       hazards: [
-        { name: 'Flammable', value: flammables.count },
-        { name: 'Toxic', value: toxics.count },
-        { name: 'Corrosive', value: corrosives.count },
+        { name: 'Flammable', value: flammables },
+        { name: 'Toxic', value: toxics },
+        { name: 'Corrosive', value: corrosives },
       ],
-      usage: usageData
+      usage: usageData.map(u => ({ action: u._id.action, total: u.total, month: u._id.month }))
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Server error generating reports' });
   }
 });
