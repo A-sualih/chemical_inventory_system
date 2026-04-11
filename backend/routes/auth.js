@@ -171,6 +171,39 @@ router.delete('/users/:id', authenticate, requireRole([ROLES.ADMIN]), async (req
   }
 });
 
+// Admin ONLY: Wipe all non-admin users and their associated data
+router.post('/users/wipe-all', authenticate, requireRole([ROLES.ADMIN]), async (req, res) => {
+  const db = await getDb();
+  
+  try {
+    console.log('[MASTER WIPE] Starting system-wide personnel reset...');
+    
+    // Disable Foreign Keys temporarily to avoid cascading deletion issues during the wipe
+    await db.run('PRAGMA foreign_keys = OFF');
+    
+    // Clear all history
+    await db.run('DELETE FROM requests');
+    await db.run('DELETE FROM inventory_logs');
+    await db.run('DELETE FROM disposals');
+    await db.run('DELETE FROM audit_logs'); // Clear audit history for a clean start
+    
+    // Delete all users except the primary admin
+    const result = await db.run('DELETE FROM users WHERE email != "admin@lab.com"');
+    
+    // Re-enable Foreign Keys
+    await db.run('PRAGMA foreign_keys = ON');
+
+    // Log this final action
+    await logAudit(db, req.user.id, 'MASTER_WIPE', 'system', 0, 'Admin performed a master reset of all personnel accounts.');
+
+    res.json({ message: 'All non-admin users and their history have been removed.', count: result.changes });
+  } catch (err) {
+    console.error('[MASTER WIPE ERROR]:', err);
+    await db.run('PRAGMA foreign_keys = ON');
+    res.status(500).json({ error: 'Database reset failed: ' + err.message });
+  }
+});
+
 // Admin ONLY: Update a user's role
 router.put('/users/:id/role', authenticate, requireRole([ROLES.ADMIN]), async (req, res) => {
   const db = await getDb();
@@ -209,7 +242,6 @@ router.put('/users/:id/status', authenticate, requireRole([ROLES.ADMIN]), async 
     res.status(500).json({ error: 'Database error: ' + err.message });
   }
 });
-
 // Admin ONLY: Reset a user's password (manual override)
 router.put('/users/:id/reset-password', authenticate, requireRole([ROLES.ADMIN]), async (req, res) => {
   const { id } = req.params;
@@ -221,11 +253,8 @@ router.put('/users/:id/reset-password', authenticate, requireRole([ROLES.ADMIN])
 
     const user = await db.get('SELECT name, email FROM users WHERE id = ?', [id]);
     if (!user) return res.status(404).json({ error: 'User not found' });
-
     await db.run('UPDATE users SET password = ? WHERE id = ?', [hash, id]);
-
     await logAudit(db, req.user.id, 'PASSWORD_RESET', 'users', id, `Admin reset password for ${user.email}`);
-
     res.json({
       message: `Password for ${user.name} has been reset successfully.`,
       tempPassword
@@ -235,18 +264,14 @@ router.put('/users/:id/reset-password', authenticate, requireRole([ROLES.ADMIN])
     res.status(500).json({ error: 'Database error: ' + err.message });
   }
 });
-
 // --- MFA ROUTES ---
-
 // 1. MFA Login Verification (Step 2 of login)
 router.post('/mfa/verify', async (req, res) => {
   const { userId, code } = req.body;
   const db = await getDb();
-
   try {
     const user = await db.get('SELECT * FROM users WHERE id = ?', [userId]);
     if (!user) return res.status(404).json({ error: 'User not found' });
-
     let verified = false;
     if (user.mfa_type === 'totp') {
       verified = speakeasy.totp.verify({
@@ -258,9 +283,7 @@ router.post('/mfa/verify', async (req, res) => {
       // For SMS, we stored the OTP in mfa_temp_secret during /login
       verified = (user.mfa_temp_secret === code);
     }
-
     if (!verified) return res.status(400).json({ error: 'Invalid verification code' });
-
     // Success: Generate final token
     const token = jwt.sign(
       { id: user.id, role: user.role, name: user.name, email: user.email },
@@ -319,7 +342,6 @@ router.post('/mfa/enable', authenticate, async (req, res) => {
       await db.run('UPDATE users SET mfa_enabled = 1, mfa_type = "sms", mfa_phone = ? WHERE id = ?', [phone, req.user.id]);
       verified = true;
     }
-
     if (!verified) return res.status(400).json({ error: 'Invalid verification code' });
     res.json({ message: 'MFA enabled successfully' });
   } catch (err) {
@@ -333,5 +355,4 @@ router.post('/mfa/disable', authenticate, async (req, res) => {
   await db.run('UPDATE users SET mfa_enabled = 0, mfa_type = "none", mfa_secret = NULL, mfa_phone = NULL WHERE id = ?', [req.user.id]);
   res.json({ message: 'MFA disabled' });
 });
-
 module.exports = router;
