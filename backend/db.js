@@ -20,19 +20,20 @@ async function initDb() {
     });
     console.log('Successfully connected to MongoDB Cluster.');
 
-    // Seed default admin user
-    const adminExists = await User.findOne({ email: 'admin@lab.com' });
+    // Seed primary admin user
+    const adminExists = await User.findOne({ email: 'chemicalinventorysystem@gmail.com' });
     if (!adminExists) {
-      console.log('Seeding default admin user...');
-      const hash = await bcrypt.hash('admin123', 10);
+      console.log('Seeding primary admin user...');
+      const hash = await bcrypt.hash('Ahmed&Sualih388', 10);
       const admin = new User({
-        name: 'System Admin',
-        email: 'admin@lab.com',
+        name: 'Chemical Inventory Admin',
+        email: 'chemicalinventorysystem@gmail.com',
         password: hash,
-        role: 'Admin'
+        role: 'Admin',
+        mfa_enabled: false
       });
       await admin.save();
-      console.log('Default admin user created: admin@lab.com / admin123');
+      console.log('Primary admin user created: chemicalinventorysystem@gmail.com');
     }
   } catch (err) {
     console.error('MongoDB connection error details:');
