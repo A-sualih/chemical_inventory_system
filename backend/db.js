@@ -14,8 +14,11 @@ async function initDb() {
   }
 
   try {
-    await mongoose.connect(uri);
-    console.log('Successfully connected to MongoDB.');
+    console.log('Connecting to MongoDB Atlas...');
+    await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of default 30s
+    });
+    console.log('Successfully connected to MongoDB Cluster.');
 
     // Seed default admin user
     const adminExists = await User.findOne({ email: 'admin@lab.com' });
@@ -32,7 +35,12 @@ async function initDb() {
       console.log('Default admin user created: admin@lab.com / admin123');
     }
   } catch (err) {
-    console.error('MongoDB connection error:', err);
+    console.error('MongoDB connection error details:');
+    console.error(`- Message: ${err.message}`);
+    console.error(`- Code: ${err.code}`);
+    if (err.name === 'MongooseServerSelectionError') {
+      console.error('TIP: Check if your current IP address is whitelisted in MongoDB Atlas Network Access.');
+    }
     throw err;
   }
 }
