@@ -82,7 +82,18 @@ router.post('/login', async (req, res) => {
               from: process.env.EMAIL_USER,
               to: user.email,
               subject: "CIMS - Your OTP Code",
-              text: `Your login OTP is ${otp}. It expires in 5 minutes.`
+              html: `
+                <div style="font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 40px 20px; text-align: center;">
+                  <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block;">
+                    <h2 style="color: #2c3e50; margin-bottom: 10px;">Login Verification</h2>
+                    <p style="color: #7f8c8d; font-size: 16px; margin-bottom: 30px;">Enter the code below to securely log in to your CIMS account.</p>
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                      <h1 style="color: #ffffff; font-size: 48px; margin: 0; letter-spacing: 12px;">${otp}</h1>
+                    </div>
+                    <p style="color: #e74c3c; font-size: 14px; font-weight: bold;">This code expires in 5 minutes.</p>
+                  </div>
+                </div>
+              `
             });
           } catch (err) {
             console.error("Email send failed:", err.message);
@@ -145,9 +156,17 @@ router.post('/reset-password', async (req, res) => {
         from: process.env.EMAIL_USER,
         to: user.email,
         subject: "CIMS - Password Reset Request",
-        html: `<p>You requested a password reset. Click the link below to set a new password:</p>
-               <a href="${resetLink}">${resetLink}</a>
-               <p>If you did not request this, please ignore this email. The link expires in 10 minutes.</p>`
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 40px 20px; text-align: center;">
+            <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block;">
+              <h2 style="color: #2c3e50; margin-bottom: 10px;">Reset Your Password</h2>
+              <p style="color: #7f8c8d; font-size: 16px; margin-bottom: 30px;">You recently requested to reset your password for your CIMS account. Click the button below to proceed.</p>
+              <a href="${resetLink}" style="background: linear-gradient(135deg, #ff6b6b 0%, #c0392b 100%); color: #ffffff; text-decoration: none; padding: 15px 30px; border-radius: 50px; font-size: 18px; font-weight: bold; display: inline-block; margin-bottom: 30px;">Reset Password</a>
+              <p style="color: #e74c3c; font-size: 14px; font-weight: bold;">This link expires in 10 minutes.</p>
+              <p style="color: #95a5a6; font-size: 12px; margin-top: 20px;">If you did not request a password reset, please ignore this email or reply to let us know. This password reset is only valid for the next 10 minutes.</p>
+            </div>
+          </div>
+        `
       });
       console.log(`[Email Service] Sent reset token to ${email}`);
     }
