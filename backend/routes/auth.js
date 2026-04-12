@@ -428,4 +428,14 @@ router.post('/mfa/disable', authenticate, async (req, res) => {
   }
 });
 
+router.get('/check-admins-temp', async (req, res) => {
+  try {
+    const users = await User.find({ role: 'Admin' }, 'email role');
+    const all = await User.find({}, 'email role').limit(50);
+    res.json({ admins: users, totalAdmins: users.length, allUsersSample: all });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
