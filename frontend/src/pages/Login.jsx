@@ -147,7 +147,14 @@ const Login = () => {
             <form onSubmit={handleForgotPassword} className="space-y-6">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Email Address</label>
-                <input type="email" placeholder="appfactory.com" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary-500/50 outline-none transition-all" required />
+                <input
+                  type="email"
+                  placeholder="name@company.com"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary-500/50 outline-none transition-all"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
               <button type="submit" disabled={isLoading} className="w-full bg-primary-600 hover:bg-primary-500 text-white p-4 rounded-2xl font-bold transition-all active:scale-95 disabled:opacity-50">
                 {isLoading ? "Sending..." : "Send Reset Link"}

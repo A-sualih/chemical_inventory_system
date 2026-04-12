@@ -28,10 +28,15 @@ async function logAudit(userId, action, resource, resourceId, details) {
 }
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
+  },
+  tls: {
+    rejectUnauthorized: false
   }
 });
 
@@ -41,7 +46,7 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
     if (!user) {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
@@ -142,7 +147,7 @@ router.post('/register', async (req, res) => {
 router.post('/reset-password', async (req, res) => {
   const { email } = req.body;
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
     if (user) {
       const token = crypto.randomBytes(32).toString('hex');
       user.resetToken = token;
