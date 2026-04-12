@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import Chemicals from "./pages/Chemicals";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ResetPassword from "./pages/ResetPassword";
 import Reports from "./pages/Reports";
 import AdminOnly from "./pages/AdminOnly";
 import ChemicalForm from './pages/ChemicalForm';
@@ -31,6 +32,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/mfa-demo" element={<MFADemo />} />
           <Route path="/mfa-setup" element={<ProtectedRoute><MFASetup /></ProtectedRoute>} />
           <Route path="/" element={

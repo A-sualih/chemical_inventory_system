@@ -3,7 +3,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
-const twilio = require('twilio');
+const nodemailer = require('nodemailer');
+const otpGenerator = require('otp-generator');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const User = require('../models/User');
@@ -25,16 +27,13 @@ async function logAudit(userId, action, resource, resourceId, details) {
   }
 }
 
-const twilioSid = process.env.TWILIO_ACCOUNT_SID;
-const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
-const twilioFrom = process.env.TWILIO_PHONE_NUMBER;
-
-let twilioClient = null;
-if (twilioSid && twilioSid.startsWith('AC')) {
-  twilioClient = twilio(twilioSid, twilioAuthToken);
-} else {
-  console.log("[MFA] Twilio credentials missing or invalid. SMS will be logged to console only.");
-}
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
 
 const router = express.Router();
 
@@ -71,24 +70,24 @@ router.post('/login', async (req, res) => {
 
     // MFA check
     if (user.mfa_enabled) {
-      if (user.mfa_type === 'sms') {
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        user.mfa_temp_secret = otp;
+      if (user.mfa_type === 'email') {
+        const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false });
+        user.otp = otp;
+        user.otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
         await user.save();
 
-        console.log(`[SMS OTP] Sending ${otp} to ${user.mfa_phone}`);
-        if (twilioClient) {
+        console.log(`[Email OTP] Sending ${otp} to ${user.email}`);
           try {
-            await twilioClient.messages.create({
-              body: `Your CIMS verification code: ${otp}`,
-              from: twilioFrom,
-              to: user.mfa_phone
+            await transporter.sendMail({
+              from: process.env.EMAIL_USER,
+              to: user.email,
+              subject: "CIMS - Your OTP Code",
+              text: `Your login OTP is ${otp}. It expires in 5 minutes.`
             });
           } catch (err) {
-            console.error("Twilio send failed:", err.message);
+            console.error("Email send failed:", err.message);
           }
         }
-      }
       return res.json({ requireMfa: true, mfaType: user.mfa_type, userId: user._id });
     }
 
@@ -134,12 +133,55 @@ router.post('/reset-password', async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (user) {
-      console.log(`[Email Service] Sent reset logic to ${email}`);
+      const token = crypto.randomBytes(32).toString('hex');
+      user.resetToken = token;
+      user.resetTokenExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+      await user.save();
+
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const resetLink = `${frontendUrl}/reset-password/${token}`;
+
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: "CIMS - Password Reset Request",
+        html: `<p>You requested a password reset. Click the link below to set a new password:</p>
+               <a href="${resetLink}">${resetLink}</a>
+               <p>If you did not request this, please ignore this email. The link expires in 10 minutes.</p>`
+      });
+      console.log(`[Email Service] Sent reset token to ${email}`);
     }
-    setTimeout(() => {
-      res.json({ message: 'If that email matches an account, we have sent a reset link to it.' });
-    }, 1000);
+    // Always return generic success to prevent email scanning
+    res.json({ message: 'If that email matches an account, we have sent a reset link to it.' });
   } catch (err) {
+    console.error("Reset password error:", err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/reset-password/:token', async (req, res) => {
+  const { token } = req.params;
+  const { newPassword } = req.body;
+
+  try {
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpire: { $gt: Date.now() }
+    });
+
+    if (!user) return res.status(400).json({ error: "Invalid or expired reset token" });
+
+    // Hash new password
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetToken = undefined;
+    user.resetTokenExpire = undefined;
+    await user.save();
+
+    await logAudit(user._id, 'PASSWORD_RESET', 'users', user._id, `User successfully reset their own password via email link`);
+
+    res.json({ message: "Password has been successfully reset. You can now log in." });
+  } catch (err) {
+    console.error("Reset token verification error:", err);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -270,11 +312,13 @@ router.post('/mfa/verify', async (req, res) => {
         encoding: 'base32',
         token: code
       });
-    } else if (user.mfa_type === 'sms') {
-      verified = (user.mfa_temp_secret === code);
+    } else if (user.mfa_type === 'email') {
+      if (user.otp === code && user.otpExpiry > new Date()) {
+        verified = true;
+      }
     }
 
-    if (!verified) return res.status(400).json({ error: 'Invalid verification code' });
+    if (!verified) return res.status(400).json({ error: 'Invalid or expired verification code' });
 
     const token = jwt.sign(
       { id: user._id, role: user.role, name: user.name, email: user.email },
@@ -332,10 +376,9 @@ router.post('/mfa/enable', authenticate, async (req, res) => {
         user.mfa_temp_secret = null;
         await user.save();
       }
-    } else if (type === 'sms') {
+    } else if (type === 'email') {
       user.mfa_enabled = true;
-      user.mfa_type = 'sms';
-      user.mfa_phone = phone;
+      user.mfa_type = 'email';
       await user.save();
       verified = true;
     }

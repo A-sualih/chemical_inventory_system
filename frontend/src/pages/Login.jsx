@@ -84,7 +84,8 @@ const Login = () => {
     try {
       const { data } = await axios.post('/api/auth/mfa/verify', { userId, code: otp });
       // Authenticate with the returned token
-      localStorage.setItem('token', data.token);
+      localStorage.setItem('cims_token', data.token);
+      localStorage.setItem('cims_user', JSON.stringify(data.user));
       window.location.reload(); // Simple way to trigger AuthContext refresh
     } catch (err) {
       setIsLoading(false);

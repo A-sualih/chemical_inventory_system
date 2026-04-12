@@ -12,7 +12,11 @@ const userSchema = new mongoose.Schema({
   mfa_secret: { type: String },
   mfa_temp_secret: { type: String },
   mfa_phone: { type: String },
-  mfa_enabled: { type: Boolean, default: false }
+  mfa_enabled: { type: Boolean, default: false },
+  otp: { type: String },
+  otpExpiry: { type: Date },
+  resetToken: { type: String },
+  resetTokenExpire: { type: Date }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
