@@ -1,0 +1,92 @@
+# Chemical Inventory System: Requirements & Implementation Phasing
+
+Based on the highly detailed requirements text, this system is a robust, production-level platform designed for multi-tenant (multi-lab) environments with a strong focus on compliance (OSHA/GHS), automated safety measures, granular access control, and complete auditability.
+
+---
+
+## 1. Core Workflow Classification
+Here is how the core functionalities of the system work together, categorized by module:
+
+### 🏢 Global Structure & Isolation
+- **Multi-Lab & Department Isolation:** The system functions as a master platform that can host multiple independent labs. Each lab gets its own "workspace."
+- **Data Visibility:** A Lab Technician in Lab A cannot see the chemicals or records of Lab B unless there is an authorized cross-lab transfer.
+
+### 🔐 Authentication, Authorization & Security
+- **Authentication:** JWT-based user access, OTP resets via Email/SMS, and support for Multi-Factor Authentication (MFA). Accounts are locked after repeated failed attempts.
+- **RBAC (Role-Based Access Control):**
+  - *Admin:* Controls system settings (units, default limits, backups) and user roles. Field-level permission manipulation.
+  - *Lab Manager:* Full access to their lab's inventory, logs, costs, and purchasing.
+  - *Lab Technician:* Core operations—adds chemicals, records usage, checks out containers.
+  - *Safety Officer:* High-level environmental access—SDS (Safety Data Sheets) uploads, compliance reporting, and managing hazard parameters.
+  - *Viewer/Auditor:* Can only see if a chemical is in stock for compliance checks (Read-only, limited visibility mask).
+- **Data Encryption & Backups:** Sensitive data is scrambled (hashed/encrypted) at rest and in transit. Automated, encrypted scheduled backups with database restore functionalities.
+
+### 🧪 Chemical Lifecycle & Inventory Tracker
+- **Records Structure:** Differentiates between a "Chemical Concept" (Ethanol, CAS: 64-17-5) and specific "Containers" (500ml Bottle from Sigma Aldrich, Batch #342).
+- **History & Versioning:** Editing a chemical doesn't rewrite the database entry but adds a "new version"—this preserves historical integrity. Deleted items are "soft-deleted" and archived for safety audits.
+- **Location Mapping:** Follows a strict nested hierarchy: `Building → Room → Cabinet → Shelf`.
+- **Operations:** Covers Check-In/Check-Out (for experiments), Bulk Adjustments, Transfers (between shelves or even labs), and systematic Disposal records.
+- **FIFO (First-In-First-Out):** Smart algorithms dictate which chemical batch should be consumed first to restrict expiration waste.
+
+### ⚠️ Safety & Hazard Management (Compliance)
+- **GHS Compliance & Rule Tracking:** Enforces appropriate symbols and warnings natively. 
+- **Incompatible Chemical Check:** The system analyzes new placements. E.g., if a technician tries assigning a powerful acid to the same cabinet as a high-grade base, the system actively blocks or throws a critical alert.
+- **SDS Cloud Uploads:** SDS files aren't stored locally to bloat the database; they are routed and encrypted on cloud services (like AWS/Cloudinary) and soft-linked to the item. 
+
+### 📡 Audit, Integrating & Automatic Alerting
+- **Immutable Action Log:** Everything (login, view, checkout, backup run) is permanently logged with IP and role details.
+- **Alert Generation:** Notifications (Low threshold, Expiration, Safety Violations) ping out via Dashboard UI or Email.
+- **Integrations:** API readiness for Lab Information Systems (LIS) or company ERPs (Enterprise Resource Planning for cost controls), alongside Bulk data CSV/Excel importing parsing tools.
+
+---
+
+## 2. Implementation Phasing
+To tackle the build successfully without producing entangled architecture, here is the classification arrayed into logical implementation phases.
+
+### Phase 1: Foundational Architecture & Identity Check
+*This phase builds the barebone walls of the application and secures entry.*
+- Set up DB, schemas, ORM/query setup. 
+- Build the Multi-Tenant (Lab workspace) logical division.
+- Implement Authentication: Registration, Secure JWT Login, Password Reset, MFA setup.
+- General Admin Module: Configure default measurement units, email gateways, automated backup cron-jobs.
+
+### Phase 2: RBAC & Location Ecosystem
+*This phase ensures the right people are in the right places with the appropriate visibility.*
+- Enact Role-Based Access Control Middleware (Admin vs Technician visibility).
+- Design and build the Location Hierarchy subsystem (`Building → Room → Cabinet → Shelf`).
+- Build User Management system for the Admin (Approve users, assign to labs and roles).
+
+### Phase 3: Chemical Master Catalog & Cloud Link
+*This phase lets users define "what" exists without the quantity strings connected yet.*
+- API endpoints constraints to build base Chemical entities (Name, IUPAC, CAS Number validation).
+- SDS Document upload integrations linking to Cloud Object Storage.
+- Imbed GHS Hazard standards, tags, and symbols logic.
+- Version Control Logic (maintaining history arrays when edits occur).
+
+### Phase 4: Container Tracking & Primary Inventory Logic
+*This phase allows stock levels to populate dynamically.*
+- Implementation of Containers/Bottles mapped onto Locations.
+- Add/Remove Container functionality linking to the Chemical Master Catalog.
+- Barcode/QR generation logic embedded for physical printing labels.
+- Calculate active totals (Stock aggregation based on container levels).
+- Setup Expiry limits and logic rules.
+
+### Phase 5: Transactions, Workflows & Safety Automation
+*This phase adds movement and smart rules.*
+- Build out the FIFO algorithm to prompt older batch usage.
+- Chemical Incompatibility logic (Deny placing item X inside Cabinet Y).
+- Transfer workflows (Shelf to Shelf, Lab to Lab).
+- Track Usage/Consumption adjustments and formal Disposal protocols.
+
+### Phase 6: Immutable Auditing & Real-time Alerting
+*This phase creates the surveillance loop and transparency layer for compliance.*
+- Enforce the global Audit Triggers (Log who-what-when across ALL actions).
+- Develop system to identify and ping near-expiry chemicals or low stocks.
+- Send proactive safety alerts through Email/Dashboard popups.
+
+### Phase 7: Export, Reporting & External API Layer
+*This phase integrates external operations.*
+- Reporting Dashboard (Visual charts, tracking cost analysis).
+- Logic for exporting immutable logs/reports to Excel, CSV, and PDF layouts.
+- Developing secure API endpoints for other laboratory applications (LIS) or automated buying tools (ERP).
+- Bulk Import Parsing (letting managers quickly load an initial Excel spreadsheet of current offline inventory).
