@@ -8,7 +8,7 @@ const Reports = () => {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  if (!hasPermission("reports:view_all") && !hasPermission("reports:view_safety")) {
+  if (!hasPermission("view_reports") && !hasPermission("view_safety_info")) {
      return <div className="p-12 text-center text-red-500 font-bold">Unauthorized. Role insufficient to view compliance reports.</div>;
   }
 

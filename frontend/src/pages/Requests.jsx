@@ -25,7 +25,7 @@ const Requests = () => {
   };
 
   useEffect(() => {
-    if (hasPermission("requests:view_all") || hasPermission("requests:view_own")) {
+    if (hasPermission("approve_request") || hasPermission("submit_request")) {
       fetchRequests();
     } else {
       setLoading(false);
@@ -44,7 +44,7 @@ const Requests = () => {
       setChemicalId("");
       setQuantity("");
       setJustification("");
-      if (hasPermission("requests:approve")) fetchRequests();
+      if (hasPermission("approve_request")) fetchRequests();
     } catch (err) {
       alert("Error submitting request");
     }
@@ -69,7 +69,7 @@ const Requests = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Make a Request Panel */}
-        {hasPermission("requests:submit") && (
+        {hasPermission("submit_request") && (
           <div className="bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm lg:col-span-1 h-fit">
             <h2 className="text-xl font-bold mb-4">Request Chemicals</h2>
             <form onSubmit={handleSubmitRequest} className="space-y-4">
@@ -93,14 +93,14 @@ const Requests = () => {
         )}
 
         {/* Approval Dashboard */}
-        {(hasPermission("requests:view_all") || hasPermission("requests:view_own")) && (
-          <div className={`bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm ${hasPermission("requests:submit") ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
-            <h2 className="text-xl font-bold mb-4">{hasPermission("requests:approve") ? "Pending Approvals" : "My Requests"}</h2>
+        {(hasPermission("approve_request") || hasPermission("submit_request")) && (
+          <div className={`bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm ${hasPermission("submit_request") ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+            <h2 className="text-xl font-bold mb-4">{hasPermission("approve_request") ? "Pending Approvals" : "My Requests"}</h2>
             {loading ? <p className="text-sm text-secondary-400">Loading requests...</p> : (
               <div className="space-y-4">
                 {requests.length === 0 && <p className="text-sm text-secondary-500">No requests found.</p>}
                 {requests.map(req => (
-                  <div key={req.id} className="p-5 border border-secondary-100 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-primary-200 hover:bg-primary-50/10 transition-colors">
+                  <div key={req._id} className="p-5 border border-secondary-100 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-primary-200 hover:bg-primary-50/10 transition-colors">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-bold text-secondary-900">{req.chemical_name || req.chemical_id}</span>
@@ -122,12 +122,12 @@ const Requests = () => {
                         <span className="block text-[10px] uppercase text-secondary-400 font-bold mb-0.5">Quantity</span>
                         <span className="font-mono font-bold">{req.quantity}</span>
                       </div>
-                      {req.status === 'Pending' && hasPermission("requests:approve") && (
+                      {req.status === 'Pending' && hasPermission("approve_request") && (
                         <div className="grid grid-cols-2 gap-2 mt-1">
-                          <button onClick={() => handleAction(req.id, 'Approved')} className="bg-green-500 hover:bg-green-400 text-white rounded-lg p-1 transition-colors">
+                          <button onClick={() => handleAction(req._id, 'Approved')} className="bg-green-500 hover:bg-green-400 text-white rounded-lg p-1 transition-colors">
                             <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
                           </button>
-                          <button onClick={() => handleAction(req.id, 'Rejected')} className="bg-red-500 hover:bg-red-400 text-white rounded-lg p-1 transition-colors">
+                          <button onClick={() => handleAction(req._id, 'Rejected')} className="bg-red-500 hover:bg-red-400 text-white rounded-lg p-1 transition-colors">
                             <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
                           </button>
                         </div>

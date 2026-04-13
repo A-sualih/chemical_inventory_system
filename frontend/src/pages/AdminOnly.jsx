@@ -11,7 +11,7 @@ const AdminOnlyPage = ({ title, description }) => {
    const [loading, setLoading] = useState(true);
    const [activeTab, setActiveTab] = useState(title.includes("Audit") ? "audit" : "roles");
 
-   if (!hasPermission("roles:manage") && !hasPermission("audit:view")) {
+   if (!hasPermission("assign_roles") && !hasPermission("view_audit_logs")) {
       return <Navigate to="/" replace />;
    }
 
@@ -85,7 +85,7 @@ const AdminOnlyPage = ({ title, description }) => {
                      ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                            {users.map(u => (
-                              <div key={u.id} className="group p-6 bg-secondary-50 hover:bg-white border border-secondary-100 hover:border-primary-200 rounded-[2rem] transition-all hover:shadow-lg hover:shadow-primary-600/5 relative overflow-hidden">
+                              <div key={u._id} className="group p-6 bg-secondary-50 hover:bg-white border border-secondary-100 hover:border-primary-200 rounded-[2rem] transition-all hover:shadow-lg hover:shadow-primary-600/5 relative overflow-hidden">
                                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary-500/5 rounded-full -mr-8 -mt-8"></div>
                                  <div className="flex items-center gap-4 mb-4 relative z-10">
                                     <div className="w-12 h-12 rounded-2xl bg-secondary-900 text-white flex items-center justify-center font-black text-sm">
@@ -102,9 +102,9 @@ const AdminOnlyPage = ({ title, description }) => {
                                        <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest block mb-1.5 ml-1">Access Authority</label>
                                        <select
                                           value={u.role}
-                                          onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                                          onChange={(e) => handleRoleChange(u._id, e.target.value)}
                                           className="w-full bg-white border border-secondary-200 rounded-xl p-3 text-sm font-bold text-secondary-700 focus:ring-4 focus:ring-primary-500/10 outline-none cursor-pointer hover:border-primary-300 transition-all appearance-none"
-                                          disabled={u.email === 'admin@lab.com'}
+                                          disabled={u.email === 'chemicalinventorysystem@gmail.com'}
                                        >
                                           <option value="Admin">Admin</option>
                                           <option value="Lab Manager">Lab Manager</option>
@@ -117,8 +117,9 @@ const AdminOnlyPage = ({ title, description }) => {
                                        <button
                                           onClick={async () => {
                                              if (window.confirm(`Reset password for ${u.name}?`)) {
+
                                                 try {
-                                                   const { data } = await axios.put(`/api/auth/users/${u.id}/reset-password`);
+                                                   const { data } = await axios.put(`/api/auth/users/${u._id}/reset-password`);
                                                    alert(`Password Reset!\n\nTemporary Password: ${data.tempPassword}\n\nPlease share this securely with the user.`);
                                                 } catch (err) {
                                                    const msg = err.response?.data?.error || "Error resetting password";
@@ -135,7 +136,7 @@ const AdminOnlyPage = ({ title, description }) => {
                                              const newStatus = u.status === 'Active' ? 'Inactive' : 'Active';
                                              if (window.confirm(`${newStatus === 'Inactive' ? 'Suspend' : 'Activate'} user ${u.name}?`)) {
                                                 try {
-                                                   await axios.put(`/api/auth/users/${u.id}/status`, { status: newStatus });
+                                                   await axios.put(`/api/auth/users/${u._id}/status`, { status: newStatus });
                                                    fetchData();
                                                 } catch (err) {
                                                    alert(err.response?.data?.error || "Error updating status");
@@ -146,7 +147,7 @@ const AdminOnlyPage = ({ title, description }) => {
                                              ? 'text-secondary-400 border-secondary-200 hover:bg-secondary-100'
                                              : 'text-green-500 border-green-500/20 hover:bg-green-500 hover:text-white'
                                              }`}
-                                          disabled={u.email === 'admin@lab.com'}
+                                          disabled={u.email === 'chemicalinventorysystem@gmail.com'}
                                        >
                                           {u.status === 'Active' ? 'Suspend' : 'Activate'}
                                        </button>
@@ -154,7 +155,7 @@ const AdminOnlyPage = ({ title, description }) => {
                                           onClick={async () => {
                                              if (window.confirm(`PERMANENTLY DELETE account for ${u.name}?\nThis action cannot be undone.`)) {
                                                 try {
-                                                   await axios.delete(`/api/auth/users/${u.id}`);
+                                                   await axios.delete(`/api/auth/users/${u._id}`);
                                                    fetchData();
                                                 } catch (err) {
                                                    alert(err.response?.data?.error || "Error deleting user");
@@ -162,7 +163,7 @@ const AdminOnlyPage = ({ title, description }) => {
                                              }
                                           }}
                                           className="flex-1 text-[10px] font-bold text-red-500 hover:text-white hover:bg-red-500 py-2 rounded-lg border border-red-500/20 transition-all uppercase tracking-widest"
-                                          disabled={u.email === 'admin@lab.com'}
+                                          disabled={u.email === 'chemicalinventorysystem@gmail.com'}
                                        >
                                           Delete
                                        </button>
@@ -189,7 +190,7 @@ const AdminOnlyPage = ({ title, description }) => {
                         <div className="space-y-4">
                            {auditLogs.length === 0 && <p className="text-center py-10 text-secondary-500 font-medium">No security events recorded.</p>}
                            {auditLogs.map(log => (
-                              <div key={log.id} className="p-5 bg-secondary-50 border border-secondary-100 rounded-2xl group hover:bg-white hover:border-primary-200 transition-all">
+                              <div key={log._id} className="p-5 bg-secondary-50 border border-secondary-100 rounded-2xl group hover:bg-white hover:border-primary-200 transition-all">
                                  <div className="flex justify-between items-start mb-2">
                                     <div className="flex items-center gap-3">
                                        <span className={`w-2 h-2 rounded-full ${log.action.includes('CHANGE') ? 'bg-orange-500 shadow-[0_0_8px_#f97316]' : 'bg-primary-500 shadow-[0_0_8px_#3b82f6]'}`}></span>
@@ -198,7 +199,7 @@ const AdminOnlyPage = ({ title, description }) => {
                                     <span className="text-[10px] font-bold text-secondary-400 uppercase font-mono">{new Date(log.timestamp).toLocaleString()}</span>
                                  </div>
                                  <p className="text-sm text-secondary-600 font-medium pl-5 mb-3">{log.details}</p>
-                                 <div className="flex items-center gap-4 pl-5">
+                                 <div className="flex flex-wrap items-center gap-4 pl-5">
                                     <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-secondary-100">
                                        <span className="text-[9px] font-bold text-secondary-400 uppercase tracking-widest">Operator</span>
                                        <span className="text-[11px] font-bold text-secondary-700">{log.user_name || 'System'}</span>
@@ -207,7 +208,18 @@ const AdminOnlyPage = ({ title, description }) => {
                                        <span className="text-[9px] font-bold text-secondary-400 uppercase tracking-widest">Target</span>
                                        <span className="text-[11px] font-bold text-secondary-700">{log.resource} #{log.resource_id}</span>
                                     </div>
+                                    {log.ip_address && (
+                                       <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-secondary-100">
+                                          <span className="text-[9px] font-bold text-secondary-400 uppercase tracking-widest">IP</span>
+                                          <span className="text-[11px] font-mono font-bold text-secondary-700">{log.ip_address}</span>
+                                       </div>
+                                    )}
                                  </div>
+                                 {log.user_agent && (
+                                    <div className="mt-3 pl-5 text-[10px] text-secondary-400 font-mono truncate max-w-full opacity-60 italic" title={log.user_agent}>
+                                       {log.user_agent}
+                                    </div>
+                                 )}
                               </div>
                            ))}
                         </div>

@@ -2,13 +2,8 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = 'super_secret_jwt_key_for_cims'; 
 
-const ROLES = {
-  ADMIN: 'Admin',
-  LAB_MANAGER: 'Lab Manager',
-  LAB_TECHNICIAN: 'Lab Technician',
-  SAFETY_OFFICER: 'Safety Officer',
-  VIEWER: 'Viewer / Auditor'
-};
+const { ROLES, ROLE_PERMISSIONS } = require('./config/roles');
+const AuditLog = require('./models/AuditLog');
 
 function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -20,18 +15,48 @@ function authenticate(req, res, next) {
     req.user = decoded; 
     next();
   } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token expired', expired: true });
+    }
     res.status(401).json({ error: 'Invalid token' });
   }
 }
 
-function requireRole(allowedRoles) {
+/**
+ * Middleware to check if user has a specific permission
+ */
+function authorize(permission) {
   return (req, res, next) => {
-    if (!req.user || !allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' });
+    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const userPermissions = ROLE_PERMISSIONS[req.user.role] || [];
+    if (!userPermissions.includes(permission)) {
+      return res.status(403).json({ error: `Forbidden: Missing permission [${permission}]` });
     }
     next();
+  };
+}
+
+/**
+ * Utility to log user actions to AuditLog
+ */
+async function logAudit(req, action, details, resource, resource_id) {
+  try {
+    const auditData = {
+      user_id: req.user ? req.user.id : null,
+      user_email: req.user ? req.user.email : 'System/Anonymous',
+      action,
+      details,
+      resource,
+      resource_id,
+      ip_address: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+      user_agent: req.headers['user-agent']
+    };
+    await AuditLog.create(auditData);
+  } catch (err) {
+    console.error('Audit Log Error:', err);
   }
 }
 
-module.exports = { authenticate, requireRole, JWT_SECRET, ROLES };
+module.exports = { authenticate, authorize, logAudit, JWT_SECRET, ROLES };
 

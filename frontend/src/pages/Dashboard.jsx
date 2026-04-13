@@ -77,7 +77,7 @@ const Dashboard = () => {
              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
              Search SDS
            </button>
-            {hasPermission("chemicals:create") && (
+            {hasPermission("create_chemical") && (
               <Link to="/chemicals" className="bg-secondary-950 text-white px-5 py-2.5 rounded-2xl text-sm font-bold hover:bg-black transition-all flex items-center gap-2 shadow-xl shadow-secondary-900/10">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
                 New Inventory
@@ -133,7 +133,7 @@ const Dashboard = () => {
           </div>
 
           {/* Pending Approvals Section */}
-          {hasPermission("requests:approve") && (
+          {hasPermission("approve_request") && (
             <div className="bg-secondary-950 rounded-[3rem] p-10 text-white relative overflow-hidden shadow-2xl">
                <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 blur-[100px] rounded-full"></div>
                <h2 className="text-2xl font-black mb-8 heading-font relative z-10">Pending Approvals</h2>
@@ -237,7 +237,7 @@ const Dashboard = () => {
               <button className="w-full mt-8 text-xs font-black text-secondary-400 hover:text-secondary-950 transition-colors uppercase tracking-[0.2em]">Manage All Expiries</button>
            </div>
 
-            {hasPermission("audit:view") && (
+            {hasPermission("view_audit_logs") && (
               <div className="bg-secondary-950 rounded-[3rem] p-10 border border-white/5 shadow-2xl relative overflow-hidden">
                  <div className="absolute top-[-20%] right-[-20%] w-[60%] h-[60%] bg-primary-600/10 rounded-full blur-[80px]"></div>
                  <h2 className="text-xl font-black text-white mb-6 heading-font relative z-10">Live Activity</h2>

@@ -9,23 +9,8 @@ const crypto = require('crypto');
 require('dotenv').config();
 
 const User = require('../models/User');
-const AuditLog = require('../models/AuditLog');
-const { JWT_SECRET, authenticate, requireRole, ROLES } = require('../authMiddleware');
-
-async function logAudit(userId, action, resource, resourceId, details) {
-  try {
-    const log = new AuditLog({
-      user_id: userId,
-      action,
-      resource,
-      resource_id: resourceId,
-      details
-    });
-    await log.save();
-  } catch (err) {
-    console.error('Audit log failed', err);
-  }
-}
+const { JWT_SECRET, authenticate, authorize, logAudit, ROLES } = require('../authMiddleware');
+const { PERMISSIONS } = require('../config/roles');
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -82,12 +67,12 @@ router.post('/login', async (req, res) => {
         await user.save();
 
         console.log(`[Email OTP] Sending ${otp} to ${user.email}`);
-          try {
-            await transporter.sendMail({
-              from: process.env.EMAIL_USER,
-              to: user.email,
-              subject: "CIMS - Your OTP Code",
-              html: `
+        try {
+          await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: "CIMS - Your OTP Code",
+            html: `
                 <div style="font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 40px 20px; text-align: center;">
                   <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block;">
                     <h2 style="color: #2c3e50; margin-bottom: 10px;">Login Verification</h2>
@@ -99,13 +84,17 @@ router.post('/login', async (req, res) => {
                   </div>
                 </div>
               `
-            });
-          } catch (err) {
-            console.error("Email send failed:", err.message);
-          }
+          });
+        } catch (err) {
+          console.error("Email send failed:", err.message);
         }
+      }
       return res.json({ requireMfa: true, mfaType: user.mfa_type, userId: user._id });
     }
+
+    user.failed_attempts = 0;
+    user.locked_until = null;
+    await user.save();
 
     const token = jwt.sign(
       { id: user._id, role: user.role, name: user.name, email: user.email },
@@ -201,7 +190,7 @@ router.post('/reset-password/:token', async (req, res) => {
     user.resetTokenExpire = undefined;
     await user.save();
 
-    await logAudit(user._id, 'PASSWORD_RESET', 'users', user._id, `User successfully reset their own password via email link`);
+    await logAudit(req, 'PASSWORD_RESET', `User successfully reset their own password via email link`, 'User', user._id);
 
     res.json({ message: "Password has been successfully reset. You can now log in." });
   } catch (err) {
@@ -210,7 +199,7 @@ router.post('/reset-password/:token', async (req, res) => {
   }
 });
 
-router.get('/users', authenticate, requireRole(['Admin']), async (req, res) => {
+router.get('/users', authenticate, authorize(PERMISSIONS.ASSIGN_ROLES), async (req, res) => {
   try {
     const users = await User.find({}, 'name email role status');
     res.json(users);
@@ -219,15 +208,15 @@ router.get('/users', authenticate, requireRole(['Admin']), async (req, res) => {
   }
 });
 
-router.delete('/users/:id', authenticate, requireRole([ROLES.ADMIN]), async (req, res) => {
+router.delete('/users/:id', authenticate, authorize(PERMISSIONS.ASSIGN_ROLES), async (req, res) => {
   const { id } = req.params;
   try {
     const user = await User.findById(id);
     if (!user) return res.status(404).json({ error: 'User not found' });
-    if (user.email === 'admin@lab.com') return res.status(400).json({ error: 'Cannot delete the primary system admin' });
+    if (user.email === 'chemicalinventorysystem@gmail.com') return res.status(400).json({ error: 'Cannot delete the primary system admin' });
 
     await User.findByIdAndDelete(id);
-    await logAudit(req.user.id, 'DELETE_USER', 'users', id, `Admin deleted account for ${user.email}`);
+    await logAudit(req, 'DELETE_USER', `Admin deleted account for ${user.email}`, 'User', id);
 
     res.json({ message: `Account for ${user.name} has been deleted permanently.` });
   } catch (err) {
@@ -235,7 +224,7 @@ router.delete('/users/:id', authenticate, requireRole([ROLES.ADMIN]), async (req
   }
 });
 
-router.post('/users/wipe-all', authenticate, requireRole([ROLES.ADMIN]), async (req, res) => {
+router.post('/users/wipe-all', authenticate, authorize(PERMISSIONS.MANAGE_SETTINGS), async (req, res) => {
   try {
     // In MongoDB, we don't need to disable PRAGMAs, but we should clear collections
     // Note: This is a destructive operation
@@ -243,15 +232,16 @@ router.post('/users/wipe-all', authenticate, requireRole([ROLES.ADMIN]), async (
     const Request = require('../models/Request');
     const InventoryLog = require('../models/InventoryLog');
     const Disposal = require('../models/Disposal');
+    const AuditLog = require('../models/AuditLog');
 
     await Request.deleteMany({});
     await InventoryLog.deleteMany({});
     await Disposal.deleteMany({});
     await AuditLog.deleteMany({});
-    
-    const result = await User.deleteMany({ email: { $ne: 'admin@lab.com' } });
 
-    await logAudit(req.user.id, 'MASTER_WIPE', 'system', '0', 'Admin performed a master reset of all personnel accounts.');
+    const result = await User.deleteMany({ email: { $ne: 'chemicalinventorysystem@gmail.com' } });
+
+    await logAudit(req, 'MASTER_WIPE', 'Admin performed a master reset of all personnel accounts.', 'System', '0');
 
     res.json({ message: 'All non-admin users and their history have been removed.', count: result.deletedCount });
   } catch (err) {
@@ -259,7 +249,7 @@ router.post('/users/wipe-all', authenticate, requireRole([ROLES.ADMIN]), async (
   }
 });
 
-router.put('/users/:id/role', authenticate, requireRole([ROLES.ADMIN]), async (req, res) => {
+router.put('/users/:id/role', authenticate, authorize(PERMISSIONS.ASSIGN_ROLES), async (req, res) => {
   const { role } = req.body;
   if (!Object.values(ROLES).includes(role)) {
     return res.status(400).json({ error: 'Invalid role provided.' });
@@ -273,27 +263,27 @@ router.put('/users/:id/role', authenticate, requireRole([ROLES.ADMIN]), async (r
     targetUser.role = role;
     await targetUser.save();
 
-    await logAudit(req.user.id, 'CHANGE_ROLE', 'users', req.params.id,
-      `Changed role of ${targetUser.name} from ${oldRole} to ${role}`);
+    await logAudit(req, 'CHANGE_ROLE', `Changed role of ${targetUser.name} from ${oldRole} to ${role}`, 'User', req.params.id);
 
     res.json({ message: 'Role updated successfully', role });
   } catch (err) {
+    console.error('Role update error:', err);
     res.status(500).json({ error: 'Failed to update role' });
   }
 });
 
-router.put('/users/:id/status', authenticate, requireRole([ROLES.ADMIN]), async (req, res) => {
+router.put('/users/:id/status', authenticate, authorize(PERMISSIONS.ASSIGN_ROLES), async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body; 
+  const { status } = req.body;
   try {
     const user = await User.findById(id);
     if (!user) return res.status(404).json({ error: 'User not found' });
-    if (user.email === 'admin@lab.com') return res.status(400).json({ error: 'Cannot deactivate the primary system admin' });
+    if (user.email === 'chemicalinventorysystem@gmail.com') return res.status(400).json({ error: 'Cannot deactivate the primary system admin' });
 
     user.status = status;
     await user.save();
 
-    await logAudit(req.user.id, 'STATUS_CHANGE', 'users', id, `Admin changed status of ${user.email} to ${status}`);
+    await logAudit(req, 'STATUS_CHANGE', `Admin changed status of ${user.email} to ${status}`, 'User', id);
 
     res.json({ message: `User ${user.name} is now ${status}.`, status });
   } catch (err) {
@@ -301,7 +291,7 @@ router.put('/users/:id/status', authenticate, requireRole([ROLES.ADMIN]), async 
   }
 });
 
-router.put('/users/:id/reset-password', authenticate, requireRole([ROLES.ADMIN]), async (req, res) => {
+router.put('/users/:id/reset-password', authenticate, authorize(PERMISSIONS.ASSIGN_ROLES), async (req, res) => {
   const { id } = req.params;
   try {
     const tempPassword = 'Reset' + Math.floor(1000 + Math.random() * 9000);
@@ -313,7 +303,7 @@ router.put('/users/:id/reset-password', authenticate, requireRole([ROLES.ADMIN])
     user.password = hash;
     await user.save();
 
-    await logAudit(req.user.id, 'PASSWORD_RESET', 'users', id, `Admin reset password for ${user.email}`);
+    await logAudit(req, 'PASSWORD_RESET', `Admin reset password for ${user.email}`, 'User', id);
     res.json({
       message: `Password for ${user.name} has been reset successfully.`,
       tempPassword
@@ -322,6 +312,7 @@ router.put('/users/:id/reset-password', authenticate, requireRole([ROLES.ADMIN])
     res.status(500).json({ error: 'Database error' });
   }
 });
+
 
 router.post('/mfa/verify', async (req, res) => {
   const { userId, code } = req.body;
@@ -342,15 +333,24 @@ router.post('/mfa/verify', async (req, res) => {
       }
     }
 
-    if (!verified) return res.status(400).json({ error: 'Invalid or expired verification code' });
+    if (!verified) {
+      user.failed_attempts = (user.failed_attempts || 0) + 1;
+      if (user.failed_attempts >= 5) {
+        user.locked_until = new Date(Date.now() + 15 * 60 * 1000); // 15 mins lock
+      }
+      await user.save();
+      return res.status(400).json({ error: 'Invalid or expired verification code' });
+    }
 
     const token = jwt.sign(
       { id: user._id, role: user.role, name: user.name, email: user.email },
       JWT_SECRET,
-      { expiresIn: '8h' }
+      { expiresIn: '15m' }
     );
 
     user.mfa_temp_secret = null;
+    user.failed_attempts = 0;
+    user.locked_until = null;
     await user.save();
 
     res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });

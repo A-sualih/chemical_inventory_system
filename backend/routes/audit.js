@@ -1,11 +1,12 @@
 const express = require('express');
 const AuditLog = require('../models/AuditLog');
-const { authenticate, requireRole, ROLES } = require('../authMiddleware');
+const { authenticate, authorize } = require('../authMiddleware');
+const { PERMISSIONS } = require('../config/roles');
 
 const router = express.Router();
 
-// Get audit logs (Admin, Manager, Safety Officer, Viewer/Auditor)
-router.get('/', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLES.SAFETY_OFFICER, ROLES.VIEWER]), async (req, res) => {
+// Get audit logs
+router.get('/', authenticate, authorize(PERMISSIONS.VIEW_AUDIT_LOGS), async (req, res) => {
   try {
     const logs = await AuditLog.find()
       .populate('user_id', 'name')

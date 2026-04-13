@@ -1,6 +1,7 @@
 const express = require('express');
 const Chemical = require('../models/Chemical');
-const { authenticate, requireRole, ROLES } = require('../authMiddleware');
+const { authenticate, authorize, logAudit } = require('../authMiddleware');
+const { PERMISSIONS } = require('../config/roles');
 
 const router = express.Router();
 
@@ -8,7 +9,6 @@ const router = express.Router();
 router.get('/stats', authenticate, async (req, res) => {
   try {
     const totalCount = await Chemical.countDocuments({ archived: false });
-    // Quick hack: find if ghs_classes contains index 0 (Flame)
     const flammables = await Chemical.countDocuments({ ghs_classes: '0', archived: false });
     const lowStock = await Chemical.countDocuments({ status: "Low Stock", archived: false });
     
@@ -26,7 +26,7 @@ router.get('/stats', authenticate, async (req, res) => {
 });
 
 // Get all non-archived chemicals
-router.get('/', authenticate, async (req, res) => {
+router.get('/', authenticate, authorize(PERMISSIONS.VIEW_CHEMICALS), async (req, res) => {
   try {
     const chemicals = await Chemical.find({ archived: false }).sort({ createdAt: -1 });
     res.json(chemicals);
@@ -35,8 +35,8 @@ router.get('/', authenticate, async (req, res) => {
   }
 });
 
-// Add new chemical (Manager, Tech, Admin)
-router.post('/', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLES.LAB_TECHNICIAN]), async (req, res) => {
+// Add new chemical
+router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), async (req, res) => {
   const data = req.body;
   
   try {
@@ -65,6 +65,10 @@ router.post('/', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLE
     });
 
     await newChem.save();
+    
+    // Log Audit
+    await logAudit(req, 'Created Chemical', `Added new chemical: ${newChem.name} (${newChem.id})`, 'Chemical', newChem._id);
+
     res.status(201).json(newChem);
   } catch (err) {
     console.error(err);
@@ -72,18 +76,20 @@ router.post('/', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLE
   }
 });
 
-// Update a chemical (Admin, Manager, Tech)
-router.put('/:id', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLES.LAB_TECHNICIAN]), async (req, res) => {
-  const id = req.params.id; // This is the 'id' field, not _id
+// Update a chemical
+router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), async (req, res) => {
+  const id = req.params.id; 
   const data = req.body;
 
   try {
     const chemical = await Chemical.findOne({ id: id });
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
 
+    const oldName = chemical.name;
     chemical.name = data.name;
     chemical.iupac_name = data.iupac;
     chemical.cas_number = data.cas;
+    // ... other fields update ...
     chemical.formula = data.formula;
     chemical.quantity = data.quantity;
     chemical.unit = data.unit;
@@ -98,6 +104,10 @@ router.put('/:id', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, RO
     chemical.sds_attached = !!data.sdsAttached;
 
     await chemical.save();
+
+    // Log Audit
+    await logAudit(req, 'Updated Chemical', `Updated chemical information for ${oldName} (${chemical.id})`, 'Chemical', chemical._id);
+
     res.json({ message: 'Updated successfully', chemical });
   } catch(err) {
     console.error(err);
@@ -105,8 +115,8 @@ router.put('/:id', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, RO
   }
 });
 
-// Archive (Soft Delete) chemical (Admin, Manager ONLY)
-router.delete('/:id', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER]), async (req, res) => {
+// Archive (Soft Delete) chemical
+router.delete('/:id', authenticate, authorize(PERMISSIONS.DELETE_CHEMICAL), async (req, res) => {
   try {
     const chemical = await Chemical.findOne({ id: req.params.id });
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
@@ -114,6 +124,9 @@ router.delete('/:id', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER]
     chemical.archived = true;
     chemical.status = 'Archived';
     await chemical.save();
+
+    // Log Audit
+    await logAudit(req, 'Archived Chemical', `Archived chemical: ${chemical.name} (${chemical.id})`, 'Chemical', chemical._id);
 
     res.json({ message: 'Archived successfully' });
   } catch(err) {

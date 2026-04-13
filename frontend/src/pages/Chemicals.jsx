@@ -26,9 +26,9 @@ const Chemicals = () => {
     }
   };
 
-  const canCreate = hasPermission("chemicals:create");
-  const canEdit = hasPermission("chemicals:edit");
-  const canDelete = hasPermission("chemicals:delete");
+  const canCreate = hasPermission("create_chemical");
+  const canEdit = hasPermission("edit_chemical");
+  const canDelete = hasPermission("delete_chemical");
 
   const toggleArchive = async (id) => {
     if (!window.confirm("Archive this chemical for compliance? (Soft delete)")) return;

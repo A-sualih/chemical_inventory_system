@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
+import { jwtDecode } from 'jwt-decode';
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -9,30 +11,26 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
 
-  // Role-Permission mapping based on RBAC table
+  // Role-Permission mapping based on the NEW RBAC system
   const rolePermissions = {
     "Admin": [
-      "chemicals:view", "chemicals:create", "chemicals:edit", "chemicals:delete",
-      "requests:submit", "requests:approve", "requests:view_all",
-      "reports:view_all", "reports:view_safety",
-      "roles:manage", "audit:view", "inventory:update_stock"
+      "create_chemical", "edit_chemical", "delete_chemical", "approve_request",
+      "view_reports", "view_audit_logs", "assign_roles", "view_chemicals",
+      "submit_request", "update_stock", "view_safety_info", "manage_settings"
     ],
     "Lab Manager": [
-      "chemicals:view", "chemicals:create", "chemicals:edit",
-      "requests:submit", "requests:approve", "requests:view_all",
-      "reports:view_all", "reports:view_safety",
-      "audit:view", "inventory:update_stock"
+      "create_chemical", "edit_chemical", "approve_request",
+      "view_reports", "view_audit_logs", "view_chemicals",
+      "submit_request", "update_stock", "view_safety_info"
     ],
     "Lab Technician": [
-      "chemicals:view", "chemicals:create", "chemicals:edit",
-      "requests:submit", "requests:view_own",
-      "inventory:update_stock"
+      "view_chemicals", "create_chemical", "update_stock", "submit_request"
     ],
     "Safety Officer": [
-      "chemicals:view", "reports:view_safety", "audit:view"
+      "view_chemicals", "view_safety_info", "view_reports", "view_audit_logs"
     ],
     "Viewer / Auditor": [
-      "chemicals:view", "reports:view_all", "audit:view"
+      "view_chemicals", "view_reports", "view_audit_logs"
     ]
   };
 
@@ -49,9 +47,21 @@ export const AuthProvider = ({ children }) => {
     const savedUser = localStorage.getItem('cims_user');
     
     if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-      axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
+      try {
+        const decoded = jwtDecode(savedToken);
+        const currentTime = Date.now() / 1000;
+        if (decoded.exp < currentTime) {
+          // Token is already expired!
+          logout();
+          setSessionExpired(true);
+        } else {
+          setToken(savedToken);
+          setUser(JSON.parse(savedUser));
+          axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
+        }
+      } catch (err) {
+        logout();
+      }
     }
     
     // Auto-logout interceptor built in a modern robust way

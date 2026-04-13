@@ -60,7 +60,7 @@ const InventoryLogs = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Rapid Logging Panel */}
-        {hasPermission("inventory:update_stock") && (
+        {hasPermission("update_stock") && (
           <div className="bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm lg:col-span-1 h-fit">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-primary-100 text-primary-600 flex items-center justify-center">
@@ -98,7 +98,7 @@ const InventoryLogs = () => {
         )}
 
         {/* Master Logging Table */}
-        <div className={`bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm ${hasPermission("inventory:update_stock") ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+        <div className={`bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm ${hasPermission("update_stock") ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
           <h2 className="text-xl font-bold mb-4">Master Ledger</h2>
           {loading ? <p className="text-sm text-secondary-400">Loading ledger...</p> : (
             <div className="overflow-x-auto">
@@ -118,7 +118,7 @@ const InventoryLogs = () => {
                     <tr><td colSpan="6" className="p-4 text-center text-secondary-500">No transactions recorded yet.</td></tr>
                   )}
                   {logs.map(log => (
-                    <tr key={log.id} className="border-b border-secondary-50/50 hover:bg-secondary-50/50 transition-colors">
+                    <tr key={log._id} className="border-b border-secondary-50/50 hover:bg-secondary-50/50 transition-colors">
                       <td className="p-4 text-secondary-500">{new Date(log.timestamp).toLocaleString()}</td>
                       <td className="p-4 font-bold text-secondary-900">{log.chemical_name || log.chemical_id}</td>
                       <td className="p-4">

@@ -2,12 +2,13 @@ const express = require('express');
 const Chemical = require('../models/Chemical');
 const InventoryLog = require('../models/InventoryLog');
 const Request = require('../models/Request');
-const { authenticate, requireRole, ROLES } = require('../authMiddleware');
+const { authenticate, authorize, logAudit } = require('../authMiddleware');
+const { PERMISSIONS, ROLE_PERMISSIONS } = require('../config/roles');
 
 const router = express.Router();
 
 // Get inventory transactions
-router.get('/logs', authenticate, async (req, res) => {
+router.get('/logs', authenticate, authorize(PERMISSIONS.VIEW_AUDIT_LOGS), async (req, res) => {
   try {
     const logs = await InventoryLog.find()
       .populate('user_id', 'name')
@@ -29,8 +30,8 @@ router.get('/logs', authenticate, async (req, res) => {
   }
 });
 
-// Submit a new transaction (Add/Remove stock) (Admin, Manager, Tech)
-router.post('/transaction', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLES.LAB_TECHNICIAN]), async (req, res) => {
+// Submit a new transaction (Add/Remove stock)
+router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), async (req, res) => {
   const { chemical_id, action, quantity_change, reason } = req.body;
   const user_id = req.user.id;
 
@@ -61,17 +62,21 @@ router.post('/transaction', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MA
     });
     await log.save();
 
+    // Log Audit
+    await logAudit(req, 'Inventory Transaction', `${action}: ${quantity_change} units for ${chem.name} (${reason})`, 'Chemical', chem._id);
+
     res.status(201).json({ message: 'Transaction recorded successfully', newQty });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-// Submit a request (All users)
-router.post('/requests', authenticate, async (req, res) => {
+// Submit a request
+router.post('/requests', authenticate, authorize(PERMISSIONS.SUBMIT_REQUEST), async (req, res) => {
   const { chemical_id, quantity, justification } = req.body;
   
   try {
+    const chem = await Chemical.findOne({ id: chemical_id });
     const newRequest = new Request({
       chemical_id,
       user_id: req.user.id,
@@ -79,19 +84,23 @@ router.post('/requests', authenticate, async (req, res) => {
       justification
     });
     await newRequest.save();
+
+    // Log Audit
+    await logAudit(req, 'Usage Request', `Submitted request for ${quantity} of ${chem ? chem.name : chemical_id}`, 'Request', newRequest._id);
+
     res.status(201).json({ message: 'Request submitted successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// View requests (Admin, Manager see all, others see own)
+// View requests
 router.get('/requests', authenticate, async (req, res) => {
-  const isAdminOrManager = [ROLES.ADMIN, ROLES.LAB_MANAGER].includes(req.user.role);
+  const canApprove = (ROLE_PERMISSIONS[req.user.role] || []).includes(PERMISSIONS.APPROVE_REQUEST);
   
   try {
     let query = {};
-    if (!isAdminOrManager) {
+    if (!canApprove) {
       query.user_id = req.user.id;
     }
     
@@ -114,8 +123,8 @@ router.get('/requests', authenticate, async (req, res) => {
   }
 });
 
-// Update request status (Admin, Manager)
-router.put('/requests/:id', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER]), async (req, res) => {
+// Update request status (Approve/Reject)
+router.put('/requests/:id', authenticate, authorize(PERMISSIONS.APPROVE_REQUEST), async (req, res) => {
   const { status } = req.body;
   if (!['Approved', 'Rejected'].includes(status)) return res.status(400).json({ error: 'Invalid status' });
 
@@ -125,6 +134,9 @@ router.put('/requests/:id', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MA
     
     request.status = status;
     await request.save();
+
+    // Log Audit
+    await logAudit(req, `Request ${status}`, `${status} usage request for ${request.chemical_id}`, 'Request', request._id);
     
     res.json({ message: 'Request updated' });
   } catch (err) {

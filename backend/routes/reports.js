@@ -3,12 +3,13 @@ const Chemical = require('../models/Chemical');
 const Disposal = require('../models/Disposal');
 const Request = require('../models/Request');
 const InventoryLog = require('../models/InventoryLog');
-const { authenticate, requireRole, ROLES } = require('../authMiddleware');
+const { authenticate, authorize } = require('../authMiddleware');
+const { PERMISSIONS } = require('../config/roles');
 
 const router = express.Router();
 
-// Generate comprehensive Analytics Report (1.10)
-router.get('/analytics', authenticate, requireRole([ROLES.ADMIN, ROLES.LAB_MANAGER, ROLES.SAFETY_OFFICER, ROLES.VIEWER]), async (req, res) => {
+// Generate comprehensive Analytics Report
+router.get('/analytics', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), async (req, res) => {
   try {
     // KPI 1: Inventory Health
     const totalCount = await Chemical.countDocuments({ archived: false });
