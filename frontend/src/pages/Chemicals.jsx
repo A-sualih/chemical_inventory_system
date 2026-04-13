@@ -17,6 +17,32 @@ const Chemicals = () => {
     fetchChemicals();
   }, []);
 
+  // Hardware Scanner Listener
+  useEffect(() => {
+    if (searchTerm.startsWith("CIMS:")) {
+      try {
+        const parts = searchTerm.split('|');
+        const idPart = parts[0]; 
+        const extractedId = idPart.split(':')[1]; 
+        
+        const found = chemicals.find(c => c.id === extractedId);
+        if (found) {
+          // Clear the scanner input
+          setSearchTerm("");
+          // Automatically open the record
+          if (canEdit) {
+            setEditingChemical(found);
+            setShowForm(true);
+          } else {
+            setSearchTerm(extractedId); // Just filter it for read-only users
+          }
+        }
+      } catch (e) {
+        console.error("Scanner parse error", e);
+      }
+    }
+  }, [searchTerm, chemicals]);
+
   const fetchChemicals = async () => {
     try {
       const { data } = await axios.get('/api/chemicals');
@@ -30,13 +56,18 @@ const Chemicals = () => {
   const canEdit = hasPermission("edit_chemical");
   const canDelete = hasPermission("delete_chemical");
 
-  const toggleArchive = async (id) => {
-    if (!window.confirm("Archive this chemical for compliance? (Soft delete)")) return;
+  const toggleArchive = async (id, isCurrentlyArchived) => {
+    const msg = isCurrentlyArchived ? "Restore this chemical to active inventory?" : "Archive this chemical for compliance? (Soft delete)";
+    if (!window.confirm(msg)) return;
     try {
-      await axios.delete(`/api/chemicals/${id}`);
+      if (isCurrentlyArchived) {
+        await axios.put(`/api/chemicals/${id}/restore`);
+      } else {
+        await axios.delete(`/api/chemicals/${id}`);
+      }
       fetchChemicals();
     } catch (err) {
-      alert("Error archiving chemical.");
+      alert("Error updating chemical state.");
     }
   };
 
@@ -95,10 +126,11 @@ const Chemicals = () => {
           <div className="relative w-full max-w-xl">
             <input 
               type="text" 
-              placeholder="Search by name, ID or CAS..." 
+              placeholder="Search or scan a barcode (CIMS-TAG)..." 
               className="w-full bg-white border border-secondary-200 rounded-[1.5rem] pl-14 pr-4 py-4 text-sm focus:ring-4 focus:ring-primary-500/10 outline-none hover:border-primary-300 transition-all font-medium"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              autoFocus
             />
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 absolute left-5 top-4 text-secondary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -179,12 +211,21 @@ const Chemicals = () => {
                             <button 
                               className="w-10 h-10 flex items-center justify-center text-secondary-400 hover:text-red-500 bg-white rounded-xl border border-secondary-200 shadow-sm transition-all hover:scale-110" 
                               title="Archive (Soft Delete)"
-                              onClick={() => toggleArchive(item.id)}
+                              onClick={() => toggleArchive(item.id, false)}
                             >
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                           )}
                         </>
+                      )}
+                      {item.archived && canDelete && (
+                         <button 
+                           className="w-10 h-10 flex items-center justify-center text-secondary-400 hover:text-green-500 bg-white rounded-xl border border-secondary-200 shadow-sm transition-all hover:scale-110" 
+                           title="Restore to Active Inventory"
+                           onClick={() => toggleArchive(item.id, true)}
+                         >
+                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                         </button>
                       )}
                       <button className="w-10 h-10 flex items-center justify-center text-secondary-400 hover:text-secondary-900 bg-white rounded-xl border border-secondary-200 shadow-sm transition-all" title="View Full History">
                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>

@@ -2,6 +2,15 @@ const express = require('express');
 const Chemical = require('../models/Chemical');
 const { authenticate, authorize, logAudit } = require('../authMiddleware');
 const { PERMISSIONS } = require('../config/roles');
+const QRCode = require('qrcode');
+const multer = require('multer');
+const path = require('path');
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, './uploads/'),
+  filename: (req, file, cb) => cb(null, `sds-${Date.now()}${path.extname(file.originalname)}`)
+});
+const upload = multer({ storage });
 
 const router = express.Router();
 
@@ -25,10 +34,10 @@ router.get('/stats', authenticate, async (req, res) => {
   }
 });
 
-// Get all non-archived chemicals
+// Get all chemicals (active and archived)
 router.get('/', authenticate, authorize(PERMISSIONS.VIEW_CHEMICALS), async (req, res) => {
   try {
-    const chemicals = await Chemical.find({ archived: false }).sort({ createdAt: -1 });
+    const chemicals = await Chemical.find({}).sort({ createdAt: -1 });
     res.json(chemicals);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -36,12 +45,40 @@ router.get('/', authenticate, authorize(PERMISSIONS.VIEW_CHEMICALS), async (req,
 });
 
 // Add new chemical
-router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), async (req, res) => {
+router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.single('sds_file'), async (req, res) => {
   const data = req.body;
   
+  const casRegex = /^\d{2,7}-\d{2}-\d$/;
+  if (data.cas && !casRegex.test(data.cas)) {
+    return res.status(400).json({ error: 'Invalid CAS number format.' });
+  }
+
+  let parsedGhs = data.ghs;
+  if (typeof parsedGhs === 'string') {
+    try { parsedGhs = JSON.parse(parsedGhs); } catch (e) { parsedGhs = []; }
+  }
+
   try {
-    const count = await Chemical.countDocuments({});
-    const idValue = `C${String(count + 1).padStart(3, '0')}`;
+    // Generate a guaranteed unique ID
+    let isUnique = false;
+    const baseCount = await Chemical.countDocuments({});
+    let attempt = baseCount + 1;
+    let idValue = '';
+    
+    while (!isUnique) {
+      idValue = `C${String(attempt).padStart(3, '0')}`;
+      const existing = await Chemical.findOne({ id: idValue });
+      if (!existing) {
+        isUnique = true;
+      } else {
+        attempt++;
+      }
+    }
+    
+    // Check if new file was attached
+    const hasSdsFile = !!req.file;
+    const sdsFileName = hasSdsFile ? req.file.originalname : undefined;
+    const sdsFileUrl = hasSdsFile ? `/uploads/${req.file.filename}` : undefined;
     
     const newChem = new Chemical({
       id: idValue,
@@ -49,17 +86,20 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), async (re
       iupac_name: data.iupac,
       cas_number: data.cas,
       formula: data.formula,
-      quantity: data.quantity,
+      quantity: Number(data.quantity) || 0,
       unit: data.unit,
       state: data.state,
       purity: data.purity,
+      concentration: data.concentration,
       storage_temp: data.storageTemp,
       storage_humidity: data.storageHumidity,
       supplier: data.supplier,
       batch_number: data.batch,
       expiry_date: data.expiry,
-      ghs_classes: data.ghs || [],
-      sds_attached: !!data.sdsAttached,
+      ghs_classes: parsedGhs || [],
+      sds_attached: hasSdsFile || data.sdsAttached === 'true',
+      sds_file_name: sdsFileName,
+      sds_file_url: sdsFileUrl,
       location: data.location || 'Pending Assignment',
       status: 'In Stock'
     });
@@ -77,9 +117,19 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), async (re
 });
 
 // Update a chemical
-router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), async (req, res) => {
+router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.single('sds_file'), async (req, res) => {
   const id = req.params.id; 
   const data = req.body;
+
+  const casRegex = /^\d{2,7}-\d{2}-\d$/;
+  if (data.cas && !casRegex.test(data.cas)) {
+    return res.status(400).json({ error: 'Invalid CAS number format.' });
+  }
+
+  let parsedGhs = data.ghs;
+  if (typeof parsedGhs === 'string') {
+    try { parsedGhs = JSON.parse(parsedGhs); } catch (e) { parsedGhs = []; }
+  }
 
   try {
     const chemical = await Chemical.findOne({ id: id });
@@ -89,19 +139,27 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), async (re
     chemical.name = data.name;
     chemical.iupac_name = data.iupac;
     chemical.cas_number = data.cas;
-    // ... other fields update ...
     chemical.formula = data.formula;
-    chemical.quantity = data.quantity;
+    chemical.quantity = Number(data.quantity) || 0;
     chemical.unit = data.unit;
     chemical.state = data.state;
     chemical.purity = data.purity;
+    chemical.concentration = data.concentration;
     chemical.storage_temp = data.storageTemp;
     chemical.storage_humidity = data.storageHumidity;
     chemical.supplier = data.supplier;
     chemical.batch_number = data.batch;
     chemical.expiry_date = data.expiry;
-    chemical.ghs_classes = data.ghs || [];
-    chemical.sds_attached = !!data.sdsAttached;
+    chemical.location = data.location || chemical.location;
+    chemical.ghs_classes = parsedGhs || [];
+    
+    if (req.file) {
+      chemical.sds_attached = true;
+      chemical.sds_file_name = req.file.originalname;
+      chemical.sds_file_url = `/uploads/${req.file.filename}`;
+    } else {
+      chemical.sds_attached = data.sdsAttached === 'true' || chemical.sds_attached;
+    }
 
     await chemical.save();
 
@@ -131,6 +189,41 @@ router.delete('/:id', authenticate, authorize(PERMISSIONS.DELETE_CHEMICAL), asyn
     res.json({ message: 'Archived successfully' });
   } catch(err) {
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Restore Archived chemical
+router.put('/:id/restore', authenticate, authorize(PERMISSIONS.DELETE_CHEMICAL), async (req, res) => {
+  try {
+    const chemical = await Chemical.findOne({ id: req.params.id });
+    if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
+
+    chemical.archived = false;
+    chemical.status = 'In Stock';
+    await chemical.save();
+
+    // Log Audit
+    await logAudit(req, 'Restored Chemical', `Restored chemical from archive: ${chemical.name} (${chemical.id})`, 'Chemical', chemical._id);
+
+    res.json({ message: 'Restored successfully' });
+  } catch(err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Generate QR Code for a chemical
+router.get('/:id/qrcode', authenticate, async (req, res) => {
+  try {
+    const chemical = await Chemical.findOne({ id: req.params.id });
+    if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
+    
+    // Data encoded into the QR code
+    const qrData = `CIMS:${chemical.id}|CAS:${chemical.cas_number || 'N/A'}|${chemical.name}`;
+    const qrImage = await QRCode.toDataURL(qrData);
+    
+    res.json({ qrCode: qrImage });
+  } catch (err) {
+    res.status(500).json({ error: 'QR Generation failed' });
   }
 });
 

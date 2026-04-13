@@ -8,11 +8,14 @@ const inventoryRoutes = require('./routes/inventory');
 const reportsRoutes = require('./routes/reports');
 const auditRoutes = require('./routes/audit');
 
+const path = require('path');
+
 const app = express();
 const PORT = 5001;
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Initialize Database
 initDb().then(() => {
