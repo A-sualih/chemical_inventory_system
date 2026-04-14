@@ -12,6 +12,8 @@ import Requests from './pages/Requests';
 import InventoryLogs from './pages/InventoryLogs';
 import MFADemo from "./pages/MFADemo";
 import MFASetup from "./pages/MFASetup";
+import DisposalForm from "./pages/DisposalForm";
+
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -49,6 +51,8 @@ function App() {
           <Route path="/chemicals/edit/:id" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician"]}><ChemicalForm /></ProtectedRoute>} />
           <Route path="/requests" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer/Auditor"]}><Requests /></ProtectedRoute>} />
           <Route path="/logs" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer/Auditor"]}><InventoryLogs /></ProtectedRoute>} />
+          <Route path="/disposal" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician"]}><DisposalForm /></ProtectedRoute>} />
+
           <Route path="/reports" element={
             <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer/Auditor"]}>
               <Reports />
