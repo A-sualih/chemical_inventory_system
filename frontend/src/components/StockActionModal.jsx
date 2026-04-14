@@ -1,36 +1,57 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
-const StockActionModal = ({ chemical, onClose, onSuccess }) => {
-  const [action, setAction] = useState("OUT"); 
+const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
+  const [action, setAction] = useState(initialAction || "OUT"); 
   const [amount, setAmount] = useState("");
   const [unit, setUnit] = useState(chemical.unit || "L");
   const [reason, setReason] = useState("");
   const [newLocation, setNewLocation] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  // New Detailed Fields
-  const [batchNumber, setBatchNumber] = useState(chemical.batch_number || "");
+  
+  // High-Resolution Tracking Fields (Combined for IN/OUT/TRANSFER/DISPOSAL)
+  const [batch, setBatch] = useState(chemical.batch_number || "");
+  const [mfgDate, setMfgDate] = useState("");
+  const [purchaseDate, setPurchaseDate] = useState("");
+  const [expiry, setExpiry] = useState(chemical.expiry_date ? chemical.expiry_date.split('T')[0] : "");
+  const [numContainers, setNumContainers] = useState("1");
+  const [qtyPerContainer, setQtyPerContainer] = useState("");
+  const [containerType, setContainerType] = useState(chemical.container_type || "Plastic Bottle");
+  const [containerId, setContainerId] = useState("");
   const [building, setBuilding] = useState(chemical.building || "");
   const [room, setRoom] = useState(chemical.room || "");
   const [cabinet, setCabinet] = useState(chemical.cabinet || "");
   const [shelf, setShelf] = useState(chemical.shelf || "");
+  const [supplier, setSupplier] = useState(chemical.supplier || "");
+  const [remarks, setRemarks] = useState("");
+
+  // Usage Details (OUT specific)
   const [experimentName, setExperimentName] = useState("");
   const [department, setDepartment] = useState("");
+
+  // Disposal Specific
   const [disposalMethod, setDisposalMethod] = useState("");
   const [disposalApprovedBy, setDisposalApprovedBy] = useState("");
   const [disposalApprovedRole, setDisposalApprovedRole] = useState("safety_officer");
   const [complianceNotes, setComplianceNotes] = useState("");
 
-  // Transfer Fields
+  // Transfer specific
   const [toBuilding, setToBuilding] = useState("");
   const [toRoom, setToRoom] = useState("");
   const [toCabinet, setToCabinet] = useState("");
   const [toShelf, setToShelf] = useState("");
-  const [containerId, setContainerId] = useState("");
   const [numContainersMoved, setNumContainersMoved] = useState(1);
   const [transferApprovedBy, setTransferApprovedBy] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Auto-calculate amount for IN action based on container count
+  useEffect(() => {
+    if (action === 'IN') {
+      const total = (Number(numContainers) || 0) * (Number(qtyPerContainer) || 0);
+      if (total > 0) setAmount(total.toString());
+    }
+  }, [numContainers, qtyPerContainer, action]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,28 +62,49 @@ const StockActionModal = ({ chemical, onClose, onSuccess }) => {
       await axios.post("/api/inventory/transaction", {
         chemical_id: chemical.id,
         action,
-        quantity_change: action === 'TRANSFER' ? Number(amount) : Number(amount), // In transfer, we can still record the volume moved
+        quantity_change: Number(amount),
         unit,
-        reason,
-        new_location: newLocation,
+        reason: action === 'IN' ? (remarks || reason) : reason,
+        
+        // Batch & Identity
+        batch,
+        batch_number: batch, // Alias for backward compatibility
+        mfgDate,
+        purchaseDate,
+        expiry,
+        
+        // Container info
+        numContainers,
+        qtyPerContainer,
+        containerType,
+        containerId,
+        
+        // Location Info
+        building,
+        room,
+        cabinet,
+        shelf,
+        new_location: action === 'TRANSFER' ? newLocation : undefined,
+
+        // Transfer details
         to_building: toBuilding,
         to_room: toRoom,
         to_cabinet: toCabinet,
         to_shelf: toShelf,
-        batch_number: batchNumber,
-        building: building, // Source Building
-        room: room,
-        cabinet: cabinet,
-        shelf: shelf,
+        num_containers_moved: action === 'TRANSFER' ? numContainersMoved : undefined,
+        transfer_approved_by: transferApprovedBy,
+
+        // Usage / Audit Info
+        supplier,
+        remarks,
         experiment_name: experimentName,
         department,
+        
+        // Disposal specific
         disposal_method: disposalMethod,
         disposal_approved_by: disposalApprovedBy,
         disposal_approved_role: disposalApprovedRole,
         compliance_notes: complianceNotes,
-        container_id: containerId,
-        num_containers_moved: numContainersMoved,
-        transfer_approved_by: transferApprovedBy
       });
       onSuccess();
       onClose();
@@ -77,7 +119,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess }) => {
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-secondary-900/40 backdrop-blur-sm" onClick={onClose}></div>
       
-      <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-secondary-100 flex flex-col max-h-[90vh]">
+      <div className={`relative w-full ${action === 'IN' || action === 'OUT' ? 'max-w-3xl' : 'max-w-2xl'} bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-secondary-100 flex flex-col max-h-[90vh]`}>
         <div className="p-8 border-b border-secondary-50 bg-white sticky top-0 z-10">
           <div className="flex justify-between items-center">
             <div>
@@ -85,7 +127,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess }) => {
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-secondary-500 text-sm font-medium">{chemical.name}</span>
                 <span className="w-1 h-1 rounded-full bg-secondary-300"></span>
-                <span className="text-primary-600 text-xs font-bold bg-primary-50 px-2 py-0.5 rounded-full">{chemical.id}</span>
+                <span className="text-primary-600 text-xs font-bold bg-primary-50 px-2 py-0.5 rounded-full">{chemical.container_id_series || chemical.id}</span>
               </div>
             </div>
             <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-full bg-secondary-50 text-secondary-400 hover:text-secondary-600 hover:bg-secondary-100 transition-all">
@@ -123,7 +165,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Left Column: Core Data */}
+              {/* Left Column: Primary Data */}
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="group">
@@ -135,6 +177,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess }) => {
                       onChange={e => setAmount(e.target.value)}
                       className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-mono font-bold"
                       placeholder="0.00"
+                      readOnly={action === 'IN'}
                       required
                     />
                   </div>
@@ -150,20 +193,44 @@ const StockActionModal = ({ chemical, onClose, onSuccess }) => {
                           <option value="L">L</option>
                           <option value="mL">mL</option>
                         </>
-                      ) : chemical.state === 'Solid' ? (
+                      ) : (
                         <>
                           <option value="kg">kg</option>
                           <option value="g">g</option>
-                        </>
-                      ) : (
-                        <>
-                          <option value="L">L</option>
-                          <option value="kg">kg</option>
                         </>
                       )}
                     </select>
                   </div>
                 </div>
+
+                {action === 'IN' && (
+                  <div className="space-y-6 animate-in slide-in-from-top-2 duration-300">
+                    <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-green-500 pl-3 uppercase tracking-wider">📦 Batch & Container Initialization</h3>
+                    <div className="group">
+                      <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block">Batch / Lot Number 🔥</label>
+                      <input type="text" value={batch} onChange={e => setBatch(e.target.value)} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-4 text-sm font-mono font-bold text-primary-600" placeholder="LOT-2026-A" required />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="group">
+                        <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Count (Units)</label>
+                        <input type="number" value={numContainers} onChange={e => setNumContainers(e.target.value)} className="w-full bg-secondary-50 border border-secondary-100 rounded-lg p-3 text-sm font-bold" />
+                      </div>
+                      <div className="group">
+                        <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Qty / Unit</label>
+                        <input type="number" value={qtyPerContainer} onChange={e => setQtyPerContainer(e.target.value)} className="w-full bg-secondary-50 border border-secondary-100 rounded-lg p-3 text-sm font-bold" placeholder="1.0" required={action === 'IN'} />
+                      </div>
+                    </div>
+                    <div className="group">
+                      <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Container Type</label>
+                      <select value={containerType} onChange={e => setContainerType(e.target.value)} className="w-full bg-secondary-50 border border-secondary-100 rounded-lg p-3 text-sm font-bold">
+                        <option value="Plastic Bottle">Plastic Bottle</option>
+                        <option value="Glass Bottle">Glass Bottle</option>
+                        <option value="Drum">Drum</option>
+                        <option value="Vial">Vial</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
 
                 {action === 'TRANSFER' && (
                   <div className="space-y-6 animate-in slide-in-from-top-2 pt-4">
@@ -231,165 +298,117 @@ const StockActionModal = ({ chemical, onClose, onSuccess }) => {
                         />
                       </div>
                     </div>
-                    <div className="group">
-                      <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Approved By (Optional)</label>
-                      <input 
-                        type="text" 
-                        value={transferApprovedBy} 
-                        onChange={e => setTransferApprovedBy(e.target.value)}
-                        className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all font-bold"
-                        placeholder="Lab Manager / Supervisor"
-                      />
-                    </div>
                   </div>
                 )}
 
                 <div className="group">
-                  <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Reason (Required)</label>
-                  <textarea 
-                    value={reason}
-                    onChange={e => setReason(e.target.value)}
-                    className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-medium h-24 resize-none"
-                    placeholder={action === 'OUT' ? "e.g. Used in laboratory experiment" : "Additional comments..."}
-                    required
-                  />
+                   <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Reason / Purpose (Required)</label>
+                   <textarea 
+                     value={reason}
+                     onChange={e => setReason(e.target.value)}
+                     className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-medium h-24 resize-none"
+                     placeholder={action === 'OUT' ? "e.g. pH Analysis experiment" : "Additional details..."}
+                     required
+                   />
                 </div>
-
-                {/* Disposal Specific Fields */}
-                {action === 'DISPOSAL' && (
-                  <div className="space-y-4 pt-2 animate-in slide-in-from-top-2">
-                    <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-red-500 pl-3">⚠️ Disposal Method & Authorization</h3>
-                    
-                    <div className="group">
-                      <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Disposal Method</label>
-                      <input 
-                        type="text" 
-                        value={disposalMethod} 
-                        onChange={e => setDisposalMethod(e.target.value)}
-                        className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-red-500/10 focus:border-red-400 outline-none transition-all font-bold"
-                        placeholder="e.g. Chemical waste bin, Incineration"
-                        required
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="group">
-                        <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Approved By</label>
-                        <input 
-                          type="text" 
-                          value={disposalApprovedBy} 
-                          onChange={e => setDisposalApprovedBy(e.target.value)}
-                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-red-500/10 focus:border-red-400 outline-none transition-all font-bold"
-                          placeholder="Name"
-                          required
-                        />
-                      </div>
-                      <div className="group">
-                        <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Authorizer Role</label>
-                        <select 
-                          value={disposalApprovedRole} 
-                          onChange={e => setDisposalApprovedRole(e.target.value)}
-                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-red-500/10 focus:border-red-400 outline-none transition-all font-bold appearance-none cursor-pointer"
-                        >
-                          <option value="safety_officer">Safety Officer</option>
-                          <option value="lab_manager">Lab Manager</option>
-                          <option value="department_head">Dept Head</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="group">
-                      <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">📄 Compliance / Notes</label>
-                      <textarea 
-                        value={complianceNotes}
-                        onChange={e => setComplianceNotes(e.target.value)}
-                        className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-red-500/10 focus:border-red-400 outline-none transition-all font-medium h-20 resize-none"
-                        placeholder="e.g. Disposed according to lab safety guidelines"
-                      />
-                    </div>
-                  </div>
-                )}
               </div>
 
-              {/* Right Column: Detailed Tracking (Focus on OUT) */}
+              {/* Right Column: Detailed Tracking (Context Specific) */}
               <div className="space-y-6">
-                {(action === 'OUT' || action === 'IN' || action === 'TRANSFER') && (
+                {(action === 'OUT' || action === 'IN' || action === 'TRANSFER' || action === 'DISPOSAL') && (
                   <>
-                    <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-primary-500 pl-3">🏷️ Batch/Location Info</h3>
+                    <h3 className={`text-secondary-900 font-bold text-sm border-l-4 ${action === 'DISPOSAL' ? 'border-red-500' : 'border-primary-500'} pl-3`}>🏷️ Identification & Location</h3>
                     
                     <div className="group">
-                      <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Batch Number</label>
+                      <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Batch Reference</label>
                       <input 
                         type="text" 
-                        value={batchNumber} 
-                        onChange={e => setBatchNumber(e.target.value)}
+                        value={batch} 
+                        onChange={e => setBatch(e.target.value)}
                         className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-bold"
                         placeholder="Batch ID"
+                        readOnly={action === 'IN'}
                       />
-                      <p className="text-[9px] text-primary-500 mt-1 font-medium">👉 Remove from correct batch (FIFO)</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="group">
-                        <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Building</label>
-                        <input 
-                          type="text" 
-                          value={building} 
-                          onChange={e => setBuilding(e.target.value)}
-                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-xs focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-bold"
-                        />
-                      </div>
-                      <div className="group">
-                        <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Room</label>
-                        <input 
-                          type="text" 
-                          value={room} 
-                          onChange={e => setRoom(e.target.value)}
-                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-xs focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-bold"
-                        />
-                      </div>
-                      <div className="group">
-                        <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Cabinet</label>
-                        <input 
-                          type="text" 
-                          value={cabinet} 
-                          onChange={e => setCabinet(e.target.value)}
-                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-xs focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-bold"
-                        />
-                      </div>
-                      <div className="group">
-                        <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Shelf</label>
-                        <input 
-                          type="text" 
-                          value={shelf} 
-                          onChange={e => setShelf(e.target.value)}
-                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-xs focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-bold"
-                        />
-                      </div>
+                      {['building', 'room', 'cabinet', 'shelf'].map(field => (
+                        <div key={field} className="group">
+                          <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block uppercase text-[10px] tracking-widest">{field}</label>
+                          <input 
+                            type="text" 
+                            value={eval(field)} 
+                            onChange={e => {
+                               if (field === 'building') setBuilding(e.target.value);
+                               if (field === 'room') setRoom(e.target.value);
+                               if (field === 'cabinet') setCabinet(e.target.value);
+                               if (field === 'shelf') setShelf(e.target.value);
+                            }}
+                            className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-xs focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-bold"
+                          />
+                        </div>
+                      ))}
                     </div>
+
+                    {action === 'IN' && (
+                      <div className="bg-green-50/50 p-6 rounded-3xl border border-green-100 space-y-4 animate-in fade-in duration-300">
+                        <label className="text-[10px] font-black text-green-700 uppercase tracking-widest block mb-2">📅 Batch Timeline</label>
+                        <div className="grid grid-cols-1 gap-4">
+                          <div className="group">
+                            <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Expiry Date</label>
+                            <input type="date" value={expiry} onChange={e => setExpiry(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-lg p-2 text-sm font-bold text-red-600" required={action === 'IN'} />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="group">
+                              <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">MFG Date</label>
+                              <input type="date" value={mfgDate} onChange={e => setMfgDate(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-lg p-2 text-xs" />
+                            </div>
+                            <div className="group">
+                              <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Purchase Date</label>
+                              <input type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-lg p-2 text-xs" />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="group">
+                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Supplier</label>
+                          <input type="text" value={supplier} onChange={e => setSupplier(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-lg p-2 text-sm font-bold" placeholder="LabChem Vendor" />
+                        </div>
+                      </div>
+                    )}
 
                     {action === 'OUT' && (
                       <div className="space-y-4 pt-2 animate-in slide-in-from-top-2">
-                        <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-primary-500 pl-3">🧪 Usage Details</h3>
+                        <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-primary-500 pl-3 uppercase tracking-wider">🧪 Usage Context</h3>
                         <div className="group">
                           <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Experiment Name</label>
-                          <input 
-                            type="text" 
-                            value={experimentName} 
-                            onChange={e => setExperimentName(e.target.value)}
-                            className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-bold"
-                            placeholder="e.g. pH Analysis"
-                          />
+                          <input type="text" value={experimentName} onChange={e => setExperimentName(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-xl p-4 text-sm font-bold" placeholder="e.g. Titration Analysis" />
                         </div>
                         <div className="group">
                           <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Department</label>
-                          <input 
-                            type="text" 
-                            value={department} 
-                            onChange={e => setDepartment(e.target.value)}
-                            className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-bold"
-                            placeholder="e.g. Chemistry Lab"
-                          />
+                          <input type="text" value={department} onChange={e => setDepartment(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-xl p-4 text-sm font-bold" placeholder="Chemistry Dept" />
+                        </div>
+                      </div>
+                    )}
+
+                    {action === 'DISPOSAL' && (
+                      <div className="space-y-4 pt-2 animate-in slide-in-from-top-2">
+                        <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-red-500 pl-3 italic uppercase tracking-widest">⚠️ Disposal Protocol</h3>
+                        <div className="group">
+                          <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Disposal Method</label>
+                          <input type="text" value={disposalMethod} onChange={e => setDisposalMethod(e.target.value)} className="w-full bg-red-50/30 border border-red-100 rounded-xl p-4 text-sm font-black text-red-700" placeholder="e.g. Incineration" required={action === 'DISPOSAL'} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="group">
+                            <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Approved By</label>
+                            <input type="text" value={disposalApprovedBy} onChange={e => setDisposalApprovedBy(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-xl p-3 text-xs font-bold" required={action === 'DISPOSAL'} />
+                          </div>
+                          <div className="group">
+                            <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Role</label>
+                            <select value={disposalApprovedRole} onChange={e => setDisposalApprovedRole(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-xl p-3 text-xs font-bold">
+                              <option value="safety_officer">Safety Officer</option>
+                              <option value="lab_manager">Lab Manager</option>
+                            </select>
+                          </div>
                         </div>
                       </div>
                     )}

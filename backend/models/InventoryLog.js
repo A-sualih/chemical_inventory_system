@@ -2,7 +2,10 @@ const mongoose = require('mongoose');
 
 const inventoryLogSchema = new mongoose.Schema({
   chemical_id: { type: String, required: true },
+  chemical_name: { type: String }, // Added for easy display
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  user_name: { type: String }, // Added for display (WHO)
+  user_role: { type: String }, // Admin, Technician, etc. (WHO)
   action: { type: String }, // IN, OUT, TRANSFER, DISPOSAL
   quantity_change: { type: Number },
   unit: { type: String },
@@ -18,7 +21,6 @@ const inventoryLogSchema = new mongoose.Schema({
   disposal_approved_by: { type: String },
   disposal_approved_role: { type: String },
   compliance_notes: { type: String },
-  user_role: { type: String },
   // Structured Destination Location for Transfer
   to_building: { type: String },
   to_room: { type: String },
@@ -30,7 +32,8 @@ const inventoryLogSchema = new mongoose.Schema({
   transfer_approved_by: { type: String },
   old_location: { type: String },
   new_location: { type: String },
-  timestamp: { type: Date, default: Date.now }
+}, { 
+  timestamps: true // Adds createdAt and updatedAt automatically (WHEN)
 });
 
 module.exports = mongoose.model('InventoryLog', inventoryLogSchema);

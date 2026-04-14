@@ -17,13 +17,13 @@ import BatchMaster from "./pages/BatchMaster";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
-  
+
   if (loading) return null; // Or a silent loading bar
   if (!user) return <Navigate to="/login" replace />;
   if (allowedRoles && !allowedRoles.some(role => role.toLowerCase() === user.role?.toLowerCase())) {
     return <Navigate to="/" replace />; // Role not authorized
   }
-  
+
   return children;
 };
 
@@ -84,4 +84,4 @@ function App() {
 }
 
 export default App;
-
+
