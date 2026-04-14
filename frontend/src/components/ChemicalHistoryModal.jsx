@@ -67,23 +67,78 @@ const ChemicalHistoryModal = ({ chemical, onClose }) => {
                   <div className="flex justify-between items-end">
                     <div>
                       {log.action === 'TRANSFER' ? (
-                        <div className="text-sm">
-                           <span className="text-secondary-400 font-medium">Moved from </span>
-                           <span className="text-secondary-900 font-bold">{log.old_location}</span>
-                           <span className="text-secondary-400 font-medium"> to </span>
-                           <span className="text-secondary-900 font-bold">{log.new_location}</span>
+                        <div className="space-y-2">
+                          <div className="text-[11px] font-bold text-secondary-400 uppercase tracking-widest">Material Transfer</div>
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1 bg-secondary-100/50 p-2 rounded-xl">
+                              <div className="text-[10px] text-secondary-400 uppercase font-black px-1">Source</div>
+                              <div className="text-sm font-bold text-secondary-700">{log.building || log.old_location || 'N/A'} {log.room && <span className="text-secondary-400 text-xs font-medium">({log.room})</span>}</div>
+                            </div>
+                            <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            <div className="flex-1 bg-blue-50 p-2 rounded-xl border border-blue-100">
+                              <div className="text-[10px] text-blue-400 uppercase font-black px-1">Destination</div>
+                              <div className="text-sm font-bold text-blue-700">{log.to_building || log.new_location} {log.to_room && <span className="text-blue-400 text-xs font-medium">({log.to_room})</span>}</div>
+                            </div>
+                          </div>
+                          {log.container_id && (
+                            <div className="flex items-center gap-2 text-[10px] text-secondary-500 font-bold bg-white w-fit px-2 py-1 rounded-lg shadow-sm border border-secondary-100">
+                              <span>📦 ID: {log.container_id}</span>
+                              {log.num_containers_moved > 1 && <span>• {log.num_containers_moved} Units</span>}
+                            </div>
+                          )}
+                          {log.transfer_approved_by && (
+                            <div className="text-[10px] text-secondary-400 mt-1 italic">
+                              Approved By: <span className="font-bold text-secondary-600">{log.transfer_approved_by}</span>
+                            </div>
+                          )}
                         </div>
                       ) : (
-                        <div className="text-lg font-mono font-black text-secondary-900">
-                          {log.action === 'IN' ? '+' : '-'}{log.quantity_change} <span className="text-sm text-secondary-500 font-bold">{log.unit}</span>
+                        <div>
+                          <div className="text-lg font-mono font-black text-secondary-900">
+                            {log.action === 'IN' ? '+' : '-'}{log.quantity_change} <span className="text-sm text-secondary-500 font-bold">{log.unit}</span>
+                          </div>
+                          {(log.building || log.batch_number) && (
+                            <div className="flex gap-2 mt-1">
+                              {log.batch_number && <span className="text-[9px] font-bold bg-secondary-200 px-1.5 py-0.5 rounded text-secondary-600">Batch: {log.batch_number}</span>}
+                              {log.building && <span className="text-[9px] font-bold bg-primary-50 px-1.5 py-0.5 rounded text-primary-600">Loc: {log.building} {log.room}</span>}
+                            </div>
+                          )}
                         </div>
                       )}
-                      <p className="text-xs text-secondary-500 mt-1.5 font-medium italic">
-                        &ldquo;{log.reason || "No reason provided"}&rdquo;
-                      </p>
+                      <div className="mt-2">
+                        <p className="text-xs text-secondary-500 font-medium italic">
+                          &ldquo;{log.reason || "No reason provided"}&rdquo;
+                        </p>
+                        {log.experiment_name && (
+                          <div className="mt-1 flex items-center gap-2">
+                            <span className="text-[9px] font-black text-primary-500 uppercase">Usage:</span>
+                            <span className="text-[10px] font-bold text-secondary-700">{log.experiment_name}</span>
+                            {log.department && <span className="text-[10px] text-secondary-400">({log.department})</span>}
+                          </div>
+                        )}
+                        {log.disposal_method && (
+                          <div className="mt-1 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[9px] font-black text-red-500 uppercase">Disposal:</span>
+                              <span className="text-[10px] font-bold text-secondary-700">{log.disposal_method}</span>
+                            </div>
+                            {log.disposal_approved_by && (
+                              <div className="text-[9px] text-secondary-500">
+                                Auth: <span className="font-bold">{log.disposal_approved_by}</span> ({log.disposal_approved_role || 'N/A'})
+                              </div>
+                            )}
+                            {log.compliance_notes && (
+                              <div className="text-[9px] text-secondary-400 mt-1 flex gap-1">
+                                <span>📄</span>
+                                <span className="italic">{log.compliance_notes}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="text-right">
-                       <div className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1">Authenticated User</div>
+                       <div className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1">By {log.user_role || 'User'}</div>
                        <div className="text-xs font-bold text-secondary-700 flex items-center justify-end gap-1.5">
                          <div className="w-5 h-5 rounded-full bg-secondary-900 text-white flex items-center justify-center text-[8px]">
                            {log.user_name?.charAt(0) || 'U'}

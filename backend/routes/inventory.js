@@ -51,8 +51,34 @@ router.get('/logs/:chemical_id', authenticate, authorize(PERMISSIONS.VIEW_AUDIT_
 
 // Submit a new transaction (Add/Remove stock)
 router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), async (req, res) => {
-  const { chemical_id, action, quantity_change, unit, reason, new_location } = req.body;
+  const { 
+    chemical_id, 
+    action, 
+    quantity_change, 
+    unit, 
+    reason, 
+    new_location,
+    batch_number,
+    building,
+    room,
+    cabinet,
+    shelf,
+    experiment_name,
+    department,
+    disposal_method,
+    disposal_approved_by,
+    disposal_approved_role,
+    compliance_notes,
+    to_building,
+    to_room,
+    to_cabinet,
+    to_shelf,
+    container_id,
+    num_containers_moved,
+    transfer_approved_by
+  } = req.body;
   const user_id = req.user.id;
+  const user_role = req.user.role;
 
   try {
     const chem = await Chemical.findOne({ id: chemical_id });
@@ -77,8 +103,18 @@ router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), a
       newBaseQty -= changeInBase;
       if (newBaseQty < 0) return res.status(400).json({ error: "Insufficient stock" });
     } else if (action === 'TRANSFER') {
-      if (!new_location) return res.status(400).json({ error: "New location is required for transfer" });
-      chem.location = new_location;
+      if (!to_building && !new_location) return res.status(400).json({ error: "Destination location is required for transfer" });
+      
+      // Update structured location
+      if (to_building) {
+        chem.building = to_building;
+        chem.room = to_room;
+        chem.cabinet = to_cabinet;
+        chem.shelf = to_shelf;
+        chem.location = `${to_building}, ${to_room}`; // Update summary string
+      } else if (new_location) {
+        chem.location = new_location;
+      }
     } else {
       return res.status(400).json({ error: "Invalid action" });
     }
@@ -95,12 +131,31 @@ router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), a
     const log = new InventoryLog({
       chemical_id,
       user_id,
+      user_role,
       action,
       quantity_change,
       unit: txUnit,
       reason,
+      batch_number: batch_number || chem.batch_number,
+      building: building || chem.building,
+      room: room || chem.room,
+      cabinet: cabinet || chem.cabinet,
+      shelf: shelf || chem.shelf,
+      experiment_name,
+      department,
+      disposal_method,
+      disposal_approved_by,
+      disposal_approved_role,
+      compliance_notes,
+      to_building,
+      to_room,
+      to_cabinet,
+      to_shelf,
+      container_id,
+      num_containers_moved,
+      transfer_approved_by,
       old_location: oldLoc,
-      new_location: action === 'TRANSFER' ? new_location : undefined
+      new_location: action === 'TRANSFER' ? (to_building ? `${to_building} / ${to_room}` : new_location) : undefined
     });
     await log.save();
 

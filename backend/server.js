@@ -7,6 +7,8 @@ const chemicalRoutes = require('./routes/chemicals');
 const inventoryRoutes = require('./routes/inventory');
 const reportsRoutes = require('./routes/reports');
 const auditRoutes = require('./routes/audit');
+const containerRoutes = require('./routes/containers');
+const batchRoutes = require('./routes/batches');
 
 const path = require('path');
 
@@ -30,6 +32,8 @@ app.use('/api/chemicals', chemicalRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/containers', containerRoutes);
+app.use('/api/batches', batchRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });

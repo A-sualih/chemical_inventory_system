@@ -115,10 +115,10 @@ const InventoryLogs = () => {
                   <tr className="text-[10px] uppercase font-bold text-secondary-400 tracking-widest border-b border-secondary-100">
                     <th className="pb-3 px-4">Timestamp</th>
                     <th className="pb-3 px-4">Chemical</th>
-                    <th className="pb-3 px-4">Action</th>
-                    <th className="pb-3 px-4">Quantity</th>
-                    <th className="pb-3 px-4">User</th>
-                    <th className="pb-3 px-4">Reference</th>
+                    <th className="pb-3 px-4">Action & Role</th>
+                    <th className="pb-3 px-4">Quantity & Batch</th>
+                    <th className="pb-3 px-4">Location</th>
+                    <th className="pb-3 px-4">User & Reference</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm">
@@ -127,10 +127,16 @@ const InventoryLogs = () => {
                   )}
                   {logs.map(log => (
                     <tr key={log._id} className="border-b border-secondary-50/50 hover:bg-secondary-50/50 transition-colors">
-                      <td className="p-4 text-secondary-500">{new Date(log.timestamp).toLocaleString()}</td>
-                      <td className="p-4 font-bold text-secondary-900">{log.chemical_name || log.chemical_id}</td>
-                      <td className="p-4">
-                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
+                      <td className="p-4 text-secondary-500 align-top">
+                        <div className="font-medium text-secondary-700">{new Date(log.timestamp).toLocaleDateString()}</div>
+                        <div className="text-[10px] opacity-70">{new Date(log.timestamp).toLocaleTimeString()}</div>
+                      </td>
+                      <td className="p-4 align-top">
+                        <div className="font-bold text-secondary-900">{log.chemical_name || log.chemical_id}</div>
+                        <div className="text-[10px] text-primary-500 font-bold">{log.chemical_id}</div>
+                      </td>
+                      <td className="p-4 align-top">
+                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase block w-fit mb-1 ${
                           log.action === 'IN' ? 'bg-green-100 text-green-700' : 
                           log.action === 'DISPOSAL' ? 'bg-orange-100 text-orange-700' : 
                           log.action === 'TRANSFER' ? 'bg-blue-100 text-blue-700' :
@@ -138,21 +144,64 @@ const InventoryLogs = () => {
                         }`}>
                           {log.action}
                         </span>
+                        {log.user_role && <span className="text-[10px] text-secondary-400 font-medium italic">{log.user_role}</span>}
                       </td>
-                      <td className="p-4 font-mono font-medium">
-                        {log.action === 'TRANSFER' ? (
-                          <span className="text-blue-600 font-bold">MOVE</span>
-                        ) : (
-                          `${log.quantity_change} ${log.unit}`
+                      <td className="p-4 align-top">
+                        <div className="font-mono font-bold text-secondary-800">
+                          {log.action === 'TRANSFER' ? (
+                            <span className="text-blue-600 font-bold">MOVE</span>
+                          ) : (
+                            `${log.quantity_change} ${log.unit}`
+                          )}
+                        </div>
+                        {log.batch_number && (
+                          <div className="text-[10px] text-secondary-500 mt-1">
+                            <span className="bg-secondary-100 px-1.5 py-0.5 rounded">Batch: {log.batch_number}</span>
+                          </div>
                         )}
                       </td>
-                      <td className="p-4">{log.user_name}</td>
-                      <td className="p-4 text-secondary-500 italic max-w-[200px] truncate" title={log.reason}>
+                      <td className="p-4 align-top">
                         {log.action === 'TRANSFER' ? (
-                          <><span className="text-secondary-400 not-italic">From {log.old_location} to</span> {log.new_location}</>
+                          <div className="text-[11px] leading-relaxed space-y-1">
+                            <div className="text-secondary-400">
+                              <span className="font-bold">FROM:</span> {log.building || log.old_location || 'N/A'} {log.room ? `(${log.room})` : ''}
+                            </div>
+                            <div className="text-blue-600 font-bold">
+                              <span>TO:</span> {log.to_building || log.new_location} {log.to_room ? `(${log.to_room})` : ''}
+                            </div>
+                            {log.to_cabinet && <div className="text-[10px] text-secondary-500 italic">Cab: {log.to_cabinet}, Sh: {log.to_shelf}</div>}
+                          </div>
                         ) : (
-                          log.reason
+                          <div className="text-[11px] text-secondary-600">
+                            {log.building && <span>{log.building}, </span>}
+                            {log.room && <span>Rm {log.room}, </span>}
+                            {log.cabinet && <span>Cab {log.cabinet}, </span>}
+                            {log.shelf && <span>Sh {log.shelf}</span>}
+                            {(!log.building && !log.room) && <span className="text-secondary-400 italic">None specified</span>}
+                          </div>
                         )}
+                      </td>
+                      <td className="p-4 align-top">
+                        <div className="font-bold text-secondary-800">{log.user_name}</div>
+                        <div className="text-[11px] text-secondary-500 italic mt-1 max-w-[200px] break-words">
+                          {log.reason}
+                          {log.experiment_name && <span className="block text-primary-600 not-italic font-bold mt-1">Exp: {log.experiment_name}</span>}
+                          {log.department && <span className="block text-secondary-400 not-italic text-[10px]">Dept: {log.department}</span>}
+                          {log.container_id && (
+                            <div className="mt-1 flex gap-2">
+                              <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold">📦 {log.container_id}</span>
+                              {log.num_containers_moved > 1 && <span className="text-[10px] text-secondary-400">x{log.num_containers_moved} units</span>}
+                            </div>
+                          )}
+                          {log.transfer_approved_by && <span className="block text-[10px] text-secondary-400 mt-1 font-bold">Auth: {log.transfer_approved_by}</span>}
+                          {log.disposal_method && (
+                            <div className="mt-1 space-y-1">
+                              <span className="block text-red-500 not-italic font-bold">Method: {log.disposal_method}</span>
+                              {log.disposal_approved_by && <span className="block text-[10px] text-secondary-600 font-bold bg-secondary-100 px-1 py-0.5 rounded w-fit">Auth: {log.disposal_approved_by} ({log.disposal_approved_role || 'N/A'})</span>}
+                              {log.compliance_notes && <span className="block text-[10px] text-secondary-400 mt-1">📝 {log.compliance_notes}</span>}
+                            </div>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
