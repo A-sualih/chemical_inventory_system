@@ -4,6 +4,7 @@ const InventoryLog = require('../models/InventoryLog');
 const Request = require('../models/Request');
 const { authenticate, authorize, logAudit } = require('../authMiddleware');
 const { PERMISSIONS, ROLE_PERMISSIONS } = require('../config/roles');
+const { convertToBase, getBaseUnit } = require('../utils/unitConverter');
 
 const router = express.Router();
 
@@ -32,24 +33,44 @@ router.get('/logs', authenticate, authorize(PERMISSIONS.VIEW_AUDIT_LOGS), async 
 
 // Submit a new transaction (Add/Remove stock)
 router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), async (req, res) => {
-  const { chemical_id, action, quantity_change, reason } = req.body;
+  const { chemical_id, action, quantity_change, unit, reason, new_location } = req.body;
   const user_id = req.user.id;
 
   try {
     const chem = await Chemical.findOne({ id: chemical_id });
     if (!chem) return res.status(404).json({ error: "Chemical not found" });
 
-    let newQty = chem.quantity;
-    if (action === 'IN') {
-      newQty += Number(quantity_change);
-    } else if (action === 'OUT' || action === 'DISPOSAL') {
-      newQty -= Number(quantity_change);
-      if (newQty < 0) return res.status(400).json({ error: "Insufficient stock" });
+    // Use default unit if none provided
+    const txUnit = unit || chem.unit;
+    const changeInBase = convertToBase(Number(quantity_change), txUnit);
+    
+    // Initialize base fields if missing
+    if (chem.base_quantity === undefined) {
+      chem.base_quantity = convertToBase(chem.quantity, chem.unit);
+      chem.base_unit = getBaseUnit(chem.unit);
     }
 
-    // Update chemical quantity
-    chem.quantity = newQty;
-    chem.status = newQty < 5 ? 'Low Stock' : 'In Stock';
+    let newBaseQty = chem.base_quantity;
+    let oldLoc = chem.location;
+
+    if (action === 'IN') {
+      newBaseQty += changeInBase;
+    } else if (action === 'OUT' || action === 'DISPOSAL') {
+      newBaseQty -= changeInBase;
+      if (newBaseQty < 0) return res.status(400).json({ error: "Insufficient stock" });
+    } else if (action === 'TRANSFER') {
+      if (!new_location) return res.status(400).json({ error: "New location is required for transfer" });
+      chem.location = new_location;
+    } else {
+      return res.status(400).json({ error: "Invalid action" });
+    }
+
+    // Update chemical quantity (display quantity) and base quantity
+    chem.base_quantity = newBaseQty;
+    const { convertFromBase } = require('../utils/unitConverter');
+    chem.quantity = convertFromBase(newBaseQty, chem.unit);
+    
+    chem.status = chem.quantity < 5 ? 'Low Stock' : 'In Stock';
     await chem.save();
 
     // Insert log
@@ -58,15 +79,28 @@ router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), a
       user_id,
       action,
       quantity_change,
-      reason
+      unit: txUnit,
+      reason,
+      old_location: oldLoc,
+      new_location: action === 'TRANSFER' ? new_location : undefined
     });
     await log.save();
 
     // Log Audit
-    await logAudit(req, 'Inventory Transaction', `${action}: ${quantity_change} units for ${chem.name} (${reason})`, 'Chemical', chem._id);
+    const auditMsg = action === 'TRANSFER' 
+      ? `Transferred ${chem.name} from ${oldLoc} to ${new_location}`
+      : `${action}: ${quantity_change} ${txUnit} for ${chem.name} (${reason})`;
+    
+    await logAudit(req, 'Inventory Transaction', auditMsg, 'Chemical', chem._id);
 
-    res.status(201).json({ message: 'Transaction recorded successfully', newQty });
+    res.status(201).json({ 
+      message: 'Transaction recorded successfully', 
+      newQty: chem.quantity, 
+      unit: chem.unit,
+      location: chem.location
+    });
   } catch (err) {
+    console.error(err);
     res.status(400).json({ error: err.message });
   }
 });

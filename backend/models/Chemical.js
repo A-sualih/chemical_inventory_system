@@ -8,6 +8,8 @@ const chemicalSchema = new mongoose.Schema({
   formula: { type: String },
   quantity: { type: Number },
   unit: { type: String },
+  base_quantity: { type: Number }, 
+  base_unit: { type: String },
   state: { type: String },
   purity: { type: String },
   concentration: { type: String },

@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import Layout from "../layout/Layout";
 import { useAuth } from "../AuthContext";
 import ChemicalForm from "./ChemicalForm";
+import StockActionModal from "../components/StockActionModal";
 import axios from "axios";
 
 const Chemicals = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [showStockModal, setShowStockModal] = useState(false);
   const [editingChemical, setEditingChemical] = useState(null);
+  const [selectedStockChemical, setSelectedStockChemical] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
   const { hasPermission, user } = useAuth();
 
@@ -200,6 +203,13 @@ const Chemicals = () => {
                     <div className="flex justify-center gap-3">
                       {!item.archived && (
                         <>
+                          <button 
+                            className="w-10 h-10 flex items-center justify-center text-primary-500 hover:text-primary-600 bg-primary-50 rounded-xl border border-primary-100 shadow-sm transition-all hover:scale-110" 
+                            title="Adjust Stock (In/Out)"
+                            onClick={() => { setSelectedStockChemical(item); setShowStockModal(true); }}
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12" /></svg>
+                          </button>
                           {canEdit && (
                             <button 
                               className="w-10 h-10 flex items-center justify-center text-secondary-400 hover:text-primary-600 bg-white rounded-xl border border-secondary-200 shadow-sm transition-all hover:scale-110" 
@@ -240,6 +250,14 @@ const Chemicals = () => {
           </table>
         </div>
       </div>
+
+      {showStockModal && selectedStockChemical && (
+        <StockActionModal 
+          chemical={selectedStockChemical}
+          onClose={() => { setShowStockModal(false); setSelectedStockChemical(null); }}
+          onSuccess={fetchChemicals}
+        />
+      )}
 
       {showForm && (
         <ChemicalForm 

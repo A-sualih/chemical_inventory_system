@@ -5,6 +5,7 @@ const { PERMISSIONS } = require('../config/roles');
 const QRCode = require('qrcode');
 const multer = require('multer');
 const path = require('path');
+const { convertToBase, getBaseUnit } = require('../utils/unitConverter');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, './uploads/'),
@@ -131,6 +132,8 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.si
       formula: data.formula,
       quantity: Number(data.quantity) || 0,
       unit: data.unit,
+      base_quantity: convertToBase(Number(data.quantity) || 0, data.unit),
+      base_unit: getBaseUnit(data.unit),
       state: data.state,
       purity: data.purity,
       concentration: data.concentration,
@@ -185,6 +188,8 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
     chemical.formula = data.formula;
     chemical.quantity = Number(data.quantity) || 0;
     chemical.unit = data.unit;
+    chemical.base_quantity = convertToBase(chemical.quantity, chemical.unit);
+    chemical.base_unit = getBaseUnit(chemical.unit);
     chemical.state = data.state;
     chemical.purity = data.purity;
     chemical.concentration = data.concentration;

@@ -44,6 +44,17 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
   const [qrCodeData, setQrCodeData] = useState("");
 
   useEffect(() => {
+    const liquidUnits = ['L', 'mL', 'uL'];
+    const solidUnits = ['kg', 'g', 'mg'];
+    
+    if (formData.state === 'Liquid' && !liquidUnits.includes(formData.unit)) {
+      setFormData(prev => ({ ...prev, unit: 'L' }));
+    } else if (formData.state === 'Solid' && !solidUnits.includes(formData.unit)) {
+      setFormData(prev => ({ ...prev, unit: 'g' }));
+    }
+  }, [formData.state]);
+
+  useEffect(() => {
     if (initialData && initialData.id) {
       axios.get(`/api/chemicals/${initialData.id}/qrcode`)
         .then(res => setQrCodeData(res.data.qrCode))
@@ -216,8 +227,29 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                   <div className="group">
                     <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Unit</label>
                     <div className="relative">
-                      <select value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium shadow-sm appearance-none cursor-pointer">
-                         <option>L</option><option>mL</option><option>kg</option><option>g</option>
+                      <select 
+                        value={formData.unit} 
+                        onChange={e => setFormData({...formData, unit: e.target.value})} 
+                        className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium shadow-sm appearance-none cursor-pointer"
+                      >
+                         {formData.state === 'Liquid' ? (
+                           <>
+                             <option value="L">Liters (L)</option>
+                             <option value="mL">Milliliters (mL)</option>
+                             <option value="uL">Microliters (µL)</option>
+                           </>
+                         ) : formData.state === 'Solid' ? (
+                           <>
+                             <option value="kg">Kilograms (kg)</option>
+                             <option value="g">Grams (g)</option>
+                             <option value="mg">Milligrams (mg)</option>
+                           </>
+                         ) : (
+                           <>
+                             <option value="L">Liters (L)</option>
+                             <option value="mL">Milliliters (mL)</option>
+                           </>
+                         )}
                       </select>
                       <svg className="w-4 h-4 absolute right-4 top-4 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>

@@ -12,6 +12,7 @@ const InventoryLogs = () => {
   const [chemicalId, setChemicalId] = useState("");
   const [action, setAction] = useState("IN");
   const [quantityChange, setQuantityChange] = useState("");
+  const [unit, setUnit] = useState("L");
   const [reason, setReason] = useState("");
 
   const fetchLogs = async () => {
@@ -36,6 +37,7 @@ const InventoryLogs = () => {
         chemical_id: chemicalId,
         action,
         quantity_change: Number(quantityChange),
+        unit,
         reason
       });
       alert(`Transaction logged successfully.`);
@@ -80,9 +82,17 @@ const InventoryLogs = () => {
                 <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest px-1">Chemical ID</label>
                 <input type="text" value={chemicalId} onChange={(e) => setChemicalId(e.target.value)} required className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none mt-1" placeholder="Search or Scan Barcode..." />
               </div>
-              <div>
-                <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest px-1">Quantity Change</label>
-                <input type="number" step="0.01" value={quantityChange} onChange={(e) => setQuantityChange(e.target.value)} required min="0.01" className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none mt-1" placeholder="0.0" />
+              <div className="grid grid-cols-3 gap-2">
+                <div className="col-span-2">
+                  <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest px-1">Quantity Change</label>
+                  <input type="number" step="0.01" value={quantityChange} onChange={(e) => setQuantityChange(e.target.value)} required min="0.01" className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none mt-1" placeholder="0.0" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest px-1">Unit</label>
+                  <select value={unit} onChange={(e) => setUnit(e.target.value)} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none mt-1 font-bold appearance-none cursor-pointer">
+                    <option>L</option><option>mL</option><option>kg</option><option>g</option><option>mg</option>
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest px-1">Reason / Reference</label>
@@ -120,13 +130,30 @@ const InventoryLogs = () => {
                       <td className="p-4 text-secondary-500">{new Date(log.timestamp).toLocaleString()}</td>
                       <td className="p-4 font-bold text-secondary-900">{log.chemical_name || log.chemical_id}</td>
                       <td className="p-4">
-                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${log.action === 'IN' ? 'bg-green-100 text-green-700' : log.action === 'DISPOSAL' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}`}>
+                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
+                          log.action === 'IN' ? 'bg-green-100 text-green-700' : 
+                          log.action === 'DISPOSAL' ? 'bg-orange-100 text-orange-700' : 
+                          log.action === 'TRANSFER' ? 'bg-blue-100 text-blue-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
                           {log.action}
                         </span>
                       </td>
-                      <td className="p-4 font-mono font-medium">{log.quantity_change}</td>
+                      <td className="p-4 font-mono font-medium">
+                        {log.action === 'TRANSFER' ? (
+                          <span className="text-blue-600 font-bold">MOVE</span>
+                        ) : (
+                          `${log.quantity_change} ${log.unit}`
+                        )}
+                      </td>
                       <td className="p-4">{log.user_name}</td>
-                      <td className="p-4 text-secondary-500 italic max-w-[150px] truncate" title={log.reason}>{log.reason}</td>
+                      <td className="p-4 text-secondary-500 italic max-w-[200px] truncate" title={log.reason}>
+                        {log.action === 'TRANSFER' ? (
+                          <><span className="text-secondary-400 not-italic">From {log.old_location} to</span> {log.new_location}</>
+                        ) : (
+                          log.reason
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
