@@ -11,7 +11,6 @@ require('dotenv').config();
 const User = require('../models/User');
 const { JWT_SECRET, authenticate, authorize, logAudit, ROLES } = require('../authMiddleware');
 const { PERMISSIONS } = require('../config/roles');
-
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,

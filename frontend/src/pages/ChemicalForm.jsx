@@ -88,13 +88,13 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-secondary-900/40 backdrop-blur-md" onClick={onClose}></div>
       
-      <div className="relative w-full max-w-5xl bg-secondary-50 text-secondary-900 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row h-[90vh] md:h-[80vh] animate-in fade-in zoom-in-95 duration-200 border border-white/40">
+      <div className="relative w-full max-w-5xl bg-secondary-50 text-secondary-900 rounded-t-[2rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row h-[92vh] sm:h-[90vh] md:h-[80vh] animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 border border-white/40">
         
         {/* Left Control Panel */}
-        <div className="w-full md:w-[340px] bg-white p-8 flex flex-col border-r border-secondary-100 relative overflow-hidden shrink-0">
+        <div className="w-full md:w-[300px] lg:w-[340px] bg-white p-6 md:p-8 flex flex-col border-b md:border-b-0 md:border-r border-secondary-100 relative overflow-hidden shrink-0 md:overflow-y-auto">
           <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-primary-50/50 to-transparent pointer-events-none"></div>
           
           <div className="relative z-10 flex-1 flex flex-col">
@@ -109,7 +109,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
               {initialData ? `Updating records for ${initialData.id}` : "Systemize a new chemical into the repository."}
             </p>
 
-            <div className="bg-secondary-50 rounded-[1.5rem] p-5 mb-8 border border-secondary-100">
+            <div className="bg-secondary-50 rounded-[1.5rem] p-4 mb-6 border border-secondary-100 hidden md:block">
               <div className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-3">System Identity Badge</div>
               <div className="flex items-center gap-4">
                  {qrCodeData ? (
@@ -154,8 +154,8 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
               </div>
             </div>
 
-            <button onClick={onClose} className="w-full mt-6 py-4 text-sm font-bold text-secondary-500 hover:text-secondary-900 hover:bg-secondary-100 rounded-2xl transition-all">
-              Cancel & Discard
+            <button onClick={onClose} className="w-full mt-4 py-3 text-sm font-bold text-secondary-500 hover:text-secondary-900 hover:bg-secondary-100 rounded-2xl transition-all">
+              Cancel &amp; Discard
             </button>
           </div>
         </div>
@@ -172,7 +172,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                if (sdsFile) payload.append('sds_file', sdsFile);
                onSave(payload); 
              }} 
-             className="p-8 md:p-12 space-y-10"
+             className="p-5 sm:p-8 md:p-12 space-y-8"
            >
               
               {/* SECTION: IDENTIFICATION */}
@@ -183,7 +183,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                    <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
                   <div className="group">
                     <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Common Name</label>
                     <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium text-secondary-900 shadow-sm" placeholder="e.g. Sodium Chloride" required />
@@ -208,7 +208,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                    <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-5 mb-5">
+                <div className="grid grid-cols-3 gap-3 sm:gap-5 mb-5">
                   <div className="group">
                     <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Quantity</label>
                     <input type="number" value={formData.quantity} onChange={e => setFormData({...formData, quantity: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-mono font-medium shadow-sm" placeholder="0.0" required />
@@ -233,7 +233,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-5">
+                <div className="grid grid-cols-2 gap-3 sm:gap-5">
                   <div className="group">
                     <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Purity (%)</label>
                     <input type="text" value={formData.purity} onChange={e => setFormData({...formData, purity: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium shadow-sm" placeholder="e.g. 99.9%" />
@@ -253,8 +253,8 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                    <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
                 </div>
 
-                <div className="bg-white border border-secondary-200 rounded-[1.5rem] p-5 mb-5 shadow-sm">
-                  <div className="grid grid-cols-4 gap-5">
+                <div className="bg-white border border-secondary-200 rounded-[1.5rem] p-4 sm:p-5 mb-5 shadow-sm">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-5">
                     <div className="group col-span-2">
                        <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Physical Location</label>
                        <input type="text" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-300 outline-none transition-all font-medium" placeholder="E.g. Cabinet B, Shelf 4" />
@@ -270,7 +270,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-5">
+                <div className="grid grid-cols-2 gap-3 sm:gap-5">
                   <div className="group">
                     <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Supplier</label>
                     <input type="text" value={formData.supplier} onChange={e => setFormData({...formData, supplier: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium shadow-sm" placeholder="Vendor Name" />

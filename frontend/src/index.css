@@ -81,3 +81,47 @@ button {
 button:active {
   transform: scale(0.95);
 }
+
+/* ─── Mobile / Responsive Global Fixes ─────────────────────────── */
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Prevent layout-breaking overflow on any element */
+*, *::before, *::after {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* Safe-area padding for notched/punch-hole devices (iOS, Android) */
+.safe-top    { padding-top:    env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+/* Improve touch target size for interactive elements */
+a, button, [role="button"] {
+  touch-action: manipulation;
+}
+
+/* Scrollbar styling for overflow tables/panels */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99,102,241,0.2) transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  height: 4px;
+}
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: rgba(99,102,241,0.25);
+  border-radius: 2px;
+}

@@ -47,32 +47,32 @@ const AdminOnlyPage = ({ title, description }) => {
 
    return (
       <Layout>
-         <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+         <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-               <h1 className="text-4xl font-black heading-font text-secondary-900 tracking-tight">{title}</h1>
-               <p className="text-secondary-500 mt-1 font-medium">{description}</p>
+               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black heading-font text-secondary-900 tracking-tight">{title}</h1>
+               <p className="text-secondary-500 mt-1 font-medium text-sm">{description}</p>
             </div>
 
-            <div className="flex bg-secondary-100 p-1.5 rounded-[1.5rem] border border-secondary-200">
+            <div className="flex bg-secondary-100 p-1.5 rounded-[1.5rem] border border-secondary-200 shrink-0">
                <button
                   onClick={() => setActiveTab("roles")}
-                  className={`px-6 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'roles' ? 'bg-white text-secondary-900 shadow-sm' : 'text-secondary-500 hover:text-secondary-700'}`}
+                  className={`px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'roles' ? 'bg-white text-secondary-900 shadow-sm' : 'text-secondary-500 hover:text-secondary-700'}`}
                >
                   User Roles
                </button>
                <button
                   onClick={() => setActiveTab("audit")}
-                  className={`px-6 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'audit' ? 'bg-white text-secondary-900 shadow-sm' : 'text-secondary-500 hover:text-secondary-700'}`}
+                  className={`px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'audit' ? 'bg-white text-secondary-900 shadow-sm' : 'text-secondary-500 hover:text-secondary-700'}`}
                >
                   Master Audit
                </button>
             </div>
          </div>
 
-         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             <div className="lg:col-span-2">
                {activeTab === "roles" ? (
-                  <div className="bg-white p-8 rounded-[3rem] border border-secondary-100 shadow-xl overflow-hidden">
+                  <div className="bg-white p-6 sm:p-8 rounded-[2rem] lg:rounded-[3rem] border border-secondary-100 shadow-xl overflow-hidden">
                      <div className="flex items-center justify-between mb-8">
                         <h2 className="text-xl font-black text-secondary-900">Personnel Directory</h2>
                         <span className="text-[10px] font-bold text-secondary-400 uppercase tracking-[0.2em]">{users.length} Registered Accounts</span>
@@ -83,7 +83,7 @@ const AdminOnlyPage = ({ title, description }) => {
                            <p className="text-sm font-bold text-secondary-400 uppercase tracking-widest">Encrypting Directory...</p>
                         </div>
                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                            {users.map(u => (
                               <div key={u._id} className="group p-6 bg-secondary-50 hover:bg-white border border-secondary-100 hover:border-primary-200 rounded-[2rem] transition-all hover:shadow-lg hover:shadow-primary-600/5 relative overflow-hidden">
                                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary-500/5 rounded-full -mr-8 -mt-8"></div>
@@ -175,7 +175,7 @@ const AdminOnlyPage = ({ title, description }) => {
                      )}
                   </div>
                ) : (
-                  <div className="bg-white p-8 rounded-[3rem] border border-secondary-100 shadow-xl overflow-hidden">
+                  <div className="bg-white p-6 sm:p-8 rounded-[2rem] lg:rounded-[3rem] border border-secondary-100 shadow-xl overflow-hidden">
                      <div className="flex items-center justify-between mb-8">
                         <h2 className="text-xl font-black text-secondary-900">Security event Ledger</h2>
                         <span className="text-[10px] font-bold text-secondary-400 uppercase tracking-[0.2em]">Latest {auditLogs.length} Events</span>
@@ -228,8 +228,8 @@ const AdminOnlyPage = ({ title, description }) => {
                )}
             </div>
 
-            <div className="space-y-8">
-               <div className="bg-secondary-950 p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
+            <div className="space-y-6 sm:space-y-8">
+               <div className="bg-secondary-950 p-6 sm:p-8 lg:p-10 rounded-[2rem] lg:rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-primary-600/10 blur-[100px] rounded-full"></div>
                   <h2 className="text-xl font-black mb-8 text-white relative z-10">Access Hierarchies</h2>
                   <div className="space-y-6 relative z-10">
@@ -253,7 +253,7 @@ const AdminOnlyPage = ({ title, description }) => {
                      ))}
                   </div>
                </div>
-               <div className="bg-red-600/10 p-10 rounded-[3rem] border border-red-500/20 shadow-2xl shadow-red-900/10">
+               <div className="bg-red-600/10 p-6 sm:p-8 lg:p-10 rounded-[2rem] lg:rounded-[3rem] border border-red-500/20 shadow-2xl shadow-red-900/10">
                   <div className="w-12 h-12 bg-red-500 rounded-2xl flex items-center justify-center mb-6">
                      <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                   </div>

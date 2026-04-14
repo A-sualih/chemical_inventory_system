@@ -61,16 +61,16 @@ const Requests = () => {
 
   return (
     <Layout>
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold heading-font text-secondary-900">Request Center</h1>
-        <p className="text-secondary-500 mt-1">Submit new chemical requests or review pending approvals.</p>
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold heading-font text-secondary-900">Request Center</h1>
+        <p className="text-secondary-500 mt-1 text-sm">Submit new chemical requests or review pending approvals.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         
         {/* Make a Request Panel */}
         {hasPermission("submit_request") && (
-          <div className="bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm lg:col-span-1 h-fit">
+          <div className="bg-white p-6 sm:p-8 rounded-[2rem] lg:rounded-[2.5rem] border border-secondary-100 shadow-sm lg:col-span-1 h-fit">
             <h2 className="text-xl font-bold mb-4">Request Chemicals</h2>
             <form onSubmit={handleSubmitRequest} className="space-y-4">
               <div>
@@ -94,7 +94,7 @@ const Requests = () => {
 
         {/* Approval Dashboard */}
         {(hasPermission("approve_request") || hasPermission("submit_request")) && (
-          <div className={`bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm ${hasPermission("submit_request") ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+          <div className={`bg-white p-6 sm:p-8 rounded-[2rem] lg:rounded-[2.5rem] border border-secondary-100 shadow-sm ${hasPermission("submit_request") ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
             <h2 className="text-xl font-bold mb-4">{hasPermission("approve_request") ? "Pending Approvals" : "My Requests"}</h2>
             {loading ? <p className="text-sm text-secondary-400">Loading requests...</p> : (
               <div className="space-y-4">

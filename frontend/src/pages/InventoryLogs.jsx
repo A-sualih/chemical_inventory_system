@@ -50,18 +50,16 @@ const InventoryLogs = () => {
 
   return (
     <Layout>
-      <div className="mb-10 flex flex-col md:flex-row justify-between md:items-end gap-4">
-        <div>
-          <h1 className="text-3xl font-bold heading-font text-secondary-900">Inventory Tracking</h1>
-          <p className="text-secondary-500 mt-1">Real-time stock logs and fast transaction logging.</p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold heading-font text-secondary-900">Inventory Tracking</h1>
+        <p className="text-secondary-500 mt-1 text-sm">Real-time stock logs and fast transaction logging.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         
         {/* Rapid Logging Panel */}
         {hasPermission("update_stock") && (
-          <div className="bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm lg:col-span-1 h-fit">
+          <div className="bg-white p-6 sm:p-8 rounded-[2rem] lg:rounded-[2.5rem] border border-secondary-100 shadow-sm lg:col-span-1 h-fit">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-primary-100 text-primary-600 flex items-center justify-center">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -98,11 +96,11 @@ const InventoryLogs = () => {
         )}
 
         {/* Master Logging Table */}
-        <div className={`bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-sm ${hasPermission("update_stock") ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+        <div className={`bg-white p-6 sm:p-8 rounded-[2rem] lg:rounded-[2.5rem] border border-secondary-100 shadow-sm ${hasPermission("update_stock") ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
           <h2 className="text-xl font-bold mb-4">Master Ledger</h2>
           {loading ? <p className="text-sm text-secondary-400">Loading ledger...</p> : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
+            <div className="overflow-x-auto -mx-2">
+              <table className="w-full text-left min-w-[540px]">
                 <thead>
                   <tr className="text-[10px] uppercase font-bold text-secondary-400 tracking-widest border-b border-secondary-100">
                     <th className="pb-3 px-4">Timestamp</th>

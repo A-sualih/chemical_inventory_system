@@ -109,10 +109,19 @@ router.get('/requests', authenticate, async (req, res) => {
       .sort({ created_at: -1 });
     
     const requestsWithNames = await Promise.all(requests.map(async r => {
-      const chem = await Chemical.findOne({ id: r.chemical_id });
+      // Try multiple ways to find the chemical
+      let chem = await Chemical.findOne({ id: r.chemical_id });
+      if (!chem) {
+        // Try by MongoDB _id
+        try { chem = await Chemical.findById(r.chemical_id); } catch(e) {}
+      }
+      if (!chem) {
+        // Try by name (case-insensitive partial match)
+        chem = await Chemical.findOne({ name: new RegExp(r.chemical_id, 'i') });
+      }
       return {
         ...r.toObject(),
-        chemical_name: chem ? chem.name : 'Unknown',
+        chemical_name: chem ? chem.name : r.chemical_id,
         user_name: r.user_id ? r.user_id.name : 'Unknown'
       };
     }));

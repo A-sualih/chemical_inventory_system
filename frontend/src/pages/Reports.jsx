@@ -32,12 +32,12 @@ const Reports = () => {
 
   return (
     <Layout>
-      <div className="mb-10 flex flex-col md:flex-row justify-between md:items-end gap-4 hide-on-print">
+      <div className="mb-8 flex flex-col sm:flex-row justify-between sm:items-end gap-4 hide-on-print">
         <div>
-          <h1 className="text-3xl font-bold heading-font text-secondary-900">Reports & Analytics</h1>
-          <p className="text-secondary-500 mt-1">Real-time KPI tracking, hazard distribution, and PDF exports.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold heading-font text-secondary-900">Reports &amp; Analytics</h1>
+          <p className="text-secondary-500 mt-1 text-sm">Real-time KPI tracking, hazard distribution, and PDF exports.</p>
         </div>
-        <button onClick={handleExportPDF} className="bg-secondary-950 text-white px-6 py-3 rounded-xl font-bold text-sm tracking-widest flex items-center gap-2 hover:bg-secondary-800 transition-colors shadow-xl">
+        <button onClick={handleExportPDF} className="self-start sm:self-auto bg-secondary-950 text-white px-5 py-3 rounded-xl font-bold text-sm tracking-widest flex items-center gap-2 hover:bg-secondary-800 transition-colors shadow-xl">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
            EXPORT PDF
         </button>
@@ -49,22 +49,22 @@ const Reports = () => {
         <div className="space-y-8 report-content">
           
           {/* Main Number KPIs */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-primary-600 p-6 rounded-3xl text-white shadow-lg shadow-primary-500/30">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-primary-600 p-4 sm:p-6 rounded-2xl sm:rounded-3xl text-white shadow-lg shadow-primary-500/30">
               <span className="text-[10px] font-bold uppercase tracking-widest opacity-80 block mb-2">Total Active Inventory</span>
-              <span className="text-4xl font-bold font-mono">{analytics.summary.total}</span>
+              <span className="text-3xl sm:text-4xl font-bold font-mono">{analytics.summary.total}</span>
             </div>
-            <div className="bg-orange-50 p-6 rounded-3xl text-orange-900 border border-orange-100">
+            <div className="bg-orange-50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl text-orange-900 border border-orange-100">
               <span className="text-[10px] font-bold uppercase tracking-widest block mb-2">Low Stock Alerts</span>
-              <span className="text-4xl font-bold font-mono">{analytics.summary.low_stock}</span>
+              <span className="text-3xl sm:text-4xl font-bold font-mono">{analytics.summary.low_stock}</span>
             </div>
-            <div className="bg-secondary-50 p-6 rounded-3xl border border-secondary-100 text-secondary-900">
+            <div className="bg-secondary-50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-secondary-100 text-secondary-900">
               <span className="text-[10px] font-bold uppercase tracking-widest text-secondary-500 block mb-2">30D Disposals</span>
-              <span className="text-4xl font-bold font-mono">{analytics.summary.disposed_30d}</span>
+              <span className="text-3xl sm:text-4xl font-bold font-mono">{analytics.summary.disposed_30d}</span>
             </div>
-            <div className="bg-green-50 p-6 rounded-3xl border border-green-100 text-green-900">
+            <div className="bg-green-50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-green-100 text-green-900">
               <span className="text-[10px] font-bold uppercase tracking-widest text-green-700 block mb-2">Approved Requests</span>
-              <span className="text-4xl font-bold font-mono">{analytics.summary.approved_requests_30d}</span>
+              <span className="text-3xl sm:text-4xl font-bold font-mono">{analytics.summary.approved_requests_30d}</span>
             </div>
           </div>
 
@@ -95,7 +95,7 @@ const Reports = () => {
             </div>
 
             {/* Compliance Records */}
-            <div className="bg-secondary-950 p-8 rounded-[2.5rem] text-white">
+            <div className="bg-secondary-950 p-6 sm:p-8 rounded-[2rem] lg:rounded-[2.5rem] text-white">
                <h3 className="text-lg font-bold mb-6 text-white">Regulatory Bulletins</h3>
                <div className="space-y-4">
                  <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">

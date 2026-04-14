@@ -14,18 +14,61 @@ const upload = multer({ storage });
 
 const router = express.Router();
 
-// Get stats for Dashboard
+// Get stats for Dashboard (comprehensive)
 router.get('/stats', authenticate, async (req, res) => {
   try {
     const totalCount = await Chemical.countDocuments({ archived: false });
     const flammables = await Chemical.countDocuments({ ghs_classes: '0', archived: false });
     const lowStock = await Chemical.countDocuments({ status: "Low Stock", archived: false });
     
+    // Upcoming expirations (within 90 days)
+    const now = new Date();
+    const in90Days = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+    const expiring = await Chemical.find({
+      archived: false,
+      expiry_date: { $gte: now, $lte: in90Days }
+    }).sort({ expiry_date: 1 }).limit(5).select('name expiry_date ghs_classes location');
+
+    const expirations = expiring.map(c => {
+      const daysLeft = Math.ceil((new Date(c.expiry_date) - now) / (1000 * 60 * 60 * 24));
+      return { name: c.name, days: daysLeft, location: c.location || 'Unassigned' };
+    });
+
+    // Storage breakdown by location
+    const allChemicals = await Chemical.find({ archived: false }).select('location quantity');
+    const locationMap = {};
+    allChemicals.forEach(c => {
+      const loc = c.location || 'Unassigned';
+      if (!locationMap[loc]) locationMap[loc] = { count: 0, totalQty: 0 };
+      locationMap[loc].count += 1;
+      locationMap[loc].totalQty += (c.quantity || 0);
+    });
+    const storageBreakdown = Object.entries(locationMap)
+      .map(([name, data]) => ({ name, count: data.count, totalQty: data.totalQty }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 4);
+
+    // Last audit timestamp
+    const AuditLog = require('../models/AuditLog');
+    const lastAudit = await AuditLog.findOne().sort({ timestamp: -1 }).select('timestamp');
+    let lastAuditAgo = 'Never';
+    if (lastAudit) {
+      const diffH = Math.floor((now - new Date(lastAudit.timestamp)) / (1000 * 60 * 60));
+      lastAuditAgo = diffH < 1 ? 'Just now' : diffH < 24 ? `${diffH}h ago` : `${Math.floor(diffH / 24)}d ago`;
+    }
+
+    // Safety audit score (percentage of chemicals with SDS attached)
+    const withSds = await Chemical.countDocuments({ archived: false, sds_attached: true });
+    const auditScore = totalCount > 0 ? Math.round((withSds / totalCount) * 100) + '%' : 'N/A';
+
     const stats = {
       total: totalCount,
-      flammables: flammables,
-      lowStock: lowStock,
-      auditScore: "94%"
+      flammables,
+      lowStock,
+      auditScore,
+      expirations,
+      storageBreakdown,
+      lastAuditAgo
     };
     res.json(stats);
   } catch (err) {
