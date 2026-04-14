@@ -51,7 +51,12 @@ router.get('/logs/:chemical_id', authenticate, authorize(PERMISSIONS.VIEW_AUDIT_
 
 // Submit a new transaction (Add/Remove stock)
 router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), async (req, res) => {
-  const { chemical_id, action, quantity_change, unit, reason, new_location } = req.body;
+  const { 
+    chemical_id, action, quantity_change, unit, reason, 
+    new_location, batch, mfgDate, purchaseDate, expiry,
+    numContainers, qtyPerContainer, containerType, containerId,
+    building, room, cabinet, shelf, remarks
+  } = req.body;
   const user_id = req.user.id;
 
   try {
@@ -60,7 +65,7 @@ router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), a
 
     // Use default unit if none provided
     const txUnit = unit || chem.unit;
-    const changeInBase = convertToBase(Number(quantity_change), txUnit);
+    const changeInBase = convertToBase(Number(quantity_change || (numContainers * qtyPerContainer)), txUnit);
     
     // Initialize base fields if missing
     if (chem.base_quantity === undefined) {
@@ -68,54 +73,101 @@ router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), a
       chem.base_unit = getBaseUnit(chem.unit);
     }
 
-    let newBaseQty = chem.base_quantity;
-    let oldLoc = chem.location;
+    let targetChem = chem;
 
     if (action === 'IN') {
-      newBaseQty += changeInBase;
+      // If adding a NEW batch or to a DIFFERENT location, create a new record for traceability
+      const isNewBatch = batch && (batch !== chem.batch_number);
+      const isNewLocation = building && (building !== chem.building || room !== chem.room || cabinet !== chem.cabinet || shelf !== chem.shelf);
+
+      if (isNewBatch || isNewLocation) {
+        // Generate a new unique ID
+        const baseCount = await Chemical.countDocuments({});
+        let attempt = baseCount + 1;
+        let idValue = '';
+        let isUnique = false;
+        while (!isUnique) {
+          idValue = `C${String(attempt).padStart(3, '0')}`;
+          const existing = await Chemical.findOne({ id: idValue });
+          if (!existing) isUnique = true;
+          else attempt++;
+        }
+
+        targetChem = new Chemical({
+          id: idValue,
+          name: chem.name,
+          iupac_name: chem.iupac_name,
+          cas_number: chem.cas_number,
+          formula: chem.formula,
+          quantity: Number(quantity_change || (numContainers * qtyPerContainer)),
+          unit: txUnit,
+          base_quantity: changeInBase,
+          base_unit: getBaseUnit(txUnit),
+          state: chem.state,
+          purity: chem.purity,
+          concentration: chem.concentration,
+          storage_temp: chem.storage_temp,
+          storage_humidity: chem.storage_humidity,
+          supplier: req.body.supplier || chem.supplier,
+          batch_number: batch || chem.batch_number,
+          manufacturing_date: mfgDate,
+          purchase_date: purchaseDate,
+          expiry_date: expiry || chem.expiry_date,
+          num_containers: Number(numContainers) || 1,
+          quantity_per_container: Number(qtyPerContainer),
+          container_type: containerType,
+          container_id_series: containerId,
+          building,
+          room,
+          cabinet,
+          shelf,
+          remarks,
+          location: building ? `${building}-${room || ''}-${cabinet || ''}-${shelf || ''}`.replace(/-+$/, '') : chem.location,
+          ghs_classes: chem.ghs_classes,
+          sds_attached: chem.sds_attached,
+          sds_file_name: chem.sds_file_name,
+          sds_file_url: chem.sds_file_url,
+          status: 'In Stock'
+        });
+      } else {
+        targetChem.base_quantity += changeInBase;
+        const { convertFromBase } = require('../utils/unitConverter');
+        targetChem.quantity = convertFromBase(targetChem.base_quantity, targetChem.unit);
+      }
     } else if (action === 'OUT' || action === 'DISPOSAL') {
-      newBaseQty -= changeInBase;
-      if (newBaseQty < 0) return res.status(400).json({ error: "Insufficient stock" });
+      targetChem.base_quantity -= changeInBase;
+      if (targetChem.base_quantity < 0) return res.status(400).json({ error: "Insufficient stock" });
+      const { convertFromBase } = require('../utils/unitConverter');
+      targetChem.quantity = convertFromBase(targetChem.base_quantity, targetChem.unit);
     } else if (action === 'TRANSFER') {
       if (!new_location) return res.status(400).json({ error: "New location is required for transfer" });
-      chem.location = new_location;
+      targetChem.location = new_location;
     } else {
       return res.status(400).json({ error: "Invalid action" });
     }
 
-    // Update chemical quantity (display quantity) and base quantity
-    chem.base_quantity = newBaseQty;
-    const { convertFromBase } = require('../utils/unitConverter');
-    chem.quantity = convertFromBase(newBaseQty, chem.unit);
-    
-    chem.status = chem.quantity < 5 ? 'Low Stock' : 'In Stock';
-    await chem.save();
+    targetChem.status = targetChem.quantity < 5 ? 'Low Stock' : 'In Stock';
+    await targetChem.save();
 
     // Insert log
     const log = new InventoryLog({
-      chemical_id,
+      chemical_id: targetChem.id,
       user_id,
       action,
-      quantity_change,
+      quantity_change: quantity_change || (numContainers * qtyPerContainer),
       unit: txUnit,
       reason,
-      old_location: oldLoc,
-      new_location: action === 'TRANSFER' ? new_location : undefined
+      old_location: chem.location,
+      new_location: action === 'TRANSFER' ? new_location : (action === 'IN' ? targetChem.location : undefined)
     });
     await log.save();
 
-    // Log Audit
-    const auditMsg = action === 'TRANSFER' 
-      ? `Transferred ${chem.name} from ${oldLoc} to ${new_location}`
-      : `${action}: ${quantity_change} ${txUnit} for ${chem.name} (${reason})`;
-    
-    await logAudit(req, 'Inventory Transaction', auditMsg, 'Chemical', chem._id);
-
     res.status(201).json({ 
       message: 'Transaction recorded successfully', 
-      newQty: chem.quantity, 
-      unit: chem.unit,
-      location: chem.location
+      newQty: targetChem.quantity, 
+      unit: targetChem.unit,
+      location: targetChem.location,
+      newRecordCreated: targetChem.id !== chem.id
     });
   } catch (err) {
     console.error(err);
