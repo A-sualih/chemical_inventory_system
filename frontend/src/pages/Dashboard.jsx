@@ -103,9 +103,12 @@ const Dashboard = () => {
     )},
   ];
 
-  const storageColors = ['bg-orange-500', 'bg-red-500', 'bg-blue-500', 'bg-primary-500'];
-
-
+  const storageThemes = [
+    { base: 'blue', bg: 'bg-blue-500', fill: 'from-blue-400 to-blue-600', light: 'bg-blue-500/10', ring: 'ring-blue-500/30' },
+    { base: 'violet', bg: 'bg-violet-500', fill: 'from-violet-400 to-violet-600', light: 'bg-violet-500/10', ring: 'ring-violet-500/30' },
+    { base: 'emerald', bg: 'bg-emerald-500', fill: 'from-emerald-400 to-emerald-600', light: 'bg-emerald-500/10', ring: 'ring-emerald-500/30' },
+    { base: 'amber', bg: 'bg-amber-500', fill: 'from-amber-400 to-amber-600', light: 'bg-amber-500/10', ring: 'ring-amber-500/30' },
+  ];
   return (
     <Layout>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
@@ -175,17 +178,21 @@ const Dashboard = () => {
                    <p className="text-[10px] text-secondary-500 mt-1">Add locations to chemicals to see storage breakdown.</p>
                  </div>
                ) : (dbStats.storageBreakdown || []).map((unit, i) => {
+                 const theme = storageThemes[i % storageThemes.length];
                  const storageList = dbStats.storageBreakdown || [];
                  const maxQty = Math.max(...storageList.map(u => u.totalQty), 1);
                  const fill = Math.round((unit.totalQty / maxQty) * 100);
                  return (
-                   <div key={i} className="space-y-3">
-                     <div className="flex justify-between text-sm font-bold text-secondary-700">
-                       <span className="truncate mr-2">{unit.name}</span>
-                       <span className="shrink-0">{unit.count} items • {unit.totalQty} units</span>
+                   <div key={i} className="space-y-3 group cursor-pointer">
+                     <div className="flex justify-between text-sm font-bold text-secondary-700 group-hover:text-secondary-950 transition-colors">
+                       <span className="truncate mr-2 flex items-center gap-2">
+                         <div className={`w-2 h-2 rounded-full ${theme.bg}`}></div>
+                         {unit.name}
+                       </span>
+                       <span className="shrink-0 text-secondary-500 group-hover:text-secondary-700">{unit.count} items • {unit.totalQty} units</span>
                      </div>
-                     <div className="h-4 w-full bg-secondary-100 rounded-full overflow-hidden p-1">
-                       <div className={`h-full rounded-full transition-all duration-1000 ${storageColors[i % storageColors.length]}`} style={{ width: `${fill}%` }}></div>
+                     <div className="h-4 w-full bg-secondary-100 rounded-full overflow-hidden p-1 shadow-inner">
+                       <div className={`h-full rounded-full transition-all duration-1000 bg-gradient-to-r ${theme.fill} shadow-sm`} style={{ width: `${fill}%` }}></div>
                      </div>
                    </div>
                  );
@@ -272,30 +279,63 @@ const Dashboard = () => {
           )}
 
           {/* Inventory Overview Chart */}
-          <div className="bg-white rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-8 lg:p-10 border border-secondary-100 shadow-sm relative overflow-hidden">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-black text-secondary-950 heading-font">Inventory Overview</h2>
-              <Link to="/chemicals" className="text-primary-600 text-xs font-bold hover:underline">View All →</Link>
+          <div className="bg-white rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-8 lg:p-10 border border-secondary-100 shadow-xl shadow-secondary-200/20 relative overflow-hidden group/chart">
+            <div className="absolute inset-x-0 bottom-0 top-[80px] bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-30 pointer-events-none"></div>
+            
+            <div className="flex justify-between items-center mb-10 relative z-10">
+              <div>
+                <h2 className="text-2xl font-black text-secondary-950 heading-font tracking-tight">Inventory Overview</h2>
+                <p className="text-xs font-bold text-secondary-400 mt-1.5 uppercase tracking-widest">Volume distribution across locations</p>
+              </div>
+              <Link to="/chemicals" className="text-primary-600 bg-primary-50 px-4 py-2 rounded-xl text-xs font-bold hover:bg-primary-100 transition-colors shadow-sm">View All →</Link>
             </div>
-            <div className="h-64 w-full flex items-end gap-3 pb-2">
+            
+            <div className="h-72 w-full flex items-end gap-3 pb-2 relative z-10 px-2 mt-4">
+              {/* Background grid lines */}
+              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none border-b-2 border-secondary-100 pb-2">
+                 {[100, 75, 50, 25, 0].map(val => (
+                   <div key={val} className="w-full flex items-center h-0.5 relative">
+                     <div className="absolute w-full border-t border-dashed border-secondary-200/60"></div>
+                     {val > 0 && <span className="absolute -left-2 -top-2.5 bg-white/80 pr-2 text-[9px] font-bold text-secondary-300">{val}%</span>}
+                   </div>
+                 ))}
+              </div>
+
               {(dbStats.storageBreakdown || []).length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-center">
-                  <div className="text-sm text-secondary-500 font-bold mb-2">No storage data</div>
-                  <div className="text-[10px] text-secondary-400">Assign locations to chemicals (e.g., 'Cabinet A', 'Shelf B') to populate this overview.</div>
+                <div className="flex-1 flex flex-col items-center justify-center text-center pb-12 z-10">
+                  <div className="w-16 h-16 bg-secondary-50 text-secondary-300 rounded-[2rem] flex items-center justify-center mb-4 border border-secondary-100/50">
+                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                  </div>
+                  <div className="text-sm text-secondary-900 font-bold mb-1">No Storage Data Found</div>
+                  <div className="text-[10px] text-secondary-500 max-w-[200px] leading-relaxed">Assign locations to chemicals (e.g. Cabinet A) to generate volumetric charts.</div>
                 </div>
               ) : (dbStats.storageBreakdown || []).map((unit, i) => {
+                const theme = storageThemes[i % storageThemes.length];
                 const storageList = dbStats.storageBreakdown || [];
                 const maxQty = Math.max(...storageList.map(u => u.totalQty), 1);
                 const h = Math.max(Math.round((unit.totalQty / maxQty) * 100), 8);
                 return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                    <div className={`w-full ${storageColors[i % storageColors.length]}/20 rounded-t-xl group relative cursor-pointer hover:${storageColors[i % storageColors.length]} transition-all`} style={{ height: `${h}%` }}>
-                      <div className={`absolute inset-0 rounded-t-xl ${storageColors[i % storageColors.length]} opacity-60 group-hover:opacity-100 transition-opacity`}></div>
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-secondary-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 font-bold">
-                        {unit.totalQty} units • {unit.count} items
-                      </div>
+                  <div key={i} className="flex-1 flex flex-col items-center gap-3 relative group h-full z-10">
+                    {/* Floating Tooltip */}
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-secondary-950 text-white rounded-xl py-2 px-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:-translate-y-2 pointer-events-none shadow-2xl flex flex-col items-center border border-white/10 z-50 min-w-max">
+                      <div className="text-xs font-black">{unit.totalQty} Units</div>
+                      <div className="text-[9px] font-medium text-secondary-400 mt-0.5">{unit.count} unique items</div>
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-secondary-950 rotate-45 border-r border-b border-white/10"></div>
                     </div>
-                    <span className="text-[9px] font-bold text-secondary-400 uppercase tracking-wider text-center leading-tight truncate w-full">{unit.name}</span>
+                    
+                    {/* Bar styling */}
+                    <div className="w-full flex-1 flex items-end justify-center pt-8">
+                       <div className={`w-full max-w-[100px] relative rounded-t-[1.5rem] md:rounded-t-[2rem] transition-all duration-500 ${theme.light} group-hover:scale-[1.02] cursor-pointer overflow-hidden backdrop-blur-sm group-hover:ring-2 ${theme.ring} ring-offset-2 ring-offset-white`} style={{ height: `${h}%` }}>
+                         {/* Inner Gradient */}
+                         <div className={`absolute inset-0 bg-gradient-to-t ${theme.fill} opacity-80 group-hover:opacity-100 transition-opacity`}></div>
+                         {/* Glass highlight top */}
+                         <div className="absolute top-0 inset-x-0 h-4 bg-white/30 rounded-t-[1.5rem] md:rounded-t-[2rem]"></div>
+                         {/* Inner volume dots */}
+                         <div className="absolute inset-0 bg-[radial-gradient(white_1px,transparent_1px)] [background-size:8px_8px] opacity-10"></div>
+                       </div>
+                    </div>
+
+                    <span className={`text-[10px] font-bold uppercase tracking-wider text-center leading-tight truncate w-full px-1 transition-colors ${theme.text} group-hover:text-secondary-950`}>{unit.name}</span>
                   </div>
                 );
               })}
