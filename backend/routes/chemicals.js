@@ -141,12 +141,23 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.si
       storage_humidity: data.storageHumidity,
       supplier: data.supplier,
       batch_number: data.batch,
+      manufacturing_date: data.mfgDate,
+      purchase_date: data.purchaseDate,
       expiry_date: data.expiry,
+      num_containers: Number(data.numContainers) || 1,
+      quantity_per_container: Number(data.qtyPerContainer),
+      container_type: data.containerType,
+      container_id_series: data.containerId,
+      building: data.building,
+      room: data.room,
+      cabinet: data.cabinet,
+      shelf: data.shelf,
+      remarks: data.remarks,
       ghs_classes: parsedGhs || [],
       sds_attached: hasSdsFile || data.sdsAttached === 'true',
       sds_file_name: sdsFileName,
       sds_file_url: sdsFileUrl,
-      location: data.location || 'Pending Assignment',
+      location: data.building ? `${data.building}-${data.room || ''}-${data.cabinet || ''}-${data.shelf || ''}`.replace(/-+$/, '') : (data.location || 'Pending Assignment'),
       status: 'In Stock'
     });
 
@@ -197,8 +208,19 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
     chemical.storage_humidity = data.storageHumidity;
     chemical.supplier = data.supplier;
     chemical.batch_number = data.batch;
+    chemical.manufacturing_date = data.mfgDate;
+    chemical.purchase_date = data.purchaseDate;
     chemical.expiry_date = data.expiry;
-    chemical.location = data.location || chemical.location;
+    chemical.num_containers = Number(data.numContainers) || 1;
+    chemical.quantity_per_container = Number(data.qtyPerContainer);
+    chemical.container_type = data.containerType;
+    chemical.container_id_series = data.containerId;
+    chemical.building = data.building;
+    chemical.room = data.room;
+    chemical.cabinet = data.cabinet;
+    chemical.shelf = data.shelf;
+    chemical.remarks = data.remarks;
+    chemical.location = data.building ? `${data.building}-${data.room || ''}-${data.cabinet || ''}-${data.shelf || ''}`.replace(/-+$/, '') : (data.location || chemical.location);
     chemical.ghs_classes = parsedGhs || [];
     
     if (req.file) {

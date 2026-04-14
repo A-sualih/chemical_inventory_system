@@ -3,14 +3,17 @@ import Layout from "../layout/Layout";
 import { useAuth } from "../AuthContext";
 import ChemicalForm from "./ChemicalForm";
 import StockActionModal from "../components/StockActionModal";
+import ChemicalHistoryModal from "../components/ChemicalHistoryModal";
 import axios from "axios";
 
 const Chemicals = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showStockModal, setShowStockModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [editingChemical, setEditingChemical] = useState(null);
   const [selectedStockChemical, setSelectedStockChemical] = useState(null);
+  const [selectedHistoryChemical, setSelectedHistoryChemical] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
   const { hasPermission, user } = useAuth();
 
@@ -193,10 +196,22 @@ const Chemicals = () => {
                             return <span key={cat} title={cat} className="w-8 h-8 flex items-center justify-center bg-secondary-50 border border-secondary-200 rounded-lg text-lg hover:scale-110 transition-transform cursor-help">{emoji}</span>
                          })}
                        </div>
-                       <div className="text-xs text-secondary-500">
-                          <div className="font-bold">{item.location}</div>
-                          <div className="text-[10px] text-secondary-400 mt-0.5 uppercase tracking-widest">{item.quantity} {item.unit} Remaining</div>
-                       </div>
+                        <div className="flex flex-col">
+                           <div className="font-bold text-secondary-900 flex items-center gap-2">
+                             {item.building ? (
+                               <><span className="text-primary-600">[{item.building}-{item.room}]</span> {item.cabinet}-{item.shelf}</>
+                             ) : (
+                               item.location
+                             )}
+                           </div>
+                           <div className="text-[10px] text-secondary-400 mt-0.5 uppercase tracking-widest font-bold">
+                             {item.num_containers > 1 ? (
+                               <span className="text-secondary-500">{item.num_containers} containers × {item.quantity_per_container}{item.unit}</span>
+                             ) : (
+                               `${item.quantity} ${item.unit} Remaining`
+                             )}
+                           </div>
+                        </div>
                     </div>
                   </td>
                   <td className="px-4 sm:px-8 py-4 sm:py-6" onClick={(e) => e.stopPropagation()}>
@@ -239,7 +254,11 @@ const Chemicals = () => {
                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
                          </button>
                       )}
-                      <button className="w-10 h-10 flex items-center justify-center text-secondary-400 hover:text-secondary-900 bg-white rounded-xl border border-secondary-200 shadow-sm transition-all" title="View Full History">
+                      <button 
+                        className="w-10 h-10 flex items-center justify-center text-secondary-400 hover:text-secondary-900 bg-white rounded-xl border border-secondary-200 shadow-sm transition-all" 
+                        title="View Full History"
+                        onClick={() => { setSelectedHistoryChemical(item); setShowHistoryModal(true); }}
+                      >
                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       </button>
                     </div>
@@ -250,6 +269,13 @@ const Chemicals = () => {
           </table>
         </div>
       </div>
+
+      {showHistoryModal && selectedHistoryChemical && (
+        <ChemicalHistoryModal 
+          chemical={selectedHistoryChemical}
+          onClose={() => { setShowHistoryModal(false); setSelectedHistoryChemical(null); }}
+        />
+      )}
 
       {showStockModal && selectedStockChemical && (
         <StockActionModal 

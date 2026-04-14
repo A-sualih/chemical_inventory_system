@@ -11,10 +11,19 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     purity: initialData.purity || "",
     concentration: initialData.concentration || "",
     location: initialData.location || "",
+    building: initialData.building || "",
+    room: initialData.room || "",
+    cabinet: initialData.cabinet || "",
+    shelf: initialData.shelf || "",
     batch: initialData.batch_number || "",
+    mfgDate: initialData.manufacturing_date || "",
+    purchaseDate: initialData.purchase_date || "",
     expiry: initialData.expiry_date || "",
-    batch: initialData.batch_number || "",
-    expiry: initialData.expiry_date || "",
+    numContainers: initialData.num_containers || 1,
+    qtyPerContainer: initialData.quantity_per_container || "",
+    containerType: initialData.container_type || "Plastic Bottle",
+    containerId: initialData.container_id_series || "",
+    remarks: initialData.remarks || "",
     sds_file_name: initialData.sds_file_name || "",
     sds_file_url: initialData.sds_file_url || "",
     sdsAttached: initialData.sds_attached === 1 || initialData.sds_attached === true,
@@ -29,12 +38,23 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     purity: "99%",
     concentration: "Default",
     location: "",
+    building: "",
+    room: "",
+    cabinet: "",
+    shelf: "",
     state: "Liquid",
     storageTemp: "20",
     storageHumidity: "45",
     supplier: "",
     batch: "",
+    mfgDate: "",
+    purchaseDate: "",
     expiry: "",
+    numContainers: 1,
+    qtyPerContainer: "",
+    containerType: "Plastic Bottle",
+    containerId: "",
+    remarks: "",
     ghs: [],
     sdsAttached: false
   });
@@ -53,6 +73,13 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
       setFormData(prev => ({ ...prev, unit: 'g' }));
     }
   }, [formData.state]);
+
+  useEffect(() => {
+    const total = (Number(formData.numContainers) || 0) * (Number(formData.qtyPerContainer) || 0);
+    if (total > 0) {
+      setFormData(prev => ({ ...prev, quantity: total }));
+    }
+  }, [formData.numContainers, formData.qtyPerContainer]);
 
   useEffect(() => {
     if (initialData && initialData.id) {
@@ -211,21 +238,26 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                 </div>
               </section>
 
-              {/* SECTION: PROPERTIES */}
-              <section>
-                <div className="flex items-center gap-3 mb-5">
-                   <div className="h-px bg-secondary-200 flex-1"></div>
-                   <div className="text-[10px] font-black text-primary-600 uppercase tracking-widest">Physicality & Stock</div>
-                   <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
-                </div>
-                
-                <div className="grid grid-cols-3 gap-3 sm:gap-5 mb-5">
+               {/* SECTION: PROPERTIES & CONTAINERS */}
+               <section>
+                 <div className="flex items-center gap-3 mb-5">
+                    <div className="h-px bg-secondary-200 flex-1"></div>
+                    <div className="text-[10px] font-black text-primary-600 uppercase tracking-widest">Physicality & Containers</div>
+                    <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
+                 </div>
+                 
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
                   <div className="group">
-                    <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Quantity</label>
-                    <input type="number" value={formData.quantity} onChange={e => setFormData({...formData, quantity: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-mono font-medium shadow-sm" placeholder="0.0" required />
+                    <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block">State</label>
+                    <div className="relative">
+                      <select value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium appearance-none cursor-pointer">
+                         <option>Liquid</option><option>Solid</option><option>Gas</option>
+                      </select>
+                      <svg className="w-4 h-4 absolute right-4 top-4 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
                   </div>
                   <div className="group">
-                    <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Unit</label>
+                    <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block">Unit</label>
                     <div className="relative">
                       <select 
                         value={formData.unit} 
@@ -254,69 +286,127 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                       <svg className="w-4 h-4 absolute right-4 top-4 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                   </div>
-                  <div className="group">
-                    <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">State</label>
-                    <div className="relative">
-                      <select value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium shadow-sm appearance-none cursor-pointer">
-                         <option>Liquid</option><option>Solid</option><option>Gas</option>
-                      </select>
-                      <svg className="w-4 h-4 absolute right-4 top-4 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                  </div>
-                </div>
+                   <div className="group">
+                     <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block transition-colors">Total Qty</label>
+                     <input type="number" value={formData.quantity} readOnly className="w-full bg-secondary-50 border border-secondary-200 rounded-[1rem] p-4 text-sm font-mono font-bold shadow-sm text-primary-700" placeholder="0.0" />
+                   </div>
+                   <div className="group">
+                     <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block transition-colors">Purity (%)</label>
+                     <input type="text" value={formData.purity} onChange={e => setFormData({...formData, purity: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm outline-none hover:border-secondary-300 focus:border-primary-400 transition-all font-medium shadow-sm" placeholder="99.9%" />
+                   </div>
+                 </div>
 
-                <div className="grid grid-cols-2 gap-3 sm:gap-5">
-                  <div className="group">
-                    <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Purity (%)</label>
-                    <input type="text" value={formData.purity} onChange={e => setFormData({...formData, purity: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium shadow-sm" placeholder="e.g. 99.9%" />
-                  </div>
-                  <div className="group">
-                    <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Concentration</label>
-                    <input type="text" value={formData.concentration} onChange={e => setFormData({...formData, concentration: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium shadow-sm" placeholder="e.g. 5M or 10%" />
-                  </div>
-                </div>
-              </section>
-
-              {/* SECTION: STORAGE & LOGISTICS */}
-              <section>
-                <div className="flex items-center gap-3 mb-5">
-                   <div className="h-px bg-secondary-200 flex-1"></div>
-                   <div className="text-[10px] font-black text-primary-600 uppercase tracking-widest">Storage & Logistics</div>
-                   <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
-                </div>
-
-                <div className="bg-white border border-secondary-200 rounded-[1.5rem] p-4 sm:p-5 mb-5 shadow-sm">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-5">
-                    <div className="group col-span-2">
-                       <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Physical Location</label>
-                       <input type="text" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-300 outline-none transition-all font-medium" placeholder="E.g. Cabinet B, Shelf 4" />
+                 <div className="bg-white border border-secondary-200 rounded-[1.5rem] p-5 mb-5 shadow-sm space-y-4">
+                    <div className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                       Bottle & Container Metrics
                     </div>
-                    <div className="group">
-                      <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Temp (°C)</label>
-                      <input type="number" value={formData.storageTemp} onChange={e => setFormData({...formData, storageTemp: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-300 outline-none transition-all font-mono" placeholder="20" />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="group">
+                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Count</label>
+                         <input type="number" value={formData.numContainers} onChange={e => setFormData({...formData, numContainers: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-bold" />
+                      </div>
+                      <div className="group">
+                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Qty/Container</label>
+                         <input type="number" value={formData.qtyPerContainer} onChange={e => setFormData({...formData, qtyPerContainer: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-bold" />
+                      </div>
+                      <div className="group">
+                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Type</label>
+                         <input type="text" value={formData.containerType} onChange={e => setFormData({...formData, containerType: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-medium" />
+                      </div>
+                      <div className="group">
+                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Container ID</label>
+                         <input type="text" value={formData.containerId} onChange={e => setFormData({...formData, containerId: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-mono" placeholder="CONT-X" />
+                      </div>
                     </div>
-                    <div className="group">
-                      <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Humidity (%)</label>
-                      <input type="number" value={formData.storageHumidity} onChange={e => setFormData({...formData, storageHumidity: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-300 outline-none transition-all font-mono" placeholder="45" />
-                    </div>
-                  </div>
-                </div>
+                 </div>
+               </section>
 
-                <div className="grid grid-cols-2 gap-3 sm:gap-5">
-                  <div className="group">
-                    <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Supplier</label>
-                    <input type="text" value={formData.supplier} onChange={e => setFormData({...formData, supplier: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium shadow-sm" placeholder="Vendor Name" />
-                  </div>
-                  <div className="group">
-                    <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Batch / Lot Number</label>
-                    <input type="text" value={formData.batch} onChange={e => setFormData({...formData, batch: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium shadow-sm text-secondary-900 uppercase" placeholder="L-992" />
-                  </div>
-                  <div className="group col-span-2">
-                    <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Expiry Date</label>
-                    <input type="date" value={formData.expiry} onChange={e => setFormData({...formData, expiry: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium shadow-sm text-secondary-600" required />
-                  </div>
-                </div>
-              </section>
+               {/* SECTION: STORAGE & LOCATION */}
+               <section>
+                 <div className="flex items-center gap-3 mb-5">
+                    <div className="h-px bg-secondary-200 flex-1"></div>
+                    <div className="text-[10px] font-black text-primary-600 uppercase tracking-widest">Facility & Storage Taxonomy</div>
+                    <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
+                 </div>
+
+                 <div className="bg-white border border-secondary-200 rounded-[1.5rem] p-5 mb-5 shadow-sm space-y-5">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="group">
+                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Building</label>
+                         <input type="text" value={formData.building} onChange={e => setFormData({...formData, building: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="A" />
+                      </div>
+                      <div className="group">
+                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Room</label>
+                         <input type="text" value={formData.room} onChange={e => setFormData({...formData, room: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="102" />
+                      </div>
+                      <div className="group">
+                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Cabinet</label>
+                         <input type="text" value={formData.cabinet} onChange={e => setFormData({...formData, cabinet: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="C2" />
+                      </div>
+                      <div className="group">
+                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Shelf</label>
+                         <input type="text" value={formData.shelf} onChange={e => setFormData({...formData, shelf: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="1" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                       <div className="group col-span-2">
+                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Combined Identifier (Auto)</label>
+                          <input type="text" readOnly value={formData.building ? `${formData.building}-${formData.room}-${formData.cabinet}-${formData.shelf}`.replace(/-+$/, '') : formData.location} className="w-full bg-secondary-100 border-transparent rounded-xl p-3 text-xs font-mono text-secondary-600" />
+                       </div>
+                       <div className="group">
+                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Temp (°C)</label>
+                          <input type="number" value={formData.storageTemp} onChange={e => setFormData({...formData, storageTemp: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" />
+                       </div>
+                       <div className="group">
+                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Humidity (%)</label>
+                          <input type="number" value={formData.storageHumidity} onChange={e => setFormData({...formData, storageHumidity: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" />
+                       </div>
+                    </div>
+                 </div>
+               </section>
+
+               {/* SECTION: PROCUREMENT & BATCH */}
+               <section>
+                 <div className="flex items-center gap-3 mb-5">
+                    <div className="h-px bg-secondary-200 flex-1"></div>
+                    <div className="text-[10px] font-black text-primary-600 uppercase tracking-widest">Procurement & Traceability</div>
+                    <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                   <div className="space-y-4">
+                     <div className="group">
+                       <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Vendor Name</label>
+                       <input type="text" value={formData.supplier} onChange={e => setFormData({...formData, supplier: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm" placeholder="LabChem Supplies" />
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div className="group">
+                          <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Purchase Date</label>
+                          <input type="date" value={formData.purchaseDate} onChange={e => setFormData({...formData, purchaseDate: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm" />
+                        </div>
+                        <div className="group">
+                          <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">MFG Date</label>
+                          <input type="date" value={formData.mfgDate} onChange={e => setFormData({...formData, mfgDate: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm" />
+                        </div>
+                     </div>
+                   </div>
+                   <div className="space-y-4">
+                      <div className="group">
+                        <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Lot / Batch Number</label>
+                        <input type="text" value={formData.batch} onChange={e => setFormData({...formData, batch: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-mono font-bold shadow-sm" placeholder="LOT-2025-X" />
+                      </div>
+                      <div className="group">
+                        <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Expiry Date</label>
+                        <input type="date" value={formData.expiry} onChange={e => setFormData({...formData, expiry: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm text-red-600" required />
+                      </div>
+                   </div>
+                 </div>
+                 <div className="group">
+                    <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Safety Remarks & Tracking Notes</label>
+                    <textarea value={formData.remarks} onChange={e => setFormData({...formData, remarks: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm h-24 resize-none" placeholder="Initial stock entry, handle with care..."></textarea>
+                 </div>
+               </section>
 
               {/* ACTION FOOTER */}
               <div className="pt-4 flex flex-col md:flex-row gap-4">

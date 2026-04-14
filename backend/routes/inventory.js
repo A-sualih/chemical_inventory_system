@@ -31,6 +31,24 @@ router.get('/logs', authenticate, authorize(PERMISSIONS.VIEW_AUDIT_LOGS), async 
   }
 });
 
+// Get logs for a specific chemical
+router.get('/logs/:chemical_id', authenticate, authorize(PERMISSIONS.VIEW_AUDIT_LOGS), async (req, res) => {
+  try {
+    const logs = await InventoryLog.find({ chemical_id: req.params.chemical_id })
+      .populate('user_id', 'name')
+      .sort({ timestamp: -1 });
+    
+    const logsWithNames = logs.map(log => ({
+      ...log.toObject(),
+      user_name: log.user_id ? log.user_id.name : 'Unknown'
+    }));
+    
+    res.json(logsWithNames);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Submit a new transaction (Add/Remove stock)
 router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), async (req, res) => {
   const { chemical_id, action, quantity_change, unit, reason, new_location } = req.body;
