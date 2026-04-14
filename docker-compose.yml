@@ -1,0 +1,23 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./backend/inventory.sqlite:/app/inventory.sqlite
+    environment:
+      - NODE_ENV=production
+      # Add other env variables here or use env_file
+    restart: always
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: always
+
+networks:
+  default:
+    name: cims-network
