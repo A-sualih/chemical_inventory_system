@@ -216,6 +216,11 @@ router.post('/transaction', authenticate, async (req, res) => {
     } else if (action === 'TRANSFER') {
       if (!to_building && !new_location) return res.status(400).json({ error: "Destination location is required for transfer" });
       
+      // Validate transfer quantity
+      if (changeInBase > (chem.base_quantity + 0.0001)) {
+        return res.status(400).json({ error: `Insufficient stock for transfer. Available: ${chem.quantity} ${chem.unit}` });
+      }
+
       const locSummary = to_building ? `${to_building} / ${to_room}` : new_location;
       targetChem.location = locSummary;
       
@@ -281,7 +286,7 @@ router.post('/transaction', authenticate, async (req, res) => {
       to_room,
       to_cabinet,
       to_shelf,
-      container_id,
+      container_id: containerId,
       num_containers_moved,
       transfer_approved_by,
       old_location: oldLoc,

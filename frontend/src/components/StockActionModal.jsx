@@ -90,6 +90,37 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
     setLoading(true);
     setError("");
 
+    // 1. Basic Quantity Validation
+    const requestedAmount = Number(amount);
+    if (action === 'OUT' || action === 'DISPOSAL' || action === 'TRANSFER') {
+      // If a container is selected, check container quantity
+      if (containerId) {
+        const selected = availableContainers.find(c => c.container_id === containerId);
+        if (selected && requestedAmount > selected.quantity) {
+          setError(`Insufficient stock in container ${containerId}. Available: ${selected.quantity} ${selected.unit}`);
+          setLoading(false);
+          return;
+        }
+      } 
+      // Otherwise check overall chemical quantity
+      else if (requestedAmount > chemical.quantity) {
+        setError(`Insufficient total stock. Available: ${chemical.quantity} ${chemical.unit}`);
+        setLoading(false);
+        return;
+      }
+    }
+
+    if (action === 'TRANSFER') {
+      const movedCount = Number(numContainersMoved);
+      const totalAvailableCount = chemical.num_containers || 1;
+      
+      if (movedCount > totalAvailableCount) {
+        setError(`Insufficient containers. You only have ${totalAvailableCount} vessels to move.`);
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       await axios.post("/api/inventory/transaction", {
         chemical_id: chemical.id,
@@ -394,7 +425,12 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                           <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block uppercase text-[10px] tracking-widest">{field}</label>
                           <input 
                             type="text" 
-                            value={eval(field)} 
+                            value={
+                              field === 'building' ? building :
+                              field === 'room' ? room :
+                              field === 'cabinet' ? cabinet :
+                              field === 'shelf' ? shelf : ""
+                            } 
                             onChange={e => {
                                if (field === 'building') setBuilding(e.target.value);
                                if (field === 'room') setRoom(e.target.value);

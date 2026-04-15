@@ -72,6 +72,10 @@ const updateContainerStatus = async (containerId, amountRemoved, reason = "", un
     const amountInBase = convertToBase(Number(amountRemoved), txUnit);
     const currentInBase = convertToBase(container.quantity, container.unit);
     
+    if (amountInBase > currentInBase + 0.0001) { // Allowance for precision
+      throw new Error(`Container ${containerId} has insufficient quantity (${container.quantity} ${container.unit})`);
+    }
+
     const newBase = Math.max(0, currentInBase - amountInBase);
     container.quantity = convertFromBase(newBase, container.unit);
 
