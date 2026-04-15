@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { HAZARD_CLASSES } from "../constants/hazards.jsx";
 
 const ChemicalForm = ({ initialData, onClose, onSave }) => {
   const [formData, setFormData] = useState(initialData ? {
@@ -107,21 +108,10 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     }
   };
 
-  const ghsMap = [
-    { cat: "Flammable", emoji: "🔥" },
-    { cat: "Toxic", emoji: "💀" },
-    { cat: "Irritant", emoji: "⚠️" },
-    { cat: "Biohazard", emoji: "☣️" },
-    { cat: "Corrosive", emoji: "🧪" },
-    { cat: "Environmental", emoji: "🌊" },
-    { cat: "Explosive", emoji: "💣" },
-    { cat: "Oxidizer", emoji: "⚡" }
-  ];
-
-  const toggleGhs = (catStr) => {
-    const newGhs = formData.ghs.includes(catStr)
-      ? formData.ghs.filter(c => c !== catStr)
-      : [...formData.ghs, catStr];
+  const toggleGhs = (hazardId) => {
+    const newGhs = formData.ghs.includes(hazardId)
+      ? formData.ghs.filter(c => c !== hazardId)
+      : [...formData.ghs, hazardId];
     setFormData({ ...formData, ghs: newGhs });
   };
 
@@ -175,21 +165,43 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
 
             <div className="flex-1">
               <label className="text-[10px] font-black uppercase tracking-widest text-secondary-400 block mb-3">Global Hazard Classification</label>
-              <div className="grid grid-cols-4 gap-2">
-                {ghsMap.map((item) => (
+              <div className="grid grid-cols-4 lg:grid-cols-5 gap-2">
+                {HAZARD_CLASSES.map((item) => (
                   <button 
-                    key={item.cat} 
+                    key={item.id} 
                     type="button"
-                    onClick={() => toggleGhs(item.cat)}
-                    className={`h-12 rounded-[1rem] flex items-center justify-center text-xl transition-all border-2 ${
-                      formData.ghs.includes(item.cat) ? 'bg-primary-50 border-primary-500 text-primary-700 shadow-sm' : 'bg-secondary-50 border-transparent hover:bg-secondary-100'
+                    onClick={() => toggleGhs(item.id)}
+                    className={`group relative h-12 w-12 rounded-xl flex items-center justify-center transition-all border-2 ${
+                      formData.ghs.includes(item.id) || formData.ghs.includes(item.label) 
+                        ? `${item.color} border-transparent text-white shadow-lg scale-105` 
+                        : 'bg-secondary-50 border-secondary-100 text-secondary-400 hover:border-secondary-300 hover:bg-white'
                     }`}
-                    title={item.cat}
                   >
-                    {item.emoji}
+                    <div className="w-6 h-6">
+                      {item.icon}
+                    </div>
+                    {/* Floating Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 p-2 bg-secondary-900 text-white text-[9px] rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none shadow-xl">
+                      <p className="font-bold mb-0.5">{item.label}</p>
+                      <p className="text-secondary-400 leading-tight line-clamp-2">{item.description}</p>
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-secondary-900"></div>
+                    </div>
                   </button>
                 ))}
               </div>
+              {formData.ghs.length > 0 && (
+                <div className="mt-4 p-3 bg-primary-50/50 rounded-xl border border-primary-100/50">
+                   <div className="text-[9px] font-black text-primary-600 uppercase tracking-widest mb-1">Active Hazard Profiles</div>
+                   <div className="flex flex-wrap gap-1">
+                      {formData.ghs.map(id => {
+                        const h = HAZARD_CLASSES.find(x => x.id === id || x.label === id);
+                        return h ? (
+                          <span key={id} className={`px-2 py-0.5 rounded-md text-[8px] font-bold text-white uppercase ${h.color}`}>{h.label}</span>
+                        ) : null;
+                      })}
+                   </div>
+                </div>
+              )}
             </div>
 
             <button onClick={onClose} className="w-full mt-4 py-3 text-sm font-bold text-secondary-500 hover:text-secondary-900 hover:bg-secondary-100 rounded-2xl transition-all">
@@ -286,10 +298,10 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                       <svg className="w-4 h-4 absolute right-4 top-4 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                   </div>
-                   <div className="group">
-                     <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block transition-colors">Total Qty</label>
-                     <input type="number" value={formData.quantity} readOnly className="w-full bg-secondary-50 border border-secondary-200 rounded-[1rem] p-4 text-sm font-mono font-bold shadow-sm text-primary-700" placeholder="0.0" />
-                   </div>
+                    <div className="group">
+                      <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block transition-colors">Total Qty</label>
+                      <input type="number" step="any" value={formData.quantity} onChange={e => setFormData({...formData, quantity: Number(e.target.value)})} className="w-full bg-secondary-50 border border-secondary-200 rounded-[1rem] p-4 text-sm font-mono font-bold shadow-sm text-primary-700" placeholder="0.0" />
+                    </div>
                    <div className="group">
                      <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block transition-colors">Purity (%)</label>
                      <input type="text" value={formData.purity} onChange={e => setFormData({...formData, purity: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm outline-none hover:border-secondary-300 focus:border-primary-400 transition-all font-medium shadow-sm" placeholder="99.9%" />

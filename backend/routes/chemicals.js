@@ -6,6 +6,8 @@ const QRCode = require('qrcode');
 const multer = require('multer');
 const path = require('path');
 const { convertToBase, getBaseUnit } = require('../utils/unitConverter');
+const { syncBatch } = require('../utils/batchManager');
+const { syncContainers } = require('../utils/containerManager');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, './uploads/'),
@@ -19,7 +21,15 @@ const router = express.Router();
 router.get('/stats', authenticate, async (req, res) => {
   try {
     const totalCount = await Chemical.countDocuments({ archived: false });
-    const flammables = await Chemical.countDocuments({ ghs_classes: '0', archived: false });
+    const flammables = await Chemical.countDocuments({ ghs_classes: "Flammable", archived: false });
+    
+    // Comprehensive hazard distribution
+    const allHazards = await Chemical.aggregate([
+      { $match: { archived: false } },
+      { $unwind: "$ghs_classes" },
+      { $group: { _id: "$ghs_classes", count: { $sum: 1 } } }
+    ]);
+    const hazardSummary = allHazards.map(h => ({ id: h._id, count: h.count }));
     const lowStock = await Chemical.countDocuments({ status: "Low Stock", archived: false });
     
     // Upcoming expirations (within 90 days)
@@ -65,6 +75,7 @@ router.get('/stats', authenticate, async (req, res) => {
     const stats = {
       total: totalCount,
       flammables,
+      hazardSummary,
       lowStock,
       auditScore,
       expirations,
@@ -162,6 +173,21 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.si
     });
 
     await newChem.save();
+
+    // Auto-Sync Batch record
+    if (newChem.batch_number) {
+      await syncBatch({
+        ...data,
+        id: idValue,
+        quantity: Number(data.quantity)
+      });
+    }
+
+    // Auto-Sync Containers
+    await syncContainers({
+      ...data,
+      id: idValue,
+    });
     
     // Log Audit
     await logAudit(req, 'Created Chemical', `Added new chemical: ${newChem.name} (${newChem.id})`, 'Chemical', newChem._id);
@@ -232,6 +258,22 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
     }
 
     await chemical.save();
+
+    // Auto-Sync Batch record
+    if (chemical.batch_number) {
+      await syncBatch({
+        ...data,
+        id: chemical.id,
+        quantity: Number(chemical.quantity),
+        unit: chemical.unit
+      });
+    }
+
+    // Auto-Sync Containers
+    await syncContainers({
+      ...data,
+      id: chemical.id,
+    });
 
     // Log Audit
     await logAudit(req, 'Updated Chemical', `Updated chemical information for ${oldName} (${chemical.id})`, 'Chemical', chemical._id);

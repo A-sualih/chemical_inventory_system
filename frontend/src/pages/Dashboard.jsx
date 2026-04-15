@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import Layout from "../layout/Layout";
 import { useAuth } from "../AuthContext";
+import { HAZARD_CLASSES } from "../constants/hazards.jsx";
+import HazardBadge from "../components/HazardBadge";
 
 const Dashboard = () => {
   const { user, hasPermission } = useAuth();
@@ -93,7 +95,9 @@ const Dashboard = () => {
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" /></svg>
     )},
     { label: "Flammables", value: dbStats.flammables.toString().padStart(3, '0'), sub: "Class 3 Assets", color: "orange", icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.99 7.99 0 0120 13a7.99 7.99 0 01-2.343 5.657z" /></svg>
+      <div className="w-6 h-6">
+        {HAZARD_CLASSES.find(h => h.id === 'Flammable')?.icon}
+      </div>
     )},
     { label: "Critical Stock", value: dbStats.lowStock.toString().padStart(2, '0'), sub: "Reorder Required", color: "red", icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -344,6 +348,45 @@ const Dashboard = () => {
         </div>
 
         <div className="space-y-8">
+           {/* Hazard distribution section */}
+           <div className="bg-white rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-8 lg:p-10 border border-secondary-100 shadow-sm relative overflow-hidden group">
+              <div className="flex justify-between items-center mb-6">
+                 <h2 className="text-xl font-black text-secondary-950 heading-font">Risk Profile</h2>
+                 <span className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">Global GHS Analysis</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                 {(dbStats.hazardSummary || []).length === 0 ? (
+                   <div className="col-span-2 text-center py-4 bg-secondary-50 rounded-2xl border border-dashed border-secondary-200">
+                     <p className="text-[10px] font-bold text-secondary-400 uppercase">No hazards logged</p>
+                   </div>
+                 ) : (dbStats.hazardSummary || []).map(h => {
+                   const hazardInfo = HAZARD_CLASSES.find(x => x.id === h.id || x.label === h.id);
+                   if (!hazardInfo) return null;
+                   return (
+                     <div key={h.id} className="flex items-center gap-3 p-3 bg-secondary-50/50 hover:bg-white border border-secondary-100 hover:border-primary-100 rounded-2xl transition-all group/hazard">
+                        <div className={`w-8 h-8 rounded-lg ${hazardInfo.color} text-white p-1.5 shadow-sm group-hover/hazard:scale-110 transition-transform`}>
+                           {hazardInfo.icon}
+                        </div>
+                        <div className="min-w-0">
+                           <div className="text-xs font-black text-secondary-900 leading-none truncate mb-1">{hazardInfo.label}</div>
+                           <div className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">{h.count} Chemicals</div>
+                        </div>
+                     </div>
+                   );
+                 })}
+              </div>
+              <div className="mt-6 pt-4 border-t border-secondary-50">
+                 <div className="text-[10px] font-black text-primary-600 uppercase tracking-[0.2em] mb-2">Primary Threat</div>
+                 <div className="flex items-center gap-3">
+                    <div className="text-lg font-black text-secondary-950">
+                       {(dbStats.hazardSummary || [])[0]?.id || "None Reported"}
+                    </div>
+                    <div className="h-4 w-px bg-secondary-200"></div>
+                    <div className="text-xs font-bold text-secondary-500">Highest occurrence</div>
+                 </div>
+              </div>
+           </div>
+
            {/* Safety Protocol */}
            <div className="bg-gradient-to-br from-primary-600 to-primary-800 rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-8 lg:p-10 text-white shadow-2xl shadow-primary-900/20 border border-primary-500/20">
               <h2 className="text-xl font-black mb-2 heading-font text-white/90">Safety Protocol</h2>

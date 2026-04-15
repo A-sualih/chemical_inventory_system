@@ -164,9 +164,14 @@ const InventoryLogs = () => {
                         <div className="text-[10px] text-secondary-400 font-black uppercase tracking-widest pl-1">Audit Path Verified</div>
                       </td>
                       <td className="py-6 px-6 align-top">
-                        <div className={`text-lg font-black ${log.action === 'IN' ? 'text-green-600' : 'text-secondary-900'}`}>
-                          {log.quantity_change > 0 ? '+' : ''}{log.quantity_change}
-                          <span className="text-xs text-secondary-400 ml-1 font-black uppercase">{log.unit}</span>
+                        <div className={`text-lg font-black ${
+                          log.action === 'IN' ? 'text-green-600 bg-green-50/50 px-3 py-1 rounded-xl w-fit' : 
+                          log.action === 'OUT' || log.action === 'DISPOSAL' ? 'text-red-600 bg-red-50/50 px-3 py-1 rounded-xl w-fit' : 
+                          'text-secondary-900 bg-secondary-50 px-3 py-1 rounded-xl w-fit'
+                        }`}>
+                          {log.action === 'IN' ? '+' : (log.action === 'OUT' || log.action === 'DISPOSAL' ? '-' : '')}
+                          {Math.abs(log.quantity_change)}
+                          <span className="text-xs ml-1 font-black uppercase">{log.unit}</span>
                         </div>
                         {log.num_containers_moved > 0 && <div className="text-[10px] text-secondary-400 font-bold mt-1 uppercase tracking-tighter">{log.num_containers_moved} Individual Vessels</div>}
                       </td>

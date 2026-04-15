@@ -16,10 +16,13 @@ router.get('/analytics', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), asyn
     const lowStockCount = await Chemical.countDocuments({ status: 'Low Stock', archived: false });
     
     // KPI 2: Hazards Distribution
-    // Note: In a real app, you'd use a better pattern match for GHS classes
-    const flammables = await Chemical.countDocuments({ ghs_classes: /Flammable/i, archived: false });
-    const toxics = await Chemical.countDocuments({ ghs_classes: /Toxic/i, archived: false });
-    const corrosives = await Chemical.countDocuments({ ghs_classes: /Corrosive/i, archived: false });
+    const hazardCounts = await Chemical.aggregate([
+      { $match: { archived: false } },
+      { $unwind: "$ghs_classes" },
+      { $group: { _id: "$ghs_classes", count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+    const hazards = hazardCounts.map(h => ({ name: h._id, value: h.count }));
 
     // KPI 3: Recent Activity (Last 30 Days)
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -54,11 +57,7 @@ router.get('/analytics', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), asyn
         disposed_30d: (recentDisposals[0]?.total_disposed || 0).toFixed(1) + ' L/kg',
         approved_requests_30d: recentRequestsCount
       },
-      hazards: [
-        { name: 'Flammable', value: flammables },
-        { name: 'Toxic', value: toxics },
-        { name: 'Corrosive', value: corrosives },
-      ],
+      hazards,
       usage: usageData.map(u => ({ action: u._id.action, total: u.total, month: u._id.month }))
     });
   } catch (err) {

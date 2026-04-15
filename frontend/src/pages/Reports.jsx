@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import Layout from "../layout/Layout";
 import { useAuth } from "../AuthContext";
 import axios from "axios";
+import { HAZARD_CLASSES } from "../constants/hazards.jsx";
+import HazardBadge from "../components/HazardBadge";
 
 const Reports = () => {
   const { hasPermission } = useAuth();
@@ -72,26 +74,35 @@ const Reports = () => {
             {/* Hazard Distribution */}
             <div className="bg-white border border-secondary-100 p-8 rounded-[2.5rem] shadow-sm">
                <h3 className="text-lg font-bold mb-6">Hazard Distribution (GHS)</h3>
-               <div className="space-y-6">
-                 {analytics.hazards.map(hazard => {
-                   const max = Math.max(...analytics.hazards.map(h => h.value), 1);
-                   const percentage = (hazard.value / max) * 100;
-                   return (
-                     <div key={hazard.name}>
-                       <div className="flex justify-between items-end mb-2">
-                         <span className="font-bold text-sm text-secondary-700">{hazard.name}</span>
-                         <span className="font-mono text-xs font-bold text-secondary-500">{hazard.value} assets</span>
-                       </div>
-                       <div className="w-full bg-secondary-50 rounded-full h-3 overflow-hidden">
-                         <div 
-                           className={`h-full rounded-full transition-all duration-1000 ${hazard.name === 'Flammable' ? 'bg-orange-500' : hazard.name === 'Toxic' ? 'bg-purple-500' : 'bg-red-500'}`} 
-                           style={{ width: `${percentage}%` }}
-                         />
-                       </div>
-                     </div>
-                   )
-                 })}
-               </div>
+                <div className="space-y-6">
+                  {analytics.hazards.length === 0 ? (
+                    <p className="text-secondary-400 text-sm text-center py-10 italic">No hazard data available</p>
+                  ) : analytics.hazards.map(hazard => {
+                    const hazardInfo = HAZARD_CLASSES.find(h => h.id === hazard.name || h.label === hazard.name);
+                    const max = Math.max(...analytics.hazards.map(h => h.value), 1);
+                    const percentage = (hazard.value / max) * 100;
+                    
+                    return (
+                      <div key={hazard.name} className="group">
+                        <div className="flex justify-between items-center mb-2">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-lg ${hazardInfo?.color || 'bg-secondary-200'} text-white p-1.5 shadow-sm group-hover:scale-110 transition-transform`}>
+                               {hazardInfo?.icon || '⚠️'}
+                            </div>
+                            <span className="font-bold text-sm text-secondary-800">{hazardInfo?.label || hazard.name}</span>
+                          </div>
+                          <span className="font-mono text-xs font-bold text-secondary-500 bg-secondary-50 px-2 py-1 rounded-md border border-secondary-100">{hazard.value} assets</span>
+                        </div>
+                        <div className="w-full bg-secondary-50 rounded-full h-3 overflow-hidden shadow-inner p-0.5">
+                          <div 
+                            className={`h-full rounded-full transition-all duration-1000 ${hazardInfo ? hazardInfo.color : 'bg-secondary-400'} shadow-sm`} 
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
             </div>
 
             {/* Compliance Records */}

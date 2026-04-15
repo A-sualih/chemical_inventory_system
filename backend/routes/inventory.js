@@ -5,6 +5,8 @@ const Request = require('../models/Request');
 const InventoryLog = require('../models/InventoryLog');
 const Batch = require('../models/Batch');
 const Container = require('../models/Container');
+const { syncBatch } = require('../utils/batchManager');
+const { syncContainers, updateContainerStatus } = require('../utils/containerManager');
 const { authenticate, authorize, logAudit } = require('../authMiddleware');
 const { PERMISSIONS } = require('../config/roles');
 
@@ -167,16 +169,50 @@ router.post('/transaction', authenticate, async (req, res) => {
           sds_file_url: chem.sds_file_url,
           status: 'In Stock'
         });
+
+        if (targetChem.batch_number) {
+          await syncBatch({
+            ...req.body,
+            id: targetChem.id,
+            quantity: Number(quantity_change || (Number(numContainers) * Number(qtyPerContainer))),
+            unit: txUnit
+          });
+        }
+
+        // Auto-Sync Containers
+        await syncContainers({
+          ...req.body,
+          id: targetChem.id,
+        });
       } else {
         targetChem.base_quantity += changeInBase;
         const { convertFromBase } = require('../utils/unitConverter');
         targetChem.quantity = convertFromBase(targetChem.base_quantity, targetChem.unit);
+        
+        if (targetChem.batch_number) {
+          await syncBatch({
+            ...req.body,
+            id: targetChem.id,
+            quantity: targetChem.quantity,
+            unit: targetChem.unit
+          });
+        }
       }
     } else if (action === 'OUT' || action === 'DISPOSAL') {
       targetChem.base_quantity -= changeInBase;
       if (targetChem.base_quantity < 0) return res.status(400).json({ error: "Insufficient stock" });
       const { convertFromBase } = require('../utils/unitConverter');
       targetChem.quantity = convertFromBase(targetChem.base_quantity, targetChem.unit);
+
+      // Auto-Update Container status for OUT/DISPOSAL
+      if (req.body.containerId || req.body.container_id) {
+        await updateContainerStatus(
+          req.body.containerId || req.body.container_id,
+          quantity_change,
+          reason,
+          txUnit
+        );
+      }
     } else if (action === 'TRANSFER') {
       if (!to_building && !new_location) return res.status(400).json({ error: "Destination location is required for transfer" });
       
@@ -189,11 +225,34 @@ router.post('/transaction', authenticate, async (req, res) => {
         targetChem.cabinet = to_cabinet;
         targetChem.shelf = to_shelf;
       }
+
+      if (targetChem.batch_number) {
+        await syncBatch({
+          ...targetChem.toObject(),
+          id: targetChem.id
+        });
+      }
+
+      // Auto-Sync Containers for transfer
+      await syncContainers({
+        ...targetChem.toObject(),
+        id: targetChem.id
+      });
     } else {
       return res.status(400).json({ error: "Invalid action" });
     }
 
-    targetChem.status = targetChem.quantity < 5 ? 'Low Stock' : 'In Stock';
+    // Update Chemical Status based on activity and volume
+    if (targetChem.quantity <= 0) {
+      targetChem.status = 'Out of Stock';
+    } else if (action === 'OUT' || action === 'DISPOSAL') {
+      targetChem.status = 'In Use';
+    } else if (targetChem.quantity < 5) {
+      targetChem.status = 'Low Stock';
+    } else if (targetChem.status !== 'In Use') {
+      targetChem.status = 'In Stock';
+    }
+    
     await targetChem.save();
 
     // Insert log

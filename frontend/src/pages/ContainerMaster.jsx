@@ -221,8 +221,9 @@ const Containers = () => {
       case 'Full': return 'bg-green-100 text-green-700 border-green-200';
       case 'In Use': return 'bg-blue-100 text-blue-700 border-blue-200';
       case 'Empty': return 'bg-secondary-100 text-secondary-600 border-secondary-200';
-      case 'Expired': return 'bg-red-100 text-red-700 border-red-200';
-      case 'Damaged': return 'bg-orange-100 text-orange-700 border-orange-200';
+      case 'Expired': return 'bg-red-500 text-white border-red-600 shadow-sm';
+      case 'Near Expiry': return 'bg-orange-500 text-white border-orange-600 shadow-sm animate-pulse';
+      case 'Damaged': return 'bg-red-100 text-red-700 border-red-200';
       default: return 'bg-secondary-50 text-secondary-500';
     }
   };
@@ -274,7 +275,7 @@ const Containers = () => {
                 {[
                   { label: 'Total Containers', value: containers.length, icon: InboxIcon, color: 'primary' },
                   { label: 'In Use', value: containers.filter(c => c.status === 'In Use').length, icon: BeakerIcon, color: 'blue' },
-                  { label: 'Expired', value: containers.filter(c => c.status === 'Expired').length, icon: ExclamationCircleIcon, color: 'red' },
+                  { label: 'Expired / Critical', value: containers.filter(c => c.status === 'Expired' || c.status === 'Near Expiry').length, icon: ExclamationCircleIcon, color: 'red' },
                   { label: 'Available', value: containers.filter(c => c.status === 'Full').length, icon: CheckCircleIcon, color: 'green' },
                 ].map((stat, i) => (
                   <div key={i} className="bg-white p-6 rounded-3xl border border-secondary-100 shadow-sm hover:shadow-md transition-shadow">
@@ -292,7 +293,7 @@ const Containers = () => {
               <div className="bg-white rounded-[32px] border border-secondary-200 shadow-xl shadow-secondary-200/20 overflow-hidden">
                 <div className="p-6 border-b border-secondary-100 flex items-center justify-between flex-wrap gap-4">
                   <div className="flex items-center gap-2">
-                    {['All', 'Full', 'In Use', 'Empty', 'Expired', 'Damaged'].map(status => (
+                    {['All', 'Full', 'In Use', 'Empty', 'Expired', 'Near Expiry', 'Damaged'].map(status => (
                       <button
                         key={status}
                         onClick={() => setFilterStatus(status)}
@@ -492,7 +493,7 @@ const Containers = () => {
                         <div className="group">
                           <label className="text-[11px] font-black text-secondary-500 uppercase tracking-widest mb-2 block">Current Status</label>
                           <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-2xl p-4 text-sm transition-all font-bold">
-                            <option value="Full">Full</option><option value="In Use">In Use</option><option value="Empty">Empty</option><option value="Expired">Expired</option><option value="Damaged">Damaged</option>
+                            <option value="Full">Full</option><option value="In Use">In Use</option><option value="Empty">Empty</option><option value="Expired">Expired</option><option value="Near Expiry">Near Expiry</option><option value="Damaged">Damaged</option>
                           </select>
                         </div>
                       </div>

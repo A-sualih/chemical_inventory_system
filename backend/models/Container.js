@@ -18,7 +18,7 @@ const containerSchema = new mongoose.Schema({
   container_type: { type: String }, // Glass bottle, Plastic bottle, Drum, Tank
   status: { 
     type: String, 
-    enum: ['Full', 'In Use', 'Empty', 'Expired', 'Damaged'],
+    enum: ['Full', 'In Use', 'Empty', 'Expired', 'Damaged', 'Near Expiry'],
     default: 'Full'
   },
   created_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

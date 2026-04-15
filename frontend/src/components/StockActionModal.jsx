@@ -44,6 +44,38 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [availableContainers, setAvailableContainers] = useState([]);
+
+  useEffect(() => {
+    const fetchContainers = async () => {
+      try {
+        const res = await axios.get(`/api/containers/chemical/${chemical.id}`);
+        setAvailableContainers(res.data.filter(c => c.status !== 'Empty'));
+      } catch (err) {
+        console.error("Failed to fetch containers:", err);
+      }
+    };
+    fetchContainers();
+  }, [chemical.id]);
+
+  const handleContainerSelect = (id) => {
+    const selected = availableContainers.find(c => c.container_id === id);
+    if (selected) {
+      setContainerId(selected.container_id);
+      setBatch(selected.batch_number || "");
+      setBuilding(selected.building || "");
+      setRoom(selected.room || "");
+      setCabinet(selected.cabinet || "");
+      setShelf(selected.shelf || "");
+      setExpiry(selected.expiry_date ? selected.expiry_date.split('T')[0] : "");
+      setUnit(selected.unit || chemical.unit);
+      if (action !== 'IN') {
+        setAmount(selected.quantity || "");
+      }
+    } else {
+      setContainerId("");
+    }
+  };
 
   // Auto-calculate amount for IN action based on container count
   useEffect(() => {
@@ -177,7 +209,6 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                       onChange={e => setAmount(e.target.value)}
                       className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-mono font-bold"
                       placeholder="0.00"
-                      readOnly={action === 'IN'}
                       required
                     />
                   </div>
@@ -318,6 +349,32 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                 {(action === 'OUT' || action === 'IN' || action === 'TRANSFER' || action === 'DISPOSAL') && (
                   <>
                     <h3 className={`text-secondary-900 font-bold text-sm border-l-4 ${action === 'DISPOSAL' ? 'border-red-500' : 'border-primary-500'} pl-3`}>🏷️ Identification & Location</h3>
+                    
+                    <div className="group mt-4">
+                      <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Target Container {action !== 'IN' ? ' (Select for Auto-Status)' : ''}</label>
+                      {action === 'IN' ? (
+                        <input 
+                          type="text" 
+                          value={containerId} 
+                          onChange={e => setContainerId(e.target.value)}
+                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all font-bold"
+                          placeholder="CONT-00x"
+                        />
+                      ) : (
+                        <select 
+                          value={containerId}
+                          onChange={e => handleContainerSelect(e.target.value)}
+                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-bold cursor-pointer"
+                        >
+                          <option value="">Select a specific vessel...</option>
+                          {availableContainers.map(c => (
+                            <option key={c._id} value={c.container_id}>
+                              {c.container_id} ({c.quantity} {c.unit}) - {c.status}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
                     
                     <div className="group">
                       <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Batch Reference</label>
