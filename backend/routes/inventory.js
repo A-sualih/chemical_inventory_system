@@ -277,6 +277,21 @@ router.post('/transaction', authenticate, async (req, res) => {
     });
     await log.save();
 
+    // Log to Audit Log (Phase 7)
+    const auditAction = `STOCK_${action}`;
+    let auditDetails = "";
+    if (action === 'IN') {
+      auditDetails = `Stocked In ${quantity_change || (numContainers * qtyPerContainer)} ${txUnit} of ${chem.name} (Batch: ${batch || chem.batch_number})`;
+    } else if (action === 'OUT') {
+      auditDetails = `Stocked Out ${quantity_change} ${txUnit} of ${chem.name} for ${experiment_name || reason}`;
+    } else if (action === 'TRANSFER') {
+      auditDetails = `Transferred ${quantity_change || 'stock'} of ${chem.name} from ${oldLoc} to ${targetChem.location}`;
+    } else if (action === 'DISPOSAL') {
+      auditDetails = `Disposed of ${quantity_change} ${txUnit} of ${chem.name} using ${disposal_method}. Approved by: ${disposal_approved_by}`;
+    }
+
+    await logAudit(req, auditAction, auditDetails, 'Inventory', targetChem._id);
+
     res.status(201).json({ 
       message: 'Transaction recorded successfully', 
       newQty: targetChem.quantity, 

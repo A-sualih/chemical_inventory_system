@@ -10,6 +10,11 @@ const AdminOnlyPage = ({ title, description }) => {
    const [auditLogs, setAuditLogs] = useState([]);
    const [loading, setLoading] = useState(true);
    const [activeTab, setActiveTab] = useState(title.includes("Audit") ? "audit" : "roles");
+   
+   // Phase 7 Filters
+   const [searchQuery, setSearchQuery] = useState("");
+   const [filterResource, setFilterResource] = useState("");
+   const [filterAction, setFilterAction] = useState("");
 
    if (!hasPermission("assign_roles") && !hasPermission("view_audit_logs")) {
       return <Navigate to="/" replace />;
@@ -44,6 +49,21 @@ const AdminOnlyPage = ({ title, description }) => {
          alert("Error updating role");
       }
    };
+
+   // Filtering Logic (Phase 7.3)
+   const filteredLogs = auditLogs.filter(log => {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = 
+         (log.user_name || "").toLowerCase().includes(query) ||
+         (log.action || "").toLowerCase().includes(query) ||
+         (log.details || "").toLowerCase().includes(query) ||
+         (log.resource || "").toLowerCase().includes(query);
+      
+      const matchesResource = filterResource === "" || log.resource === filterResource;
+      const matchesAction = filterAction === "" || log.action.includes(filterAction);
+
+      return matchesSearch && matchesResource && matchesAction;
+   });
 
    return (
       <Layout>
@@ -176,10 +196,37 @@ const AdminOnlyPage = ({ title, description }) => {
                   </div>
                ) : (
                   <div className="bg-white p-6 sm:p-8 rounded-[2rem] lg:rounded-[3rem] border border-secondary-100 shadow-xl overflow-hidden">
-                     <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-xl font-black text-secondary-900">Security event Ledger</h2>
-                        <span className="text-[10px] font-bold text-secondary-400 uppercase tracking-[0.2em]">Latest {auditLogs.length} Events</span>
-                     </div>
+                      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                         <div>
+                            <h2 className="text-xl font-black text-secondary-900">Security Event Ledger</h2>
+                            <span className="text-[10px] font-bold text-secondary-400 uppercase tracking-[0.2em]">Latest {filteredLogs.length} Events</span>
+                         </div>
+                         
+                         <div className="flex flex-wrap items-center gap-3">
+                            <div className="relative">
+                               <input 
+                                  type="text" 
+                                  placeholder="Search logs..." 
+                                  value={searchQuery}
+                                  onChange={(e) => setSearchQuery(e.target.value)}
+                                  className="pl-9 pr-4 py-2 bg-secondary-50 border border-secondary-200 rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary-500/10 outline-none w-full sm:w-48"
+                               />
+                               <svg className="w-4 h-4 text-secondary-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            </div>
+                            <select 
+                               value={filterResource}
+                               onChange={(e) => setFilterResource(e.target.value)}
+                               className="px-3 py-2 bg-secondary-50 border border-secondary-200 rounded-xl text-[10px] font-bold uppercase tracking-widest focus:ring-4 focus:ring-primary-500/10 outline-none"
+                            >
+                               <option value="">All Resources</option>
+                               <option value="Chemical">Chemicals</option>
+                               <option value="Inventory">Inventory</option>
+                               <option value="Request">Requests</option>
+                               <option value="User">Users</option>
+                               <option value="Container">Containers</option>
+                            </select>
+                         </div>
+                      </div>
 
                      {loading ? (
                         <div className="flex flex-col items-center py-20">
@@ -188,8 +235,8 @@ const AdminOnlyPage = ({ title, description }) => {
                         </div>
                      ) : (
                         <div className="space-y-4">
-                           {auditLogs.length === 0 && <p className="text-center py-10 text-secondary-500 font-medium">No security events recorded.</p>}
-                           {auditLogs.map(log => (
+                           {filteredLogs.length === 0 && <p className="text-center py-10 text-secondary-500 font-medium">No security events match your search.</p>}
+                           {filteredLogs.map(log => (
                               <div key={log._id} className="p-5 bg-secondary-50 border border-secondary-100 rounded-2xl group hover:bg-white hover:border-primary-200 transition-all">
                                  <div className="flex justify-between items-start mb-2">
                                     <div className="flex items-center gap-3">
