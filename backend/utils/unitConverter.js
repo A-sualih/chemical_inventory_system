@@ -4,18 +4,20 @@
  */
 
 const CONVERSION_RATES = {
-  // Mass to grams
-  'kg': 1000,
-  'g': 1,
-  'mg': 0.001,
-  'mcg': 0.000001,
+  // Mass to kilograms (base)
+  'kg': 1,
+  'g': 0.001,
+  'mg': 0.000001,
+  'mcg': 0.000000001,
   
-  // Volume to milliliters
-  'L': 1000,
-  'ml': 1,
-  'ul': 0.001,
-  'nl': 0.000001
+  // Volume to Liters (base)
+  'L': 1,
+  'mL': 0.001,
+  'ml': 0.001,
+  'ul': 0.000001,
+  'nl': 0.000000001
 };
+
 
 /**
  * Converts a quantity from a given unit to its base unit (g or ml).
@@ -45,10 +47,11 @@ function convertFromBase(valueInBase, targetUnit) {
  * Determines the base unit for a given unit.
  */
 function getBaseUnit(unit) {
-  if (['kg', 'g', 'mg', 'mcg'].includes(unit)) return 'g';
-  if (['L', 'ml', 'ul', 'nl'].includes(unit)) return 'ml';
+  if (['kg', 'g', 'mg', 'mcg'].includes(unit)) return 'kg';
+  if (['L', 'mL', 'ml', 'ul', 'nl'].includes(unit)) return 'L';
   return unit;
 }
+
 
 module.exports = {
   convertToBase,

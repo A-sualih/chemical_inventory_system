@@ -9,7 +9,29 @@ const router = express.Router();
 // Get all containers
 router.get('/', authenticate, authorize(PERMISSIONS.VIEW_CHEMICALS), async (req, res) => {
   try {
-    const containers = await Container.find().lean();
+    const { chemical_id } = req.query;
+    let query = {};
+    if (chemical_id) {
+       // Check if the provided ID is a MongoDB ObjectId
+       if (require('mongoose').Types.ObjectId.isValid(chemical_id)) {
+         // It's likely the _id from the Chemical collection
+         const chemical = await Chemical.findById(chemical_id);
+         if (chemical) {
+           // Use the custom string ID (e.g. 'C001') which Containers use
+           query.chemical_id = chemical.id;
+         } else {
+           // If search by _id fails, maybe it IS a string ID that looks like an ObjectId?
+           query.chemical_id = chemical_id;
+         }
+       } else {
+         // It's a regular string ID (e.g. 'C001')
+         query.chemical_id = chemical_id;
+       }
+    }
+
+    const containers = await Container.find(query).lean();
+
+
     
     // Enrich with chemical names
     const enrichedContainers = await Promise.all(containers.map(async (container) => {

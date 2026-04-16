@@ -64,8 +64,13 @@ const { convertToBase, convertFromBase } = require('./unitConverter');
  */
 const updateContainerStatus = async (containerId, amountRemoved, reason = "", unit = null) => {
   try {
-    const container = await Container.findOne({ container_id: containerId });
+    const query = require('mongoose').Types.ObjectId.isValid(containerId) 
+      ? { _id: containerId } 
+      : { container_id: containerId };
+      
+    const container = await Container.findOne(query);
     if (!container) return;
+
 
     // 1. Update Quantity with unit conversion
     const txUnit = unit || container.unit || 'L';

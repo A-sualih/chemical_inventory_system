@@ -10,22 +10,7 @@ const { syncContainers, updateContainerStatus } = require('../utils/containerMan
 const { authenticate, authorize, logAudit } = require('../authMiddleware');
 const { PERMISSIONS } = require('../config/roles');
 
-// Helper to convert units to base (L or kg)
-const convertToBase = (qty, unit) => {
-  if (!qty) return 0;
-  const q = Number(qty);
-  switch (unit) {
-    case 'mL': return q / 1000;
-    case 'g': return q / 1000;
-    default: return q; // L or kg
-  }
-};
-
-const getBaseUnit = (unit) => {
-  if (unit === 'mL' || unit === 'L') return 'L';
-  if (unit === 'g' || unit === 'kg') return 'kg';
-  return unit;
-};
+const { convertToBase, getBaseUnit, convertFromBase } = require('../utils/unitConverter');
 
 // Get all chemicals
 router.get('/chemicals', authenticate, async (req, res) => {
@@ -186,7 +171,6 @@ router.post('/transaction', authenticate, async (req, res) => {
         });
       } else {
         targetChem.base_quantity += changeInBase;
-        const { convertFromBase } = require('../utils/unitConverter');
         targetChem.quantity = convertFromBase(targetChem.base_quantity, targetChem.unit);
         
         if (targetChem.batch_number) {
@@ -201,7 +185,6 @@ router.post('/transaction', authenticate, async (req, res) => {
     } else if (action === 'OUT' || action === 'DISPOSAL') {
       targetChem.base_quantity -= changeInBase;
       if (targetChem.base_quantity < 0) return res.status(400).json({ error: "Insufficient stock" });
-      const { convertFromBase } = require('../utils/unitConverter');
       targetChem.quantity = convertFromBase(targetChem.base_quantity, targetChem.unit);
 
       // Auto-Update Container status for OUT/DISPOSAL
@@ -307,44 +290,9 @@ router.post('/transaction', authenticate, async (req, res) => {
   }
 });
 
-// Submit a request
-router.post('/requests', authenticate, authorize(PERMISSIONS.SUBMIT_REQUEST), async (req, res) => {
-  const { chemical_id, quantity, justification } = req.body;
-  
-  try {
-    const chem = await Chemical.findOne({ id: chemical_id });
-    if (!chem) return res.status(404).json({ error: 'Chemical not found' });
-
-    const request = new Request({
-      chemical_id,
-      chemical_name: chem.name,
-      requester_id: req.user.id,
-      requester_name: req.user.name,
-      quantity,
-      unit: chem.unit,
-      justification
-    });
-
-    await request.save();
-    await logAudit(req, 'SUBMIT_REQUEST', `Requested ${quantity} ${chem.unit} of ${chem.name}`, 'Request', request._id);
-    res.status(201).json(request);
-  } catch (err) {
-    res.status(400).json({ error: 'Failed to submit request' });
-  }
-});
-
-// Get all requests
-router.get('/requests', authenticate, async (req, res) => {
-  try {
-    const requests = await Request.find().sort({ createdAt: -1 });
-    res.json(requests);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch requests' });
-  }
-});
-
 // Get all inventory logs
 router.get('/logs', authenticate, async (req, res) => {
+
   try {
     const logs = await InventoryLog.find().sort({ createdAt: -1 });
     res.json(logs);
