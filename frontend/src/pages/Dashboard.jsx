@@ -37,7 +37,7 @@ const Dashboard = () => {
 
   const fetchRequests = async () => {
     try {
-      const { data } = await axios.get('/api/inventory/requests');
+      const { data } = await axios.get('/api/requests');
       setPendingRequests(data);
     } catch (err) {
       console.error("Failed to fetch requests", err);
@@ -234,12 +234,12 @@ const Dashboard = () => {
                       <div key={req._id} className="bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between hover:bg-white/10 transition-all group gap-3">
                         <div className="flex items-center gap-4 min-w-0">
                            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-bold text-sm shrink-0">
-                              {(req.chemical_name || req.chemical_id || '?')[0].toUpperCase()}
+                              {(req.chemical_name || req.chemical_id?.name || '?')[0].toUpperCase()}
                            </div>
                            <div className="min-w-0">
-                              <div className="font-bold text-sm tracking-tight truncate">{req.chemical_name || req.chemical_id}</div>
+                              <div className="font-bold text-sm tracking-tight truncate">{req.chemical_name || req.chemical_id?.name || req.chemical_id}</div>
                               <div className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest mt-0.5">
-                                REQ BY {(req.user_name || 'Unknown').toUpperCase()} • {timeAgo(req.created_at)} • QTY: {req.quantity}
+                                REQ BY {(req.user_name || req.user_id?.name || 'Unknown').toUpperCase()} • {timeAgo(req.created_at)} • QTY: {req.quantity}
                               </div>
                            </div>
                         </div>

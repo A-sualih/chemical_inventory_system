@@ -87,7 +87,7 @@ const QrCodeIcon = ({ className }) => (
 );
 
 const Containers = () => {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const navigate = useNavigate();
   const [containers, setContainers] = useState([]);
   const [chemicals, setChemicals] = useState([]);
@@ -259,13 +259,15 @@ const Containers = () => {
                     />
                   </div>
                   
-                  <button 
-                    onClick={() => handleOpenModal()}
-                    className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-primary-500/30 transition-all hover:-translate-y-0.5"
-                  >
-                    <PlusIcon className="w-5 h-5" />
-                    Add Container
-                  </button>
+                  {hasPermission("create_chemical") && (
+                    <button 
+                      onClick={() => handleOpenModal()}
+                      className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-primary-500/30 transition-all hover:-translate-y-0.5"
+                    >
+                      <PlusIcon className="w-5 h-5" />
+                      Add Container
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -369,12 +371,16 @@ const Containers = () => {
                           </td>
                           <td className="p-6">
                             <div className="flex items-center gap-2">
-                              <button onClick={() => handleOpenModal(container)} className="p-2.5 rounded-xl bg-white border border-secondary-200 text-secondary-500 hover:text-primary-600 hover:bg-primary-50 hover:border-primary-200 transition-all">
-                                <PencilIcon className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => handleDelete(container.container_id)} className="p-2.5 rounded-xl bg-white border border-secondary-200 text-secondary-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all">
-                                <TrashIcon className="w-4 h-4" />
-                              </button>
+                              {hasPermission("update_stock") && (
+                                <button onClick={() => handleOpenModal(container)} className="p-2.5 rounded-xl bg-white border border-secondary-200 text-secondary-500 hover:text-primary-600 hover:bg-primary-50 hover:border-primary-200 transition-all">
+                                  <PencilIcon className="w-4 h-4" />
+                                </button>
+                              )}
+                              {hasPermission("delete_chemical") && (
+                                <button onClick={() => handleDelete(container.container_id)} className="p-2.5 rounded-xl bg-white border border-secondary-200 text-secondary-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all">
+                                  <TrashIcon className="w-4 h-4" />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>

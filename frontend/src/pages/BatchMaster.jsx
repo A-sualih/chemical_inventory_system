@@ -48,7 +48,7 @@ const PencilIcon = ({ className }) => (
 );
 
 const Batches = () => {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const [batches, setBatches] = useState([]);
   const [chemicals, setChemicals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -189,13 +189,15 @@ const Batches = () => {
                     />
                   </div>
                   
-                  <button 
-                    onClick={() => handleOpenModal()}
-                    className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-primary-500/30 transition-all hover:-translate-y-0.5"
-                  >
-                    <PlusIcon className="w-5 h-5" />
-                    Add Batch
-                  </button>
+                  {hasPermission("create_chemical") && (
+                    <button 
+                      onClick={() => handleOpenModal()}
+                      className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-primary-500/30 transition-all hover:-translate-y-0.5"
+                    >
+                      <PlusIcon className="w-5 h-5" />
+                      Add Batch
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -267,12 +269,16 @@ const Batches = () => {
                           </td>
                           <td className="p-6">
                             <div className="flex items-center gap-2">
-                              <button onClick={() => handleOpenModal(batch)} className="p-2.5 rounded-xl bg-white border border-secondary-200 text-secondary-500 hover:text-primary-600 hover:bg-primary-50 hover:border-primary-200 transition-all">
-                                <PencilIcon className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => handleDelete(batch.batch_number)} className="p-2.5 rounded-xl bg-white border border-secondary-200 text-secondary-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all">
-                                <TrashIcon className="w-4 h-4" />
-                              </button>
+                              {hasPermission("update_stock") && (
+                                <button onClick={() => handleOpenModal(batch)} className="p-2.5 rounded-xl bg-white border border-secondary-200 text-secondary-500 hover:text-primary-600 hover:bg-primary-50 hover:border-primary-200 transition-all">
+                                  <PencilIcon className="w-4 h-4" />
+                                </button>
+                              )}
+                              {hasPermission("delete_chemical") && (
+                                <button onClick={() => handleDelete(batch.batch_number)} className="p-2.5 rounded-xl bg-white border border-secondary-200 text-secondary-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all">
+                                  <TrashIcon className="w-4 h-4" />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
