@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
       "submit_request", "update_stock", "view_safety_info"
     ],
     "Lab Technician": [
-      "view_chemicals", "create_chemical", "update_stock", "submit_request"
+      "view_chemicals", "update_stock", "submit_request"
     ],
     "Safety Officer": [
       "view_chemicals", "view_safety_info", "view_reports", "view_audit_logs"

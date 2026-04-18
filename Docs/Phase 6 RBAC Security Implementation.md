@@ -34,7 +34,8 @@ Scenario: Route Security
 Attempt to manually navigate to the /roles page as a Viewer and confirm redirection to the Dashboard.
 ---
 
-# RBAC System Flow Diagram
+# RBAC System Flow Diagram  
+
 
 This diagram illustrates how the Chemical Inventory System handles identity and access control, from the initial login to the execution of protected actions.
 
