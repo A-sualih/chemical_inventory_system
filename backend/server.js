@@ -10,6 +10,8 @@ const auditRoutes = require('./routes/audit');
 const containerRoutes = require('./routes/containers');
 const batchRoutes = require('./routes/batches');
 const requestRoutes = require('./routes/requests');
+const expiryRoutes = require('./routes/expiry');
+const { initExpirySchedule, runExpiryCheck } = require('./utils/expiryWorker');
 
 
 const path = require('path');
@@ -24,6 +26,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Initialize Database
 initDb().then(() => {
   console.log('Database initialized successfully.');
+  initExpirySchedule();
+  runExpiryCheck(); // Run immediate check on startup
 }).catch(err => {
   console.error('Database initialization failed:', err);
 });
@@ -37,6 +41,7 @@ app.use('/api/audit', auditRoutes);
 app.use('/api/containers', containerRoutes);
 app.use('/api/batches', batchRoutes);
 app.use('/api/requests', requestRoutes);
+app.use('/api/expiry', expiryRoutes);
 
 
 app.get('/api/health', (req, res) => {

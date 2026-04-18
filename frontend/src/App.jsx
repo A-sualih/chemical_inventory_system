@@ -14,6 +14,7 @@ import MFADemo from "./pages/MFADemo";
 import MFASetup from "./pages/MFASetup";
 import ContainerMaster from "./pages/ContainerMaster";
 import BatchMaster from "./pages/BatchMaster";
+import ExpiryTracker from "./pages/ExpiryTracker";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -64,6 +65,11 @@ function App() {
           <Route path="/batches" element={
             <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}>
               <BatchMaster />
+            </ProtectedRoute>
+          } />
+          <Route path="/expiry" element={
+            <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}>
+              <ExpiryTracker />
             </ProtectedRoute>
           } />
           <Route path="/audit" element={

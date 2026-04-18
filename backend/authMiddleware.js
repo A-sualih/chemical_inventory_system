@@ -40,17 +40,28 @@ function authorize(permission) {
 /**
  * Utility to log user actions to AuditLog
  */
-async function logAudit(req, action, details, resource, resource_id) {
+async function logAudit(req, { action, targetType, targetId, targetName, details, oldValue, newValue, status = 'success' }) {
   try {
     const auditData = {
-      user_id: req.user ? req.user.id : null,
-      user_email: req.user ? req.user.email : 'System/Anonymous',
-      action,
+      user: {
+        id: req.user ? req.user.id : null,
+        name: req.user ? req.user.name : 'System/Anonymous',
+        role: req.user ? req.user.role : 'N/A',
+        email: req.user ? req.user.email : null
+      },
+      action: action.toUpperCase(),
+      target: {
+        type: targetType.toLowerCase(),
+        id: String(targetId || ''),
+        name: targetName
+      },
       details,
-      resource,
-      resource_id,
-      ip_address: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress,
-      user_agent: req.headers['user-agent']
+      changes: (oldValue || newValue) ? { oldValue, newValue } : undefined,
+      metadata: {
+        ip: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+        userAgent: req.headers['user-agent'],
+        status
+      }
     };
     await AuditLog.create(auditData);
   } catch (err) {

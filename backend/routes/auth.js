@@ -102,6 +102,16 @@ router.post('/login', async (req, res) => {
     );
 
     res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+
+    // Log Login (async but we don't necessarily need to wait for it to respond to user)
+    logAudit({ user, ip: req.ip, headers: req.headers }, {
+      action: 'LOGIN',
+      targetType: 'user',
+      targetId: user._id,
+      targetName: user.name,
+      details: `User ${user.email} logged in successfully`,
+      status: 'success'
+    }).catch(err => console.error('Login Audit Log failed:', err));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
@@ -189,7 +199,13 @@ router.post('/reset-password/:token', async (req, res) => {
     user.resetTokenExpire = undefined;
     await user.save();
 
-    await logAudit(req, 'PASSWORD_RESET', `User successfully reset their own password via email link`, 'User', user._id);
+    await logAudit(req, {
+      action: 'UPDATE',
+      targetType: 'user',
+      targetId: user._id,
+      targetName: user.name,
+      details: 'User successfully reset their own password via email link'
+    });
 
     res.json({ message: "Password has been successfully reset. You can now log in." });
   } catch (err) {
@@ -215,7 +231,13 @@ router.delete('/users/:id', authenticate, authorize(PERMISSIONS.ASSIGN_ROLES), a
     if (user.email === 'chemicalinventorysystem@gmail.com') return res.status(400).json({ error: 'Cannot delete the primary system admin' });
 
     await User.findByIdAndDelete(id);
-    await logAudit(req, 'DELETE_USER', `Admin deleted account for ${user.email}`, 'User', id);
+    await logAudit(req, {
+      action: 'DELETE',
+      targetType: 'user',
+      targetId: id,
+      targetName: user.name,
+      details: `Admin deleted account for ${user.email}`
+    });
 
     res.json({ message: `Account for ${user.name} has been deleted permanently.` });
   } catch (err) {
@@ -240,7 +262,13 @@ router.post('/users/wipe-all', authenticate, authorize(PERMISSIONS.MANAGE_SETTIN
 
     const result = await User.deleteMany({ email: { $ne: 'chemicalinventorysystem@gmail.com' } });
 
-    await logAudit(req, 'MASTER_WIPE', 'Admin performed a master reset of all personnel accounts.', 'System', '0');
+    await logAudit(req, {
+      action: 'DELETE',
+      targetType: 'system',
+      targetId: '0',
+      targetName: 'Database',
+      details: 'Admin performed a master reset of all personnel accounts.'
+    });
 
     res.json({ message: 'All non-admin users and their history have been removed.', count: result.deletedCount });
   } catch (err) {
@@ -262,7 +290,15 @@ router.put('/users/:id/role', authenticate, authorize(PERMISSIONS.ASSIGN_ROLES),
     targetUser.role = role;
     await targetUser.save();
 
-    await logAudit(req, 'CHANGE_ROLE', `Changed role of ${targetUser.name} from ${oldRole} to ${role}`, 'User', req.params.id);
+    await logAudit(req, {
+      action: 'UPDATE',
+      targetType: 'user',
+      targetId: req.params.id,
+      targetName: targetUser.name,
+      details: `Changed role of ${targetUser.name} from ${oldRole} to ${role}`,
+      oldValue: { role: oldRole },
+      newValue: { role: role }
+    });
 
     res.json({ message: 'Role updated successfully', role });
   } catch (err) {
@@ -282,7 +318,14 @@ router.put('/users/:id/status', authenticate, authorize(PERMISSIONS.ASSIGN_ROLES
     user.status = status;
     await user.save();
 
-    await logAudit(req, 'STATUS_CHANGE', `Admin changed status of ${user.email} to ${status}`, 'User', id);
+    await logAudit(req, {
+      action: 'UPDATE',
+      targetType: 'user',
+      targetId: id,
+      targetName: user.name,
+      details: `Admin changed status of ${user.email} to ${status}`,
+      newValue: { status }
+    });
 
     res.json({ message: `User ${user.name} is now ${status}.`, status });
   } catch (err) {
@@ -302,7 +345,13 @@ router.put('/users/:id/reset-password', authenticate, authorize(PERMISSIONS.ASSI
     user.password = hash;
     await user.save();
 
-    await logAudit(req, 'PASSWORD_RESET', `Admin reset password for ${user.email}`, 'User', id);
+    await logAudit(req, {
+      action: 'UPDATE',
+      targetType: 'user',
+      targetId: id,
+      targetName: user.name,
+      details: `Admin reset password for ${user.email}`
+    });
     res.json({
       message: `Password for ${user.name} has been reset successfully.`,
       tempPassword

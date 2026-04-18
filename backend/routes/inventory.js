@@ -42,7 +42,14 @@ router.post('/chemicals', authenticate, authorize(PERMISSIONS.ADD_CHEMICAL), asy
     });
     
     await chemical.save();
-    await logAudit(req, 'ADD_CHEMICAL', `Added new chemical: ${chemical.name}`, 'Chemical', chemical._id);
+    await logAudit(req, {
+      action: 'CREATE',
+      targetType: 'chemical',
+      targetId: chemical.id,
+      targetName: chemical.name,
+      details: `Added new chemical: ${chemical.name}`,
+      newValue: chemical.toObject()
+    });
     res.status(201).json(chemical);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -59,7 +66,14 @@ router.put('/chemicals/:id', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), 
     );
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
     
-    await logAudit(req, 'UPDATE_CHEMICAL', `Updated chemical details for ${chemical.name}`, 'Chemical', chemical._id);
+    await logAudit(req, {
+      action: 'UPDATE',
+      targetType: 'chemical',
+      targetId: chemical.id,
+      targetName: chemical.name,
+      details: `Updated chemical details for ${chemical.name}`,
+      newValue: chemical.toObject()
+    });
     res.json(chemical);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -183,6 +197,21 @@ router.post('/transaction', authenticate, async (req, res) => {
         }
       }
     } else if (action === 'OUT' || action === 'DISPOSAL') {
+      // Safety Check: Prevention of Using Expired Chemicals
+      if (req.body.containerId || req.body.container_id) {
+        const checkContainer = await Container.findOne({ 
+          $or: [{ _id: req.body.containerId }, { container_id: req.body.containerId || req.body.container_id }] 
+        });
+        if (checkContainer && checkContainer.status === 'Expired') {
+          return res.status(403).json({ error: "SAFETY ALERT: Usage of expired chemical container is strictly prohibited." });
+        }
+      } else if (batch || chem.batch_number) {
+        const checkBatch = await Batch.findOne({ batch_number: batch || chem.batch_number });
+        if (checkBatch && checkBatch.status === 'Expired') {
+          return res.status(403).json({ error: "SAFETY ALERT: This chemical batch has expired. Please process for proper disposal instead of usage." });
+        }
+      }
+
       targetChem.base_quantity -= changeInBase;
       if (targetChem.base_quantity < 0) return res.status(400).json({ error: "Insufficient stock" });
       targetChem.quantity = convertFromBase(targetChem.base_quantity, targetChem.unit);
@@ -290,7 +319,15 @@ router.post('/transaction', authenticate, async (req, res) => {
       auditDetails = `Disposed of ${quantity_change} ${txUnit} of ${chem.name} using ${disposal_method}. Approved by: ${disposal_approved_by}`;
     }
 
-    await logAudit(req, auditAction, auditDetails, 'Inventory', targetChem._id);
+    // Log to Audit Log
+    await logAudit(req, {
+      action: action === 'IN' ? 'CREATE' : (action === 'OUT' ? 'TRANSFER' : action),
+      targetType: 'stock',
+      targetId: targetChem.id,
+      targetName: targetChem.name,
+      details: auditDetails,
+      newValue: { quantity: targetChem.quantity, status: targetChem.status }
+    });
 
     res.status(201).json({ 
       message: 'Transaction recorded successfully', 

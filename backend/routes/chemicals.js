@@ -190,7 +190,14 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.si
     });
     
     // Log Audit
-    await logAudit(req, 'Created Chemical', `Added new chemical: ${newChem.name} (${newChem.id})`, 'Chemical', newChem._id);
+    await logAudit(req, {
+      action: 'CREATE',
+      targetType: 'chemical',
+      targetId: newChem.id,
+      targetName: newChem.name,
+      details: `Added new chemical: ${newChem.name} (${newChem.id})`,
+      newValue: newChem.toObject()
+    });
 
     res.status(201).json(newChem);
   } catch (err) {
@@ -276,7 +283,15 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
     });
 
     // Log Audit
-    await logAudit(req, 'Updated Chemical', `Updated chemical information for ${oldName} (${chemical.id})`, 'Chemical', chemical._id);
+    await logAudit(req, {
+      action: 'UPDATE',
+      targetType: 'chemical',
+      targetId: chemical.id,
+      targetName: chemical.name,
+      details: `Updated chemical information for ${oldName} (${chemical.id})`,
+      oldValue: { name: oldName }, // Ideal would be full old object but for brevity...
+      newValue: chemical.toObject()
+    });
 
     res.json({ message: 'Updated successfully', chemical });
   } catch(err) {
@@ -296,7 +311,13 @@ router.delete('/:id', authenticate, authorize(PERMISSIONS.DELETE_CHEMICAL), asyn
     await chemical.save();
 
     // Log Audit
-    await logAudit(req, 'Archived Chemical', `Archived chemical: ${chemical.name} (${chemical.id})`, 'Chemical', chemical._id);
+    await logAudit(req, {
+      action: 'DELETE',
+      targetType: 'chemical',
+      targetId: chemical.id,
+      targetName: chemical.name,
+      details: `Archived (soft deleted) chemical: ${chemical.name} (${chemical.id})`
+    });
 
     res.json({ message: 'Archived successfully' });
   } catch(err) {
@@ -315,7 +336,13 @@ router.put('/:id/restore', authenticate, authorize(PERMISSIONS.DELETE_CHEMICAL),
     await chemical.save();
 
     // Log Audit
-    await logAudit(req, 'Restored Chemical', `Restored chemical from archive: ${chemical.name} (${chemical.id})`, 'Chemical', chemical._id);
+    await logAudit(req, {
+      action: 'UPDATE',
+      targetType: 'chemical',
+      targetId: chemical.id,
+      targetName: chemical.name,
+      details: `Restored chemical from archive: ${chemical.name} (${chemical.id})`
+    });
 
     res.json({ message: 'Restored successfully' });
   } catch(err) {

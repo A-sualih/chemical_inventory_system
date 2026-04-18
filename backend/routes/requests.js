@@ -56,7 +56,14 @@ router.post('/', authenticate, authorize(PERMISSIONS.SUBMIT_REQUEST), async (req
     });
 
     await request.save();
-    await logAudit(req, 'SUBMIT_REQUEST', `Requested ${quantity} ${unit} of ${chemical.name} from container ${container.container_id}`, 'Request', request._id);
+    await logAudit(req, {
+      action: 'CREATE',
+      targetType: 'request',
+      targetId: request._id,
+      targetName: chemical.name,
+      details: `Requested ${quantity} ${unit} of ${chemical.name} from container ${container.container_id}`,
+      newValue: request.toObject()
+    });
     res.status(201).json(request);
   } catch (err) {
     console.error(err);
@@ -171,7 +178,14 @@ router.patch('/:id/approve', authenticate, authorize(PERMISSIONS.APPROVE_REQUEST
     });
     await log.save();
 
-    await logAudit(req, 'APPROVE_REQUEST', `Approved request ${request._id} for ${chemical.name}`, 'Request', request._id);
+    await logAudit(req, {
+      action: 'APPROVE',
+      targetType: 'request',
+      targetId: request._id,
+      targetName: chemical.name,
+      details: `Approved request ${request._id} for ${chemical.name}`,
+      newValue: { status: 'Approved', handled_by: req.user.name, notes }
+    });
     
     res.json({ message: 'Request approved and stock updated', request });
   } catch (err) {
@@ -194,7 +208,14 @@ router.patch('/:id/reject', authenticate, authorize(PERMISSIONS.APPROVE_REQUEST)
     request.notes = notes;
     await request.save();
 
-    await logAudit(req, 'REJECT_REQUEST', `Rejected request ${request._id}`, 'Request', request._id);
+    await logAudit(req, {
+      action: 'REJECT',
+      targetType: 'request',
+      targetId: request._id,
+      targetName: 'Request',
+      details: `Rejected request ${request._id}`,
+      newValue: { status: 'Rejected', handled_by: req.user.name, notes }
+    });
     
     res.json({ message: 'Request rejected', request });
   } catch (err) {
