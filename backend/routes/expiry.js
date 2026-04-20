@@ -15,13 +15,14 @@ router.get('/summary', authenticate, async (req, res) => {
   try {
     const { status, filter } = req.query;
     const now = new Date();
-    const nearExpiryCutoff = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    const thresholdDays = parseInt(process.env.NEAR_EXPIRY_THRESHOLD) || 30;
+    const nearExpiryCutoff = new Date(now.getTime() + thresholdDays * 24 * 60 * 60 * 1000);
 
     // Fetch Batches
-    const batches = await Batch.find({}).lean();
+    const batches = await Batch.find({ status: { $ne: 'Recalled' } }).lean();
     
     // Fetch Containers
-    const containers = await Container.find({}).lean();
+    const containers = await Container.find({ status: { $nin: ['Empty', 'Damaged'] } }).lean();
 
     // Map to unified format
     const batchExpiryList = batches.map(b => {

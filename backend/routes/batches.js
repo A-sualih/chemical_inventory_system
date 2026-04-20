@@ -68,7 +68,13 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), async (re
 
     await newBatch.save();
     
-    await logAudit(req, 'Created Batch', `Added batch ${newBatch.batch_number} for ${chemical.name}`, 'Batch', newBatch._id);
+    await logAudit(req, {
+      action: 'CREATE',
+      targetType: 'batch',
+      targetId: newBatch._id,
+      targetName: newBatch.batch_number,
+      details: `Added batch ${newBatch.batch_number} for ${chemical.name}`
+    });
     
     res.status(201).json(newBatch);
   } catch (err) {
@@ -89,7 +95,13 @@ router.put('/:batch_number', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL),
     
     await batch.save();
     
-    await logAudit(req, 'Updated Batch', `Updated batch information for ${batch.batch_number}`, 'Batch', batch._id);
+    await logAudit(req, {
+      action: 'UPDATE',
+      targetType: 'batch',
+      targetId: batch._id,
+      targetName: batch.batch_number,
+      details: `Updated batch information for ${batch.batch_number}`
+    });
     
     res.json(batch);
   } catch (err) {
@@ -103,7 +115,13 @@ router.delete('/:batch_number', authenticate, authorize(PERMISSIONS.DELETE_CHEMI
     const batch = await Batch.findOneAndDelete({ batch_number: req.params.batch_number });
     if (!batch) return res.status(404).json({ error: 'Batch not found' });
 
-    await logAudit(req, 'Deleted Batch', `Deleted batch ${batch.batch_number}`, 'Batch', batch._id);
+    await logAudit(req, {
+      action: 'DELETE',
+      targetType: 'batch',
+      targetId: batch._id,
+      targetName: batch.batch_number,
+      details: `Deleted batch ${batch.batch_number}`
+    });
     
     res.json({ message: 'Deleted successfully' });
   } catch (err) {

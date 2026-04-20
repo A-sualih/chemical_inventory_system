@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const Batch = require('../models/Batch');
 const Container = require('../models/Container');
 const AuditLog = require('../models/AuditLog');
+const Chemical = require('../models/Chemical');
 
 /**
  * Run a comprehensive check on all batches and containers to update their expiry status.

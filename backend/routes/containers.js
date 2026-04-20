@@ -86,7 +86,13 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), async (re
     await newContainer.save();
 
     // Log Audit
-    await logAudit(req, 'Created Container', `Added container ${newContainer.container_id} for ${chemical.name}`, 'Container', newContainer._id);
+    await logAudit(req, {
+      action: 'CREATE',
+      targetType: 'container',
+      targetId: newContainer._id,
+      targetName: newContainer.container_id,
+      details: `Added container ${newContainer.container_id} for ${chemical.name}`
+    });
 
     res.status(201).json(newContainer);
   } catch (err) {
@@ -108,7 +114,13 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), async (re
     await container.save();
 
     // Log Audit
-    await logAudit(req, 'Updated Container', `Updated container ${container.container_id}`, 'Container', container._id);
+    await logAudit(req, {
+      action: 'UPDATE',
+      targetType: 'container',
+      targetId: container._id,
+      targetName: container.container_id,
+      details: `Updated container ${container.container_id}`
+    });
 
     res.json(container);
   } catch (err) {
@@ -123,7 +135,13 @@ router.delete('/:id', authenticate, authorize(PERMISSIONS.DELETE_CHEMICAL), asyn
     if (!container) return res.status(404).json({ error: 'Container not found' });
 
     // Log Audit
-    await logAudit(req, 'Deleted Container', `Deleted container ${container.container_id}`, 'Container', container._id);
+    await logAudit(req, {
+      action: 'DELETE',
+      targetType: 'container',
+      targetId: container._id,
+      targetName: container.container_id,
+      details: `Deleted container ${container.container_id}`
+    });
 
     res.json({ message: 'Deleted successfully' });
   } catch (err) {

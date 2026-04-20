@@ -34,11 +34,12 @@ const syncContainers = async (data) => {
 
       // Determine status based on expiry
       if (updateData.expiry_date) {
+        const thresholdDays = parseInt(process.env.NEAR_EXPIRY_THRESHOLD) || 30;
         const exp = new Date(updateData.expiry_date);
         const now = new Date();
         const diff = (exp - now) / (1000 * 60 * 60 * 24);
         if (diff < 0) updateData.status = 'Expired';
-        else if (diff < 30) updateData.status = 'Near Expiry';
+        else if (diff <= thresholdDays) updateData.status = 'Near Expiry';
       }
 
       // Clean undefined
