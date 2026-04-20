@@ -70,32 +70,7 @@ const AdminOnlyPage = ({ title, description }) => {
    };
 
    const renderChanges = (changes) => {
-      if (!changes) return null;
-      const { oldValue, newValue } = changes;
-      
-      const formatVal = (val) => {
-         if (typeof val === 'object') return JSON.stringify(val, null, 2);
-         return String(val);
-      };
-
-      return (
-         <div className="mt-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               {oldValue && (
-                  <div className="p-4 bg-red-50 border border-red-100 rounded-2xl">
-                     <span className="text-[10px] font-black text-red-600 uppercase tracking-widest block mb-2">Previous State</span>
-                     <pre className="text-xs font-mono text-red-800 overflow-x-auto whitespace-pre-wrap">{formatVal(oldValue)}</pre>
-                  </div>
-               )}
-               {newValue && (
-                  <div className="p-4 bg-green-50 border border-green-100 rounded-2xl">
-                     <span className="text-[10px] font-black text-green-600 uppercase tracking-widest block mb-2">Updated State</span>
-                     <pre className="text-xs font-mono text-green-800 overflow-x-auto whitespace-pre-wrap">{formatVal(newValue)}</pre>
-                  </div>
-               )}
-            </div>
-         </div>
-      );
+      return null;
    };
 
    return (

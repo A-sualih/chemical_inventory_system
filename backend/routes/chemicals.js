@@ -195,8 +195,7 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.si
       targetType: 'chemical',
       targetId: newChem.id,
       targetName: newChem.name,
-      details: `Added new chemical: ${newChem.name} (${newChem.id})`,
-      newValue: newChem.toObject()
+      details: `Added new chemical: ${newChem.name} (${newChem.id})`
     });
 
     res.status(201).json(newChem);
@@ -310,9 +309,7 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
       targetType: 'chemical',
       targetId: chemical.id,
       targetName: chemical.name,
-      details: `Updated chemical information for ${oldName} (${chemical.id})`,
-      oldValue: { name: oldName }, // Ideal would be full old object but for brevity...
-      newValue: chemical.toObject()
+      details: `Updated chemical information for ${oldName} (${chemical.id})`
     });
 
     res.json({ message: 'Updated successfully', chemical });

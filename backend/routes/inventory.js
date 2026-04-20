@@ -47,8 +47,7 @@ router.post('/chemicals', authenticate, authorize(PERMISSIONS.ADD_CHEMICAL), asy
       targetType: 'chemical',
       targetId: chemical.id,
       targetName: chemical.name,
-      details: `Added new chemical: ${chemical.name}`,
-      newValue: chemical.toObject()
+      details: `Added new chemical: ${chemical.name}`
     });
     res.status(201).json(chemical);
   } catch (err) {
@@ -71,8 +70,7 @@ router.put('/chemicals/:id', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), 
       targetType: 'chemical',
       targetId: chemical.id,
       targetName: chemical.name,
-      details: `Updated chemical details for ${chemical.name}`,
-      newValue: chemical.toObject()
+      details: `Updated chemical details for ${chemical.name}`
     });
     res.json(chemical);
   } catch (err) {
@@ -325,8 +323,7 @@ router.post('/transaction', authenticate, async (req, res) => {
       targetType: 'stock',
       targetId: targetChem.id,
       targetName: targetChem.name,
-      details: auditDetails,
-      newValue: { quantity: targetChem.quantity, status: targetChem.status }
+      details: auditDetails
     });
 
     res.status(201).json({ 
