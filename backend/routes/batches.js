@@ -93,7 +93,38 @@ router.put('/:batch_number', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL),
     Object.assign(batch, updates);
     batch.last_updated_by = req.user.id;
     
+    // Evaluate status dynamically for Batch
+    let newExpStatus = null;
+    const thresholdDays = parseInt(process.env.NEAR_EXPIRY_THRESHOLD) || 30;
+    if (batch.expiry_date) {
+        const exp = new Date(batch.expiry_date);
+        const now = new Date();
+        const diff = (exp - now) / (1000 * 60 * 60 * 24);
+        if (diff < 0) newExpStatus = 'Expired';
+        else if (diff <= thresholdDays) newExpStatus = 'Near Expiry';
+        
+        if (newExpStatus) batch.status = newExpStatus;
+        else if (['Near Expiry', 'Expired'].includes(batch.status)) batch.status = 'Active';
+    }
+
     await batch.save();
+
+    // Auto-update containers belonging to this batch
+    if (updates.expiry_date || newExpStatus) {
+        const containers = await Container.find({ batch_number: batch.batch_number });
+        for (let c of containers) {
+            if (updates.expiry_date) c.expiry_date = updates.expiry_date;
+            
+            if (!['Empty', 'Damaged'].includes(c.status)) {
+                if (newExpStatus) {
+                   c.status = newExpStatus;
+                } else if (['Near Expiry', 'Expired'].includes(c.status)) {
+                   c.status = 'Full';
+                }
+            }
+            await c.save();
+        }
+    }
     
     await logAudit(req, {
       action: 'UPDATE',

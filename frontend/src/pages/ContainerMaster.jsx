@@ -341,12 +341,22 @@ const Containers = () => {
                           </td>
                           <td className="p-6">
                             <div className="text-sm font-bold text-secondary-800">{container.chemical_name}</div>
-                            {container.batch_number && (
-                              <div className="flex items-center gap-1.5 mt-1">
-                                <TagIcon className="w-3 h-3 text-secondary-400" />
-                                <span className="text-[10px] bg-secondary-100 text-secondary-600 px-1.5 py-0.5 rounded font-bold">Batch: {container.batch_number}</span>
-                              </div>
-                            )}
+                            <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                              {container.batch_number && (
+                                <div className="flex items-center gap-1">
+                                  <TagIcon className="w-3 h-3 text-secondary-400" />
+                                  <span className="text-[10px] bg-secondary-100 text-secondary-600 px-1.5 py-0.5 rounded font-bold">Batch: {container.batch_number}</span>
+                                </div>
+                              )}
+                              {container.expiry_date && (
+                                <div className="flex items-center gap-1">
+                                  <CalendarIcon className="w-3 h-3 text-red-500" />
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold border ${new Date(container.expiry_date) < new Date() ? 'bg-red-50 text-red-600 border-red-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>
+                                    EXP: {new Date(container.expiry_date).toISOString().split('T')[0]}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </td>
                           <td className="p-6">
                             <div className="flex flex-col gap-1">

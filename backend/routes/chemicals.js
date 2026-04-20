@@ -266,21 +266,43 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
 
     await chemical.save();
 
-    // Auto-Sync Batch record
-    if (chemical.batch_number) {
-      await syncBatch({
-        ...data,
-        id: chemical.id,
-        quantity: Number(chemical.quantity),
-        unit: chemical.unit
-      });
-    }
+    // Auto-Cascade Expiry Date & Status to Batches and Containers
+    if (data.expiry) {
+      const thresholdDays = parseInt(process.env.NEAR_EXPIRY_THRESHOLD) || 30;
+      const exp = new Date(data.expiry);
+      const now = new Date();
+      const diff = (exp - now) / (1000 * 60 * 60 * 24);
+      let newExpStatus = null;
+      if (diff < 0) newExpStatus = 'Expired';
+      else if (diff <= thresholdDays) newExpStatus = 'Near Expiry';
 
-    // Auto-Sync Containers
-    await syncContainers({
-      ...data,
-      id: chemical.id,
-    });
+
+      // 1. Update Batches
+      const batches = await require('../models/Batch').find({ chemical_id: chemical.id });
+      for (let b of batches) {
+         b.expiry_date = data.expiry;
+         if (newExpStatus) {
+            b.status = newExpStatus;
+         } else if (['Near Expiry', 'Expired'].includes(b.status)) {
+            b.status = 'Active';
+         }
+         await b.save();
+      }
+
+      // 2. Update Containers
+      const containers = await require('../models/Container').find({ chemical_id: chemical.id });
+      for (let c of containers) {
+         c.expiry_date = data.expiry;
+         if (!['Empty', 'Damaged'].includes(c.status)) {
+            if (newExpStatus) {
+               c.status = newExpStatus;
+            } else if (['Near Expiry', 'Expired'].includes(c.status)) {
+               c.status = 'Full';
+            }
+         }
+         await c.save();
+      }
+    }
 
     // Log Audit
     await logAudit(req, {
