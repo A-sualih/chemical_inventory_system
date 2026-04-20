@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import Layout from "../layout/Layout";
 import axios from "axios";
-import { format } from "date-fns/format";
-import { differenceInDays } from "date-fns/differenceInDays";
-import { isBefore } from "date-fns/isBefore";
+import { format, differenceInDays, isBefore } from "date-fns";
 
 const ExpiryTracker = () => {
     const [items, setItems] = useState([]);
