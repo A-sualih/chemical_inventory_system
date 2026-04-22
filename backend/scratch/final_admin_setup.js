@@ -44,14 +44,14 @@ async function setupFinalAdmin() {
       role: 'Admin',
       email: { $ne: NEW_ADMIN_EMAIL }
     });
-    
+
     console.log(`Removed ${result.deletedCount} other admin accounts.`);
-    
+
     // Safety check: confirm admin@lab.com is gone if it was an admin
     const oldAdmin = await User.findOne({ email: 'admin@lab.com' });
     if (oldAdmin && oldAdmin.role === 'Admin') {
-       console.log('Warning: admin@lab.com still exists as admin. Deleting it now...');
-       await User.deleteOne({ email: 'admin@lab.com' });
+      console.log('Warning: admin@lab.com still exists as admin. Deleting it now...');
+      await User.deleteOne({ email: 'admin@lab.com' });
     }
 
   } catch (err) {
