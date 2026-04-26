@@ -5,10 +5,10 @@ import { HAZARD_CLASSES } from "../constants/hazards.jsx";
 const ChemicalForm = ({ initialData, onClose, onSave }) => {
   const [formData, setFormData] = useState(initialData ? {
     ...initialData,
-    cas: initialData.cas_number || "",
-    iupac: initialData.iupac_name || "",
-    storageTemp: initialData.storage_temp || "",
-    storageHumidity: initialData.storage_humidity || "",
+    cas_number: initialData.cas_number || "",
+    iupac_name: initialData.iupac_name || "",
+    storage_temp: initialData.storage_temp || "",
+    storage_humidity: initialData.storage_humidity || "",
     purity: initialData.purity || "",
     concentration: initialData.concentration || "",
     location: initialData.location || "",
@@ -16,23 +16,23 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     room: initialData.room || "",
     cabinet: initialData.cabinet || "",
     shelf: initialData.shelf || "",
-    batch: initialData.batch_number || "",
-    mfgDate: initialData.manufacturing_date || "",
-    purchaseDate: initialData.purchase_date || "",
-    expiry: initialData.expiry_date || "",
-    numContainers: initialData.num_containers || 1,
-    qtyPerContainer: initialData.quantity_per_container || "",
-    containerType: initialData.container_type || "Plastic Bottle",
-    containerId: initialData.container_id_series || "",
+    batch_number: initialData.batch_number || "",
+    manufacturing_date: initialData.manufacturing_date || "",
+    purchase_date: initialData.purchase_date || "",
+    expiry_date: initialData.expiry_date || "",
+    num_containers: initialData.num_containers || 1,
+    quantity_per_container: initialData.quantity_per_container || "",
+    container_type: initialData.container_type || "Plastic Bottle",
+    container_id_series: initialData.container_id_series || "",
     remarks: initialData.remarks || "",
     sds_file_name: initialData.sds_file_name || "",
     sds_file_url: initialData.sds_file_url || "",
-    sdsAttached: initialData.sds_attached === 1 || initialData.sds_attached === true,
-    ghs: initialData.ghs_classes || []
+    sds_attached: initialData.sds_attached === 1 || initialData.sds_attached === true,
+    ghs_classes: initialData.ghs_classes || []
   } : {
     name: "",
-    iupac: "",
-    cas: "",
+    iupac_name: "",
+    cas_number: "",
     formula: "",
     quantity: "",
     unit: "L",
@@ -44,20 +44,20 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     cabinet: "",
     shelf: "",
     state: "Liquid",
-    storageTemp: "20",
-    storageHumidity: "45",
+    storage_temp: "20",
+    storage_humidity: "45",
     supplier: "",
-    batch: "",
-    mfgDate: "",
-    purchaseDate: "",
-    expiry: "",
-    numContainers: 1,
-    qtyPerContainer: "",
-    containerType: "Plastic Bottle",
-    containerId: "",
+    batch_number: "",
+    manufacturing_date: "",
+    purchase_date: "",
+    expiry_date: "",
+    num_containers: 1,
+    quantity_per_container: "",
+    container_type: "Plastic Bottle",
+    container_id_series: "",
     remarks: "",
-    ghs: [],
-    sdsAttached: false
+    ghs_classes: [],
+    sds_attached: false
   });
 
   const [errors, setErrors] = useState({});
@@ -76,11 +76,11 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
   }, [formData.state]);
 
   useEffect(() => {
-    const total = (Number(formData.numContainers) || 0) * (Number(formData.qtyPerContainer) || 0);
+    const total = (Number(formData.num_containers) || 0) * (Number(formData.quantity_per_container) || 0);
     if (total > 0) {
       setFormData(prev => ({ ...prev, quantity: total }));
     }
-  }, [formData.numContainers, formData.qtyPerContainer]);
+  }, [formData.num_containers, formData.quantity_per_container]);
 
   useEffect(() => {
     if (initialData && initialData.id) {
@@ -109,10 +109,10 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
   };
 
   const toggleGhs = (hazardId) => {
-    const newGhs = formData.ghs.includes(hazardId)
-      ? formData.ghs.filter(c => c !== hazardId)
-      : [...formData.ghs, hazardId];
-    setFormData({ ...formData, ghs: newGhs });
+    const newGhs = formData.ghs_classes.includes(hazardId)
+      ? formData.ghs_classes.filter(c => c !== hazardId)
+      : [...formData.ghs_classes, hazardId];
+    setFormData({ ...formData, ghs_classes: newGhs });
   };
 
   return (
@@ -172,7 +172,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                     type="button"
                     onClick={() => toggleGhs(item.id)}
                     className={`group relative h-12 w-12 rounded-xl flex items-center justify-center transition-all border-2 ${
-                      formData.ghs.includes(item.id) || formData.ghs.includes(item.label) 
+                      formData.ghs_classes.includes(item.id) || formData.ghs_classes.includes(item.label) 
                         ? `${item.color} border-transparent text-white shadow-lg scale-105` 
                         : 'bg-secondary-50 border-secondary-100 text-secondary-400 hover:border-secondary-300 hover:bg-white'
                     }`}
@@ -189,11 +189,11 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                   </button>
                 ))}
               </div>
-              {formData.ghs.length > 0 && (
+              {formData.ghs_classes.length > 0 && (
                 <div className="mt-4 p-3 bg-primary-50/50 rounded-xl border border-primary-100/50">
                    <div className="text-[9px] font-black text-primary-600 uppercase tracking-widest mb-1">Active Hazard Profiles</div>
                    <div className="flex flex-wrap gap-1">
-                      {formData.ghs.map(id => {
+                      {formData.ghs_classes.map(id => {
                         const h = HAZARD_CLASSES.find(x => x.id === id || x.label === id);
                         return h ? (
                           <span key={id} className={`px-2 py-0.5 rounded-md text-[8px] font-bold text-white uppercase ${h.color}`}>{h.label}</span>
@@ -216,7 +216,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                e.preventDefault(); 
                const payload = new FormData();
                Object.keys(formData).forEach(k => {
-                 if (k === 'ghs') payload.append('ghs', JSON.stringify(formData.ghs));
+                 if (k === 'ghs_classes') payload.append('ghs_classes', JSON.stringify(formData.ghs_classes));
                  else payload.append(k, formData[k]);
                });
                if (sdsFile) payload.append('sds_file', sdsFile);
@@ -240,17 +240,26 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                   </div>
                   <div className="group">
                     <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">CAS Registry Number</label>
-                    <input type="text" value={formData.cas} onChange={handleCasChange} className={`w-full bg-white border rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-mono font-medium shadow-sm ${errors.cas ? 'border-red-400 focus:border-red-500 focus:ring-red-500/10' : 'border-secondary-200'}`} placeholder="7647-14-5" required />
-                    {errors.cas && <div className="text-[10px] font-bold text-red-500 ml-1 mt-1.5 uppercase">{errors.cas}</div>}
+                    <input type="text" value={formData.cas_number} onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData({ ...formData, cas_number: val });
+                      if (val && !validateCas(val)) {
+                        setErrors({ ...errors, cas_number: "Invalid CAS format (e.g. 67-64-1)" });
+                      } else {
+                        const newErrors = { ...errors };
+                        delete newErrors.cas_number;
+                        setErrors(newErrors);
+                      }
+                    }} className={`w-full bg-white border rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-mono font-medium shadow-sm ${errors.cas_number ? 'border-red-400 focus:border-red-500 focus:ring-red-500/10' : 'border-secondary-200'}`} placeholder="7647-14-5" required />
+                    {errors.cas_number && <div className="text-[10px] font-bold text-red-500 ml-1 mt-1.5 uppercase">{errors.cas_number}</div>}
                   </div>
                 </div>
                 <div className="group">
                   <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">IUPAC Name</label>
-                  <input type="text" value={formData.iupac} onChange={e => setFormData({...formData, iupac: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium text-secondary-900 shadow-sm" placeholder="Systematic name..." />
+                  <input type="text" value={formData.iupac_name} onChange={e => setFormData({...formData, iupac_name: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium text-secondary-900 shadow-sm" placeholder="Systematic name..." />
                 </div>
               </section>
 
-               {/* SECTION: PROPERTIES & CONTAINERS */}
                <section>
                  <div className="flex items-center gap-3 mb-5">
                     <div className="h-px bg-secondary-200 flex-1"></div>
@@ -316,25 +325,24 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="group">
                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Count</label>
-                         <input type="number" value={formData.numContainers} onChange={e => setFormData({...formData, numContainers: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-bold" />
+                         <input type="number" value={formData.num_containers} onChange={e => setFormData({...formData, num_containers: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-bold" />
                       </div>
                       <div className="group">
                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Qty/Container</label>
-                         <input type="number" value={formData.qtyPerContainer} onChange={e => setFormData({...formData, qtyPerContainer: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-bold" />
+                         <input type="number" value={formData.quantity_per_container} onChange={e => setFormData({...formData, quantity_per_container: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-bold" />
                       </div>
                       <div className="group">
                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Type</label>
-                         <input type="text" value={formData.containerType} onChange={e => setFormData({...formData, containerType: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-medium" />
+                         <input type="text" value={formData.container_type} onChange={e => setFormData({...formData, container_type: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-medium" />
                       </div>
                       <div className="group">
                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Container ID</label>
-                         <input type="text" value={formData.containerId} onChange={e => setFormData({...formData, containerId: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-mono" placeholder="CONT-X" />
+                         <input type="text" value={formData.container_id_series} onChange={e => setFormData({...formData, container_id_series: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-mono" placeholder="CONT-X" />
                       </div>
                     </div>
                  </div>
                </section>
 
-               {/* SECTION: STORAGE & LOCATION */}
                <section>
                  <div className="flex items-center gap-3 mb-5">
                     <div className="h-px bg-secondary-200 flex-1"></div>
@@ -368,17 +376,16 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                        </div>
                        <div className="group">
                           <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Temp (°C)</label>
-                          <input type="number" value={formData.storageTemp} onChange={e => setFormData({...formData, storageTemp: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" />
+                          <input type="number" value={formData.storage_temp} onChange={e => setFormData({...formData, storage_temp: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" />
                        </div>
                        <div className="group">
                           <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Humidity (%)</label>
-                          <input type="number" value={formData.storageHumidity} onChange={e => setFormData({...formData, storageHumidity: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" />
+                          <input type="number" value={formData.storage_humidity} onChange={e => setFormData({...formData, storage_humidity: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" />
                        </div>
                     </div>
                  </div>
                </section>
 
-               {/* SECTION: PROCUREMENT & BATCH */}
                <section>
                  <div className="flex items-center gap-3 mb-5">
                     <div className="h-px bg-secondary-200 flex-1"></div>
@@ -395,22 +402,22 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                      <div className="grid grid-cols-2 gap-4">
                         <div className="group">
                           <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Purchase Date</label>
-                          <input type="date" value={formData.purchaseDate} onChange={e => setFormData({...formData, purchaseDate: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm" />
+                          <input type="date" value={formData.purchase_date} onChange={e => setFormData({...formData, purchase_date: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm" />
                         </div>
                         <div className="group">
                           <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">MFG Date</label>
-                          <input type="date" value={formData.mfgDate} onChange={e => setFormData({...formData, mfgDate: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm" />
+                          <input type="date" value={formData.manufacturing_date} onChange={e => setFormData({...formData, manufacturing_date: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm" />
                         </div>
                      </div>
                    </div>
                    <div className="space-y-4">
                       <div className="group">
                         <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Lot / Batch Number</label>
-                        <input type="text" value={formData.batch} onChange={e => setFormData({...formData, batch: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-mono font-bold shadow-sm" placeholder="LOT-2025-X" />
+                        <input type="text" value={formData.batch_number} onChange={e => setFormData({...formData, batch_number: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-mono font-bold shadow-sm" placeholder="LOT-2025-X" />
                       </div>
                       <div className="group">
                         <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Expiry Date</label>
-                        <input type="date" value={formData.expiry} onChange={e => setFormData({...formData, expiry: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm text-red-600" required />
+                        <input type="date" value={formData.expiry_date} onChange={e => setFormData({...formData, expiry_date: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm text-red-600" required />
                       </div>
                    </div>
                  </div>

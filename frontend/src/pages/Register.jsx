@@ -76,7 +76,7 @@ const Register = () => {
                 <div className="relative group-focus-within:transform group-focus-within:-translate-y-1 transition-transform">
                   <input
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Ahmed Sualih"
                     className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder:text-secondary-600 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
                     value={name}
                     onChange={(e) => setName(e.target.value)}

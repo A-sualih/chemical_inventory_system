@@ -4,7 +4,6 @@ import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext();
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
@@ -45,7 +44,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const savedToken = localStorage.getItem('cims_token');
     const savedUser = localStorage.getItem('cims_user');
-    
+
     if (savedToken && savedUser) {
       try {
         const decoded = jwtDecode(savedToken);
@@ -63,7 +62,7 @@ export const AuthProvider = ({ children }) => {
         logout();
       }
     }
-    
+
     // Auto-logout interceptor built in a modern robust way
     const interceptor = axios.interceptors.response.use(
       (response) => response,
@@ -87,19 +86,19 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post('/api/auth/login', { email, password });
       const { token, user } = response.data;
-      
+
       setToken(token);
       setUser(user);
       localStorage.setItem('cims_token', token);
       localStorage.setItem('cims_user', JSON.stringify(user));
-      
+
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setSessionExpired(false);
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.error || "Login failed due to a server error." 
+      return {
+        success: false,
+        error: error.response?.data?.error || "Login failed due to a server error."
       };
     }
   };

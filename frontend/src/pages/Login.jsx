@@ -23,8 +23,8 @@ const Login = () => {
 
   useEffect(() => {
     if (sessionExpired) {
-       setError("Your session has expired due to inactivity. Please log in again.");
-       setSessionExpired(false);
+      setError("Your session has expired due to inactivity. Please log in again.");
+      setSessionExpired(false);
     }
   }, [sessionExpired, setSessionExpired]);
 
@@ -52,7 +52,7 @@ const Login = () => {
     try {
       const { data } = await axios.post('/api/auth/login', { email, password });
       setIsLoading(false);
-      
+
       if (data.requireMfa) {
         setUserId(data.userId);
         setMfaType(data.mfaType);
@@ -80,7 +80,7 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    
+
     try {
       const { data } = await axios.post('/api/auth/mfa/verify', { userId, code: otp });
       // Authenticate with the returned token
@@ -119,7 +119,7 @@ const Login = () => {
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-white mb-2 heading-font text-center">Verify Identity</h2>
-            <p className="text-secondary-400 text-sm mb-8 text-center">Enter the 6-digit code sent to your device. (Use 123456)</p>
+            <p className="text-secondary-400 text-sm mb-8 text-center">Enter the 6-digit code sent to your device.</p>
             <form onSubmit={handleMfa} className="space-y-6">
               <input
                 type="text"
@@ -280,8 +280,8 @@ const Login = () => {
 
       {/* Top Right Toggle Buttons */}
       <div className="absolute top-8 right-8 z-20 flex gap-2">
-        <button 
-          onClick={() => setView("login")} 
+        <button
+          onClick={() => setView("login")}
           className="px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all glass bg-white/95 text-secondary-950 shadow-lg"
         >
           Secure Portal

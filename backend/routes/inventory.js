@@ -23,7 +23,7 @@ router.get('/chemicals', authenticate, async (req, res) => {
 });
 
 // Add new chemical
-router.post('/chemicals', authenticate, authorize(PERMISSIONS.ADD_CHEMICAL), async (req, res) => {
+router.post('/chemicals', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), async (req, res) => {
   try {
     const chemData = req.body;
     const baseUnit = getBaseUnit(chemData.unit);
@@ -42,6 +42,20 @@ router.post('/chemicals', authenticate, authorize(PERMISSIONS.ADD_CHEMICAL), asy
     });
     
     await chemical.save();
+
+    // Sync Batch & Containers
+    if (chemical.batch_number) {
+      await syncBatch({
+        ...chemical.toObject(),
+        id: chemical.id
+      });
+    }
+    
+    await syncContainers({
+      ...chemical.toObject(),
+      id: chemical.id
+    });
+
     await logAudit(req, {
       action: 'CREATE',
       targetType: 'chemical',
@@ -56,7 +70,7 @@ router.post('/chemicals', authenticate, authorize(PERMISSIONS.ADD_CHEMICAL), asy
 });
 
 // Update chemical
-router.put('/chemicals/:id', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), async (req, res) => {
+router.put('/chemicals/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), async (req, res) => {
   try {
     const chemical = await Chemical.findOneAndUpdate(
       { id: req.params.id },
@@ -65,6 +79,19 @@ router.put('/chemicals/:id', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), 
     );
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
     
+    // Sync Batch & Containers
+    if (chemical.batch_number) {
+      await syncBatch({
+        ...chemical.toObject(),
+        id: chemical.id
+      });
+    }
+
+    await syncContainers({
+      ...chemical.toObject(),
+      id: chemical.id
+    });
+
     await logAudit(req, {
       action: 'UPDATE',
       targetType: 'chemical',
@@ -79,7 +106,7 @@ router.put('/chemicals/:id', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), 
 });
 
 // Transaction Logic (IN/OUT/TRANSFER/DISPOSAL)
-router.post('/transaction', authenticate, async (req, res) => {
+router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), async (req, res) => {
   const { 
     chemical_id, action, quantity_change, unit, reason, 
     // Detailed IN fields
@@ -111,6 +138,7 @@ router.post('/transaction', authenticate, async (req, res) => {
 
     let targetChem = chem;
     let oldLoc = chem.location;
+    let usedContainersLog = [];
 
     if (action === 'IN') {
       // If adding a NEW batch or to a DIFFERENT location, create a new record for traceability
@@ -195,7 +223,7 @@ router.post('/transaction', authenticate, async (req, res) => {
         }
       }
     } else if (action === 'OUT' || action === 'DISPOSAL') {
-      // Safety Check: Prevention of Using Expired Chemicals
+      // Safety Check on specific container/batch if provided
       if (req.body.containerId || req.body.container_id) {
         const checkContainer = await Container.findOne({ 
           $or: [{ _id: req.body.containerId }, { container_id: req.body.containerId || req.body.container_id }] 
@@ -210,12 +238,62 @@ router.post('/transaction', authenticate, async (req, res) => {
         }
       }
 
-      targetChem.base_quantity -= changeInBase;
-      if (targetChem.base_quantity < 0) return res.status(400).json({ error: "Insufficient stock" });
-      targetChem.quantity = convertFromBase(targetChem.base_quantity, targetChem.unit);
+      // FIFO Auto-Deduction Engine (if no specific container forced)
+      if (!req.body.containerId && !req.body.container_id) {
+        const validContainers = await Container.find({
+          chemical_id: targetChem.id,
+          status: { $nin: ['Expired', 'Empty'] },
+          quantity: { $gt: 0 }
+        }).sort({ expiry_date: 1, createdAt: 1 }); // FIFO constraints
 
-      // Auto-Update Container status for OUT/DISPOSAL
-      if (req.body.containerId || req.body.container_id) {
+        let remainingBaseNeeded = changeInBase;
+
+        for (let container of validContainers) {
+          if (remainingBaseNeeded <= 0.0001) break;
+
+          const containerBaseQty = convertToBase(container.quantity, container.unit);
+          let deductBaseAmount = Math.min(containerBaseQty, remainingBaseNeeded);
+
+          // Precision rounding for float bugs
+          if (Math.abs(deductBaseAmount - containerBaseQty) < 0.001) deductBaseAmount = containerBaseQty;
+
+          const deductContainerUnit = convertFromBase(deductBaseAmount, container.unit);
+          container.quantity -= deductContainerUnit;
+          if (container.quantity < 0.0001) {
+            container.quantity = 0;
+            container.status = 'Empty';
+          } else {
+            container.status = 'In Use';
+          }
+          await container.save();
+
+          usedContainersLog.push({
+            containerId: container.container_id,
+            batchId: container.batch_number,
+            deducted: deductContainerUnit,
+            unit: container.unit,
+            remaining: container.quantity
+          });
+
+          // Sync underlying Batch quantities
+          if (container.batch_number) {
+            const b = await Batch.findOne({ batch_number: container.batch_number });
+            if (b) {
+              const bDeduct = convertFromBase(deductBaseAmount, b.unit);
+              b.total_quantity -= bDeduct;
+              if (b.total_quantity < 0) b.total_quantity = 0;
+              await b.save();
+            }
+          }
+
+          remainingBaseNeeded -= deductBaseAmount;
+        }
+
+        if (remainingBaseNeeded > 0.001) {
+          return res.status(400).json({ error: `FIFO Failed: Insufficient viable stock. Short by ${Number(convertFromBase(remainingBaseNeeded, txUnit)).toFixed(2)} ${txUnit}. Remaining inventory may be expired.` });
+        }
+      } else {
+        // Specific Container Deduction
         await updateContainerStatus(
           req.body.containerId || req.body.container_id,
           quantity_change,
@@ -223,6 +301,11 @@ router.post('/transaction', authenticate, async (req, res) => {
           txUnit
         );
       }
+
+      targetChem.base_quantity -= changeInBase;
+      if (targetChem.base_quantity < 0) targetChem.base_quantity = 0; // Prevent negatives
+      targetChem.quantity = convertFromBase(targetChem.base_quantity, targetChem.unit);
+
     } else if (action === 'TRANSFER') {
       if (!to_building && !new_location) return res.status(400).json({ error: "Destination location is required for transfer" });
       
@@ -310,11 +393,13 @@ router.post('/transaction', authenticate, async (req, res) => {
     if (action === 'IN') {
       auditDetails = `Stocked In ${quantity_change || (numContainers * qtyPerContainer)} ${txUnit} of ${chem.name} (Batch: ${batch || chem.batch_number})`;
     } else if (action === 'OUT') {
-      auditDetails = `Stocked Out ${quantity_change} ${txUnit} of ${chem.name} for ${experiment_name || reason}`;
+      let extra = usedContainersLog.length > 0 ? ` (FIFO auto-deducted from ${usedContainersLog.length} containers)` : '';
+      auditDetails = `Stocked Out ${quantity_change} ${txUnit} of ${chem.name} for ${experiment_name || reason}${extra}`;
     } else if (action === 'TRANSFER') {
       auditDetails = `Transferred ${quantity_change || 'stock'} of ${chem.name} from ${oldLoc} to ${targetChem.location}`;
     } else if (action === 'DISPOSAL') {
-      auditDetails = `Disposed of ${quantity_change} ${txUnit} of ${chem.name} using ${disposal_method}. Approved by: ${disposal_approved_by}`;
+      let extra = usedContainersLog.length > 0 ? ` (FIFO auto-deducted from ${usedContainersLog.length} containers)` : '';
+      auditDetails = `Disposed of ${quantity_change} ${txUnit} of ${chem.name} using ${disposal_method}. Approved by: ${disposal_approved_by}${extra}`;
     }
 
     // Log to Audit Log
@@ -331,7 +416,8 @@ router.post('/transaction', authenticate, async (req, res) => {
       newQty: targetChem.quantity, 
       unit: targetChem.unit,
       location: targetChem.location,
-      newRecordCreated: targetChem.id !== chem.id
+      newRecordCreated: targetChem.id !== chem.id,
+      fifoDetails: usedContainersLog.length > 0 ? usedContainersLog : undefined
     });
   } catch (err) {
     console.error(err);
@@ -347,6 +433,173 @@ router.get('/logs', authenticate, async (req, res) => {
     res.json(logs);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch inventory logs' });
+  }
+});
+
+// FIFO Auto-Usage Engine Endpoint
+router.post('/fifo-usage', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), async (req, res) => {
+  const { chemical_id, quantity, unit, reason } = req.body;
+  const user_id = req.user.id;
+  const user_role = req.user.role;
+  const user_name = req.user.name;
+
+  try {
+    if (!quantity || quantity <= 0) {
+      return res.status(400).json({ error: 'Valid quantity is required' });
+    }
+
+    const chem = await Chemical.findOne({ $or: [{ id: chemical_id }, { _id: chemical_id }] });
+    if (!chem) return res.status(404).json({ error: 'Chemical not found' });
+
+    const txUnit = unit || chem.unit;
+    const requestedBaseQty = convertToBase(Number(quantity), txUnit);
+
+    // 1. Filter: Non-expired batches, sort by earliest expiryDate, then by createdAt
+    const validBatches = await Batch.find({
+      chemical_id: chem.id,
+      status: { $nin: ['Expired'] },
+      total_quantity: { $gt: 0 }
+    }).sort({ expiry_date: 1, createdAt: 1 });
+
+    if (!validBatches.length) {
+      return res.status(400).json({ error: 'No active batches available for this chemical.' });
+    }
+
+    let remainingBaseNeeded = requestedBaseQty;
+    let usedBatchesLog = [];
+    let usedContainersLog = [];
+    let updatedContainers = [];
+    let updatedBatches = [];
+
+    // Pre-calculate to ensure sufficient total valid stock
+    let totalValidBaseAvailable = 0;
+    
+    // Process FIFO deduction across batches and containers in memory
+    for (let batch of validBatches) {
+      if (remainingBaseNeeded <= 0.0001) break;
+
+      // 3. Within each batch: Select containers with available quantity
+      const validContainers = await Container.find({
+        chemical_id: chem.id,
+        batch_number: batch.batch_number,
+        status: { $nin: ['Expired', 'Empty'] },
+        quantity: { $gt: 0 }
+      }).sort({ expiry_date: 1, createdAt: 1 });
+
+      let batchDeductedBase = 0;
+
+      for (let container of validContainers) {
+        if (remainingBaseNeeded <= 0.0001) break;
+
+        const containerBaseQty = convertToBase(container.quantity, container.unit);
+        let deductBaseAmount = Math.min(containerBaseQty, remainingBaseNeeded);
+
+        // Precision rounding
+        if (Math.abs(deductBaseAmount - containerBaseQty) < 0.001) deductBaseAmount = containerBaseQty;
+
+        const deductContainerUnit = convertFromBase(deductBaseAmount, container.unit);
+        
+        container.quantity -= deductContainerUnit;
+        if (container.quantity < 0.0001) {
+          container.quantity = 0;
+          container.status = 'Empty';
+        } else {
+          container.status = 'In Use';
+        }
+
+        updatedContainers.push(container);
+
+        usedContainersLog.push({
+          containerId: container.container_id,
+          batchId: batch.batch_number,
+          deductedQuantity: deductContainerUnit,
+          unit: container.unit,
+          remainingQuantity: container.quantity
+        });
+
+        batchDeductedBase += deductBaseAmount;
+        remainingBaseNeeded -= deductBaseAmount;
+      }
+
+      if (batchDeductedBase > 0) {
+        const batchDeductUnit = convertFromBase(batchDeductedBase, batch.unit);
+        batch.total_quantity -= batchDeductUnit;
+        if (batch.total_quantity < 0.0001) {
+          batch.total_quantity = 0;
+          batch.status = 'Empty'; // Optional status change if needed
+        }
+        updatedBatches.push(batch);
+        
+        usedBatchesLog.push({
+          batchId: batch.batch_number,
+          deductedQuantity: batchDeductUnit,
+          unit: batch.unit
+        });
+      }
+    }
+
+    if (remainingBaseNeeded > 0.001) {
+      return res.status(400).json({ 
+        error: `FIFO Failed: Insufficient viable stock. Short by ${Number(convertFromBase(remainingBaseNeeded, txUnit)).toFixed(2)} ${txUnit}. Remaining inventory may be expired or missing.` 
+      });
+    }
+
+    // Save all changes (Container -> Batch -> Chemical)
+    for (let c of updatedContainers) await c.save();
+    for (let b of updatedBatches) await b.save();
+
+    // Deduct from Chemical total
+    if (chem.base_quantity === undefined) chem.base_quantity = convertToBase(chem.quantity, chem.unit);
+    chem.base_quantity -= requestedBaseQty;
+    if (chem.base_quantity < 0) chem.base_quantity = 0;
+    chem.quantity = convertFromBase(chem.base_quantity, chem.unit);
+    
+    if (chem.quantity <= 0) chem.status = 'Out of Stock';
+    else chem.status = 'In Use';
+
+    await chem.save();
+
+    // 6. Audit & Logging
+    const batchIdsList = [...new Set(usedContainersLog.map(c => c.batchId))].join(', ');
+    const containerIdsList = usedContainersLog.map(c => c.containerId).join(', ');
+
+    const log = new InventoryLog({
+      chemical_id: chem.id,
+      chemical_name: chem.name,
+      user_id,
+      user_name,
+      user_role,
+      action: 'FIFO_OUT',
+      quantity_change: quantity,
+      unit: txUnit,
+      reason: reason || 'FIFO automated deduction',
+      batch_number: batchIdsList,
+      container_id: containerIdsList,
+      compliance_notes: `FIFO processed. Batches: [${batchIdsList}] Containers: [${containerIdsList}]`
+    });
+    await log.save();
+
+    await logAudit(req, {
+      action: 'UPDATE',
+      targetType: 'stock',
+      targetId: chem.id,
+      targetName: chem.name,
+      details: `FIFO Out: ${quantity} ${txUnit} consumed. Batches: [${batchIdsList}], Containers: [${containerIdsList}]`
+    });
+
+    // 7. Output
+    res.status(200).json({
+      message: 'FIFO consumption successful',
+      totalDeducted: quantity,
+      unit: txUnit,
+      remainingChemicalStock: chem.quantity,
+      batchesUsed: usedBatchesLog,
+      containersUsed: usedContainersLog
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 

@@ -138,8 +138,8 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.si
     const newChem = new Chemical({
       id: idValue,
       name: data.name,
-      iupac_name: data.iupac,
-      cas_number: data.cas,
+      iupac_name: data.iupac_name || data.iupac,
+      cas_number: data.cas_number || data.cas,
       formula: data.formula,
       quantity: Number(data.quantity) || 0,
       unit: data.unit,
@@ -148,17 +148,17 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.si
       state: data.state,
       purity: data.purity,
       concentration: data.concentration,
-      storage_temp: data.storageTemp,
-      storage_humidity: data.storageHumidity,
+      storage_temp: data.storage_temp || data.storageTemp,
+      storage_humidity: data.storage_humidity || data.storageHumidity,
       supplier: data.supplier,
-      batch_number: data.batch,
-      manufacturing_date: data.mfgDate,
-      purchase_date: data.purchaseDate,
-      expiry_date: data.expiry,
-      num_containers: Number(data.numContainers) || 1,
-      quantity_per_container: Number(data.qtyPerContainer),
-      container_type: data.containerType,
-      container_id_series: data.containerId,
+      batch_number: data.batch_number || data.batch,
+      manufacturing_date: data.manufacturing_date || data.mfgDate,
+      purchase_date: data.purchase_date || data.purchaseDate,
+      expiry_date: data.expiry_date || data.expiry,
+      num_containers: Number(data.num_containers || data.numContainers) || 1,
+      quantity_per_container: Number(data.quantity_per_container || data.qtyPerContainer),
+      container_type: data.container_type || data.containerType,
+      container_id_series: data.container_id_series || data.containerId,
       building: data.building,
       room: data.room,
       cabinet: data.cabinet,
@@ -226,8 +226,8 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
 
     const oldName = chemical.name;
     chemical.name = data.name;
-    chemical.iupac_name = data.iupac;
-    chemical.cas_number = data.cas;
+    chemical.iupac_name = data.iupac_name || data.iupac;
+    chemical.cas_number = data.cas_number || data.cas;
     chemical.formula = data.formula;
     chemical.quantity = Number(data.quantity) || 0;
     chemical.unit = data.unit;
@@ -236,17 +236,17 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
     chemical.state = data.state;
     chemical.purity = data.purity;
     chemical.concentration = data.concentration;
-    chemical.storage_temp = data.storageTemp;
-    chemical.storage_humidity = data.storageHumidity;
+    chemical.storage_temp = data.storage_temp || data.storageTemp;
+    chemical.storage_humidity = data.storage_humidity || data.storageHumidity;
     chemical.supplier = data.supplier;
-    chemical.batch_number = data.batch;
-    chemical.manufacturing_date = data.mfgDate;
-    chemical.purchase_date = data.purchaseDate;
-    chemical.expiry_date = data.expiry;
-    chemical.num_containers = Number(data.numContainers) || 1;
-    chemical.quantity_per_container = Number(data.qtyPerContainer);
-    chemical.container_type = data.containerType;
-    chemical.container_id_series = data.containerId;
+    chemical.batch_number = data.batch_number || data.batch;
+    chemical.manufacturing_date = data.manufacturing_date || data.mfgDate;
+    chemical.purchase_date = data.purchase_date || data.purchaseDate;
+    chemical.expiry_date = data.expiry_date || data.expiry;
+    chemical.num_containers = Number(data.num_containers || data.numContainers) || 1;
+    chemical.quantity_per_container = Number(data.quantity_per_container || data.qtyPerContainer);
+    chemical.container_type = data.container_type || data.containerType;
+    chemical.container_id_series = data.container_id_series || data.containerId;
     chemical.building = data.building;
     chemical.room = data.room;
     chemical.cabinet = data.cabinet;
@@ -260,15 +260,30 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
       chemical.sds_file_name = req.file.originalname;
       chemical.sds_file_url = `/uploads/${req.file.filename}`;
     } else {
-      chemical.sds_attached = data.sdsAttached === 'true' || chemical.sds_attached;
+      chemical.sds_attached = data.sds_attached === 'true' || chemical.sds_attached;
     }
 
     await chemical.save();
 
+    // Auto-Sync Batch record
+    if (chemical.batch_number) {
+      await syncBatch({
+        ...chemical.toObject(),
+        id: chemical.id
+      });
+    }
+
+    // Auto-Sync Containers
+    await syncContainers({
+      ...chemical.toObject(),
+      id: chemical.id
+    });
+
     // Auto-Cascade Expiry Date & Status to Batches and Containers
-    if (data.expiry) {
+    const expiryToUse = data.expiry_date || data.expiry;
+    if (expiryToUse) {
       const thresholdDays = parseInt(process.env.NEAR_EXPIRY_THRESHOLD) || 30;
-      const exp = new Date(data.expiry);
+      const exp = new Date(expiryToUse);
       const now = new Date();
       const diff = (exp - now) / (1000 * 60 * 60 * 24);
       let newExpStatus = null;
@@ -279,7 +294,7 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
       // 1. Update Batches
       const batches = await require('../models/Batch').find({ chemical_id: chemical.id });
       for (let b of batches) {
-         b.expiry_date = data.expiry;
+         b.expiry_date = expiryToUse;
          if (newExpStatus) {
             b.status = newExpStatus;
          } else if (['Near Expiry', 'Expired'].includes(b.status)) {
@@ -291,7 +306,7 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
       // 2. Update Containers
       const containers = await require('../models/Container').find({ chemical_id: chemical.id });
       for (let c of containers) {
-         c.expiry_date = data.expiry;
+         c.expiry_date = expiryToUse;
          if (!['Empty', 'Damaged'].includes(c.status)) {
             if (newExpStatus) {
                c.status = newExpStatus;

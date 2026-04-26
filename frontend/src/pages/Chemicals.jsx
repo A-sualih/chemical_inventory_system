@@ -3,6 +3,7 @@ import Layout from "../layout/Layout";
 import { useAuth } from "../AuthContext";
 import ChemicalForm from "./ChemicalForm";
 import StockActionModal from "../components/StockActionModal";
+import FIFOUsageModal from "../components/FIFOUsageModal";
 import ChemicalHistoryModal from "../components/ChemicalHistoryModal";
 import HazardBadge from "../components/HazardBadge";
 import axios from "axios";
@@ -11,9 +12,11 @@ const Chemicals = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showStockModal, setShowStockModal] = useState(false);
+  const [showFIFOModal, setShowFIFOModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [editingChemical, setEditingChemical] = useState(null);
   const [selectedStockChemical, setSelectedStockChemical] = useState(null);
+  const [selectedFIFOChemical, setSelectedFIFOChemical] = useState(null);
   const [selectedHistoryChemical, setSelectedHistoryChemical] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
   const { hasPermission, user } = useAuth();
@@ -222,13 +225,24 @@ const Chemicals = () => {
                     <div className="flex justify-center gap-3">
                       {!item.archived && (
                         <>
-                          <button
-                            className="w-10 h-10 flex items-center justify-center text-primary-500 hover:text-primary-600 bg-primary-50 rounded-xl border border-primary-100 shadow-sm transition-all hover:scale-110"
-                            title="Adjust Stock (In/Out)"
-                            onClick={() => { setSelectedStockChemical(item); setShowStockModal(true); }}
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12" /></svg>
-                          </button>
+                          {hasPermission("update_stock") && (
+                            <button
+                              className="w-10 h-10 flex items-center justify-center text-primary-500 hover:text-primary-600 bg-primary-50 rounded-xl border border-primary-100 shadow-sm transition-all hover:scale-110"
+                              title="Adjust Stock (In/Out)"
+                              onClick={() => { setSelectedStockChemical(item); setShowStockModal(true); }}
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12" /></svg>
+                            </button>
+                          )}
+                          {hasPermission("update_stock") && (
+                            <button
+                              className="w-10 h-10 flex items-center justify-center text-primary-600 hover:text-white bg-white hover:bg-primary-600 rounded-xl border border-primary-200 shadow-sm transition-all hover:scale-110"
+                              title="Quick Usage (FIFO - Oldest First)"
+                              onClick={() => { setSelectedFIFOChemical(item); setShowFIFOModal(true); }}
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            </button>
+                          )}
                           {canEdit && (
                             <button
                               className="w-10 h-10 flex items-center justify-center text-secondary-400 hover:text-primary-600 bg-white rounded-xl border border-secondary-200 shadow-sm transition-all hover:scale-110"
@@ -285,6 +299,14 @@ const Chemicals = () => {
         <StockActionModal
           chemical={selectedStockChemical}
           onClose={() => { setShowStockModal(false); setSelectedStockChemical(null); }}
+          onSuccess={fetchChemicals}
+        />
+      )}
+
+      {showFIFOModal && selectedFIFOChemical && (
+        <FIFOUsageModal
+          chemical={selectedFIFOChemical}
+          onClose={() => { setShowFIFOModal(false); setSelectedFIFOChemical(null); }}
           onSuccess={fetchChemicals}
         />
       )}
