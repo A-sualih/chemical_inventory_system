@@ -101,4 +101,131 @@ router.get('/summary', authenticate, async (req, res) => {
   }
 });
 
+/**
+ * @route DELETE /api/expiry/purge-expired
+ * @desc  Bulk-delete ALL expired batches, containers and their parent Chemical records
+ * @access Admin, Lab Manager
+ */
+router.delete('/purge-expired', authenticate, authorize(PERMISSIONS.DELETE_CHEMICAL), async (req, res) => {
+  try {
+    const now = new Date();
+
+    // 1. Find all expired Batches
+    const expiredBatches = await Batch.find({
+      expiry_date: { $lt: now }
+    }).lean();
+
+    // 2. Find all expired Containers
+    const expiredContainers = await Container.find({
+      expiry_date: { $lt: now }
+    }).lean();
+
+    const expiredBatchIds   = expiredBatches.map(b => b._id);
+    const expiredContainerIds = expiredContainers.map(c => c._id);
+
+    // Collect the chemical IDs that had expired records
+    const affectedChemicalIds = [...new Set([
+      ...expiredBatches.map(b => b.chemical_id),
+      ...expiredContainers.map(c => c.chemical_id)
+    ])];
+
+    // 3. Delete expired Batches and Containers
+    const batchResult     = await Batch.deleteMany({ _id: { $in: expiredBatchIds } });
+    const containerResult = await Container.deleteMany({ _id: { $in: expiredContainerIds } });
+
+    // 4. For each affected chemical: if NO valid (non-expired) batches/containers remain, delete the Chemical record too
+    let deletedChemicalCount = 0;
+    const deletedChemicalIds = [];
+
+    for (const chemId of affectedChemicalIds) {
+      const remainingBatches    = await Batch.countDocuments({ chemical_id: chemId });
+      const remainingContainers = await Container.countDocuments({ chemical_id: chemId });
+
+      if (remainingBatches === 0 && remainingContainers === 0) {
+        await Chemical.deleteOne({ id: chemId });
+        deletedChemicalIds.push(chemId);
+        deletedChemicalCount++;
+      } else {
+        // Recalculate chemical quantity from remaining containers
+        const remaining = await Container.find({ chemical_id: chemId, quantity: { $gt: 0 } });
+        const totalQty = remaining.reduce((sum, c) => sum + (c.quantity || 0), 0);
+        await Chemical.updateOne({ id: chemId }, {
+          $set: {
+            quantity: totalQty,
+            status: totalQty <= 0 ? 'Out of Stock' : totalQty < 5 ? 'Low Stock' : 'In Stock'
+          }
+        });
+      }
+    }
+
+    res.json({
+      message: 'Expired inventory purged successfully.',
+      deletedBatches: batchResult.deletedCount,
+      deletedContainers: containerResult.deletedCount,
+      deletedChemicals: deletedChemicalCount,
+      deletedChemicalIds
+    });
+  } catch (err) {
+    console.error('Purge Expired Error:', err);
+    res.status(500).json({ error: 'Failed to purge expired items.' });
+  }
+});
+
+/**
+ * @route DELETE /api/expiry/:type/:id
+ * @desc  Delete a single expired Batch or Container (and its Chemical if orphaned)
+ * @access Admin, Lab Manager
+ */
+router.delete('/:type/:id', authenticate, authorize(PERMISSIONS.DELETE_CHEMICAL), async (req, res) => {
+  try {
+    const { type, id } = req.params; // type = 'batch' | 'container'
+    let chemicalId = null;
+
+    if (type === 'batch') {
+      const batch = await Batch.findById(id);
+      if (!batch) return res.status(404).json({ error: 'Batch not found.' });
+      chemicalId = batch.chemical_id;
+      await Batch.deleteOne({ _id: id });
+    } else if (type === 'container') {
+      const container = await Container.findById(id);
+      if (!container) return res.status(404).json({ error: 'Container not found.' });
+      chemicalId = container.chemical_id;
+      await Container.deleteOne({ _id: id });
+    } else {
+      return res.status(400).json({ error: 'Invalid type. Must be "batch" or "container".' });
+    }
+
+    // Orphan check: if no more batches or containers exist for this chemical, delete the Chemical record too
+    let chemicalDeleted = false;
+    if (chemicalId) {
+      const remainingBatches    = await Batch.countDocuments({ chemical_id: chemicalId });
+      const remainingContainers = await Container.countDocuments({ chemical_id: chemicalId });
+
+      if (remainingBatches === 0 && remainingContainers === 0) {
+        await Chemical.deleteOne({ id: chemicalId });
+        chemicalDeleted = true;
+      } else {
+        const remaining = await Container.find({ chemical_id: chemicalId, quantity: { $gt: 0 } });
+        const totalQty = remaining.reduce((sum, c) => sum + (c.quantity || 0), 0);
+        await Chemical.updateOne({ id: chemicalId }, {
+          $set: {
+            quantity: totalQty,
+            status: totalQty <= 0 ? 'Out of Stock' : totalQty < 5 ? 'Low Stock' : 'In Stock'
+          }
+        });
+      }
+    }
+
+    res.json({
+      message: `${type === 'batch' ? 'Batch' : 'Container'} deleted successfully.`,
+      chemicalDeleted,
+      chemicalId
+    });
+  } catch (err) {
+    console.error('Delete Expiry Record Error:', err);
+    res.status(500).json({ error: 'Failed to delete record.' });
+  }
+});
+
 module.exports = router;
+

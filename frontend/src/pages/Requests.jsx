@@ -18,6 +18,8 @@ const Requests = () => {
   const [unit, setUnit] = useState("");
   const [reason, setReason] = useState("");
   const [notes, setNotes] = useState("");
+  const [fifoContainer, setFifoContainer] = useState(null); // FIFO-correct container info
+  const [submitError, setSubmitError] = useState(null);    // detailed submit error (may include FIFO info)
 
   const fetchRequests = async () => {
     try {
@@ -42,6 +44,7 @@ const Requests = () => {
   const fetchContainers = async (chemId) => {
     if (!chemId) {
       setContainers([]);
+      setFifoContainer(null);
       return;
     }
     try {
@@ -81,6 +84,15 @@ const Requests = () => {
         });
 
       setContainers(adjustedContainers);
+
+      // 4. Fetch the FIFO-correct container from backend and auto-select it
+      try {
+        const { data: fifo } = await axios.get(`/api/requests/fifo-container?chemical_id=${chemId}`);
+        setFifoContainer(fifo);
+        setSelectedContainer(fifo.fifo_container_id); // auto-select FIFO container
+      } catch {
+        setFifoContainer(null);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -99,16 +111,21 @@ const Requests = () => {
       const chem = chemicals.find(c => c._id === selectedChem);
       if (chem) {
         setUnit(chem.unit);
+        setFifoContainer(null);
+        setSubmitError(null);
         fetchContainers(selectedChem);
       }
     } else {
       setContainers([]);
       setSelectedContainer("");
+      setFifoContainer(null);
+      setSubmitError(null);
     }
   }, [selectedChem]);
 
   const handleSubmitRequest = async (e) => {
     e.preventDefault();
+    setSubmitError(null);
     if (!selectedChem || !selectedContainer || !quantity || !reason) {
       alert("Please fill in all required fields.");
       return;
@@ -116,27 +133,20 @@ const Requests = () => {
 
     const container = containers.find(c => c._id === selectedContainer);
     if (container) {
-      // Unit conversion check
       const rates = {
         'kg': 1, 'g': 0.001, 'mg': 0.000001, 'mcg': 0.000000001,
         'L': 1, 'l': 1, 'mL': 0.001, 'ml': 0.001, 'ul': 0.000001, 'nl': 0.000000001
       };
-      
       const requestedInBase = Number(quantity) * (rates[unit] || 1);
       const availableInBase = Number(container.available_quantity) * (rates[container.unit] || 1);
-
       if (requestedInBase > availableInBase + 0.000001) {
-        // Convert available back to requested unit for the error message
         const availableInRequestedUnit = (availableInBase / (rates[unit] || 1)).toFixed(2);
-        alert(`Insufficient amount! After accounting for other pending requests, this container only has ${availableInRequestedUnit} ${unit} truly available.`);
+        setSubmitError({ error: `Insufficient amount! This container only has ${availableInRequestedUnit} ${unit} truly available.` });
         return;
       }
     }
 
-
-
     setSubmitting(true);
-
     try {
       await axios.post('/api/requests', {
         chemical_id: selectedChem,
@@ -150,9 +160,12 @@ const Requests = () => {
       setSelectedContainer("");
       setQuantity("");
       setReason("");
+      setFifoContainer(null);
+      setSubmitError(null);
       fetchRequests();
     } catch (err) {
-      alert(err.response?.data?.error || "Error submitting request");
+      const errData = err.response?.data;
+      setSubmitError(errData || { error: "Error submitting request" });
     } finally {
       setSubmitting(false);
     }
@@ -210,27 +223,65 @@ const Requests = () => {
 
               {selectedChem && (
                 <div>
-                  <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Select Container</label>
-                  <select 
-                    value={selectedContainer} 
-                    onChange={(e) => setSelectedContainer(e.target.value)} 
-                    required 
-                    className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none mt-1"
+                  <div className="flex items-center justify-between mb-1 px-1">
+                    <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest">Select Container</label>
+                    {fifoContainer && (
+                      <span className="text-[10px] font-black text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">🔵 FIFO auto-selected</span>
+                    )}
+                  </div>
+                  <select
+                    value={selectedContainer}
+                    onChange={(e) => { setSelectedContainer(e.target.value); setSubmitError(null); }}
+                    required
+                    className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none"
                   >
                     <option value="">-- Choose Container --</option>
-                    {containers.map(c => (
-                      <option key={c._id} value={c._id}>
-                        {c.container_id} - {c.location} (Truly Available: {c.available_quantity} {c.unit})
-                      </option>
-                    ))}
+                    {containers.map(c => {
+                      const isFifo = fifoContainer && c._id === fifoContainer.fifo_container_id;
+                      return (
+                        <option key={c._id} value={c._id}>
+                          {isFifo ? '🔵 [FIFO] ' : ''}{c.container_id} — {c.available_quantity} {c.unit} available{c.location ? ` · ${c.location}` : ''}
+                        </option>
+                      );
+                    })}
                   </select>
+
+                  {/* FIFO deviation warning */}
+                  {fifoContainer && selectedContainer && selectedContainer !== fifoContainer.fifo_container_id && (
+                    <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
+                      <span className="text-amber-500 text-lg leading-none">⚠️</span>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-amber-700">FIFO Order Warning</p>
+                        <p className="text-[11px] text-amber-600 mt-0.5">
+                          You must finish <strong>{fifoContainer.container_id}</strong> first ({fifoContainer.available_quantity} {fifoContainer.unit} left). The system will block this request.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedContainer(fifoContainer.fifo_container_id)}
+                          className="mt-1.5 text-[11px] font-black text-blue-600 hover:text-blue-800 underline"
+                        >
+                          → Switch to FIFO container
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* FIFO info panel when correct container is selected */}
+                  {fifoContainer && selectedContainer === fifoContainer.fifo_container_id && (
+                    <div className="mt-2 p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-2">
+                      <span className="text-blue-500">🔵</span>
+                      <p className="text-[11px] text-blue-700 font-semibold">
+                        FIFO compliant — this is the correct container to use next ({fifoContainer.available_quantity} {fifoContainer.unit} available).
+                      </p>
+                    </div>
+                  )}
+
                   {selectedChem && containers.length === 0 && (
-                     <p className="text-[10px] text-red-500 font-bold mt-1 px-1">
-                        ⚠️ No active containers found for this chemical. It may be out of stock.
-                     </p>
+                    <p className="text-[10px] text-red-500 font-bold mt-1 px-1">
+                      ⚠️ No active containers found for this chemical. It may be out of stock.
+                    </p>
                   )}
                 </div>
-
               )}
 
               <div className="grid grid-cols-3 gap-3">
@@ -285,10 +336,31 @@ const Requests = () => {
                 ></textarea>
               </div>
 
-              <button 
-                type="submit" 
+              {/* Submit error (including FIFO violations) */}
+              {submitError && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-xl space-y-2">
+                  <p className="text-xs font-bold text-red-700 flex items-center gap-1.5">
+                    <span>🚫</span> {submitError.error}
+                  </p>
+                  {submitError.fifo_container_id && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedContainer(submitError.fifo_container_id);
+                        setSubmitError(null);
+                      }}
+                      className="text-[11px] font-black text-blue-600 hover:text-blue-800 underline"
+                    >
+                      → Switch to correct container: {submitError.fifo_container_label} ({submitError.fifo_available_native} {submitError.fifo_unit})
+                    </button>
+                  )}
+                </div>
+              )}
+
+              <button
+                type="submit"
                 disabled={submitting}
-                className="w-full bg-primary-600 hover:bg-primary-500 disabled:bg-secondary-300 text-white p-4 rounded-xl font-bold transition-all mt-4 flex items-center justify-center gap-2"
+                className="w-full bg-primary-600 hover:bg-primary-500 disabled:bg-secondary-300 text-white p-4 rounded-xl font-bold transition-all mt-2 flex items-center justify-center gap-2"
               >
                 {submitting ? "Submitting..." : "Submit Request"}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
