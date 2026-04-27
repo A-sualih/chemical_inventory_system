@@ -1,4 +1,6 @@
 const Notification = require('../models/Notification');
+const { sendEmail, formatNotificationEmail } = require('./emailService');
+const { sendSMS } = require('./smsService');
 
 /**
  * Creates a notification in the system.
@@ -6,37 +8,66 @@ const Notification = require('../models/Notification');
  */
 const createNotification = async (data) => {
   try {
-    // Check for duplicate notifications of the same type/related item within the last hour to debounce
+    let notification;
     if (data.related?.chemicalId && data.type) {
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-      const existing = await Notification.findOne({
+      notification = await Notification.findOne({
         type: data.type,
         'related.chemicalId': data.related.chemicalId,
         createdAt: { $gte: oneHourAgo },
         status: 'unread'
       });
       
-      if (existing) {
-        // Update existing notification instead of creating a new one if it's recent and unread
-        existing.message = data.message;
-        existing.metadata = { ...existing.metadata, ...data.metadata };
-        return await existing.save();
+      if (notification) {
+        notification.message = data.message;
+        notification.metadata = { ...notification.metadata, ...data.metadata };
+        await notification.save();
       }
     }
 
-    const notification = new Notification({
-      ...data,
-      isRead: false,
-      status: 'unread',
-      channels: data.channels || [{ type: 'dashboard', isSent: true, sentAt: new Date() }]
-    });
+    if (!notification) {
+      notification = new Notification({
+        ...data,
+        isRead: false,
+        status: 'unread',
+        channels: data.channels || [{ type: 'dashboard', isSent: true, sentAt: new Date() }]
+      });
+      await notification.save();
+    }
 
-    await notification.save();
+    // TRIGGER EMAIL for high/critical severity
+    if (data.severity === 'high' || data.severity === 'critical') {
+      console.log(`[Email] Attempting to send alert: ${data.title} to ${process.env.EMAIL_USER}`);
+      const emailHtml = formatNotificationEmail(data);
+      const emailResult = await sendEmail(process.env.EMAIL_USER, `[CIMS ALERT] ${data.title}`, emailHtml);
+      
+      if (emailResult.success) {
+        console.log(`[Email] Successfully delivered: ${emailResult.messageId}`);
+        notification.channels.push({ type: 'email', isSent: true, sentAt: new Date() });
+      } else {
+        console.error(`[Email] Failed delivery:`, emailResult.error);
+        notification.channels.push({ type: 'email', isSent: false, error: emailResult.error?.message });
+      }
+      await notification.save();
+    }
+
+    // TRIGGER SMS for critical severity ONLY
+    if (data.severity === 'critical') {
+      const smsMessage = `[CIMS CRITICAL] ${data.title}: ${data.message}`;
+      await sendSMS(null, smsMessage);
+      
+      notification.channels.push({ type: 'sms', isSent: true, sentAt: new Date() });
+      await notification.save();
+    }
+
     return notification;
+
   } catch (error) {
     console.error('Error creating notification:', error);
   }
 };
+
+
 
 /**
  * Specifically creates a low stock notification.
@@ -47,7 +78,8 @@ const notifyLowStock = async (chemical, threshold) => {
     category: 'inventory',
     title: `Low Stock: ${chemical.name}`,
     message: `Chemical ${chemical.name} has reached low stock level. Current quantity: ${chemical.quantity} ${chemical.unit}.`,
-    severity: 'medium',
+    severity: 'high',
+
     priority: 3,
     related: {
       chemicalId: chemical.id,

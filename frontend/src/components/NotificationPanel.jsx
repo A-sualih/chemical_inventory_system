@@ -4,7 +4,6 @@ import { formatDistanceToNow } from 'date-fns';
 
 const NotificationPanel = ({ onClose }) => {
   const { notifications, loading, markAsRead, dismissNotification } = useNotifications();
-
   const getSeverityStyles = (severity) => {
     switch (severity) {
       case 'critical': return 'bg-red-100 text-red-700 border-red-200';
@@ -13,7 +12,6 @@ const NotificationPanel = ({ onClose }) => {
       default: return 'bg-secondary-100 text-secondary-700 border-secondary-200';
     }
   };
-
   const getIcon = (type) => {
     switch (type) {
       case 'LOW_STOCK': return '📦';
