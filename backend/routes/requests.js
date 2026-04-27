@@ -8,6 +8,8 @@ const { authenticate, authorize, logAudit } = require('../authMiddleware');
 const { PERMISSIONS } = require('../config/roles');
 const { updateContainerStatus } = require('../utils/containerManager');
 const { convertToBase, getBaseUnit } = require('../utils/unitConverter');
+const mongoose = require('mongoose');
+
 
 /**
  * Get the FIFO-correct container for a chemical.
@@ -24,7 +26,7 @@ router.get('/fifo-container', authenticate, async (req, res) => {
 
     // Resolve to string chemical id (e.g. 'C001')
     let chemStringId = chemical_id;
-    const mongoose = require('mongoose');
+
     if (mongoose.Types.ObjectId.isValid(chemical_id)) {
       const chem = await Chemical.findById(chemical_id);
       if (!chem) return res.status(404).json({ error: 'Chemical not found' });
@@ -97,11 +99,25 @@ router.post('/', authenticate, authorize(PERMISSIONS.SUBMIT_REQUEST), async (req
   const { chemical_id, container_id, quantity, unit, reason } = req.body;
   
   try {
-    const chemical = await Chemical.findById(chemical_id);
+
+    // Resolve Chemical
+    const chemical = await Chemical.findOne({
+      $or: [
+        { _id: mongoose.Types.ObjectId.isValid(chemical_id) ? chemical_id : undefined },
+        { id: chemical_id }
+      ].filter(q => q._id !== undefined || q.id !== undefined)
+    });
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
 
-    const container = await Container.findById(container_id);
+    // Resolve Container
+    const container = await Container.findOne({
+      $or: [
+        { _id: mongoose.Types.ObjectId.isValid(container_id) ? container_id : undefined },
+        { container_id: container_id }
+      ].filter(q => q._id !== undefined || q.container_id !== undefined)
+    });
     if (!container) return res.status(404).json({ error: 'Container not found' });
+
 
     // 1. Fetch other pending requests for this container
     const existingPending = await Request.find({ 
@@ -184,8 +200,9 @@ router.post('/', authenticate, authorize(PERMISSIONS.SUBMIT_REQUEST), async (req
     // ── END FIFO ENFORCEMENT ──────────────────────────────────────────────────
 
     const request = new Request({
-      chemical_id,
-      container_id,
+      chemical_id: chemical._id,
+      container_id: container._id,
+
       user_id: req.user.id,
       quantity,
       unit,

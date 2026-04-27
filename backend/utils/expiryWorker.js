@@ -3,6 +3,8 @@ const Batch = require('../models/Batch');
 const Container = require('../models/Container');
 const AuditLog = require('../models/AuditLog');
 const Chemical = require('../models/Chemical');
+const { notifyExpiry } = require('./notificationService');
+
 
 /**
  * Run a comprehensive check on all batches and containers to update their expiry status.
@@ -79,7 +81,14 @@ const runExpiryCheck = async (options = { nearExpiryDays: parseInt(process.env.N
         await container.save();
         updatesCount++;
 
+        // Trigger Notification
+        if (chemical && (newStatus === 'Expired' || newStatus === 'Near Expiry')) {
+          const daysRemaining = Math.ceil((new Date(container.expiry_date) - now) / (1000 * 60 * 60 * 24));
+          await notifyExpiry(chemical, container, daysRemaining);
+        }
+
         // Log to Audit
+
         await AuditLog.create({
           action: 'UPDATE',
           user: { name: 'System Worker', role: 'System' },

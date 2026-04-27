@@ -213,11 +213,18 @@ const Chemicals = () => {
                         </div>
                         <div className="text-[10px] text-secondary-400 mt-0.5 uppercase tracking-widest font-bold">
                           {item.num_containers > 1 ? (
-                            <span className="text-secondary-500">{item.num_containers} containers × {item.quantity_per_container}{item.unit}</span>
+                            <div className="flex flex-col">
+                              <span className="text-secondary-500">{item.num_containers} containers × {item.quantity_per_container}{item.unit}</span>
+                              <span className="text-amber-500">Alert below: {item.threshold || 5} {item.unit}</span>
+                            </div>
                           ) : (
-                            `${item.quantity} ${item.unit} Remaining`
+                            <div className="flex flex-col">
+                              <span>{item.quantity} {item.unit} Remaining</span>
+                              <span className="text-amber-500">Alert below: {item.threshold || 5} {item.unit}</span>
+                            </div>
                           )}
                         </div>
+
                       </div>
                     </div>
                   </td>

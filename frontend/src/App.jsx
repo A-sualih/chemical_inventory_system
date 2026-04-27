@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthContext";
+import { NotificationProvider } from "./NotificationContext";
+
 import Dashboard from "./pages/Dashboard";
 import Chemicals from "./pages/Chemicals";
 import Login from "./pages/Login";
@@ -15,6 +17,7 @@ import MFASetup from "./pages/MFASetup";
 import ContainerMaster from "./pages/ContainerMaster";
 import BatchMaster from "./pages/BatchMaster";
 import ExpiryTracker from "./pages/ExpiryTracker";
+import Notifications from "./pages/Notifications";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -31,61 +34,71 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
-          <Route path="/mfa-demo" element={<MFADemo />} />
-          <Route path="/mfa-setup" element={<ProtectedRoute><MFASetup /></ProtectedRoute>} />
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/chemicals" element={
-            <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}>
-              <Chemicals />
-            </ProtectedRoute>
-          } />
-          <Route path="/chemicals/new" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician"]}><ChemicalForm /></ProtectedRoute>} />
-          <Route path="/chemicals/edit/:id" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician"]}><ChemicalForm /></ProtectedRoute>} />
-          <Route path="/requests" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}><Requests /></ProtectedRoute>} />
-          <Route path="/logs" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}><InventoryLogs /></ProtectedRoute>} />
-          <Route path="/reports" element={
-            <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer / Auditor"]}>
-              <Reports />
-            </ProtectedRoute>
-          } />
-          <Route path="/containers" element={
-            <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}>
-              <ContainerMaster />
-            </ProtectedRoute>
-          } />
-          <Route path="/batches" element={
-            <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}>
-              <BatchMaster />
-            </ProtectedRoute>
-          } />
-          <Route path="/expiry" element={
-            <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}>
-              <ExpiryTracker />
-            </ProtectedRoute>
-          } />
-          <Route path="/audit" element={
-            <ProtectedRoute allowedRoles={["Admin"]}>
-              <AdminOnly title="Master Audit Logs" description="Review all system security events and role modifications." />
-            </ProtectedRoute>
-          } />
-          <Route path="/roles" element={
-            <ProtectedRoute allowedRoles={["Admin"]}>
-              <AdminOnly title="Role Management" description="Assign and configure fine-grained permissions for all personnel." />
-            </ProtectedRoute>
-          } />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <NotificationProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
+            <Route path="/mfa-demo" element={<MFADemo />} />
+            <Route path="/mfa-setup" element={<ProtectedRoute><MFASetup /></ProtectedRoute>} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/chemicals" element={
+              <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}>
+                <Chemicals />
+              </ProtectedRoute>
+            } />
+            <Route path="/chemicals/new" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician"]}><ChemicalForm /></ProtectedRoute>} />
+            <Route path="/chemicals/edit/:id" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician"]}><ChemicalForm /></ProtectedRoute>} />
+            <Route path="/requests" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}><Requests /></ProtectedRoute>} />
+            <Route path="/logs" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}><InventoryLogs /></ProtectedRoute>} />
+            <Route path="/reports" element={
+              <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer / Auditor"]}>
+                <Reports />
+              </ProtectedRoute>
+            } />
+            <Route path="/containers" element={
+              <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}>
+                <ContainerMaster />
+              </ProtectedRoute>
+            } />
+            <Route path="/batches" element={
+              <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}>
+                <BatchMaster />
+              </ProtectedRoute>
+            } />
+            <Route path="/expiry" element={
+              <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}>
+                <ExpiryTracker />
+              </ProtectedRoute>
+            } />
+            <Route path="/notifications" element={
+              <ProtectedRoute>
+                <Notifications />
+              </ProtectedRoute>
+            } />
+            <Route path="/audit" element={
+
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <AdminOnly title="Master Audit Logs" description="Review all system security events and role modifications." />
+              </ProtectedRoute>
+            } />
+            <Route path="/roles" element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <AdminOnly title="Role Management" description="Assign and configure fine-grained permissions for all personnel." />
+              </ProtectedRoute>
+            } />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </NotificationProvider>
+
     </AuthProvider>
+
   );
 }
 

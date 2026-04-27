@@ -11,7 +11,9 @@ const containerRoutes = require('./routes/containers');
 const batchRoutes = require('./routes/batches');
 const requestRoutes = require('./routes/requests');
 const expiryRoutes = require('./routes/expiry');
+const notificationRoutes = require('./routes/notifications');
 const { initExpirySchedule, runExpiryCheck } = require('./utils/expiryWorker');
+
 
 
 const path = require('path');
@@ -42,6 +44,8 @@ app.use('/api/containers', containerRoutes);
 app.use('/api/batches', batchRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/expiry', expiryRoutes);
+app.use('/api/notifications', notificationRoutes);
+
 
 
 app.get('/api/health', (req, res) => {

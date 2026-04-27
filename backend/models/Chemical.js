@@ -36,7 +36,9 @@ const chemicalSchema = new mongoose.Schema({
   sds_file_url: { type: String },
   location: { type: String },
   status: { type: String },
+  threshold: { type: Number, default: 5 },
   archived: { type: Boolean, default: false }
 }, { timestamps: true });
+
 
 module.exports = mongoose.model('Chemical', chemicalSchema);

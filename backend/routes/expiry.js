@@ -181,19 +181,31 @@ router.delete('/:type/:id', authenticate, authorize(PERMISSIONS.DELETE_CHEMICAL)
     const { type, id } = req.params; // type = 'batch' | 'container'
     let chemicalId = null;
 
+    const mongoose = require('mongoose');
     if (type === 'batch') {
-      const batch = await Batch.findById(id);
+      const batch = await Batch.findOne({
+        $or: [
+          { _id: mongoose.Types.ObjectId.isValid(id) ? id : undefined },
+          { batch_number: id }
+        ].filter(q => q._id !== undefined || q.batch_number !== undefined)
+      });
       if (!batch) return res.status(404).json({ error: 'Batch not found.' });
       chemicalId = batch.chemical_id;
-      await Batch.deleteOne({ _id: id });
+      await Batch.deleteOne({ _id: batch._id });
     } else if (type === 'container') {
-      const container = await Container.findById(id);
+      const container = await Container.findOne({
+        $or: [
+          { _id: mongoose.Types.ObjectId.isValid(id) ? id : undefined },
+          { container_id: id }
+        ].filter(q => q._id !== undefined || q.container_id !== undefined)
+      });
       if (!container) return res.status(404).json({ error: 'Container not found.' });
       chemicalId = container.chemical_id;
-      await Container.deleteOne({ _id: id });
+      await Container.deleteOne({ _id: container._id });
     } else {
       return res.status(400).json({ error: 'Invalid type. Must be "batch" or "container".' });
     }
+
 
     // Orphan check: if no more batches or containers exist for this chemical, delete the Chemical record too
     let chemicalDeleted = false;

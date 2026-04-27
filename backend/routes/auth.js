@@ -11,6 +11,8 @@ require('dotenv').config();
 const User = require('../models/User');
 const { JWT_SECRET, authenticate, authorize, logAudit, ROLES } = require('../authMiddleware');
 const { PERMISSIONS } = require('../config/roles');
+const { notifyUnauthorizedAccess } = require('../utils/notificationService');
+
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
@@ -52,8 +54,10 @@ router.post('/login', async (req, res) => {
       user.failed_attempts = (user.failed_attempts || 0) + 1;
       if (user.failed_attempts >= 5) {
         user.locked_until = new Date(Date.now() + 15 * 60 * 1000); // 15 mins lock
+        await notifyUnauthorizedAccess(user, 'Multiple failed login attempts', req.ip, req.headers['user-agent']);
       }
       await user.save();
+
       return res.status(400).json({ error: 'Invalid email or password' });
     }
 
@@ -385,8 +389,10 @@ router.post('/mfa/verify', async (req, res) => {
       user.failed_attempts = (user.failed_attempts || 0) + 1;
       if (user.failed_attempts >= 5) {
         user.locked_until = new Date(Date.now() + 15 * 60 * 1000); // 15 mins lock
+        await notifyUnauthorizedAccess(user, 'Multiple failed MFA attempts', req.ip, req.headers['user-agent']);
       }
       await user.save();
+
       return res.status(400).json({ error: 'Invalid or expired verification code' });
     }
 

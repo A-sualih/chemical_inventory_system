@@ -28,7 +28,8 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     sds_file_name: initialData.sds_file_name || "",
     sds_file_url: initialData.sds_file_url || "",
     sds_attached: initialData.sds_attached === 1 || initialData.sds_attached === true,
-    ghs_classes: initialData.ghs_classes || []
+    ghs_classes: initialData.ghs_classes || [],
+    threshold: initialData.threshold || 5
   } : {
     name: "",
     iupac_name: "",
@@ -36,7 +37,9 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     formula: "",
     quantity: "",
     unit: "L",
+    threshold: 5,
     purity: "99%",
+
     concentration: "Default",
     location: "",
     building: "",
@@ -315,7 +318,12 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                      <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block transition-colors">Purity (%)</label>
                      <input type="text" value={formData.purity} onChange={e => setFormData({...formData, purity: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm outline-none hover:border-secondary-300 focus:border-primary-400 transition-all font-medium shadow-sm" placeholder="99.9%" />
                    </div>
+                   <div className="group">
+                     <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block transition-colors">Alert Threshold</label>
+                     <input type="number" step="any" value={formData.threshold} onChange={e => setFormData({...formData, threshold: Number(e.target.value)})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm outline-none hover:border-secondary-300 focus:border-primary-400 transition-all font-bold shadow-sm text-amber-600" placeholder="5" />
+                   </div>
                  </div>
+
 
                  <div className="bg-white border border-secondary-200 rounded-[1.5rem] p-5 mb-5 shadow-sm space-y-4">
                     <div className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-2 flex items-center gap-2">

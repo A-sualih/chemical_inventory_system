@@ -11,6 +11,8 @@ const { authenticate, authorize, logAudit } = require('../authMiddleware');
 const { PERMISSIONS } = require('../config/roles');
 
 const { convertToBase, getBaseUnit, convertFromBase } = require('../utils/unitConverter');
+const { notifyLowStock } = require('../utils/notificationService');
+
 
 // Get all chemicals
 router.get('/chemicals', authenticate, async (req, res) => {
@@ -224,14 +226,20 @@ router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), a
       }
     } else if (action === 'OUT' || action === 'DISPOSAL') {
       // Safety Check on specific container/batch if provided
-      if (req.body.containerId || req.body.container_id) {
+      const cId = req.body.containerId || req.body.container_id;
+      if (cId) {
+        const mongoose = require('mongoose');
         const checkContainer = await Container.findOne({ 
-          $or: [{ _id: req.body.containerId }, { container_id: req.body.containerId || req.body.container_id }] 
+          $or: [
+            { _id: mongoose.Types.ObjectId.isValid(cId) ? cId : undefined },
+            { container_id: cId }
+          ].filter(q => q._id !== undefined || q.container_id !== undefined)
         });
         if (checkContainer && checkContainer.status === 'Expired') {
           return res.status(403).json({ error: "SAFETY ALERT: Usage of expired chemical container is strictly prohibited." });
         }
       } else if (batch || chem.batch_number) {
+
         const checkBatch = await Batch.findOne({ batch_number: batch || chem.batch_number });
         if (checkBatch && checkBatch.status === 'Expired') {
           return res.status(403).json({ error: "SAFETY ALERT: This chemical batch has expired. Please process for proper disposal instead of usage." });
@@ -352,6 +360,14 @@ router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), a
     }
     
     await targetChem.save();
+
+    // Trigger Low Stock Notification if applicable
+    const lowStockThreshold = targetChem.threshold !== undefined ? targetChem.threshold : 5;
+    if (targetChem.quantity <= lowStockThreshold) {
+      await notifyLowStock(targetChem, lowStockThreshold);
+    }
+
+
 
     // Insert log
     const log = new InventoryLog({
@@ -558,6 +574,14 @@ router.post('/fifo-usage', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), as
     else chem.status = 'In Use';
 
     await chem.save();
+
+    // Trigger Low Stock Notification if applicable
+    const lowStockThreshold = chem.threshold !== undefined ? chem.threshold : 5;
+    if (chem.quantity <= lowStockThreshold) {
+      await notifyLowStock(chem, lowStockThreshold);
+    }
+
+
 
     // 6. Audit & Logging
     const batchIdsList = [...new Set(usedContainersLog.map(c => c.batchId))].join(', ');

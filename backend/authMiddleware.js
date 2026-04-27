@@ -31,9 +31,12 @@ function authorize(permission) {
 
     const userPermissions = ROLE_PERMISSIONS[req.user.role] || [];
     if (!userPermissions.includes(permission)) {
+      const { notifyUnauthorizedAccess } = require('./utils/notificationService');
+      notifyUnauthorizedAccess(req.user, `Attempted restricted action: ${permission}`, req.ip, req.headers['user-agent']).catch(console.error);
       return res.status(403).json({ error: `Forbidden: Missing permission [${permission}]` });
     }
     next();
+
   };
 }
 
