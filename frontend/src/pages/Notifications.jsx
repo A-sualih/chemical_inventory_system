@@ -17,6 +17,21 @@ const Notifications = () => {
     }
   };
 
+  const [sendingTest, setSendingTest] = useState(false);
+
+  const handleTestAlert = async () => {
+    setSendingTest(true);
+    try {
+      await axios.post('/api/notifications/test');
+      refresh();
+      alert('Test alert triggered! Check your dashboard terminal for the SMS log and your email for the alert.');
+    } catch (err) {
+      alert('Failed to trigger test alert.');
+    } finally {
+      setSendingTest(false);
+    }
+  };
+
   const handleCleanup = async () => {
     if (!window.confirm('Delete all read and dismissed notifications older than 30 days?')) return;
     setCleaning(true);
@@ -40,6 +55,14 @@ const Notifications = () => {
         </div>
         <div className="flex gap-3">
           <button 
+            onClick={handleTestAlert}
+            disabled={sendingTest}
+            className="px-6 py-3 bg-primary-100 text-primary-700 rounded-xl font-black text-sm hover:bg-primary-200 transition-all shadow-sm flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            {sendingTest ? 'Sending...' : 'Send Test Alert'}
+          </button>
+          <button 
             onClick={refresh}
             className="p-3 bg-white border border-secondary-200 rounded-xl hover:bg-secondary-50 transition-all text-secondary-600 shadow-sm"
           >
@@ -54,6 +77,7 @@ const Notifications = () => {
           </button>
         </div>
       </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Filters */}

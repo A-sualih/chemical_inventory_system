@@ -106,4 +106,30 @@ router.delete('/cleanup', authenticate, authorize(PERMISSIONS.DELETE_CHEMICAL), 
   }
 });
 
+// POST /api/notifications/test - Trigger a test notification for debugging
+router.post('/test', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), async (req, res) => {
+
+  try {
+    const { createNotification } = require('../utils/notificationService');
+    const notification = await createNotification({
+      type: 'SYSTEM',
+      category: 'system',
+      title: 'Diagnostic: Multi-Channel Alert Test',
+      message: 'This is a test alert triggered from the Notification Center to verify Dashboard, Email, and SMS delivery.',
+      severity: 'critical', // High enough to trigger all channels
+      priority: 1,
+      metadata: {
+        triggeredBy: req.user.name,
+        ipAddress: req.ip
+      }
+    });
+    
+    res.json({ message: 'Test alert triggered successfully', notification });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to trigger test alert' });
+  }
+});
+
 module.exports = router;
+
