@@ -41,4 +41,14 @@ const chemicalSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
+// Indexing for performance
+chemicalSchema.index({ name: 'text', iupac_name: 'text', cas_number: 'text', formula: 'text' });
+chemicalSchema.index({ id: 1 });
+chemicalSchema.index({ cas_number: 1 });
+chemicalSchema.index({ status: 1 });
+chemicalSchema.index({ building: 1 });
+chemicalSchema.index({ room: 1 });
+chemicalSchema.index({ archived: 1 });
+
 module.exports = mongoose.model('Chemical', chemicalSchema);
+

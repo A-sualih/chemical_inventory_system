@@ -89,15 +89,102 @@ router.get('/stats', authenticate, async (req, res) => {
   }
 });
 
-// Get all chemicals (active and archived)
+// Get all chemicals with advanced search and filtering
 router.get('/', authenticate, authorize(PERMISSIONS.VIEW_CHEMICALS), async (req, res) => {
   try {
-    const chemicals = await Chemical.find({}).sort({ createdAt: -1 });
-    res.json(chemicals);
+    const { 
+      search, 
+      hazard, 
+      status, 
+      building, 
+      room, 
+      cabinet, 
+      shelf,
+      expiryStatus,
+      archived,
+      page = 1, 
+      limit = 20,
+      sortBy = 'name',
+      sortOrder = 'asc'
+    } = req.query;
+
+    const query = { archived: archived === 'true' };
+
+
+    // 1. Text Search (with regex escaping for safety)
+    if (search) {
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.$or = [
+        { name: { $regex: escapedSearch, $options: 'i' } },
+        { iupac_name: { $regex: escapedSearch, $options: 'i' } },
+        { cas_number: { $regex: escapedSearch, $options: 'i' } },
+        { id: { $regex: escapedSearch, $options: 'i' } },
+        { formula: { $regex: escapedSearch, $options: 'i' } }
+      ];
+    }
+
+    // 2. Hazard Filter (GHS)
+    const hazardParam = hazard || req.query['hazard[]'];
+    if (hazardParam) {
+      const hazards = Array.isArray(hazardParam) ? hazardParam.filter(Boolean) : [hazardParam].filter(Boolean);
+      if (hazards.length > 0) {
+        query.ghs_classes = { $in: hazards };
+      }
+    }
+
+    // 3. Status Filter
+    const statusParam = status || req.query['status[]'];
+    if (statusParam) {
+      const statuses = Array.isArray(statusParam) ? statusParam.filter(Boolean) : [statusParam].filter(Boolean);
+      if (statuses.length > 0) {
+        query.status = { $in: statuses };
+      }
+    }
+
+    // 4. Hierarchical Location Filter
+    if (building) query.building = building;
+    if (room) query.room = room;
+    if (cabinet) query.cabinet = cabinet;
+    if (shelf) query.shelf = shelf;
+
+    // 5. Expiry Status Filter (calculated status)
+    if (expiryStatus) {
+      query.status = expiryStatus;
+    }
+
+    // Pagination & Sorting (with safety defaults)
+    const p = Math.max(1, parseInt(page) || 1);
+    const l = Math.max(1, Math.min(100, parseInt(limit) || 20));
+    const skip = (p - 1) * l;
+    
+    const sort = {};
+    const validSortFields = ['name', 'createdAt', 'expiry_date', 'quantity', 'status', 'id'];
+    const sField = validSortFields.includes(sortBy) ? sortBy : 'name';
+    sort[sField] = sortOrder === 'desc' ? -1 : 1;
+
+    const chemicals = await Chemical.find(query)
+      .sort(sort)
+      .skip(skip)
+      .limit(l);
+
+    const total = await Chemical.countDocuments(query);
+
+    res.json({
+      data: chemicals,
+      total,
+      page: p,
+      totalPages: Math.ceil(total / l)
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    console.error('SEARCH ERROR:', err);
+    res.status(500).json({ 
+      error: 'Server error', 
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined 
+    });
   }
 });
+
+
 
 // Add new chemical
 router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.single('sds_file'), async (req, res) => {
