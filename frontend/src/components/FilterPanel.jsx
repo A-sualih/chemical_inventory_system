@@ -3,8 +3,6 @@ import React from 'react';
 const FilterPanel = ({ filters, setFilters, onClear, buildings }) => {
   const hazardLevels = ['Flammable', 'Toxic', 'Corrosive', 'Oxidizer', 'Health Hazard', 'Environmental Hazard', 'Biohazard', 'Explosive', 'Radioactive'];
   const statuses = ['In Stock', 'In Use', 'Low Stock', 'Out of Stock', 'Near Expiry', 'Expired'];
-
-
   const handleToggleHazard = (h) => {
     const current = filters.hazard || [];
     if (current.includes(h)) {
@@ -26,11 +24,10 @@ const FilterPanel = ({ filters, setFilters, onClear, buildings }) => {
             <button
               key={h}
               onClick={() => handleToggleHazard(h)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all border ${
-                filters.hazard?.includes(h) 
-                  ? 'bg-secondary-900 text-white border-secondary-900 shadow-md' 
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all border ${filters.hazard?.includes(h)
+                  ? 'bg-secondary-900 text-white border-secondary-900 shadow-md'
                   : 'bg-white text-secondary-500 border-secondary-100 hover:border-secondary-300'
-              }`}
+                }`}
             >
               {h}
             </button>
@@ -45,8 +42,8 @@ const FilterPanel = ({ filters, setFilters, onClear, buildings }) => {
         <div className="grid grid-cols-1 gap-2">
           {statuses.map(s => (
             <label key={s} className="flex items-center gap-3 cursor-pointer group">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 className="w-4 h-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500/20"
                 checked={filters.status?.includes(s)}
                 onChange={(e) => {
@@ -66,7 +63,7 @@ const FilterPanel = ({ filters, setFilters, onClear, buildings }) => {
         <div className="space-y-3">
           <div>
             <label className="text-[10px] font-black text-secondary-400 uppercase mb-1 block">Building</label>
-            <select 
+            <select
               className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-primary-500/20"
               value={filters.building || ''}
               onChange={(e) => setFilters({ ...filters, building: e.target.value })}
@@ -77,8 +74,8 @@ const FilterPanel = ({ filters, setFilters, onClear, buildings }) => {
           </div>
           <div>
             <label className="text-[10px] font-black text-secondary-400 uppercase mb-1 block">Room</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="e.g. 101"
               className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-primary-500/20"
               value={filters.room || ''}
@@ -88,7 +85,7 @@ const FilterPanel = ({ filters, setFilters, onClear, buildings }) => {
         </div>
       </div>
 
-      <button 
+      <button
         onClick={onClear}
         className="w-full py-3 bg-secondary-50 text-secondary-400 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-secondary-100 transition-all border border-secondary-100"
       >

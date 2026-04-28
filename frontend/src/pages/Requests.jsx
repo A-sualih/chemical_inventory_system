@@ -35,7 +35,7 @@ const Requests = () => {
   const fetchChemicals = async () => {
     try {
       const { data } = await axios.get('/api/chemicals');
-      setChemicals(data);
+      setChemicals(data.data || data); // data.data if it's the paginated object, data if it's an array
     } catch (err) {
       console.error(err);
     }

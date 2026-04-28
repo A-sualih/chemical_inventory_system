@@ -42,10 +42,12 @@ const Reports = () => {
         axios.get('/api/reports/inventory'),
         axios.get('/api/reports/usage', { params: dateRange })
       ]);
+      console.log("Reports Data Loaded:", { inventory: invRes.data, usage: usageRes.data });
       setInventoryData(invRes.data);
       setUsageData(usageRes.data);
     } catch (err) {
       console.error("Error fetching report data", err);
+      alert("Failed to load analytics data. Please ensure you have sufficient permissions and the server is reachable.");
     } finally {
       setLoading(false);
     }
@@ -55,8 +57,23 @@ const Reports = () => {
     fetchData();
   }, []);
 
-  const handleExportExcel = async () => {
-    window.open(`${axios.defaults.baseURL || ''}/api/reports/export/excel`, '_blank');
+  const handleExport = async (type) => {
+    try {
+      const response = await axios.get(`/api/reports/export/${type}`, {
+        responseType: 'blob',
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `inventory_report.${type === 'excel' ? 'xlsx' : 'pdf'}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error(`Error exporting ${type}`, err);
+      alert(`Failed to export ${type}.`);
+    }
   };
 
   if (loading && !inventoryData) {
@@ -99,14 +116,14 @@ const Reports = () => {
             <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
           </button>
           <button 
-            onClick={() => window.open(`${axios.defaults.baseURL || ''}/api/reports/export/excel`, '_blank')}
+            onClick={() => handleExport('excel')}
             className="flex items-center gap-2 px-6 py-3 bg-white text-secondary-900 border border-secondary-200 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-secondary-50 transition-all shadow-sm active:scale-95"
           >
             <Download size={16} />
             <span>XLSX</span>
           </button>
           <button 
-            onClick={() => window.open(`${axios.defaults.baseURL || ''}/api/reports/export/pdf`, '_blank')}
+            onClick={() => handleExport('pdf')}
             className="flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary-500 transition-all shadow-lg shadow-primary-600/20 active:scale-95"
           >
             <FileText size={16} />
@@ -145,7 +162,85 @@ const Reports = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Critical Alerts Lists */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        {/* Expired List */}
+        <div className="bg-white p-6 rounded-[2.5rem] border border-red-100 shadow-xl shadow-red-900/5">
+          <h3 className="text-lg font-black text-red-600 mb-4 flex items-center gap-2">
+            <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
+            Expired Inventory
+          </h3>
+          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            {inventoryData?.lists?.expired?.length === 0 ? (
+              <p className="text-xs text-secondary-400 font-bold italic">No expired items detected.</p>
+            ) : (
+              inventoryData.lists.expired.map(item => (
+                <div key={item.id} className="p-3 bg-red-50/50 rounded-xl border border-red-100 flex justify-between items-center">
+                  <div className="min-w-0">
+                    <p className="text-xs font-black text-secondary-900 truncate">{item.name}</p>
+                    <p className="text-[10px] text-secondary-500 font-bold uppercase">{item.location || 'No Location'}</p>
+                  </div>
+                  <span className="text-[9px] font-black text-red-600 bg-white px-2 py-1 rounded shadow-sm shrink-0">
+                    {new Date(item.expiry_date).toLocaleDateString()}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Near Expiry List */}
+        <div className="bg-white p-6 rounded-[2.5rem] border border-orange-100 shadow-xl shadow-orange-900/5">
+          <h3 className="text-lg font-black text-orange-600 mb-4 flex items-center gap-2">
+            <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse"></div>
+            Near Expiry (30d)
+          </h3>
+          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            {inventoryData?.lists?.nearExpiry?.length === 0 ? (
+              <p className="text-xs text-secondary-400 font-bold italic">No items near expiry.</p>
+            ) : (
+              inventoryData.lists.nearExpiry.map(item => (
+                <div key={item.id} className="p-3 bg-orange-50/50 rounded-xl border border-orange-100 flex justify-between items-center">
+                  <div className="min-w-0">
+                    <p className="text-xs font-black text-secondary-900 truncate">{item.name}</p>
+                    <p className="text-[10px] text-secondary-500 font-bold uppercase">{item.location || 'No Location'}</p>
+                  </div>
+                  <span className="text-[9px] font-black text-orange-600 bg-white px-2 py-1 rounded shadow-sm shrink-0">
+                    {new Date(item.expiry_date).toLocaleDateString()}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Low Stock List */}
+        <div className="bg-white p-6 rounded-[2.5rem] border border-blue-100 shadow-xl shadow-blue-900/5">
+          <h3 className="text-lg font-black text-blue-600 mb-4 flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+            Low Stock Alerts
+          </h3>
+          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            {inventoryData?.lists?.lowStock?.length === 0 ? (
+              <p className="text-xs text-secondary-400 font-bold italic">All stock levels adequate.</p>
+            ) : (
+              inventoryData.lists.lowStock.map(item => (
+                <div key={item.id} className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex justify-between items-center">
+                  <div className="min-w-0">
+                    <p className="text-xs font-black text-secondary-900 truncate">{item.name}</p>
+                    <p className="text-[10px] text-secondary-500 font-bold uppercase">{item.id}</p>
+                  </div>
+                  <span className="text-[9px] font-black text-blue-600 bg-white px-2 py-1 rounded shadow-sm shrink-0">
+                    {item.quantity} {item.unit}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
         {/* Usage Trend */}
         <div className="bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-xl">
           <div className="flex justify-between items-center mb-8">

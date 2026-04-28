@@ -19,10 +19,10 @@ router.get('/summary', authenticate, async (req, res) => {
     const nearExpiryCutoff = new Date(now.getTime() + thresholdDays * 24 * 60 * 60 * 1000);
 
     // Fetch Batches
-    const batches = await Batch.find({ status: { $ne: 'Recalled' } }).lean();
+    const batches = await Batch.find({}).lean();
     
     // Fetch Containers
-    const containers = await Container.find({ status: { $nin: ['Empty', 'Damaged'] } }).lean();
+    const containers = await Container.find({}).lean();
 
     // Map to unified format
     const batchExpiryList = batches.map(b => {
@@ -83,16 +83,23 @@ router.get('/summary', authenticate, async (req, res) => {
     // Sort by nearest expiry
     combined.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
 
-    // Enrich with Chemical Names
+    // Enrichment & Filtering by Active Chemicals
     const chemicalIds = [...new Set(combined.map(item => item.chemicalId))];
-    const chemicals = await Chemical.find({ id: { $in: chemicalIds } }).select('id name').lean();
-    const chemMap = {};
-    chemicals.forEach(c => chemMap[c.id] = c.name);
+    const chemicals = await Chemical.find({ 
+      id: { $in: chemicalIds },
+      archived: false 
+    }).select('id name').lean();
+    
+    const activeChemMap = {};
+    chemicals.forEach(c => activeChemMap[c.id] = c.name);
 
-    const enriched = combined.map(item => ({
-      ...item,
-      chemicalName: chemMap[item.chemicalId] || 'Unknown Chemical'
-    }));
+    // Only include items for chemicals that are NOT archived
+    const enriched = combined
+      .filter(item => activeChemMap[item.chemicalId])
+      .map(item => ({
+        ...item,
+        chemicalName: activeChemMap[item.chemicalId]
+      }));
 
     res.json(enriched);
   } catch (err) {

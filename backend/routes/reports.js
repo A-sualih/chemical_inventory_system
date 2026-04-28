@@ -7,22 +7,45 @@ const { authenticate, authorize } = require('../authMiddleware');
 const { PERMISSIONS } = require('../config/roles');
 const ExcelJS = require('exceljs');
 const { jsPDF } = require('jspdf');
-require('jspdf-autotable');
+const autoTable = require('jspdf-autotable').default;
 
 // Helper to get date range
 const getDateRange = (start, end) => {
-  const startDate = start ? new Date(start) : new Date(new Date().setMonth(new Date().getMonth() - 1));
-  const endDate = end ? new Date(end) : new Date();
+  const startDate = (start && start !== '') ? new Date(start) : new Date(new Date().setMonth(new Date().getMonth() - 1));
+  const endDate = (end && end !== '') ? new Date(end) : new Date();
+  
+  // Ensure we cover the full day if only date is provided
+  if (endDate instanceof Date && !isNaN(endDate)) {
+    endDate.setHours(23, 59, 59, 999);
+  }
+
   return { $gte: startDate, $lte: endDate };
 };
 
 // GET /api/reports/inventory - Current Stock Summary
 router.get('/inventory', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), async (req, res) => {
   try {
+    const now = new Date();
+    const nearExpiryCutoff = new Date(now.getTime() + (parseInt(process.env.NEAR_EXPIRY_THRESHOLD) || 30) * 24 * 60 * 60 * 1000);
+
     const totalChemicals = await Chemical.countDocuments({ archived: false });
-    const lowStock = await Chemical.countDocuments({ status: 'Low Stock', archived: false });
-    const expired = await Chemical.countDocuments({ status: 'Expired', archived: false });
-    const nearExpiry = await Chemical.countDocuments({ status: 'Near Expiry', archived: false });
+    
+    // Improved "Real Information" queries
+    const lowStock = await Chemical.countDocuments({ 
+      archived: false,
+      $expr: { $lte: ["$quantity", { $ifNull: ["$threshold", 5] }] },
+      quantity: { $gt: 0 } // Don't count "Out of Stock" as "Low Stock"
+    });
+
+    const expired = await Chemical.countDocuments({ 
+      archived: false, 
+      expiry_date: { $lt: now } 
+    });
+
+    const nearExpiry = await Chemical.countDocuments({ 
+      archived: false, 
+      expiry_date: { $gte: now, $lte: nearExpiryCutoff } 
+    });
 
     // Hazard Distribution
     const hazardStats = await Chemical.aggregate([
@@ -38,10 +61,31 @@ router.get('/inventory', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), asyn
       { $sort: { count: -1 } }
     ]);
 
+    const expiredList = await Chemical.find({ 
+      archived: false, 
+      expiry_date: { $lt: now } 
+    }).select('name id expiry_date location').lean();
+
+    const nearExpiryList = await Chemical.find({ 
+      archived: false, 
+      expiry_date: { $gte: now, $lte: nearExpiryCutoff } 
+    }).select('name id expiry_date location').lean();
+
+    const lowStockList = await Chemical.find({
+      archived: false,
+      $expr: { $lte: ["$quantity", { $ifNull: ["$threshold", 5] }] },
+      quantity: { $gt: 0 }
+    }).select('name id quantity unit').lean();
+
     res.json({
       summary: { totalChemicals, lowStock, expired, nearExpiry },
       hazards: hazardStats,
-      locations: locationStats
+      locations: locationStats,
+      lists: {
+        expired: expiredList,
+        nearExpiry: nearExpiryList,
+        lowStock: lowStockList
+      }
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -201,7 +245,7 @@ router.get('/export/pdf', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), asy
       c.location || 'Unassigned'
     ]);
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: 40,
       head: [['ID', 'Chemical Name', 'CAS #', 'Status', 'Qty', 'Location']],
       body: tableData,

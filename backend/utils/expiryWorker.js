@@ -100,6 +100,40 @@ const runExpiryCheck = async (options = { nearExpiryDays: parseInt(process.env.N
       }
     }
 
+    // 3. Process Chemicals (to sync parent status for reports)
+    const chemicals = await Chemical.find({ archived: false });
+    for (const chemical of chemicals) {
+      if (!chemical.expiry_date) continue;
+      
+      const exp = new Date(chemical.expiry_date);
+      let newStatus = chemical.status;
+
+      if (exp < now) {
+        newStatus = 'Expired';
+      } else if (exp < nearExpiryCutoff && chemical.status !== 'Expired') {
+        newStatus = 'Near Expiry';
+      } else if (['Expired', 'Near Expiry'].includes(chemical.status)) {
+        // If it was expired/near but now it's not (data correction), check volume
+        newStatus = chemical.quantity <= 0 ? 'Out of Stock' : (chemical.quantity < 5 ? 'Low Stock' : 'In Stock');
+      }
+
+      if (chemical.status !== newStatus) {
+        const oldStatus = chemical.status;
+        chemical.status = newStatus;
+        await chemical.save();
+        updatesCount++;
+
+        await AuditLog.create({
+          action: 'UPDATE',
+          user: { name: 'System Worker', role: 'System' },
+          target: { type: 'chemical', id: chemical.id, name: chemical.name },
+          details: `Automatic Expiry Update: Chemical status changed from ${oldStatus} to ${newStatus}`,
+          changes: { oldValue: { status: oldStatus }, newValue: { status: newStatus } },
+          metadata: { status: 'success', ip: '127.0.0.1' }
+        });
+      }
+    }
+
     console.log(`[ExpiryWorker] Completed. Processed ${updatesCount} status modifications.`);
   } catch (err) {
     console.error(`[ExpiryWorker] Error during execution:`, err);
