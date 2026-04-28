@@ -1,142 +1,228 @@
-import { useState, useEffect } from "react";
-import Layout from "../layout/Layout";
-import { useAuth } from "../AuthContext";
-import axios from "axios";
-import { HAZARD_CLASSES } from "../constants/hazards.jsx";
-import HazardBadge from "../components/HazardBadge";
+import React, { useState, useEffect } from 'react';
+import Layout from '../layout/Layout';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  LineChart, Line, PieChart, Pie, Cell, AreaChart, Area 
+} from 'recharts';
+import { 
+  TrendingUp, Package, AlertTriangle, Clock, 
+  FileText, Download, Filter, RefreshCw 
+} from 'lucide-react';
+import axios from 'axios';
+
+const COLORS = ['#0f172a', '#3b82f6', '#f59e0b', '#ef4444', '#10b981', '#6366f1'];
+
+const ReportCard = ({ title, value, icon: Icon, color, trend }) => (
+  <div className="bg-white p-6 rounded-[2rem] border border-secondary-100 shadow-sm hover:shadow-md transition-all group">
+    <div className="flex justify-between items-start mb-4">
+      <div className={`p-3 rounded-2xl ${color} bg-opacity-10 text-${color.split('-')[1]}-600 group-hover:scale-110 transition-transform`}>
+        <Icon size={24} />
+      </div>
+      {trend && (
+        <span className={`text-[10px] font-black px-2 py-1 rounded-lg bg-green-50 text-green-600`}>
+          {trend}
+        </span>
+      )}
+    </div>
+    <h3 className="text-secondary-400 text-[10px] font-black uppercase tracking-widest mb-1">{title}</h3>
+    <div className="text-2xl font-black text-secondary-900 heading-font">{value}</div>
+  </div>
+);
 
 const Reports = () => {
-  const { hasPermission } = useAuth();
-  const [analytics, setAnalytics] = useState(null);
+  const [inventoryData, setInventoryData] = useState(null);
+  const [usageData, setUsageData] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  if (!hasPermission("view_reports") && !hasPermission("view_safety_info")) {
-     return <div className="p-12 text-center text-red-500 font-bold">Unauthorized. Role insufficient to view compliance reports.</div>;
-  }
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [invRes, usageRes] = await Promise.all([
+        axios.get('/api/reports/inventory'),
+        axios.get('/api/reports/usage', { params: dateRange })
+      ]);
+      setInventoryData(invRes.data);
+      setUsageData(usageRes.data);
+    } catch (err) {
+      console.error("Error fetching report data", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        const { data } = await axios.get('/api/reports/analytics');
-        setAnalytics(data);
-      } catch (err) {
-        console.error("Failed to fetch analytics");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAnalytics();
+    fetchData();
   }, []);
 
-  const handleExportPDF = () => {
-    window.print(); // Native browser print to PDF
+  const handleExportExcel = async () => {
+    window.open(`${axios.defaults.baseURL || ''}/api/reports/export/excel`, '_blank');
   };
+
+  if (loading && !inventoryData) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-100 border-t-primary-600"></div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
-      <div className="mb-8 flex flex-col sm:flex-row justify-between sm:items-end gap-4 hide-on-print">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold heading-font text-secondary-900">Reports &amp; Analytics</h1>
-          <p className="text-secondary-500 mt-1 text-sm">Real-time KPI tracking, hazard distribution, and PDF exports.</p>
+          <h1 className="text-4xl font-black heading-font text-secondary-900 tracking-tight">Intelligence & Analytics</h1>
+          <p className="text-secondary-500 font-medium mt-1">Data-driven insights for laboratory compliance.</p>
         </div>
-        <button onClick={handleExportPDF} className="self-start sm:self-auto bg-secondary-950 text-white px-5 py-3 rounded-xl font-bold text-sm tracking-widest flex items-center gap-2 hover:bg-secondary-800 transition-colors shadow-xl">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-           EXPORT PDF
-        </button>
+        <div className="flex flex-wrap gap-3 w-full lg:w-auto">
+          <div className="flex bg-white rounded-2xl border border-secondary-100 p-1 shadow-sm">
+             <input 
+              type="date" 
+              className="px-3 py-2 text-xs font-bold bg-transparent outline-none"
+              value={dateRange.start}
+              onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
+             />
+             <div className="px-2 self-center text-secondary-300">→</div>
+             <input 
+              type="date" 
+              className="px-3 py-2 text-xs font-bold bg-transparent outline-none"
+              value={dateRange.end}
+              onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
+             />
+          </div>
+          <button 
+            onClick={fetchData}
+            className="p-3 bg-secondary-900 text-white rounded-2xl hover:bg-secondary-800 transition-all shadow-lg shadow-secondary-900/10 active:scale-95"
+          >
+            <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <button 
+            onClick={() => window.open(`${axios.defaults.baseURL || ''}/api/reports/export/excel`, '_blank')}
+            className="flex items-center gap-2 px-6 py-3 bg-white text-secondary-900 border border-secondary-200 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-secondary-50 transition-all shadow-sm active:scale-95"
+          >
+            <Download size={16} />
+            <span>XLSX</span>
+          </button>
+          <button 
+            onClick={() => window.open(`${axios.defaults.baseURL || ''}/api/reports/export/pdf`, '_blank')}
+            className="flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary-500 transition-all shadow-lg shadow-primary-600/20 active:scale-95"
+          >
+            <FileText size={16} />
+            <span>Export PDF</span>
+          </button>
+
+        </div>
       </div>
 
-      {loading || !analytics ? (
-        <p className="text-secondary-400">Loading master analytics...</p>
-      ) : (
-        <div className="space-y-8 report-content">
-          
-          {/* Main Number KPIs */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <div className="bg-primary-600 p-4 sm:p-6 rounded-2xl sm:rounded-3xl text-white shadow-lg shadow-primary-500/30">
-              <span className="text-[10px] font-bold uppercase tracking-widest opacity-80 block mb-2">Total Active Inventory</span>
-              <span className="text-3xl sm:text-4xl font-bold font-mono">{analytics.summary.total}</span>
-            </div>
-            <div className="bg-orange-50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl text-orange-900 border border-orange-100">
-              <span className="text-[10px] font-bold uppercase tracking-widest block mb-2">Low Stock Alerts</span>
-              <span className="text-3xl sm:text-4xl font-bold font-mono">{analytics.summary.low_stock}</span>
-            </div>
-            <div className="bg-secondary-50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-secondary-100 text-secondary-900">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-secondary-500 block mb-2">30D Disposals</span>
-              <span className="text-3xl sm:text-4xl font-bold font-mono">{analytics.summary.disposed_30d}</span>
-            </div>
-            <div className="bg-green-50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-green-100 text-green-900">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-green-700 block mb-2">Approved Requests</span>
-              <span className="text-3xl sm:text-4xl font-bold font-mono">{analytics.summary.approved_requests_30d}</span>
-            </div>
+      {/* KPI Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <ReportCard 
+          title="Active Assets" 
+          value={inventoryData?.summary?.totalChemicals || 0} 
+          icon={Package} 
+          color="bg-secondary-100" 
+          trend="+12% vs last month"
+        />
+        <ReportCard 
+          title="Expired Items" 
+          value={inventoryData?.summary?.expired || 0} 
+          icon={AlertTriangle} 
+          color="bg-red-100" 
+        />
+        <ReportCard 
+          title="Near Expiry" 
+          value={inventoryData?.summary?.nearExpiry || 0} 
+          icon={Clock} 
+          color="bg-amber-100" 
+        />
+        <ReportCard 
+          title="Low Stock" 
+          value={inventoryData?.summary?.lowStock || 0} 
+          icon={TrendingUp} 
+          color="bg-blue-100" 
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Usage Trend */}
+        <div className="bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-xl">
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="text-lg font-black text-secondary-900 heading-font">Consumption Velocity</h3>
+            <div className="text-[10px] font-black text-secondary-400 uppercase tracking-widest">Daily Outflow</div>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Hazard Distribution */}
-            <div className="bg-white border border-secondary-100 p-8 rounded-[2.5rem] shadow-sm">
-               <h3 className="text-lg font-bold mb-6">Hazard Distribution (GHS)</h3>
-                <div className="space-y-6">
-                  {analytics.hazards.length === 0 ? (
-                    <p className="text-secondary-400 text-sm text-center py-10 italic">No hazard data available</p>
-                  ) : analytics.hazards.map(hazard => {
-                    const hazardInfo = HAZARD_CLASSES.find(h => h.id === hazard.name || h.label === hazard.name);
-                    const max = Math.max(...analytics.hazards.map(h => h.value), 1);
-                    const percentage = (hazard.value / max) * 100;
-                    
-                    return (
-                      <div key={hazard.name} className="group">
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-lg ${hazardInfo?.color || 'bg-secondary-200'} text-white p-1.5 shadow-sm group-hover:scale-110 transition-transform`}>
-                               {hazardInfo?.icon || '⚠️'}
-                            </div>
-                            <span className="font-bold text-sm text-secondary-800">{hazardInfo?.label || hazard.name}</span>
-                          </div>
-                          <span className="font-mono text-xs font-bold text-secondary-500 bg-secondary-50 px-2 py-1 rounded-md border border-secondary-100">{hazard.value} assets</span>
-                        </div>
-                        <div className="w-full bg-secondary-50 rounded-full h-3 overflow-hidden shadow-inner p-0.5">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-1000 ${hazardInfo ? hazardInfo.color : 'bg-secondary-400'} shadow-sm`} 
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-            </div>
-
-            {/* Compliance Records */}
-            <div className="bg-secondary-950 p-6 sm:p-8 rounded-[2rem] lg:rounded-[2.5rem] text-white">
-               <h3 className="text-lg font-bold mb-6 text-white">Regulatory Bulletins</h3>
-               <div className="space-y-4">
-                 <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
-                   <div className="flex items-center justify-between mb-2">
-                     <span className="text-xs uppercase tracking-widest text-primary-400 font-bold">OSHA Compliance</span>
-                     <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></span>
-                   </div>
-                   <p className="text-secondary-400 text-sm">All GHS labels are properly formatted based on latest database scrape.</p>
-                 </div>
-                 <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
-                   <div className="flex items-center justify-between mb-2">
-                     <span className="text-xs uppercase tracking-widest text-orange-400 font-bold">Storage Rules</span>
-                     <span className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316]"></span>
-                   </div>
-                   <p className="text-secondary-400 text-sm">Acidic cabinets reaching 80% theoretical capacity threshold.</p>
-                 </div>
-               </div>
-            </div>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={usageData?.usageStats}>
+                <defs>
+                  <linearGradient id="colorUsage" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="_id" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                  labelStyle={{ fontWeight: 'black', marginBottom: '4px' }}
+                />
+                <Area type="monotone" dataKey="totalQuantity" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorUsage)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-
-          <style dangerouslySetInnerHTML={{__html: `
-            @media print {
-              .hide-on-print { display: none !important; }
-              body { background: white; }
-              .report-content { zoom: 0.8; }
-              * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            }
-          `}} />
         </div>
-      )}
+
+        {/* Hazard Distribution */}
+        <div className="bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-xl">
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="text-lg font-black text-secondary-900 heading-font">Risk Landscape</h3>
+            <div className="text-[10px] font-black text-secondary-400 uppercase tracking-widest">Hazard Groups</div>
+          </div>
+          <div className="h-[300px] flex items-center">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={inventoryData?.hazards}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={5}
+                  dataKey="count"
+                  nameKey="_id"
+                >
+                  {inventoryData?.hazards?.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend layout="vertical" align="right" verticalAlign="middle" iconType="circle" />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Top Used Chemicals */}
+        <div className="bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-xl lg:col-span-2">
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="text-lg font-black text-secondary-900 heading-font">Most Consumed Assets</h3>
+            <div className="text-[10px] font-black text-secondary-400 uppercase tracking-widest">Top 10 Volume</div>
+          </div>
+          <div className="h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={usageData?.topChemicals}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="_id" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
+                <Tooltip />
+                <Bar dataKey="totalUsed" fill="#0f172a" radius={[10, 10, 0, 0]} barSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
     </Layout>
   );
 };
