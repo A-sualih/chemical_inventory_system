@@ -1,5 +1,4 @@
 import React from 'react';
-
 const FilterPanel = ({ filters, setFilters, onClear, buildings }) => {
   const hazardLevels = ['Flammable', 'Toxic', 'Corrosive', 'Oxidizer', 'Health Hazard', 'Environmental Hazard', 'Biohazard', 'Explosive', 'Radioactive'];
   const statuses = ['In Stock', 'In Use', 'Low Stock', 'Out of Stock', 'Near Expiry', 'Expired'];
@@ -11,7 +10,6 @@ const FilterPanel = ({ filters, setFilters, onClear, buildings }) => {
       setFilters({ ...filters, hazard: [...current, h] });
     }
   };
-
   return (
     <div className="bg-white p-6 rounded-[2rem] border border-secondary-100 shadow-sm space-y-8">
       <div>
@@ -25,8 +23,8 @@ const FilterPanel = ({ filters, setFilters, onClear, buildings }) => {
               key={h}
               onClick={() => handleToggleHazard(h)}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all border ${filters.hazard?.includes(h)
-                  ? 'bg-secondary-900 text-white border-secondary-900 shadow-md'
-                  : 'bg-white text-secondary-500 border-secondary-100 hover:border-secondary-300'
+                ? 'bg-secondary-900 text-white border-secondary-900 shadow-md'
+                : 'bg-white text-secondary-500 border-secondary-100 hover:border-secondary-300'
                 }`}
             >
               {h}
