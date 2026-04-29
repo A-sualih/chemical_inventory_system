@@ -92,5 +92,4 @@ const FilterPanel = ({ filters, setFilters, onClear, buildings }) => {
     </div>
   );
 };
-
 export default FilterPanel;
