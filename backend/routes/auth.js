@@ -118,7 +118,7 @@ router.post('/login', async (req, res) => {
     }).catch(err => console.error('Login Audit Log failed:', err));
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error', details: err.message, stack: err.stack });
   }
 });
 
@@ -142,7 +142,7 @@ router.post('/register', async (req, res) => {
 
     res.status(201).json({ message: 'User registered successfully' });
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error', details: err.message, stack: err.stack });
   }
 });
 
