@@ -38,7 +38,7 @@ const Dashboard = () => {
   const fetchRequests = async () => {
     try {
       const { data } = await axios.get('/api/requests');
-      setPendingRequests(data);
+      setPendingRequests(Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []));
     } catch (err) {
       console.error("Failed to fetch requests", err);
     } finally {
@@ -82,7 +82,8 @@ const Dashboard = () => {
   const fetchAuditLogs = async () => {
     try {
       const { data } = await axios.get('/api/audit');
-      setAuditLogs(data.slice(0, 6)); // Latest 6 events
+      const logsArray = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+      setAuditLogs(logsArray.slice(0, 6)); // Latest 6 events
     } catch (err) {
       console.error("Failed to fetch audit logs", err);
     } finally {
