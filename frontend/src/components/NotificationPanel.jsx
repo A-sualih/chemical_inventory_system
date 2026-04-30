@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNotifications } from '../NotificationContext';
 import { formatDistanceToNow } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 const NotificationPanel = ({ onClose }) => {
   const { notifications, loading, markAsRead, dismissNotification } = useNotifications();
@@ -103,9 +104,13 @@ const NotificationPanel = ({ onClose }) => {
       </div>
 
       <div className="p-3 border-t border-secondary-50 bg-secondary-50/30 text-center">
-        <button className="text-xs font-black text-secondary-400 hover:text-primary-600 transition-colors uppercase tracking-widest">
+        <Link 
+          to="/notifications"
+          onClick={onClose}
+          className="text-xs font-black text-secondary-400 hover:text-primary-600 transition-colors uppercase tracking-widest block w-full"
+        >
           View All History
-        </button>
+        </Link>
       </div>
     </div>
   );

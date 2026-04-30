@@ -10,18 +10,29 @@ const createNotification = async (data) => {
   try {
     let notification;
     if (data.related?.chemicalId && data.type) {
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-      notification = await Notification.findOne({
+      const matchCriteria = {
         type: data.type,
         'related.chemicalId': data.related.chemicalId,
-        createdAt: { $gte: oneHourAgo },
-        status: 'unread'
+      };
+      
+      if (data.related?.containerId) {
+        matchCriteria['related.containerId'] = data.related.containerId;
+      }
+
+      // Prevent duplicate notifications (especially for Expiry/Low Stock)
+      // Check if there is an active (unread) alert OR a recently created alert (within 24h)
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      notification = await Notification.findOne({
+        ...matchCriteria,
+        $or: [
+          { status: 'unread' },
+          { createdAt: { $gte: oneDayAgo } }
+        ]
       });
       
       if (notification) {
-        notification.message = data.message;
-        notification.metadata = { ...notification.metadata, ...data.metadata };
-        await notification.save();
+        // Notification already exists and is active/recent. Do not recreate or re-email.
+        return notification;
       }
     }
 
@@ -37,16 +48,35 @@ const createNotification = async (data) => {
 
     // TRIGGER EMAIL for high/critical severity
     if (data.severity === 'high' || data.severity === 'critical') {
-      console.log(`[Email] Attempting to send alert: ${data.title} to ${process.env.EMAIL_USER}`);
-      const emailHtml = formatNotificationEmail(data);
-      const emailResult = await sendEmail(process.env.EMAIL_USER, `[CIMS ALERT] ${data.title}`, emailHtml);
+      const User = require('../models/User');
+      const labManagers = await User.find({ role: 'Lab Manager', status: 'Active' });
       
-      if (emailResult.success) {
-        console.log(`[Email] Successfully delivered: ${emailResult.messageId}`);
+      let recipientEmails = labManagers.map(mgr => mgr.email);
+      // Fallback to EMAIL_USER if no lab managers exist in the DB
+      if (recipientEmails.length === 0) {
+         recipientEmails = [process.env.EMAIL_USER];
+      }
+
+      const emailHtml = formatNotificationEmail(data);
+      let anySuccess = false;
+      let lastError = null;
+
+      for (const email of recipientEmails) {
+         console.log(`[Email] Attempting to send alert: ${data.title} to ${email}`);
+         const emailResult = await sendEmail(email, `[CIMS ALERT] ${data.title}`, emailHtml);
+         if (emailResult.success) {
+            console.log(`[Email] Successfully delivered: ${emailResult.messageId} to ${email}`);
+            anySuccess = true;
+         } else {
+            console.error(`[Email] Failed delivery to ${email}:`, emailResult.error);
+            lastError = emailResult.error?.message;
+         }
+      }
+      
+      if (anySuccess) {
         notification.channels.push({ type: 'email', isSent: true, sentAt: new Date() });
       } else {
-        console.error(`[Email] Failed delivery:`, emailResult.error);
-        notification.channels.push({ type: 'email', isSent: false, error: emailResult.error?.message });
+        notification.channels.push({ type: 'email', isSent: false, error: lastError });
       }
       await notification.save();
     }

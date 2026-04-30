@@ -361,6 +361,10 @@ router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), a
     
     await targetChem.save();
 
+    // Real-Time Expiry Detection
+    const { checkChemicalExpiry } = require('../utils/expiryService');
+    await checkChemicalExpiry(targetChem);
+
     // Trigger Low Stock Notification if applicable
     const lowStockThreshold = targetChem.threshold !== undefined ? targetChem.threshold : 5;
     if (targetChem.quantity <= lowStockThreshold) {

@@ -8,6 +8,7 @@ const path = require('path');
 const { convertToBase, getBaseUnit } = require('../utils/unitConverter');
 const { syncBatch } = require('../utils/batchManager');
 const { syncContainers } = require('../utils/containerManager');
+const { checkChemicalExpiry } = require('../utils/expiryService');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, './uploads/'),
@@ -307,6 +308,9 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.si
       ...data,
       id: idValue,
     });
+
+    // Real-Time Expiry Detection
+    await checkChemicalExpiry(newChem);
     
     // Log Audit
     await logAudit(req, {
@@ -416,7 +420,6 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
       if (diff < 0) newExpStatus = 'Expired';
       else if (diff <= thresholdDays) newExpStatus = 'Near Expiry';
 
-
       // 1. Update Batches
       const batches = await require('../models/Batch').find({ chemical_id: chemical.id });
       for (let b of batches) {
@@ -443,6 +446,9 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
          await c.save();
       }
     }
+    
+    // Real-Time Expiry Detection (Triggers Notifications)
+    await checkChemicalExpiry(chemical);
 
     // Log Audit
     await logAudit(req, {
