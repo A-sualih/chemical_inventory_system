@@ -18,6 +18,7 @@ import ContainerMaster from "./pages/ContainerMaster";
 import BatchMaster from "./pages/BatchMaster";
 import ExpiryTracker from "./pages/ExpiryTracker";
 import Notifications from "./pages/Notifications";
+import LocationManager from "./pages/LocationManager";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -90,6 +91,11 @@ function App() {
             <Route path="/roles" element={
               <ProtectedRoute allowedRoles={["Admin"]}>
                 <AdminOnly title="Role Management" description="Assign and configure fine-grained permissions for all personnel." />
+              </ProtectedRoute>
+            } />
+            <Route path="/locations" element={
+              <ProtectedRoute allowedRoles={["Admin", "Lab Manager"]}>
+                <LocationManager />
               </ProtectedRoute>
             } />
             <Route path="*" element={<Navigate to="/" replace />} />

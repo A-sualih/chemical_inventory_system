@@ -12,6 +12,7 @@ const batchRoutes = require('./routes/batches');
 const requestRoutes = require('./routes/requests');
 const expiryRoutes = require('./routes/expiry');
 const notificationRoutes = require('./routes/notifications');
+const locationRoutes = require('./routes/locations');
 const { initExpirySchedule, runExpiryCheck } = require('./utils/expiryWorker');
 
 
@@ -45,6 +46,7 @@ app.use('/api/batches', batchRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/expiry', expiryRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/locations', locationRoutes);
 
 
 

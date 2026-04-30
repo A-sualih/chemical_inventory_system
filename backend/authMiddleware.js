@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
-const JWT_SECRET = 'super_secret_jwt_key_for_cims'; 
+const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_for_cims';
 
 const { ROLES, ROLE_PERMISSIONS } = require('./config/roles');
 const AuditLog = require('./models/AuditLog');

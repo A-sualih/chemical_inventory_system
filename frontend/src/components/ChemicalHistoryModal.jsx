@@ -82,7 +82,7 @@ const ChemicalHistoryModal = ({ chemical, onClose }) => {
                           </div>
                           {log.container_id && (
                             <div className="flex items-center gap-2 text-[10px] text-secondary-500 font-bold bg-white w-fit px-2 py-1 rounded-lg shadow-sm border border-secondary-100">
-                              <span>📦 ID: {log.container_id}</span>
+                              <span><img src="/icons/box.svg" alt="Box" className="w-3 h-3 inline mr-1 select-none" draggable="false" /> ID: {log.container_id}</span>
                               {log.num_containers_moved > 1 && <span>• {log.num_containers_moved} Units</span>}
                             </div>
                           )}
@@ -129,7 +129,7 @@ const ChemicalHistoryModal = ({ chemical, onClose }) => {
                             )}
                             {log.compliance_notes && (
                               <div className="text-[9px] text-secondary-400 mt-1 flex gap-1">
-                                <span>📄</span>
+                                <span><img src="/icons/document.svg" alt="Document" className="w-3 h-3 inline select-none" draggable="false" /></span>
                                 <span className="italic">{log.compliance_notes}</span>
                               </div>
                             )}

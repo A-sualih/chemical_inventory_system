@@ -67,6 +67,38 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
   const [sdsFile, setSdsFile] = useState(null);
   const [qrCodeData, setQrCodeData] = useState("");
 
+  // Location hierarchy state
+  const [locHierarchy, setLocHierarchy] = useState({ buildings: [], rooms: [], cabinets: [], shelves: [] });
+  const [locLoading, setLocLoading] = useState(false);
+
+  // Fetch buildings on mount
+  useEffect(() => {
+    axios.get('/api/locations/hierarchy').then(res => setLocHierarchy(prev => ({ ...prev, buildings: res.data.buildings })));
+  }, []);
+
+  // Fetch rooms when building changes
+  useEffect(() => {
+    if (!formData.building) return setLocHierarchy(prev => ({ ...prev, rooms: [], cabinets: [], shelves: [] }));
+    setLocLoading(true);
+    axios.get('/api/locations/hierarchy', { params: { building: formData.building } })
+      .then(res => setLocHierarchy(prev => ({ ...prev, rooms: res.data.rooms, cabinets: [], shelves: [] })))
+      .finally(() => setLocLoading(false));
+  }, [formData.building]);
+
+  // Fetch cabinets when room changes
+  useEffect(() => {
+    if (!formData.building || !formData.room) return setLocHierarchy(prev => ({ ...prev, cabinets: [], shelves: [] }));
+    axios.get('/api/locations/hierarchy', { params: { building: formData.building, room: formData.room } })
+      .then(res => setLocHierarchy(prev => ({ ...prev, cabinets: res.data.cabinets, shelves: [] })));
+  }, [formData.room]);
+
+  // Fetch shelves when cabinet changes
+  useEffect(() => {
+    if (!formData.building || !formData.room || !formData.cabinet) return setLocHierarchy(prev => ({ ...prev, shelves: [] }));
+    axios.get('/api/locations/hierarchy', { params: { building: formData.building, room: formData.room, cabinet: formData.cabinet } })
+      .then(res => setLocHierarchy(prev => ({ ...prev, shelves: res.data.shelves })));
+  }, [formData.cabinet]);
+
   useEffect(() => {
     const liquidUnits = ['L', 'mL', 'uL'];
     const solidUnits = ['kg', 'g', 'mg'];
@@ -357,41 +389,122 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                     <div className="text-[10px] font-black text-primary-600 uppercase tracking-widest">Facility & Storage Taxonomy</div>
                     <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
                  </div>
+                  <div className="bg-white border border-secondary-200 rounded-[1.5rem] p-5 mb-5 shadow-sm space-y-5">
+                     {/* Cascading Location Dropdowns */}
+                     <div className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                       Select Storage Location
+                       {locLoading && <span className="ml-auto text-primary-500 animate-pulse">Loading...</span>}
+                     </div>
 
-                 <div className="bg-white border border-secondary-200 rounded-[1.5rem] p-5 mb-5 shadow-sm space-y-5">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      <div className="group">
+                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                       {/* Building */}
+                       <div className="group">
                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Building</label>
-                         <input type="text" value={formData.building} onChange={e => setFormData({...formData, building: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="A" />
-                      </div>
-                      <div className="group">
+                         <div className="relative">
+                           {locHierarchy.buildings.length > 0 ? (
+                             <select value={formData.building} onChange={e => setFormData({ ...formData, building: e.target.value, room: '', cabinet: '', shelf: '' })} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-medium appearance-none cursor-pointer pr-8">
+                               <option value="">-- Select --</option>
+                               {locHierarchy.buildings.map(b => <option key={b} value={b}>{b}</option>)}
+                             </select>
+                           ) : (
+                             <input type="text" value={formData.building} onChange={e => setFormData({ ...formData, building: e.target.value })} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="e.g. Block-A" />
+                           )}
+                           {locHierarchy.buildings.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                         </div>
+                       </div>
+
+                       {/* Room */}
+                       <div className="group">
                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Room</label>
-                         <input type="text" value={formData.room} onChange={e => setFormData({...formData, room: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="102" />
-                      </div>
-                      <div className="group">
+                         <div className="relative">
+                           {locHierarchy.rooms.length > 0 ? (
+                             <select value={formData.room} onChange={e => setFormData({ ...formData, room: e.target.value, cabinet: '', shelf: '' })} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-medium appearance-none cursor-pointer pr-8">
+                               <option value="">-- Select --</option>
+                               {locHierarchy.rooms.map(r => <option key={r} value={r}>{r}</option>)}
+                             </select>
+                           ) : (
+                             <input type="text" value={formData.room} onChange={e => setFormData({ ...formData, room: e.target.value })} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="e.g. 102" />
+                           )}
+                           {locHierarchy.rooms.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                         </div>
+                       </div>
+
+                       {/* Cabinet */}
+                       <div className="group">
                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Cabinet</label>
-                         <input type="text" value={formData.cabinet} onChange={e => setFormData({...formData, cabinet: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="C2" />
-                      </div>
-                      <div className="group">
+                         <div className="relative">
+                           {locHierarchy.cabinets.length > 0 ? (
+                             <select value={formData.cabinet} onChange={e => setFormData({ ...formData, cabinet: e.target.value, shelf: '' })} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-medium appearance-none cursor-pointer pr-8">
+                               <option value="">-- Select --</option>
+                               {locHierarchy.cabinets.map(c => <option key={c} value={c}>{c}</option>)}
+                             </select>
+                           ) : (
+                             <input type="text" value={formData.cabinet} onChange={e => setFormData({ ...formData, cabinet: e.target.value })} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="e.g. C2" />
+                           )}
+                           {locHierarchy.cabinets.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                         </div>
+                       </div>
+
+                       {/* Shelf */}
+                       <div className="group">
                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Shelf</label>
-                         <input type="text" value={formData.shelf} onChange={e => setFormData({...formData, shelf: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="1" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                       <div className="group col-span-2">
-                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Combined Identifier (Auto)</label>
-                          <input type="text" readOnly value={formData.building ? `${formData.building}-${formData.room}-${formData.cabinet}-${formData.shelf}`.replace(/-+$/, '') : formData.location} className="w-full bg-secondary-100 border-transparent rounded-xl p-3 text-xs font-mono text-secondary-600" />
+                         <div className="relative">
+                           {locHierarchy.shelves.length > 0 ? (
+                             <select value={formData.shelf} onChange={e => {
+                               const sel = locHierarchy.shelves.find(s => s.shelf === e.target.value);
+                               setFormData({ ...formData, shelf: e.target.value });
+                             }} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-medium appearance-none cursor-pointer pr-8">
+                               <option value="">-- Select --</option>
+                               {locHierarchy.shelves.map(s => (
+                                 <option key={s._id} value={s.shelf}>
+                                   Shelf {s.shelf} ({s.current_load}/{s.capacity} used)
+                                 </option>
+                               ))}
+                             </select>
+                           ) : (
+                             <input type="text" value={formData.shelf} onChange={e => setFormData({ ...formData, shelf: e.target.value })} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="e.g. 1" />
+                           )}
+                           {locHierarchy.shelves.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                         </div>
                        </div>
-                       <div className="group">
-                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Temp (°C)</label>
-                          <input type="number" value={formData.storage_temp} onChange={e => setFormData({...formData, storage_temp: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" />
-                       </div>
-                       <div className="group">
-                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Humidity (%)</label>
-                          <input type="number" value={formData.storage_humidity} onChange={e => setFormData({...formData, storage_humidity: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" />
-                       </div>
-                    </div>
-                 </div>
+                     </div>
+
+                     {/* Shelf capacity indicator */}
+                     {formData.shelf && locHierarchy.shelves.length > 0 && (() => {
+                       const sel = locHierarchy.shelves.find(s => s.shelf === formData.shelf);
+                       if (!sel) return null;
+                       const pct = Math.min(100, Math.round((sel.current_load / sel.capacity) * 100));
+                       return (
+                         <div className="mt-1 p-3 bg-secondary-50 rounded-xl border border-secondary-100">
+                           <div className="flex justify-between text-[10px] font-bold text-secondary-500 uppercase mb-1.5">
+                             <span>Shelf Capacity</span>
+                             <span className={pct >= 90 ? 'text-red-500' : pct >= 70 ? 'text-amber-500' : 'text-green-600'}>{sel.current_load}/{sel.capacity} slots</span>
+                           </div>
+                           <div className="h-1.5 bg-secondary-200 rounded-full">
+                             <div className={`h-full rounded-full transition-all ${pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-400' : 'bg-green-500'}`} style={{ width: `${pct}%` }}></div>
+                           </div>
+                           {sel.safety_warnings && <p className="text-[10px] text-amber-600 font-semibold mt-1.5 flex items-center gap-1"><img src="/icons/warning.svg" alt="Warning" className="w-3.5 h-3.5 select-none" draggable="false" /> {sel.safety_warnings}</p>}
+                         </div>
+                       );
+                     })()}
+
+                     {/* Auto Combined ID */}
+                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="group col-span-2">
+                           <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Combined Identifier (Auto)</label>
+                           <input type="text" readOnly value={formData.building ? `${formData.building}-${formData.room}-${formData.cabinet}-${formData.shelf}`.replace(/-+$/, '') : formData.location} className="w-full bg-secondary-100 border-transparent rounded-xl p-3 text-xs font-mono text-secondary-600" />
+                        </div>
+                        <div className="group">
+                           <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Temp (°C)</label>
+                           <input type="number" value={formData.storage_temp} onChange={e => setFormData({...formData, storage_temp: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" />
+                        </div>
+                        <div className="group">
+                           <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Humidity (%)</label>
+                           <input type="number" value={formData.storage_humidity} onChange={e => setFormData({...formData, storage_humidity: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" />
+                        </div>
+                     </div>
+                  </div>
                </section>
 
                <section>

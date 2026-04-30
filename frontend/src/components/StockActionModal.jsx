@@ -42,6 +42,40 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
   const [numContainersMoved, setNumContainersMoved] = useState(1);
   const [transferApprovedBy, setTransferApprovedBy] = useState("");
 
+  // Location hierarchy for Transfer TO dropdowns
+  const [toHierarchy, setToHierarchy] = useState({ buildings: [], rooms: [], cabinets: [], shelves: [] });
+
+  // Fetch buildings on mount
+  useEffect(() => {
+    axios.get('/api/locations/hierarchy')
+      .then(res => setToHierarchy(prev => ({ ...prev, buildings: res.data.buildings })))
+      .catch(() => {});
+  }, []);
+
+  // Fetch rooms when toBuilding changes
+  useEffect(() => {
+    if (!toBuilding) return setToHierarchy(prev => ({ ...prev, rooms: [], cabinets: [], shelves: [] }));
+    axios.get('/api/locations/hierarchy', { params: { building: toBuilding } })
+      .then(res => setToHierarchy(prev => ({ ...prev, rooms: res.data.rooms, cabinets: [], shelves: [] })))
+      .catch(() => {});
+  }, [toBuilding]);
+
+  // Fetch cabinets when toRoom changes
+  useEffect(() => {
+    if (!toBuilding || !toRoom) return setToHierarchy(prev => ({ ...prev, cabinets: [], shelves: [] }));
+    axios.get('/api/locations/hierarchy', { params: { building: toBuilding, room: toRoom } })
+      .then(res => setToHierarchy(prev => ({ ...prev, cabinets: res.data.cabinets, shelves: [] })))
+      .catch(() => {});
+  }, [toRoom]);
+
+  // Fetch shelves when toCabinet changes
+  useEffect(() => {
+    if (!toBuilding || !toRoom || !toCabinet) return setToHierarchy(prev => ({ ...prev, shelves: [] }));
+    axios.get('/api/locations/hierarchy', { params: { building: toBuilding, room: toRoom, cabinet: toCabinet } })
+      .then(res => setToHierarchy(prev => ({ ...prev, shelves: res.data.shelves })))
+      .catch(() => {});
+  }, [toCabinet]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [availableContainers, setAvailableContainers] = useState([]);
@@ -267,9 +301,9 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
 
                 {action === 'IN' && (
                   <div className="space-y-6 animate-in slide-in-from-top-2 duration-300">
-                    <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-green-500 pl-3 uppercase tracking-wider">📦 Batch & Container Initialization</h3>
+                    <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-green-500 pl-3 uppercase tracking-wider flex items-center"><img src="/icons/box.svg" alt="Batch" className="w-4 h-4 mr-1.5 select-none" draggable="false" /> Batch & Container Initialization</h3>
                     <div className="group">
-                      <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block">Batch / Lot Number 🔥</label>
+                      <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 flex items-center">Batch / Lot Number <img src="/icons/flame.svg" alt="Flame" className="w-3.5 h-3.5 ml-1 select-none" draggable="false" /></label>
                       <input type="text" value={batch} onChange={e => setBatch(e.target.value)} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-4 text-sm font-mono font-bold text-primary-600" placeholder="LOT-2026-A" required />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -296,49 +330,94 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
 
                 {action === 'TRANSFER' && (
                   <div className="space-y-6 animate-in slide-in-from-top-2 pt-4">
-                    <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-blue-500 pl-3">📍 Destination Location (TO)</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="group">
-                        <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">To Building</label>
-                        <input 
-                          type="text" 
-                          value={toBuilding} 
-                          onChange={e => setToBuilding(e.target.value)}
-                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all font-bold"
-                          placeholder="Building ID"
-                        />
+                    <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-blue-500 pl-3 flex items-center"><img src="/icons/location.svg" alt="Location" className="w-4 h-4 mr-1.5 select-none" draggable="false" /> Destination Location (TO)</h3>
+                    <div className="space-y-3">
+                      {/* TO Building */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="group">
+                          <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">To Building</label>
+                          <div className="relative">
+                            {toHierarchy.buildings.length > 0 ? (
+                              <select value={toBuilding} onChange={e => { setToBuilding(e.target.value); setToRoom(''); setToCabinet(''); setToShelf(''); }} className="w-full bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm font-bold appearance-none cursor-pointer focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all pr-8">
+                                <option value="">-- Select --</option>
+                                {toHierarchy.buildings.map(b => <option key={b} value={b}>{b}</option>)}
+                              </select>
+                            ) : (
+                              <input type="text" value={toBuilding} onChange={e => setToBuilding(e.target.value)} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none" placeholder="Building ID" />
+                            )}
+                            {toHierarchy.buildings.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                          </div>
+                        </div>
+                        <div className="group">
+                          <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">To Room</label>
+                          <div className="relative">
+                            {toHierarchy.rooms.length > 0 ? (
+                              <select value={toRoom} onChange={e => { setToRoom(e.target.value); setToCabinet(''); setToShelf(''); }} className="w-full bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm font-bold appearance-none cursor-pointer focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all pr-8">
+                                <option value="">-- Select --</option>
+                                {toHierarchy.rooms.map(r => <option key={r} value={r}>{r}</option>)}
+                              </select>
+                            ) : (
+                              <input type="text" value={toRoom} onChange={e => setToRoom(e.target.value)} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none" placeholder="Room #" />
+                            )}
+                            {toHierarchy.rooms.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                          </div>
+                        </div>
                       </div>
-                      <div className="group">
-                        <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">To Room</label>
-                        <input 
-                          type="text" 
-                          value={toRoom} 
-                          onChange={e => setToRoom(e.target.value)}
-                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all font-bold"
-                          placeholder="Room #"
-                        />
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="group">
+                          <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">To Cabinet</label>
+                          <div className="relative">
+                            {toHierarchy.cabinets.length > 0 ? (
+                              <select value={toCabinet} onChange={e => { setToCabinet(e.target.value); setToShelf(''); }} className="w-full bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm font-bold appearance-none cursor-pointer focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all pr-8">
+                                <option value="">-- Select --</option>
+                                {toHierarchy.cabinets.map(c => <option key={c} value={c}>{c}</option>)}
+                              </select>
+                            ) : (
+                              <input type="text" value={toCabinet} onChange={e => setToCabinet(e.target.value)} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none" placeholder="Cabinet" />
+                            )}
+                            {toHierarchy.cabinets.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                          </div>
+                        </div>
+                        <div className="group">
+                          <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">To Shelf</label>
+                          <div className="relative">
+                            {toHierarchy.shelves.length > 0 ? (
+                              <select value={toShelf} onChange={e => setToShelf(e.target.value)} className="w-full bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm font-bold appearance-none cursor-pointer focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all pr-8">
+                                <option value="">-- Select --</option>
+                                {toHierarchy.shelves.map(s => (
+                                  <option key={s._id} value={s.shelf}>Shelf {s.shelf} ({s.current_load}/{s.capacity} used)</option>
+                                ))}
+                              </select>
+                            ) : (
+                              <input type="text" value={toShelf} onChange={e => setToShelf(e.target.value)} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none" placeholder="Shelf" />
+                            )}
+                            {toHierarchy.shelves.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                          </div>
+                        </div>
                       </div>
-                      <div className="group">
-                        <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">To Cabinet</label>
-                        <input 
-                          type="text" 
-                          value={toCabinet} 
-                          onChange={e => setToCabinet(e.target.value)}
-                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all font-bold"
-                        />
-                      </div>
-                      <div className="group">
-                        <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">To Shelf</label>
-                        <input 
-                          type="text" 
-                          value={toShelf} 
-                          onChange={e => setToShelf(e.target.value)}
-                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all font-bold"
-                        />
-                      </div>
+
+                      {/* Shelf capacity bar */}
+                      {toShelf && toHierarchy.shelves.length > 0 && (() => {
+                        const sel = toHierarchy.shelves.find(s => s.shelf === toShelf);
+                        if (!sel) return null;
+                        const pct = Math.min(100, Math.round((sel.current_load / sel.capacity) * 100));
+                        return (
+                          <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 mt-2">
+                            <div className="flex justify-between text-[10px] font-bold text-blue-600 uppercase mb-1.5">
+                              <span>Shelf Capacity</span>
+                              <span className={pct >= 90 ? 'text-red-500' : pct >= 70 ? 'text-amber-500' : 'text-emerald-600'}>{sel.current_load}/{sel.capacity} used</span>
+                            </div>
+                            <div className="h-1.5 bg-blue-100 rounded-full">
+                              <div className={`h-full rounded-full ${pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-400' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }}></div>
+                            </div>
+                            {sel.safety_warnings && <p className="text-[10px] text-amber-600 font-semibold mt-1.5">⚠ {sel.safety_warnings}</p>}
+                          </div>
+                        );
+                      })()}
                     </div>
 
-                    <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-blue-400 pl-3">📦 Container & Approval</h3>
+                    <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-blue-400 pl-3 flex items-center"><img src="/icons/box.svg" alt="Container" className="w-4 h-4 mr-1.5 select-none" draggable="false" /> Container & Approval</h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="group">
                         <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Container ID</label>
@@ -379,7 +458,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
               <div className="space-y-6">
                 {(action === 'OUT' || action === 'IN' || action === 'TRANSFER' || action === 'DISPOSAL') && (
                   <>
-                    <h3 className={`text-secondary-900 font-bold text-sm border-l-4 ${action === 'DISPOSAL' ? 'border-red-500' : 'border-primary-500'} pl-3`}>🏷️ Identification & Location</h3>
+                    <h3 className={`text-secondary-900 font-bold text-sm border-l-4 ${action === 'DISPOSAL' ? 'border-red-500' : 'border-primary-500'} pl-3 flex items-center`}><img src="/icons/tag.svg" alt="Tag" className="w-4 h-4 mr-1.5 select-none" draggable="false" /> Identification & Location</h3>
                     
                     <div className="group mt-4">
                       <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Target Container {action !== 'IN' ? ' (Select for Auto-Status)' : ''}</label>
@@ -445,7 +524,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
 
                     {action === 'IN' && (
                       <div className="bg-green-50/50 p-6 rounded-3xl border border-green-100 space-y-4 animate-in fade-in duration-300">
-                        <label className="text-[10px] font-black text-green-700 uppercase tracking-widest block mb-2">📅 Batch Timeline</label>
+                        <label className="text-[10px] font-black text-green-700 uppercase tracking-widest flex items-center mb-2"><img src="/icons/calendar.svg" alt="Timeline" className="w-3.5 h-3.5 mr-1.5 select-none" draggable="false" /> Batch Timeline</label>
                         <div className="grid grid-cols-1 gap-4">
                           <div className="group">
                             <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Expiry Date</label>
@@ -471,7 +550,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
 
                     {action === 'OUT' && (
                       <div className="space-y-4 pt-2 animate-in slide-in-from-top-2">
-                        <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-primary-500 pl-3 uppercase tracking-wider">🧪 Usage Context</h3>
+                        <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-primary-500 pl-3 uppercase tracking-wider flex items-center"><img src="/icons/flask.svg" alt="Usage" className="w-4 h-4 mr-1.5 select-none" draggable="false" /> Usage Context</h3>
                         <div className="group">
                           <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Experiment Name</label>
                           <input type="text" value={experimentName} onChange={e => setExperimentName(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-xl p-4 text-sm font-bold" placeholder="e.g. Titration Analysis" />
@@ -485,7 +564,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
 
                     {action === 'DISPOSAL' && (
                       <div className="space-y-4 pt-2 animate-in slide-in-from-top-2">
-                        <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-red-500 pl-3 italic uppercase tracking-widest">⚠️ Disposal Protocol</h3>
+                        <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-red-500 pl-3 italic uppercase tracking-widest flex items-center"><img src="/icons/warning-red.svg" alt="Disposal" className="w-4 h-4 mr-1.5 select-none" draggable="false" /> Disposal Protocol</h3>
                         <div className="group">
                           <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Disposal Method</label>
                           <input type="text" value={disposalMethod} onChange={e => setDisposalMethod(e.target.value)} className="w-full bg-red-50/30 border border-red-100 rounded-xl p-4 text-sm font-black text-red-700" placeholder="e.g. Incineration" required={action === 'DISPOSAL'} />

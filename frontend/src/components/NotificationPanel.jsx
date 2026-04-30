@@ -14,11 +14,11 @@ const NotificationPanel = ({ onClose }) => {
   };
   const getIcon = (type) => {
     switch (type) {
-      case 'LOW_STOCK': return '📦';
-      case 'EXPIRY': return '⚠️';
-      case 'UNAUTHORIZED_ACCESS': return '🔒';
-      case 'SECURITY': return '🛡️';
-      default: return 'ℹ️';
+      case 'LOW_STOCK': return <img src="/icons/box.svg" className="w-5 h-5 select-none" draggable="false" alt="Box" />;
+      case 'EXPIRY': return <img src="/icons/warning-red.svg" className="w-5 h-5 select-none" draggable="false" alt="Warning" />;
+      case 'UNAUTHORIZED_ACCESS': return <img src="/icons/lock.svg" className="w-5 h-5 select-none" draggable="false" alt="Lock" />;
+      case 'SECURITY': return <img src="/icons/shield.svg" className="w-5 h-5 select-none" draggable="false" alt="Security" />;
+      default: return <img src="/icons/info.svg" className="w-5 h-5 select-none" draggable="false" alt="Info" />;
     }
   };
 
@@ -45,7 +45,7 @@ const NotificationPanel = ({ onClose }) => {
           </div>
         ) : notifications.length === 0 ? (
           <div className="p-12 text-center">
-            <div className="text-4xl mb-3">✨</div>
+            <div className="w-10 h-10 mx-auto mb-3"><img src="/icons/sparkles.svg" alt="Sparkles" className="w-full h-full select-none" draggable="false" /></div>
             <p className="text-sm text-secondary-900 font-bold tracking-tight">No notifications yet</p>
             <p className="text-xs text-secondary-400 font-medium">You're all caught up!</p>
           </div>
@@ -57,7 +57,7 @@ const NotificationPanel = ({ onClose }) => {
                 className={`p-4 hover:bg-secondary-50 transition-colors relative group ${notif.status === 'unread' ? 'bg-primary-50/30' : ''}`}
               >
                 <div className="flex gap-3">
-                  <div className="text-xl mt-1">{getIcon(notif.type)}</div>
+                  <div className="mt-0.5 shrink-0">{getIcon(notif.type)}</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start mb-1">
                       <h4 className={`text-sm font-bold truncate leading-tight ${notif.status === 'unread' ? 'text-secondary-900' : 'text-secondary-600'}`}>

@@ -102,7 +102,7 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign(
       { id: user._id, role: user.role, name: user.name, email: user.email },
       JWT_SECRET,
-      { expiresIn: '8h' }
+      { expiresIn: '1h' }
     );
 
     res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
@@ -400,7 +400,7 @@ router.post('/mfa/verify', async (req, res) => {
     const token = jwt.sign(
       { id: user._id, role: user.role, name: user.name, email: user.email },
       JWT_SECRET,
-      { expiresIn: '15m' }
+      { expiresIn: '8h' }
     );
 
     user.mfa_temp_secret = null;
@@ -419,7 +419,6 @@ router.get('/mfa/setup/totp', authenticate, async (req, res) => {
     const secret = speakeasy.generateSecret({
       name: `CIMS: ${req.user.email}`
     });
-
     const user = await User.findById(req.user.id);
     user.mfa_temp_secret = secret.base32;
     await user.save();

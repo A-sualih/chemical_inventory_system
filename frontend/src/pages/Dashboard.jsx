@@ -393,15 +393,15 @@ const Dashboard = () => {
               <p className="text-primary-100 text-sm font-medium leading-relaxed mb-8">All personnel must verify SDS documentation before container opening.</p>
               <div className="space-y-3">
                  <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl text-xs font-bold border border-white/5 truncate">
-                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-[10px]">⚖️</span>
+                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center p-1"><img src="/icons/scale.svg" alt="Scale" className="w-full h-full select-none invert" draggable="false" /></span>
                    HazMat Guidelines 2026
                  </div>
                  <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl text-xs font-bold border border-white/5 truncate">
-                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-[10px]">🧪</span>
+                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center p-1"><img src="/icons/flask.svg" alt="Flask" className="w-full h-full select-none invert" draggable="false" /></span>
                    Spill Kit Locations Map
                  </div>
                  <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl text-xs font-bold border border-white/5 truncate">
-                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-[10px]">🔥</span>
+                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center p-1"><img src="/icons/flame.svg" alt="Flame" className="w-full h-full select-none invert" draggable="false" /></span>
                    Emergency Extraction Plan
                  </div>
               </div>
