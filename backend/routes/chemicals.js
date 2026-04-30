@@ -89,7 +89,7 @@ router.get('/stats', authenticate, async (req, res) => {
   }
 });
 
-// Get all chemicals with advanced search and filtering
+// Get all chemicals with advanced search and filtering (Full-Text Search)
 router.get('/', authenticate, authorize(PERMISSIONS.VIEW_CHEMICALS), async (req, res) => {
   try {
     const { 
@@ -108,27 +108,17 @@ router.get('/', authenticate, authorize(PERMISSIONS.VIEW_CHEMICALS), async (req,
       sortOrder = 'asc'
     } = req.query;
 
-    const query = { archived: archived === 'true' };
+    const baseQuery = { archived: archived === 'true' };
 
 
-    // 1. Text Search (with regex escaping for safety)
-    if (search) {
-      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      query.$or = [
-        { name: { $regex: escapedSearch, $options: 'i' } },
-        { iupac_name: { $regex: escapedSearch, $options: 'i' } },
-        { cas_number: { $regex: escapedSearch, $options: 'i' } },
-        { id: { $regex: escapedSearch, $options: 'i' } },
-        { formula: { $regex: escapedSearch, $options: 'i' } }
-      ];
-    }
+    // (search handled below after filters are built)
 
     // 2. Hazard Filter (GHS)
     const hazardParam = hazard || req.query['hazard[]'];
     if (hazardParam) {
       const hazards = Array.isArray(hazardParam) ? hazardParam.filter(Boolean) : [hazardParam].filter(Boolean);
       if (hazards.length > 0) {
-        query.ghs_classes = { $in: hazards };
+        baseQuery.ghs_classes = { $in: hazards };
       }
     }
 
@@ -137,43 +127,85 @@ router.get('/', authenticate, authorize(PERMISSIONS.VIEW_CHEMICALS), async (req,
     if (statusParam) {
       const statuses = Array.isArray(statusParam) ? statusParam.filter(Boolean) : [statusParam].filter(Boolean);
       if (statuses.length > 0) {
-        query.status = { $in: statuses };
+        baseQuery.status = { $in: statuses };
       }
     }
 
     // 4. Hierarchical Location Filter
-    if (building) query.building = building;
-    if (room) query.room = room;
-    if (cabinet) query.cabinet = cabinet;
-    if (shelf) query.shelf = shelf;
+    if (building) baseQuery.building = building;
+    if (room) baseQuery.room = room;
+    if (cabinet) baseQuery.cabinet = cabinet;
+    if (shelf) baseQuery.shelf = shelf;
 
-    // 5. Expiry Status Filter (calculated status)
+    // 5. Expiry Status Filter
     if (expiryStatus) {
-      query.status = expiryStatus;
+      baseQuery.status = expiryStatus;
     }
 
-    // Pagination & Sorting (with safety defaults)
+    // Pagination
     const p = Math.max(1, parseInt(page) || 1);
     const l = Math.max(1, Math.min(100, parseInt(limit) || 20));
     const skip = (p - 1) * l;
-    
-    const sort = {};
+
     const validSortFields = ['name', 'createdAt', 'expiry_date', 'quantity', 'status', 'id'];
     const sField = validSortFields.includes(sortBy) ? sortBy : 'name';
-    sort[sField] = sortOrder === 'desc' ? -1 : 1;
+    const defaultSort = { [sField]: sortOrder === 'desc' ? -1 : 1 };
 
-    const chemicals = await Chemical.find(query)
-      .sort(sort)
-      .skip(skip)
-      .limit(l);
+    let chemicals = [];
+    let total = 0;
+    let searchMode = 'none';
 
-    const total = await Chemical.countDocuments(query);
+    if (search && search.trim()) {
+      const trimmed = search.trim();
+
+      // STRATEGY 1: MongoDB Native Full-Text Search ($text)
+      // Uses the text index on: name, iupac_name, cas_number, formula
+      // Supports relevance scoring, stemming, and stop-word filtering
+      const fullTextQuery = { ...baseQuery, $text: { $search: trimmed } };
+      const fullTextCount = await Chemical.countDocuments(fullTextQuery);
+
+      if (fullTextCount > 0) {
+        chemicals = await Chemical
+          .find(fullTextQuery, { score: { $meta: 'textScore' } })
+          .sort({ score: { $meta: 'textScore' } })
+          .skip(skip)
+          .limit(l);
+        total = fullTextCount;
+        searchMode = 'fulltext';
+      } else {
+        // STRATEGY 2: Regex Fallback for partial/prefix matches
+        // Catches: partial words, IDs like "C011", CAS substrings, supplier names, remarks
+        const escapedSearch = trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regexQuery = {
+          ...baseQuery,
+          $or: [
+            { name: { $regex: escapedSearch, $options: 'i' } },
+            { iupac_name: { $regex: escapedSearch, $options: 'i' } },
+            { cas_number: { $regex: escapedSearch, $options: 'i' } },
+            { id: { $regex: escapedSearch, $options: 'i' } },
+            { formula: { $regex: escapedSearch, $options: 'i' } },
+            { supplier: { $regex: escapedSearch, $options: 'i' } },
+            { batch_number: { $regex: escapedSearch, $options: 'i' } },
+            { location: { $regex: escapedSearch, $options: 'i' } },
+            { remarks: { $regex: escapedSearch, $options: 'i' } }
+          ]
+        };
+        chemicals = await Chemical.find(regexQuery).sort(defaultSort).skip(skip).limit(l);
+        total = await Chemical.countDocuments(regexQuery);
+        searchMode = 'regex';
+      }
+    } else {
+      // No search term — apply filters only
+      chemicals = await Chemical.find(baseQuery).sort(defaultSort).skip(skip).limit(l);
+      total = await Chemical.countDocuments(baseQuery);
+    }
 
     res.json({
       data: chemicals,
       total,
       page: p,
-      totalPages: Math.ceil(total / l)
+      totalPages: Math.ceil(total / l),
+      searchMode
     });
   } catch (err) {
     console.error('SEARCH ERROR:', err);
