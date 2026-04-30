@@ -79,10 +79,10 @@ const Batches = () => {
     try {
       const [batchRes, chemRes] = await Promise.all([
         axios.get('/api/batches'),
-        axios.get('/api/chemicals')
+        axios.get('/api/chemicals?limit=10000')
       ]);
       setBatches(batchRes.data);
-      setChemicals(chemRes.data);
+      setChemicals(Array.isArray(chemRes.data.data) ? chemRes.data.data : (Array.isArray(chemRes.data) ? chemRes.data : []));
       setLoading(false);
     } catch (err) {
       console.error("Error fetching data:", err);
