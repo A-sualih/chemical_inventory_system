@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
+import QRCodeLib from "react-qr-code";
+const QRCode = QRCodeLib.default || QRCodeLib;
 import Layout from "../layout/Layout";
 import { useAuth } from "../AuthContext";
 import ChemicalForm from "./ChemicalForm";
@@ -212,6 +214,7 @@ const Chemicals = () => {
                     <tr className="bg-secondary-50/50 text-secondary-400 uppercase text-[10px] font-black tracking-widest border-b border-secondary-50">
                       <th className="px-6 py-5">Identity</th>
                       <th className="px-6 py-5">Inventory Data</th>
+                      <th className="px-6 py-5 text-center">QR Code</th>
                       <th className="px-6 py-5 text-center">Actions</th>
                     </tr>
                   </thead>
@@ -248,6 +251,11 @@ const Chemicals = () => {
                               <span className="text-primary-600">[{item.location}]</span> • {item.quantity} {item.unit}
                             </div>
                           </div>
+                        </td>
+                        <td className="px-6 py-5 text-center">
+                           <div className="inline-block p-1.5 bg-white rounded-lg shadow-sm border border-secondary-200">
+                             <QRCode value={item.id} size={48} />
+                           </div>
                         </td>
                         <td className="px-6 py-5">
                            <div className="flex justify-center gap-2">

@@ -523,7 +523,7 @@ router.get('/:id/qrcode', authenticate, async (req, res) => {
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
     
     // Data encoded into the QR code
-    const qrData = `CIMS:${chemical.id}|CAS:${chemical.cas_number || 'N/A'}|${chemical.name}`;
+    const qrData = chemical.id;
     const qrImage = await QRCode.toDataURL(qrData);
     
     res.json({ qrCode: qrImage });
