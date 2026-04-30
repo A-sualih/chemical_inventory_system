@@ -137,9 +137,33 @@ const notifyUnauthorizedAccess = async (user, action, ip, device) => {
   });
 };
 
+/**
+ * Specifically creates a hazard warning notification.
+ */
+const notifyHazardWarning = async (chemical, action, user) => {
+  return await createNotification({
+    type: 'HAZARD',
+    category: 'safety',
+    title: `Safety Alert: High Hazard Chemical ${action}`,
+    message: `${chemical.name} (Hazards: ${chemical.ghs_classes?.join(', ') || 'Unknown'}) was ${action} by ${user?.name || 'a user'}. Verify safety protocols and storage compatibility.`,
+    severity: 'critical',
+    priority: 1,
+    related: {
+      chemicalId: chemical.id,
+      chemicalName: chemical.name
+    },
+    metadata: {
+      hazards: chemical.ghs_classes,
+      action: action,
+      user: user?.name
+    }
+  });
+};
+
 module.exports = {
   createNotification,
   notifyLowStock,
   notifyExpiry,
-  notifyUnauthorizedAccess
+  notifyUnauthorizedAccess,
+  notifyHazardWarning
 };

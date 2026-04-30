@@ -367,7 +367,13 @@ router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), a
       await notifyLowStock(targetChem, lowStockThreshold);
     }
 
-
+    if (action === 'TRANSFER' || action === 'DISPOSAL') {
+      const highHazards = ['Explosive', 'Flammable', 'Toxic', 'Corrosive', 'Oxidizer'];
+      if (targetChem.ghs_classes?.some(h => highHazards.includes(h))) {
+        const { notifyHazardWarning } = require('../utils/notificationService');
+        await notifyHazardWarning(targetChem, action.toLowerCase() + 'ed', req.user);
+      }
+    }
 
     // Insert log
     const log = new InventoryLog({

@@ -317,6 +317,13 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.si
       details: `Added new chemical: ${newChem.name} (${newChem.id})`
     });
 
+    // Notify if high hazard
+    const highHazards = ['Explosive', 'Flammable', 'Toxic', 'Corrosive', 'Oxidizer'];
+    if (newChem.ghs_classes?.some(h => highHazards.includes(h))) {
+      const { notifyHazardWarning } = require('../utils/notificationService');
+      await notifyHazardWarning(newChem, 'registered', req.user);
+    }
+
     res.status(201).json(newChem);
   } catch (err) {
     console.error(err);
