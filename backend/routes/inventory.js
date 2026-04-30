@@ -462,6 +462,16 @@ router.get('/logs', authenticate, async (req, res) => {
   }
 });
 
+// Get inventory logs for a specific chemical
+router.get('/logs/:id', authenticate, async (req, res) => {
+  try {
+    const logs = await InventoryLog.find({ chemical_id: req.params.id }).sort({ createdAt: -1 });
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch inventory logs for chemical' });
+  }
+});
+
 // FIFO Auto-Usage Engine Endpoint
 router.post('/fifo-usage', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), async (req, res) => {
   const { chemical_id, quantity, unit, reason } = req.body;
