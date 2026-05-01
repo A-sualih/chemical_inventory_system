@@ -298,6 +298,10 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.si
       cabinet: data.cabinet,
       shelf: data.shelf,
       remarks: data.remarks,
+      chemical_family: data.chemical_family,
+      spill_instructions: data.spill_instructions,
+      emergency_instructions: data.emergency_instructions,
+      exposure_risks: (() => { try { return typeof data.exposure_risks === 'string' ? JSON.parse(data.exposure_risks) : (data.exposure_risks || []); } catch(e) { return []; } })(),
       ghs_classes: parsedGhs || [],
       sds_attached: hasSdsFile || data.sdsAttached === 'true',
       sds_file_name: sdsFileName,
@@ -342,7 +346,29 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.si
       await notifyHazardWarning(newChem, 'registered', req.user);
     }
 
-    res.status(201).json(newChem);
+    // Check for incompatible collocation
+    let safety_warnings = [];
+    if (newChem.location && newChem.chemical_family) {
+      const collocated = await Chemical.find({ location: newChem.location, id: { $ne: newChem.id }, archived: false });
+      const familiesInLocation = [...new Set(collocated.map(c => c.chemical_family).filter(Boolean))];
+      
+      const incompatiblePairs = [
+        ['Acid', 'Base'],
+        ['Flammable', 'Oxidizer'],
+        ['Acid', 'Oxidizer'],
+        ['Base', 'Oxidizer']
+      ];
+
+      for (let f of familiesInLocation) {
+        for (let pair of incompatiblePairs) {
+          if ((pair.includes(newChem.chemical_family) && pair.includes(f)) && newChem.chemical_family !== f) {
+            safety_warnings.push(`⚠️ WARNING: Critical Incompatibility Detected. You have stored a(n) ${newChem.chemical_family} in the exact same location (${newChem.location}) as a(n) ${f}.`);
+          }
+        }
+      }
+    }
+
+    res.status(201).json({ ...newChem.toJSON(), safety_warnings });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
@@ -396,6 +422,10 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
     chemical.cabinet = data.cabinet;
     chemical.shelf = data.shelf;
     chemical.remarks = data.remarks;
+    chemical.chemical_family = data.chemical_family;
+    chemical.spill_instructions = data.spill_instructions;
+    chemical.emergency_instructions = data.emergency_instructions;
+    chemical.exposure_risks = (() => { try { return typeof data.exposure_risks === 'string' ? JSON.parse(data.exposure_risks) : (data.exposure_risks || []); } catch(e) { return []; } })();
     chemical.location = data.building ? `${data.building}-${data.room || ''}-${data.cabinet || ''}-${data.shelf || ''}`.replace(/-+$/, '') : (data.location || chemical.location);
     chemical.ghs_classes = parsedGhs || [];
     
@@ -473,7 +503,29 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
       details: `Updated chemical information for ${oldName} (${chemical.id})`
     });
 
-    res.json({ message: 'Updated successfully', chemical });
+    // Check for incompatible collocation
+    let safety_warnings = [];
+    if (chemical.location && chemical.chemical_family) {
+      const collocated = await Chemical.find({ location: chemical.location, id: { $ne: chemical.id }, archived: false });
+      const familiesInLocation = [...new Set(collocated.map(c => c.chemical_family).filter(Boolean))];
+      
+      const incompatiblePairs = [
+        ['Acid', 'Base'],
+        ['Flammable', 'Oxidizer'],
+        ['Acid', 'Oxidizer'],
+        ['Base', 'Oxidizer']
+      ];
+
+      for (let f of familiesInLocation) {
+        for (let pair of incompatiblePairs) {
+          if ((pair.includes(chemical.chemical_family) && pair.includes(f)) && chemical.chemical_family !== f) {
+            safety_warnings.push(`⚠️ WARNING: Critical Incompatibility Detected. You have stored a(n) ${chemical.chemical_family} in the exact same location (${chemical.location}) as a(n) ${f}.`);
+          }
+        }
+      }
+    }
+
+    res.json({ message: 'Updated successfully', chemical, safety_warnings });
   } catch(err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });

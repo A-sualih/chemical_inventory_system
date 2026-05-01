@@ -121,11 +121,17 @@ const Chemicals = () => {
 
   const handleSave = async (formData) => {
     try {
+      let res;
       if (editingChemical) {
-        await axios.put(`/api/chemicals/${editingChemical.id}`, formData);
+        res = await axios.put(`/api/chemicals/${editingChemical.id}`, formData);
       } else {
-        await axios.post('/api/chemicals', formData);
+        res = await axios.post('/api/chemicals', formData);
       }
+      
+      if (res.data.safety_warnings && res.data.safety_warnings.length > 0) {
+        alert("CRITICAL STORAGE INCOMPATIBILITY:\n\n" + res.data.safety_warnings.join("\n\n") + "\n\nPlease review your physical inventory placement immediately to avoid safety incidents.");
+      }
+
       setShowForm(false);
       setEditingChemical(null);
       fetchChemicals(pagination.page);

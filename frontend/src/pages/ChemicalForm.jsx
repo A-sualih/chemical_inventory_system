@@ -22,6 +22,10 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     manufacturing_date: initialData.manufacturing_date || "",
     purchase_date: initialData.purchase_date || "",
     expiry_date: initialData.expiry_date || "",
+    chemical_family: initialData.chemical_family || "General",
+    spill_instructions: initialData.spill_instructions || "",
+    emergency_instructions: initialData.emergency_instructions || "",
+    exposure_risks: initialData.exposure_risks || [],
     num_containers: initialData.num_containers || 1,
     quantity_per_container: initialData.quantity_per_container || "",
     container_type: initialData.container_type || "Plastic Bottle",
@@ -61,6 +65,10 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     container_type: "Plastic Bottle",
     container_id_series: "",
     remarks: "",
+    chemical_family: "General",
+    spill_instructions: "",
+    emergency_instructions: "",
+    exposure_risks: [],
     ghs_classes: [],
     sds_attached: false
   });
@@ -264,6 +272,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                const payload = new FormData();
                Object.keys(formData).forEach(k => {
                  if (k === 'ghs_classes') payload.append('ghs_classes', JSON.stringify(formData.ghs_classes));
+                 else if (k === 'exposure_risks') payload.append('exposure_risks', JSON.stringify(formData.exposure_risks));
                  else payload.append(k, formData[k]);
                });
                if (sdsFile) payload.append('sds_file', sdsFile);
@@ -557,6 +566,53 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                  <div className="group">
                     <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Safety Remarks & Tracking Notes</label>
                     <textarea value={formData.remarks} onChange={e => setFormData({...formData, remarks: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm h-24 resize-none" placeholder="Initial stock entry, handle with care..."></textarea>
+                 </div>
+               </section>
+
+               <section>
+                 <div className="flex items-center gap-3 mb-5">
+                    <div className="h-px bg-secondary-200 flex-1"></div>
+                    <div className="text-[10px] font-black text-red-600 uppercase tracking-widest">CRITICAL SAFETY & HAZARD DIRECTIVES</div>
+                    <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                   <div className="group">
+                     <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Chemical Family / Compatibility Class</label>
+                     <select value={formData.chemical_family} onChange={e => setFormData({...formData, chemical_family: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm cursor-pointer outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-400">
+                        <option value="General">General / Non-Reactive</option>
+                        <option value="Acid">Acid</option>
+                        <option value="Base">Base</option>
+                        <option value="Oxidizer">Oxidizer</option>
+                        <option value="Flammable">Flammable / Solvent</option>
+                        <option value="Reactive">Highly Reactive / Unstable</option>
+                     </select>
+                   </div>
+                   <div className="group">
+                     <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Exposure Risks (CMR / Special)</label>
+                     <div className="flex flex-wrap gap-2">
+                        {['Carcinogen', 'Mutagen', 'Teratogen', 'Sensitizer', 'Asphyxiant'].map(risk => (
+                           <button 
+                             key={risk} type="button" 
+                             onClick={() => setFormData(prev => ({...prev, exposure_risks: prev.exposure_risks.includes(risk) ? prev.exposure_risks.filter(r => r !== risk) : [...prev.exposure_risks, risk]}))}
+                             className={`px-3 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border ${formData.exposure_risks.includes(risk) ? 'bg-red-500 text-white border-red-500 shadow-md' : 'bg-white text-secondary-500 border-secondary-200 hover:border-red-300'}`}
+                           >
+                             {risk}
+                           </button>
+                        ))}
+                     </div>
+                   </div>
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                   <div className="group">
+                     <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Emergency Spill Procedures</label>
+                     <textarea value={formData.spill_instructions} onChange={e => setFormData({...formData, spill_instructions: e.target.value})} className="w-full bg-red-50/50 border border-red-100 rounded-[1rem] p-4 text-sm font-medium shadow-sm h-32 resize-none outline-none focus:border-red-400" placeholder="e.g. Neutralize with sodium bi-carbonate, ventilate area..."></textarea>
+                   </div>
+                   <div className="group">
+                     <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Medical Emergency Instructions</label>
+                     <textarea value={formData.emergency_instructions} onChange={e => setFormData({...formData, emergency_instructions: e.target.value})} className="w-full bg-red-50/50 border border-red-100 rounded-[1rem] p-4 text-sm font-medium shadow-sm h-32 resize-none outline-none focus:border-red-400" placeholder="e.g. Wash eyes for 15 mins, administer calcium gluconate if skin contact..."></textarea>
+                   </div>
                  </div>
                </section>
 

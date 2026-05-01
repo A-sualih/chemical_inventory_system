@@ -29,6 +29,10 @@ const chemicalSchema = new mongoose.Schema({
   cabinet: { type: String },
   shelf: { type: String },
   remarks: { type: String },
+  chemical_family: { type: String },
+  spill_instructions: { type: String },
+  emergency_instructions: { type: String },
+  exposure_risks: [{ type: String }],
   ghs_classes: [{ type: String }],
  
   sds_attached: { type: Boolean },
