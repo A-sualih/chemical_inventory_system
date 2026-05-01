@@ -180,7 +180,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                  {initialData?.id ? (
                    <>
                      <div className="bg-white p-4 rounded-[2rem] shadow-xl shadow-secondary-900/10 border border-secondary-200 flex justify-center items-center w-full aspect-square relative group">
-                       <QRCode value={initialData.id} size={220} className="group-hover:scale-105 transition-transform duration-300" />
+                       <QRCode value={`${window.location.origin}/chemicals/details/${initialData.id}`} size={220} className="group-hover:scale-105 transition-transform duration-300" />
                        <div className="absolute -bottom-3 text-[10px] font-black bg-secondary-900 text-white rounded-full px-4 py-1.5 shadow-lg tracking-widest uppercase">SCAN READY</div>
                      </div>
                      <a href={`/print/${initialData.id}`} target="_blank" rel="noopener noreferrer" className="mt-4 px-4 py-2 w-full bg-secondary-900 hover:bg-black text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all shadow-md flex items-center justify-center gap-2">

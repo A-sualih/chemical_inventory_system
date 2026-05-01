@@ -219,6 +219,20 @@ router.get('/', authenticate, authorize(PERMISSIONS.VIEW_CHEMICALS), async (req,
 
 
 
+// Get single chemical
+router.get('/:id', authenticate, async (req, res) => {
+  try {
+    const chemical = await Chemical.findOne({ id: req.params.id });
+    if (!chemical) {
+      // Try again by string in case ID isn't what they meant
+      return res.status(404).json({ error: 'Chemical not found' });
+    }
+    res.json(chemical);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error fetching chemical details' });
+  }
+});
+
 // Add new chemical
 router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.single('sds_file'), async (req, res) => {
   const data = req.body;

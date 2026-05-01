@@ -56,7 +56,7 @@ const PrintLabel = () => {
         </div>
         
         <div className="p-2 border-2 border-secondary-900 rounded-2xl mb-2 aspect-square flex items-center justify-center bg-white shadow-inner">
-           <QRCode value={chemical.id} size={160} />
+           <QRCode value={`${window.location.origin}/chemicals/details/${chemical.id}`} size={160} />
         </div>
 
         <div className="text-[8px] font-black text-secondary-400 uppercase tracking-widest">Property of Central Lab</div>

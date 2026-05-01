@@ -21,6 +21,7 @@ import Notifications from "./pages/Notifications";
 import LocationManager from "./pages/LocationManager";
 import PrintLabel from "./pages/PrintLabel";
 import ScanQR from "./pages/ScanQR";
+import ChemicalDetails from "./pages/ChemicalDetails";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -59,6 +60,7 @@ function App() {
             <Route path="/chemicals/edit/:id" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician"]}><ChemicalForm /></ProtectedRoute>} />
             <Route path="/print/:id" element={<ProtectedRoute><PrintLabel /></ProtectedRoute>} />
             <Route path="/scan" element={<ProtectedRoute><ScanQR /></ProtectedRoute>} />
+            <Route path="/chemicals/details/:id" element={<ProtectedRoute><ChemicalDetails /></ProtectedRoute>} />
             <Route path="/requests" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}><Requests /></ProtectedRoute>} />
             <Route path="/logs" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}><InventoryLogs /></ProtectedRoute>} />
             <Route path="/reports" element={

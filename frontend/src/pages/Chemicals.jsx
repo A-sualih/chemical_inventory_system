@@ -254,7 +254,7 @@ const Chemicals = () => {
                         </td>
                         <td className="px-6 py-5 text-center">
                            <div className="inline-block p-1.5 bg-white rounded-lg shadow-sm border border-secondary-200">
-                             <QRCode value={item.id} size={48} />
+                             <QRCode value={`${window.location.origin}/chemicals/details/${item.id}`} size={48} />
                            </div>
                         </td>
                         <td className="px-6 py-5">
