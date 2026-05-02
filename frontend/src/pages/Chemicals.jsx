@@ -190,7 +190,7 @@ const Chemicals = () => {
               <div className="relative w-full">
                 <input
                   type="text"
-                  placeholder="Deep search by Name, CAS, or QR scan..."
+                  placeholder="Deep search by Name, CAS, or Barcode/ID..."
                   className="w-full bg-white border border-secondary-200 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-4 focus:ring-primary-500/10 outline-none hover:border-primary-300 transition-all shadow-sm"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -239,6 +239,7 @@ const Chemicals = () => {
                               <div className="flex gap-2 mt-1">
                                 <span className="bg-secondary-100 text-secondary-500 text-[9px] font-black px-1.5 py-0.5 rounded uppercase">CAS: {item.cas_number || 'N/A'}</span>
                                 <span className="bg-primary-50 text-primary-600 text-[9px] font-black px-1.5 py-0.5 rounded uppercase">{item.formula}</span>
+                                {item.batch_number && <span className="bg-orange-50 text-orange-600 text-[9px] font-black px-1.5 py-0.5 rounded uppercase">Batch: {item.batch_number}</span>}
                               </div>
                             </div>
                           </div>
@@ -255,8 +256,18 @@ const Chemicals = () => {
                               </span>
                               <HazardBadge hazards={item.ghs_classes} size="sm" />
                             </div>
-                            <div className="text-xs font-bold text-secondary-600">
-                              <span className="text-primary-600">[{item.location}]</span> • {item.quantity} {item.unit}
+                            <div className="text-xs font-bold text-secondary-600 flex flex-wrap items-center gap-x-2">
+                              <span className="text-primary-600">[{item.location}]</span>
+                              <span>•</span>
+                              <span>{item.quantity} {item.unit}</span>
+                              {item.batch_number && (
+                                <>
+                                  <span>•</span>
+                                  <span className="flex items-center gap-1 text-[10px] bg-secondary-100 text-secondary-500 px-1.5 py-0.5 rounded-md font-black uppercase">
+                                    Batch: {item.batch_number}
+                                  </span>
+                                </>
+                              )}
                             </div>
                           </div>
                         </td>

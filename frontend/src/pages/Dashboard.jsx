@@ -435,7 +435,9 @@ const Dashboard = () => {
                      <div key={i} className="flex justify-between items-center border-b border-secondary-50 pb-4 last:border-0 last:pb-0">
                         <div>
                           <div className="text-sm font-bold text-secondary-800">{item.name}</div>
-                          <div className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">{item.location}</div>
+                          <div className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">
+                            {item.location} {item.batch_number && `• Batch: ${item.batch_number}`}
+                          </div>
                         </div>
                         <div className={`text-[10px] font-black px-2 py-1 rounded ${item.days <= 7 ? 'bg-red-50 text-red-600' : item.days <= 30 ? 'bg-orange-50 text-orange-600' : 'bg-secondary-50 text-secondary-600'}`}>
                           {item.days <= 0 ? 'EXPIRED' : `IN ${item.days}D`}

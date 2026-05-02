@@ -1,4 +1,5 @@
 const Batch = require('../models/Batch');
+const Chemical = require('../models/Chemical');
 
 /**
  * Automatically syncs batch Information when a chemical or stock entry is made.
@@ -9,8 +10,9 @@ const syncBatch = async (data) => {
   if (!batchId) return;
 
   try {
+    const chemId = data.id || data.chemical_id;
     const updateData = {
-      chemical_id: data.id || data.chemical_id,
+      chemical_id: chemId,
       unit: data.unit || 'L',
       manufacturing_date: data.manufacturing_date || data.mfgDate,
       expiry_date: data.expiry_date || data.expiry || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Fallback to 1yr if missing
@@ -49,8 +51,22 @@ const syncBatch = async (data) => {
       { $set: updateData },
       { upsert: true, new: true }
     );
+
+    // Sync back to Chemical model so main inventory list shows the batch
+    if (chemId) {
+      await Chemical.findOneAndUpdate(
+        { id: chemId },
+        { 
+          $set: { 
+            batch_number: batchId,
+            expiry_date: updateData.expiry_date,
+            manufacturing_date: updateData.manufacturing_date
+          } 
+        }
+      );
+    }
     
-    console.log(`[BatchSync] Synced batch ${batchId} automatically.`);
+    console.log(`[BatchSync] Synced batch ${batchId} to record and chemical ${chemId}.`);
   } catch (err) {
     console.error(`[BatchSync] Failed to sync batch ${batchId}:`, err.message);
   }

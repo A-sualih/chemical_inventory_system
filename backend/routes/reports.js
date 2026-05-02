@@ -64,12 +64,12 @@ router.get('/inventory', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), asyn
     const expiredList = await Chemical.find({ 
       archived: false, 
       expiry_date: { $lt: now } 
-    }).select('name id expiry_date location').lean();
+    }).select('name id expiry_date location batch_number').lean();
 
     const nearExpiryList = await Chemical.find({ 
       archived: false, 
       expiry_date: { $gte: now, $lte: nearExpiryCutoff } 
-    }).select('name id expiry_date location').lean();
+    }).select('name id expiry_date location batch_number').lean();
 
     const lowStockList = await Chemical.find({
       archived: false,

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import Layout from "../layout/Layout";
 import axios from "axios";
+import { useCallback } from "react";
 
 const ScanQR = () => {
   const [scannerActive, setScannerActive] = useState(false);
@@ -12,65 +13,64 @@ const ScanQR = () => {
   
   const scannerRef = useRef(null);
   const navigate = useNavigate();
+  const [manualId, setManualId] = useState("");
+
+  const handleProcess = useCallback(async (decodedText) => {
+    if (processing) return;
+
+    let exactId = decodedText;
+    // Handle the new full URL format
+    if (decodedText.includes("/chemicals/details/")) {
+       exactId = decodedText.split("/chemicals/details/")[1].split("/")[0].split("?")[0];
+    }
+    else if (decodedText.startsWith("CIMS:")) {
+       exactId = decodedText.split("|")[0].split(":")[1];
+    }
+
+    if (scanMode === "view") {
+      setScannerActive(false); 
+      navigate(`/chemicals/details/${exactId}`);
+    } else {
+      setProcessing(true);
+      try {
+        const action = scanMode === "in" ? "IN" : "OUT";
+        const { data } = await axios.post("/api/inventory/quick-scan", {
+          chemical_id: exactId,
+          action: action
+        });
+        
+        setLastScanResult({
+          success: true,
+          message: data.message,
+          chemical: data.chemicalName,
+          newQty: `${data.newQty} ${data.unit}`
+        });
+
+        setTimeout(() => setLastScanResult(null), 4000);
+      } catch (err) {
+        setLastScanResult({
+          success: false,
+          message: err.response?.data?.error || "Transaction failed"
+        });
+        setTimeout(() => setLastScanResult(null), 5000);
+      } finally {
+        setProcessing(false);
+      }
+    }
+  }, [processing, scanMode, navigate]);
 
   useEffect(() => {
     if (!scannerActive) return;
 
-    async function onScanSuccess(decodedText) {
-      if (processing) return;
-      
-      let exactId = decodedText;
-      // Handle the new full URL format
-      if (decodedText.includes("/chemicals/details/")) {
-         exactId = decodedText.split("/chemicals/details/")[1].split("/")[0].split("?")[0];
-      }
-      else if (decodedText.startsWith("CIMS:")) {
-         exactId = decodedText.split("|")[0].split(":")[1];
-      }
-
-      if (scanMode === "view") {
-        setScannerActive(false); 
-        navigate(`/chemicals/details/${exactId}`);
-      } else {
-        // Fast Check-In / Check-Out Logic
-        setProcessing(true);
-        try {
-          const action = scanMode === "in" ? "IN" : "OUT";
-          const { data } = await axios.post("/api/inventory/quick-scan", {
-            chemical_id: exactId,
-            action: action
-          });
-          
-          setLastScanResult({
-            success: true,
-            message: data.message,
-            chemical: data.chemicalName,
-            newQty: `${data.newQty} ${data.unit}`
-          });
-
-          // Reset result after 3 seconds but keep scanner active for next item
-          setTimeout(() => setLastScanResult(null), 4000);
-        } catch (err) {
-          setLastScanResult({
-            success: false,
-            message: err.response?.data?.error || "Transaction failed"
-          });
-          setTimeout(() => setLastScanResult(null), 5000);
-        } finally {
-          setProcessing(false);
-        }
-      }
-    }
-
     function onScanFailure() { /* ignore */ }
 
     const html5QrcodeScanner = new Html5QrcodeScanner(
-      "reader",
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      false
-    );
-    scannerRef.current = html5QrcodeScanner;
-    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+       "reader",
+       { fps: 10, qrbox: { width: 250, height: 250 } },
+       false
+     );
+     scannerRef.current = html5QrcodeScanner;
+     html5QrcodeScanner.render(handleProcess, onScanFailure);
 
     return () => {
       try {
@@ -119,6 +119,47 @@ const ScanQR = () => {
                   </button>
                 ))}
               </div>
+           </div>
+
+           {/* Manual Entry for Handheld Barcode Scanners */}
+           <div className="mt-8 pt-8 border-t border-secondary-50">
+              <div className="flex flex-col sm:flex-row gap-3">
+                 <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                       <svg className="h-5 w-5 text-secondary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                       </svg>
+                    </div>
+                    <input 
+                       type="text" 
+                       value={manualId}
+                       onChange={(e) => setManualId(e.target.value)}
+                       onKeyDown={(e) => {
+                          if (e.key === 'Enter' && manualId.trim()) {
+                             handleProcess(manualId.trim());
+                             setManualId("");
+                          }
+                       }}
+                       placeholder="Manual Barcode Entry / Handheld Scan" 
+                       className="w-full bg-secondary-50 border border-secondary-200 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-secondary-900 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                    />
+                 </div>
+                 <button 
+                    onClick={() => {
+                       if (manualId.trim()) {
+                          handleProcess(manualId.trim());
+                          setManualId("");
+                       }
+                    }}
+                    disabled={!manualId.trim() || processing}
+                    className="px-8 py-4 bg-secondary-900 hover:bg-secondary-800 text-white font-black rounded-2xl text-xs uppercase tracking-widest disabled:opacity-50 transition-all shrink-0"
+                 >
+                    Process ID
+                 </button>
+              </div>
+              <p className="mt-3 text-[10px] text-secondary-400 font-bold uppercase tracking-widest text-center sm:text-left">
+                 Scanning with a handheld device? Focus the input above and pull the trigger.
+              </p>
            </div>
         </div>
 

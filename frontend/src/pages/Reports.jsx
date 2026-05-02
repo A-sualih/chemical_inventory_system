@@ -178,7 +178,9 @@ const Reports = () => {
                 <div key={item.id} className="p-3 bg-red-50/50 rounded-xl border border-red-100 flex justify-between items-center">
                   <div className="min-w-0">
                     <p className="text-xs font-black text-secondary-900 truncate">{item.name}</p>
-                    <p className="text-[10px] text-secondary-500 font-bold uppercase">{item.location || 'No Location'}</p>
+                    <p className="text-[10px] text-secondary-500 font-bold uppercase">
+                      {item.location || 'No Location'} {item.batch_number && `• Batch: ${item.batch_number}`}
+                    </p>
                   </div>
                   <span className="text-[9px] font-black text-red-600 bg-white px-2 py-1 rounded shadow-sm shrink-0">
                     {new Date(item.expiry_date).toLocaleDateString()}
@@ -203,7 +205,9 @@ const Reports = () => {
                 <div key={item.id} className="p-3 bg-orange-50/50 rounded-xl border border-orange-100 flex justify-between items-center">
                   <div className="min-w-0">
                     <p className="text-xs font-black text-secondary-900 truncate">{item.name}</p>
-                    <p className="text-[10px] text-secondary-500 font-bold uppercase">{item.location || 'No Location'}</p>
+                    <p className="text-[10px] text-secondary-500 font-bold uppercase">
+                      {item.location || 'No Location'} {item.batch_number && `• Batch: ${item.batch_number}`}
+                    </p>
                   </div>
                   <span className="text-[9px] font-black text-orange-600 bg-white px-2 py-1 rounded shadow-sm shrink-0">
                     {new Date(item.expiry_date).toLocaleDateString()}

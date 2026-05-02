@@ -39,11 +39,16 @@ router.get('/stats', authenticate, async (req, res) => {
     const expiring = await Chemical.find({
       archived: false,
       expiry_date: { $gte: now, $lte: in90Days }
-    }).sort({ expiry_date: 1 }).limit(5).select('name expiry_date ghs_classes location');
+    }).sort({ expiry_date: 1 }).limit(5).select('name expiry_date ghs_classes location batch_number');
 
     const expirations = expiring.map(c => {
       const daysLeft = Math.ceil((new Date(c.expiry_date) - now) / (1000 * 60 * 60 * 24));
-      return { name: c.name, days: daysLeft, location: c.location || 'Unassigned' };
+      return { 
+        name: c.name, 
+        days: daysLeft, 
+        location: c.location || 'Unassigned',
+        batch_number: c.batch_number 
+      };
     });
 
     // Storage breakdown by location
@@ -158,32 +163,57 @@ router.get('/', authenticate, authorize(PERMISSIONS.VIEW_CHEMICALS), async (req,
 
     if (search && search.trim()) {
       const trimmed = search.trim();
+      const escapedSearch = trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-      // STRATEGY 1: MongoDB Native Full-Text Search ($text)
-      // Uses the text index on: name, iupac_name, cas_number, formula
-      // Supports relevance scoring, stemming, and stop-word filtering
-      const fullTextQuery = { ...baseQuery, $text: { $search: trimmed } };
-      const fullTextCount = await Chemical.countDocuments(fullTextQuery);
+      // Combined Query: Try to match by ID exactly first, then text search, then regex
+      const idMatch = await Chemical.findOne({ ...baseQuery, id: { $regex: `^${escapedSearch}$`, $options: 'i' } });
+      
+      if (idMatch && page == 1) {
+        // If we found an exact ID match, we'll put it at the top or just return it if it's the only one
+        // For simplicity, we'll just adjust the query to prioritize this
+      }
 
-      if (fullTextCount > 0) {
-        chemicals = await Chemical
-          .find(fullTextQuery, { score: { $meta: 'textScore' } })
-          .sort({ score: { $meta: 'textScore' } })
-          .skip(skip)
-          .limit(l);
-        total = fullTextCount;
-        searchMode = 'fulltext';
-      } else {
-        // STRATEGY 2: Regex Fallback for partial/prefix matches
-        // Catches: partial words, IDs like "C011", CAS substrings, supplier names, remarks
-        const escapedSearch = trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const orConditions = [
+        { id: { $regex: escapedSearch, $options: 'i' } },
+        { name: { $regex: escapedSearch, $options: 'i' } },
+        { cas_number: { $regex: escapedSearch, $options: 'i' } },
+        { formula: { $regex: escapedSearch, $options: 'i' } }
+      ];
+
+      // If it's a valid search term, also try text search
+      try {
+        const fullTextQuery = { ...baseQuery, $text: { $search: trimmed } };
+        const textResults = await Chemical.find(fullTextQuery).limit(l);
+        if (textResults.length > 0) {
+          // If text search works, we use it as the primary strategy but fallback if needed
+          chemicals = await Chemical
+            .find(fullTextQuery, { score: { $meta: 'textScore' } })
+            .sort({ score: { $meta: 'textScore' } })
+            .skip(skip)
+            .limit(l);
+          total = await Chemical.countDocuments(fullTextQuery);
+          searchMode = 'fulltext';
+          
+          // Check if the exact ID we are looking for is in the results
+          if (!chemicals.some(c => c.id.toLowerCase() === trimmed.toLowerCase())) {
+             const exactIdChem = await Chemical.findOne({ ...baseQuery, id: trimmed.toUpperCase() });
+             if (exactIdChem) {
+                chemicals = [exactIdChem, ...chemicals.filter(c => c.id !== exactIdChem.id)].slice(0, l);
+                total += 1;
+             }
+          }
+        } else {
+          throw new Error("No text results");
+        }
+      } catch (e) {
+        // Fallback to regex for everything
         const regexQuery = {
           ...baseQuery,
           $or: [
+            { id: { $regex: escapedSearch, $options: 'i' } },
             { name: { $regex: escapedSearch, $options: 'i' } },
             { iupac_name: { $regex: escapedSearch, $options: 'i' } },
             { cas_number: { $regex: escapedSearch, $options: 'i' } },
-            { id: { $regex: escapedSearch, $options: 'i' } },
             { formula: { $regex: escapedSearch, $options: 'i' } },
             { supplier: { $regex: escapedSearch, $options: 'i' } },
             { batch_number: { $regex: escapedSearch, $options: 'i' } },
