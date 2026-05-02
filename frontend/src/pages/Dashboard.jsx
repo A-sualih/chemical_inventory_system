@@ -394,15 +394,21 @@ const Dashboard = () => {
               <p className="text-primary-100 text-sm font-medium leading-relaxed mb-8">All personnel must verify SDS documentation before container opening.</p>
               <div className="space-y-3">
                  <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl text-xs font-bold border border-white/5 truncate">
-                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center p-1"><img src="/icons/scale.svg" alt="Scale" className="w-full h-full select-none invert" draggable="false" /></span>
+                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center p-1">
+                     <svg className="w-full h-full text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>
+                   </span>
                    HazMat Guidelines 2026
                  </div>
                  <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl text-xs font-bold border border-white/5 truncate">
-                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center p-1"><img src="/icons/flask.svg" alt="Flask" className="w-full h-full select-none invert" draggable="false" /></span>
+                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center p-1">
+                     <svg className="w-full h-full text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" /></svg>
+                   </span>
                    Spill Kit Locations Map
                  </div>
                  <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl text-xs font-bold border border-white/5 truncate">
-                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center p-1"><img src="/icons/flame.svg" alt="Flame" className="w-full h-full select-none invert" draggable="false" /></span>
+                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center p-1">
+                     <svg className="w-full h-full text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.55,11.2C17.42,10.6 17.22,10.06 16.94,9.57C16.36,8.56 15.5,7.74 14.5,7.11C15.2,8.87 14.3,10.45 13.5,11.3C13.2,11.62 12.86,11.9 12.5,12.11C11.5,12.7 10.32,12.94 9.2,12.83C7.54,12.67 6.13,11.85 5.31,10.63C5.11,11.23 5,11.87 5,12.54C5,16.4 8.13,19.54 12,19.54C15.87,19.54 19,16.4 19,12.54C19,12.08 18.96,11.64 18.87,11.21C18.84,11.2 18.8,11.21 18.77,11.21C18.36,11.21 17.95,11.21 17.55,11.21V11.2M12,2C12,2 12,5 10,7C10,7 13.5,5.5 14,9C14,9 16,8 16,11C16,11 19,10 17,5C17,5 20,9 17,14C17,14 18,11 15,10C15,10 16,13 13,15C13,15 15,14 14,11C14,11 12,12 11,10C11,10 12,14 8,15C8,15 11,14 10,11C10,11 9,13 7,13C7,13 8,11 7,9C7,9 5,11 5,14C5,14 6,10 10,8C10,8 9,7 10,5C10,5 11,6 12,2Z" /></svg>
+                   </span>
                    Emergency Extraction Plan
                  </div>
               </div>

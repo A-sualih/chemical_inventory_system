@@ -227,7 +227,7 @@ const LocationManager = () => {
                return (
                  <div 
                    key={loc._id}
-                   style={{ left: `${loc.x}%`, top: `${loc.y}%`, position: 'absolute' }}
+                   style={{ left: `${loc.x || 0}%`, top: `${loc.y || 0}%`, position: 'absolute' }}
                    className={`w-40 bg-white rounded-2xl border-2 shadow-xl p-3 cursor-pointer group hover:scale-105 hover:z-10 transition-all ${colors.bg.split(' ')[1]} ${colors.bg.split(' ')[0]}`}
                    onClick={() => isAdmin && openEdit(loc)}
                  >
