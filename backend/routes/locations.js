@@ -15,8 +15,21 @@ router.get('/', authenticate, async (req, res) => {
     if (room) query.room = room;
     if (cabinet) query.cabinet = cabinet;
 
-    const locations = await Location.find(query).sort({ building: 1, room: 1, cabinet: 1, shelf: 1 });
-    res.json(locations);
+    const locations = await Location.find(query).sort({ building: 1, room: 1, cabinet: 1, shelf: 1 }).lean();
+    
+    // Add dynamic current_load for each location
+    const locationsWithLoad = await Promise.all(locations.map(async (loc) => {
+      const chemCount = await Chemical.countDocuments({
+        building: loc.building,
+        room: loc.room,
+        cabinet: loc.cabinet,
+        shelf: loc.shelf,
+        archived: false
+      });
+      return { ...loc, current_load: chemCount };
+    }));
+
+    res.json(locationsWithLoad);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch locations' });
   }
@@ -78,7 +91,7 @@ router.get('/:id', authenticate, async (req, res) => {
 // POST create new location
 router.post('/', authenticate, authorize(PERMISSIONS.MANAGE_SETTINGS), async (req, res) => {
   try {
-    const { building, room, cabinet, shelf, capacity, safety_warnings, notes } = req.body;
+    const { building, room, cabinet, shelf, capacity, x, y, safety_warnings, notes } = req.body;
 
     if (!building || !room || !cabinet || !shelf) {
       return res.status(400).json({ error: 'Building, Room, Cabinet and Shelf are required.' });
@@ -89,7 +102,17 @@ router.post('/', authenticate, authorize(PERMISSIONS.MANAGE_SETTINGS), async (re
       return res.status(409).json({ error: `Location ${building}/${room}/${cabinet}/Shelf-${shelf} already exists.` });
     }
 
-    const location = await Location.create({ building, room, cabinet, shelf, capacity: capacity || 50, safety_warnings, notes });
+    const location = await Location.create({ 
+      building, 
+      room, 
+      cabinet, 
+      shelf, 
+      capacity: capacity || 50, 
+      x: x || 0,
+      y: y || 0,
+      safety_warnings, 
+      notes 
+    });
 
     await logAudit(req, {
       action: 'CREATE',
@@ -109,10 +132,10 @@ router.post('/', authenticate, authorize(PERMISSIONS.MANAGE_SETTINGS), async (re
 // PUT update location
 router.put('/:id', authenticate, authorize(PERMISSIONS.MANAGE_SETTINGS), async (req, res) => {
   try {
-    const { capacity, safety_warnings, notes, isActive } = req.body;
+    const { capacity, x, y, safety_warnings, notes, isActive } = req.body;
     const location = await Location.findByIdAndUpdate(
       req.params.id,
-      { capacity, safety_warnings, notes, isActive },
+      { capacity, x, y, safety_warnings, notes, isActive },
       { new: true }
     );
     if (!location) return res.status(404).json({ error: 'Location not found' });

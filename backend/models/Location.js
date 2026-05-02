@@ -7,6 +7,8 @@ const locationSchema = new mongoose.Schema({
   shelf:    { type: String, required: true, trim: true },
   capacity:      { type: Number, default: 50 },  // max chemicals this shelf can hold
   current_load:  { type: Number, default: 0 },   // current chemical count
+  x: { type: Number, default: 0 }, // X coordinate for visual mapping
+  y: { type: Number, default: 0 }, // Y coordinate for visual mapping
   safety_warnings: { type: String, default: '' },
   notes:    { type: String, default: '' },
   isActive: { type: Boolean, default: true }

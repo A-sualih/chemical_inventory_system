@@ -15,8 +15,9 @@ const LocationManager = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [filterBuilding, setFilterBuilding] = useState("");
+  const [viewMode, setViewMode] = useState("list"); // "list" or "map"
 
-  const emptyForm = { building: "", room: "", cabinet: "", shelf: "", capacity: 20, safety_warnings: "", notes: "" };
+  const emptyForm = { building: "", room: "", cabinet: "", shelf: "", capacity: 20, x: 0, y: 0, safety_warnings: "", notes: "" };
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -47,7 +48,17 @@ const LocationManager = () => {
 
   const openCreate = () => { setForm(emptyForm); setEditingLoc(null); setFormError(""); setShowForm(true); };
   const openEdit = (loc) => {
-    setForm({ building: loc.building, room: loc.room, cabinet: loc.cabinet, shelf: loc.shelf, capacity: loc.capacity, safety_warnings: loc.safety_warnings || "", notes: loc.notes || "" });
+    setForm({ 
+      building: loc.building, 
+      room: loc.room, 
+      cabinet: loc.cabinet, 
+      shelf: loc.shelf, 
+      capacity: loc.capacity, 
+      x: loc.x || 0,
+      y: loc.y || 0,
+      safety_warnings: loc.safety_warnings || "", 
+      notes: loc.notes || "" 
+    });
     setEditingLoc(loc);
     setFormError("");
     setShowForm(true);
@@ -62,7 +73,13 @@ const LocationManager = () => {
     setSaving(true);
     try {
       if (editingLoc) {
-        await axios.put(`/api/locations/${editingLoc._id}`, { capacity: form.capacity, safety_warnings: form.safety_warnings, notes: form.notes });
+        await axios.put(`/api/locations/${editingLoc._id}`, { 
+          capacity: form.capacity, 
+          x: form.x,
+          y: form.y,
+          safety_warnings: form.safety_warnings, 
+          notes: form.notes 
+        });
         setSuccess("Location updated successfully.");
       } else {
         await axios.post("/api/locations", form);
@@ -108,6 +125,22 @@ const LocationManager = () => {
         </div>
         <div className="flex gap-3 flex-wrap">
           {/* Building filter */}
+          {/* View Toggle */}
+          <div className="flex bg-secondary-100 rounded-2xl p-1 shadow-inner">
+            <button 
+              onClick={() => setViewMode("list")} 
+              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${viewMode === "list" ? "bg-white text-primary-600 shadow-sm" : "text-secondary-500 hover:text-secondary-700"}`}
+            >
+              List
+            </button>
+            <button 
+              onClick={() => setViewMode("map")} 
+              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${viewMode === "map" ? "bg-white text-primary-600 shadow-sm" : "text-secondary-500 hover:text-secondary-700"}`}
+            >
+              Visual Map
+            </button>
+          </div>
+
           <select value={filterBuilding} onChange={e => setFilterBuilding(e.target.value)} className="px-4 py-2.5 rounded-2xl border border-secondary-200 bg-white text-sm font-bold text-secondary-600 shadow-sm">
             <option value="">All Buildings</option>
             {buildings.map(b => <option key={b} value={b}>{b}</option>)}
@@ -128,10 +161,18 @@ const LocationManager = () => {
       {/* Stats bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         {[
-          { label: "Total Slots", value: locations.length, icon: <img src="/icons/box.svg" alt="Total Slots" className="w-6 h-6 select-none" draggable="false" /> },
-          { label: "Buildings", value: buildings.length, icon: <img src="/icons/building.svg" alt="Buildings" className="w-6 h-6 select-none" draggable="false" /> },
-          { label: "Rooms", value: [...new Set(locations.map(l => `${l.building}-${l.room}`))].length, icon: <img src="/icons/door.svg" alt="Rooms" className="w-6 h-6 select-none" draggable="false" /> },
-          { label: "Cabinets", value: [...new Set(locations.map(l => `${l.building}-${l.room}-${l.cabinet}`))].length, icon: <img src="/icons/cabinet.svg" alt="Cabinets" className="w-6 h-6 select-none" draggable="false" /> },
+          { label: "Total Slots", value: locations.length, icon: (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+          ) },
+          { label: "Buildings", value: buildings.length, icon: (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+          ) },
+          { label: "Rooms", value: [...new Set(locations.map(l => `${l.building}-${l.room}`))].length, icon: (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+          ) },
+          { label: "Cabinets", value: [...new Set(locations.map(l => `${l.building}-${l.room}-${l.cabinet}`))].length, icon: (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+          ) },
         ].map(stat => (
           <div key={stat.label} className="bg-white rounded-2xl border border-secondary-100 p-4 shadow-sm flex items-center gap-3">
             <span className="text-2xl">{stat.icon}</span>
@@ -151,11 +192,59 @@ const LocationManager = () => {
       ) : locations.length === 0 ? (
         <div className="bg-white rounded-[2rem] border border-secondary-100 shadow-xl py-24 text-center">
           <div className="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4">
-             <img src="/icons/empty-location.svg" alt="No locations" className="w-10 h-10 select-none" draggable="false" />
+             <svg className="w-10 h-10 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
           </div>
           <h3 className="text-xl font-black text-secondary-900 mb-2">No Locations Configured</h3>
           <p className="text-secondary-500 font-medium mb-6">Add your first storage location to enable smart dropdowns in the Chemical Form.</p>
           {isAdmin && <button onClick={openCreate} className="bg-primary-600 text-white px-8 py-3 rounded-2xl font-bold shadow-xl shadow-primary-600/20">Add First Location</button>}
+        </div>
+      ) : viewMode === "map" ? (
+        <div className="bg-white rounded-[2.5rem] border border-secondary-100 shadow-xl p-8 min-h-[600px] relative overflow-auto">
+          <div className="absolute top-6 right-8 flex items-center gap-4">
+             <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                <span className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest">Available</span>
+             </div>
+             <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-amber-400"></div>
+                <span className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest">Near Full</span>
+             </div>
+             <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <span className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest">Full</span>
+             </div>
+          </div>
+
+          <h3 className="text-xl font-black text-secondary-900 mb-8 flex items-center gap-2">
+            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            Visual Storage Layout
+          </h3>
+
+          <div className="relative border-2 border-dashed border-secondary-200 rounded-[2rem] bg-secondary-50/30 p-12 min-w-[800px] min-h-[500px]">
+             {locations.map(loc => {
+               const colors = getCapacityColor(loc.current_load, loc.capacity);
+               const pct = loc.capacity > 0 ? Math.round((loc.current_load / loc.capacity) * 100) : 0;
+               return (
+                 <div 
+                   key={loc._id}
+                   style={{ left: `${loc.x}%`, top: `${loc.y}%`, position: 'absolute' }}
+                   className={`w-40 bg-white rounded-2xl border-2 shadow-xl p-3 cursor-pointer group hover:scale-105 hover:z-10 transition-all ${colors.bg.split(' ')[1]} ${colors.bg.split(' ')[0]}`}
+                   onClick={() => isAdmin && openEdit(loc)}
+                 >
+                   <div className="flex justify-between items-start mb-2">
+                     <span className={`text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded ${colors.bg.split(' ')[0]} ${colors.text}`}>Shelf {loc.shelf}</span>
+                     <span className={`text-[10px] font-black ${colors.text}`}>{pct}%</span>
+                   </div>
+                   <div className="text-[11px] font-bold text-secondary-900 truncate mb-1">{loc.cabinet}</div>
+                   <div className="text-[9px] font-medium text-secondary-500 truncate">{loc.building} • {loc.room}</div>
+                   <div className="mt-2 h-1 w-full bg-secondary-100 rounded-full overflow-hidden">
+                      <div className={`h-full transition-all ${colors.bar}`} style={{ width: `${pct}%` }}></div>
+                   </div>
+                 </div>
+               );
+             })}
+          </div>
+          <p className="mt-8 text-center text-secondary-400 text-xs font-medium italic">Locations are positioned based on their X/Y coordinates defined in settings.</p>
         </div>
       ) : (
         <div className="space-y-8">
@@ -190,7 +279,7 @@ const LocationManager = () => {
                         </div>
                         {(loc.safety_warnings || loc.notes) && (
                           <div className="mt-1 text-xs text-secondary-500 truncate flex items-center gap-1">
-                            {loc.safety_warnings && <span className="text-amber-600 font-semibold mr-2 flex items-center gap-1"><img src="/icons/warning.svg" alt="Warning" className="w-3.5 h-3.5 select-none" draggable="false" />{loc.safety_warnings}</span>}
+                            {loc.safety_warnings && <span className="text-amber-600 font-semibold mr-2 flex items-center gap-1"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>{loc.safety_warnings}</span>}
                             {loc.notes && <span>{loc.notes}</span>}
                           </div>
                         )}
@@ -263,10 +352,20 @@ const LocationManager = () => {
                   <input type="text" value={form.shelf} onChange={e => setForm({ ...form, shelf: e.target.value })} disabled={!!editingLoc} placeholder="e.g. 1" className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-primary-400" required />
                 </div>
               </div>
-              {/* Capacity */}
-              <div>
-                <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-1.5 block">Max Capacity (chemicals)</label>
-                <input type="number" min="1" value={form.capacity} onChange={e => setForm({ ...form, capacity: Number(e.target.value) })} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-bold text-primary-700 focus:outline-none focus:border-primary-400" />
+              {/* Capacity & Coordinates */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-1.5 block">Max Capacity</label>
+                  <input type="number" min="1" value={form.capacity} onChange={e => setForm({ ...form, capacity: Number(e.target.value) })} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-bold text-primary-700 focus:outline-none focus:border-primary-400" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-1.5 block">X Coord (%)</label>
+                  <input type="number" min="0" max="100" value={form.x} onChange={e => setForm({ ...form, x: Number(e.target.value) })} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-bold text-secondary-700 focus:outline-none focus:border-primary-400" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-1.5 block">Y Coord (%)</label>
+                  <input type="number" min="0" max="100" value={form.y} onChange={e => setForm({ ...form, y: Number(e.target.value) })} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-bold text-secondary-700 focus:outline-none focus:border-primary-400" />
+                </div>
               </div>
               {/* Safety warnings */}
               <div>

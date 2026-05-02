@@ -143,6 +143,18 @@ router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), a
     let usedContainersLog = [];
 
     if (action === 'IN') {
+      // Capacity Check
+      if (building && room && cabinet && shelf) {
+        const Location = require('../models/Location');
+        const locationDef = await Location.findOne({ building, room, cabinet, shelf, isActive: true });
+        if (locationDef) {
+          const currentCount = await Chemical.countDocuments({ building, room, cabinet, shelf, archived: false });
+          if (currentCount >= locationDef.capacity) {
+            return res.status(400).json({ error: `Storage Capacity Reached: This slot (${building}/${room}/${cabinet}/Shelf-${shelf}) is full.` });
+          }
+        }
+      }
+
       // If adding a NEW batch or to a DIFFERENT location, create a new record for traceability
       const isNewBatch = batch && (batch !== chem.batch_number);
       const isNewLocation = building && (building !== chem.building || room !== chem.room || cabinet !== chem.cabinet || shelf !== chem.shelf);
@@ -316,6 +328,30 @@ router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), a
 
     } else if (action === 'TRANSFER') {
       if (!to_building && !new_location) return res.status(400).json({ error: "Destination location is required for transfer" });
+      
+      // Capacity Check
+      if (to_building && to_room && to_cabinet && to_shelf) {
+        const Location = require('../models/Location');
+        const locationDef = await Location.findOne({ 
+          building: to_building, 
+          room: to_room, 
+          cabinet: to_cabinet, 
+          shelf: to_shelf, 
+          isActive: true 
+        });
+        if (locationDef) {
+          const currentCount = await Chemical.countDocuments({ 
+            building: to_building, 
+            room: to_room, 
+            cabinet: to_cabinet, 
+            shelf: to_shelf, 
+            archived: false 
+          });
+          if (currentCount >= locationDef.capacity) {
+            return res.status(400).json({ error: `Storage Capacity Reached: Destination slot is full.` });
+          }
+        }
+      }
       
       // Validate transfer quantity
       if (changeInBase > (chem.base_quantity + 0.0001)) {
