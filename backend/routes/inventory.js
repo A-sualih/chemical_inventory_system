@@ -647,4 +647,110 @@ router.post('/fifo-usage', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), as
   }
 });
 
+// Quick Scan Action (Fast Check-In/Check-Out)
+router.post('/quick-scan', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), async (req, res) => {
+  const { chemical_id, action } = req.body; // action: 'IN' or 'OUT'
+  const user_id = req.user.id;
+  const user_name = req.user.name;
+  const user_role = req.user.role;
+
+  try {
+    const chem = await Chemical.findOne({ id: chemical_id });
+    if (!chem) return res.status(404).json({ error: 'Chemical not found' });
+
+    // Use quantity_per_container as default step, or 1 if not defined
+    const qtyToChange = chem.quantity_per_container || 1;
+    const txUnit = chem.unit;
+    const changeInBase = convertToBase(qtyToChange, txUnit);
+
+    if (action === 'OUT') {
+      if (chem.base_quantity < changeInBase) {
+        return res.status(400).json({ error: `Insufficient stock for quick check-out. Available: ${chem.quantity} ${chem.unit}` });
+      }
+
+      // Check for expiry safety if applicable to latest batch
+      const latestBatch = await Batch.findOne({ chemical_id: chem.id }).sort({ createdAt: -1 });
+      if (latestBatch && latestBatch.status === 'Expired') {
+        return res.status(403).json({ error: "SAFETY ALERT: Latest batch is expired. Use manual disposal protocol." });
+      }
+
+      // Simple deduction for Quick Scan (not forcing specific container)
+      chem.base_quantity -= changeInBase;
+      chem.quantity = convertFromBase(chem.base_quantity, chem.unit);
+      chem.status = chem.quantity <= 0 ? 'Out of Stock' : (chem.quantity < 5 ? 'Low Stock' : 'In Use');
+      
+      await chem.save();
+
+      // Log the transaction
+      const log = new InventoryLog({
+        chemical_id: chem.id,
+        chemical_name: chem.name,
+        user_id,
+        user_name,
+        user_role,
+        action: 'OUT',
+        quantity_change: qtyToChange,
+        unit: txUnit,
+        reason: 'Quick Scan Check-Out',
+        batch_number: chem.batch_number,
+        location: chem.location
+      });
+      await log.save();
+
+      await logAudit(req, {
+        action: 'TRANSFER',
+        targetType: 'stock',
+        targetId: chem.id,
+        targetName: chem.name,
+        details: `Quick Scan Check-Out: ${qtyToChange} ${txUnit} deducted.`
+      });
+
+    } else if (action === 'IN') {
+      chem.base_quantity += changeInBase;
+      chem.quantity = convertFromBase(chem.base_quantity, chem.unit);
+      chem.status = chem.quantity >= 5 ? 'In Stock' : 'Low Stock';
+      
+      await chem.save();
+
+      // Log the transaction
+      const log = new InventoryLog({
+        chemical_id: chem.id,
+        chemical_name: chem.name,
+        user_id,
+        user_name,
+        user_role,
+        action: 'IN',
+        quantity_change: qtyToChange,
+        unit: txUnit,
+        reason: 'Quick Scan Check-In',
+        batch_number: chem.batch_number,
+        location: chem.location
+      });
+      await log.save();
+
+      await logAudit(req, {
+        action: 'CREATE',
+        targetType: 'stock',
+        targetId: chem.id,
+        targetName: chem.name,
+        details: `Quick Scan Check-In: ${qtyToChange} ${txUnit} added.`
+      });
+    } else {
+      return res.status(400).json({ error: 'Invalid quick-scan action' });
+    }
+
+    res.json({ 
+      message: `Successfully checked ${action === 'IN' ? 'in' : 'out'} ${qtyToChange} ${txUnit}`,
+      newQty: chem.quantity,
+      unit: chem.unit,
+      chemicalName: chem.name
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Quick scan failed' });
+  }
+});
+
 module.exports = router;
+
