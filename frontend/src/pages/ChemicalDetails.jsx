@@ -5,6 +5,8 @@ import axios from "axios";
 import HazardBadge from "../components/HazardBadge";
 import QRCodeLib from "react-qr-code";
 const QRCode = QRCodeLib.default || QRCodeLib;
+import NFPADiamond from "../components/NFPADiamond";
+import { Shield, AlertTriangle, Zap, LifeBuoy, Info } from 'lucide-react';
 
 const ChemicalDetails = () => {
   const { id } = useParams();
@@ -109,25 +111,67 @@ const ChemicalDetails = () => {
               {/* Hazards Panel */}
               <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-secondary-100">
                  <h3 className="text-xs font-black uppercase tracking-widest text-secondary-400 mb-4 flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    <AlertTriangle className="w-4 h-4 text-orange-500" />
                     Safety Protocols
                  </h3>
+                 
+                 {chemical.ghs_hazards?.signal_word && chemical.ghs_hazards.signal_word !== 'None' && (
+                   <div className={`mb-4 py-2 px-4 rounded-xl text-center font-black uppercase tracking-widest text-sm shadow-md ${chemical.ghs_hazards.signal_word === 'Danger' ? 'bg-red-600 text-white animate-pulse' : 'bg-orange-500 text-white'}`}>
+                     {chemical.ghs_hazards.signal_word}
+                   </div>
+                 )}
+
                  {chemical.ghs_classes && chemical.ghs_classes.length > 0 ? (
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3 mb-6">
                        <HazardBadge hazards={chemical.ghs_classes} showLabels={true} size="md" />
                     </div>
                  ) : (
-                    <div className="bg-green-50 text-green-700 p-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-center border border-green-100">
+                    <div className="bg-green-50 text-green-700 p-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-center border border-green-100 mb-6">
                        No Active Hazards Filed
                     </div>
                  )}
+
+                 <div className="flex justify-center mb-6">
+                   <NFPADiamond ratings={chemical.nfpa_rating} size="sm" />
+                 </div>
+
+                 {chemical.ppe_requirements?.length > 0 && (
+                   <div className="mb-6">
+                     <p className="text-[10px] font-black uppercase text-secondary-400 mb-2">Required PPE</p>
+                     <div className="flex flex-wrap gap-1">
+                       {chemical.ppe_requirements.map(ppe => (
+                         <span key={ppe} className="px-2 py-1 bg-secondary-100 text-secondary-700 rounded-md text-[9px] font-bold uppercase">{ppe}</span>
+                       ))}
+                     </div>
+                   </div>
+                 )}
+
                  {chemical.sds_attached && (
                     <a href={chemical.sds_file_url} target="_blank" rel="noopener noreferrer" className="mt-4 flex items-center justify-center gap-2 w-full py-3 bg-secondary-900 text-white rounded-xl text-xs font-bold shadow-md hover:bg-black transition-all">
                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                        View SDS Document
                     </a>
                  )}
+
+                 <a href={`/api/safety/export-sds/${chemical.id}`} target="_blank" rel="noopener noreferrer" className="mt-4 flex items-center justify-center gap-2 w-full py-3 bg-primary-600 text-white rounded-xl text-xs font-bold shadow-md hover:bg-primary-700 transition-all">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    Export Formal SDS (PDF)
+                 </a>
               </div>
+
+              {/* Access Control */}
+              {(chemical.restricted_access || chemical.training_required) && (
+                <div className="bg-orange-50 border border-orange-200 p-6 rounded-[2rem] shadow-sm">
+                  <h3 className="text-xs font-black uppercase tracking-widest text-orange-700 mb-3 flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    Access Control
+                  </h3>
+                  <ul className="space-y-2">
+                    {chemical.restricted_access && <li className="text-[10px] font-bold text-orange-800 uppercase flex items-center gap-2"><div className="w-1.5 h-1.5 bg-orange-600 rounded-full"></div> Restricted Access Area</li>}
+                    {chemical.training_required && <li className="text-[10px] font-bold text-orange-800 uppercase flex items-center gap-2"><div className="w-1.5 h-1.5 bg-orange-600 rounded-full"></div> Safety Training Required</li>}
+                  </ul>
+                </div>
+              )}
 
            </div>
 
@@ -161,69 +205,84 @@ const ChemicalDetails = () => {
                  </div>
               </div>
 
-              {/* Data Table Matrix */}
+              {/* Emergency Response section */}
               <div className="bg-white rounded-[2rem] shadow-sm border border-secondary-100 overflow-hidden">
-                 <div className="p-6 border-b border-secondary-50 bg-secondary-50/30">
-                    <h3 className="text-sm font-black uppercase tracking-widest text-secondary-900 flex items-center gap-2">
-                       <svg className="w-5 h-5 text-secondary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-                       Physical Properties Matrix
+                 <div className="p-6 border-b border-secondary-50 bg-red-50/20">
+                    <h3 className="text-sm font-black uppercase tracking-widest text-red-700 flex items-center gap-2">
+                       <LifeBuoy className="w-5 h-5" />
+                       Emergency Response Protocol
                     </h3>
                  </div>
-                 <div className="p-0">
-                    <table className="w-full text-left">
-                       <tbody className="divide-y divide-secondary-100/50">
-                          <tr className="hover:bg-secondary-50 transition-colors">
-                             <th className="py-4 px-6 text-xs font-black text-secondary-400 uppercase tracking-widest w-1/3">State</th>
-                             <td className="py-4 px-6 text-sm font-bold text-secondary-900">{chemical.state || '-'}</td>
-                          </tr>
-                          <tr className="hover:bg-secondary-50 transition-colors">
-                             <th className="py-4 px-6 text-xs font-black text-secondary-400 uppercase tracking-widest">Purity</th>
-                             <td className="py-4 px-6 text-sm font-bold text-secondary-900">{chemical.purity || '-'}</td>
-                          </tr>
-                          <tr className="hover:bg-secondary-50 transition-colors">
-                             <th className="py-4 px-6 text-xs font-black text-secondary-400 uppercase tracking-widest">Storage Temp</th>
-                             <td className="py-4 px-6 text-sm font-bold text-secondary-900">{chemical.storage_temp ? `${chemical.storage_temp}°C` : '-'}</td>
-                          </tr>
-                          <tr className="hover:bg-secondary-50 transition-colors">
-                             <th className="py-4 px-6 text-xs font-black text-secondary-400 uppercase tracking-widest">Container Metric</th>
-                             <td className="py-4 px-6 text-sm font-bold text-secondary-900">{chemical.num_containers || 1} x {chemical.quantity_per_container || 0} {chemical.unit}</td>
-                          </tr>
-                       </tbody>
-                    </table>
+                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                       <p className="text-[10px] font-black uppercase text-secondary-400 mb-2">First Aid Measures</p>
+                       <p className="text-sm text-secondary-700 font-medium leading-relaxed bg-secondary-50 p-4 rounded-2xl border border-secondary-100">{chemical.emergency_response?.first_aid || chemical.emergency_instructions || 'Consult SDS for immediate first aid protocol.'}</p>
+                    </div>
+                    <div>
+                       <p className="text-[10px] font-black uppercase text-secondary-400 mb-2">Spill Response</p>
+                       <p className="text-sm text-secondary-700 font-medium leading-relaxed bg-secondary-50 p-4 rounded-2xl border border-secondary-100">{chemical.emergency_response?.neutralization || chemical.spill_instructions || 'Evacuate area and consult safety officer.'}</p>
+                    </div>
+                 </div>
+                 <div className="px-6 pb-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                       <p className="text-[10px] font-black uppercase text-secondary-400 mb-2">Hazard Statements</p>
+                       <div className="flex flex-wrap gap-1">
+                         {chemical.ghs_hazards?.h_codes?.map(code => (
+                           <span key={code} className="px-2 py-1 bg-red-100 text-red-700 rounded-md text-[10px] font-black">{code}</span>
+                         )) || <span className="text-xs text-secondary-400 italic">No H-codes assigned</span>}
+                       </div>
+                    </div>
+                    <div>
+                       <p className="text-[10px] font-black uppercase text-secondary-400 mb-2">Precautionary Statements</p>
+                       <div className="flex flex-wrap gap-1">
+                         {chemical.ghs_hazards?.p_codes?.map(code => (
+                           <span key={code} className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-[10px] font-black">{code}</span>
+                         )) || <span className="text-xs text-secondary-400 italic">No P-codes assigned</span>}
+                       </div>
+                    </div>
                  </div>
               </div>
 
-              {/* Lifecycle Matrix */}
+              {/* Exposure Matrix */}
               <div className="bg-white rounded-[2rem] shadow-sm border border-secondary-100 overflow-hidden">
                  <div className="p-6 border-b border-secondary-50 bg-secondary-50/30">
                     <h3 className="text-sm font-black uppercase tracking-widest text-secondary-900 flex items-center gap-2">
-                       <svg className="w-5 h-5 text-secondary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                       Lifecycle & Lineage
-                    </h3>
-                 </div>
-                 <div className="p-0">
-                    <table className="w-full text-left">
-                       <tbody className="divide-y divide-secondary-100/50">
-                          <tr className="hover:bg-secondary-50 transition-colors">
-                             <th className="py-4 px-6 text-xs font-black text-secondary-400 uppercase tracking-widest w-1/3">Batch Number</th>
-                             <td className="py-4 px-6 text-sm font-bold font-mono text-secondary-900">{chemical.batch_number || 'NO-BATCH'}</td>
-                          </tr>
-                          <tr className="hover:bg-secondary-50 transition-colors">
-                             <th className="py-4 px-6 text-xs font-black text-secondary-400 uppercase tracking-widest">Supplier</th>
-                             <td className="py-4 px-6 text-sm font-bold text-secondary-900">{chemical.supplier || '-'}</td>
-                          </tr>
-                          <tr className="hover:bg-secondary-50 transition-colors">
-                             <th className="py-4 px-6 text-xs font-black text-secondary-400 uppercase tracking-widest">Date MFD</th>
-                             <td className="py-4 px-6 text-sm font-bold text-secondary-900">{chemical.manufacturing_date ? new Date(chemical.manufacturing_date).toISOString().split('T')[0] : '-'}</td>
-                          </tr>
-                          <tr className="hover:bg-secondary-50 transition-colors">
-                             <th className="py-4 px-6 text-xs font-black text-red-400 uppercase tracking-widest">Date Expiry</th>
-                             <td className="py-4 px-6 text-sm font-bold text-red-500 bg-red-50/50">{chemical.expiry_date ? new Date(chemical.expiry_date).toISOString().split('T')[0] : '-'}</td>
-                          </tr>
-                       </tbody>
-                    </table>
-                 </div>
-              </div>
+                       <Zap className="w-5 h-5 text-yellow-500" />
+                       Exposure Risk Management
+                     </h3>
+                  </div>
+                  <div className="p-0">
+                     <table className="w-full text-left">
+                        <tbody className="divide-y divide-secondary-100/50">
+                           <tr className="hover:bg-secondary-50 transition-colors">
+                              <th className="py-4 px-6 text-xs font-black text-secondary-400 uppercase tracking-widest w-1/3">Risk Level</th>
+                              <td className="py-4 px-6 text-sm font-black">
+                                <span className={`px-3 py-1 rounded-full uppercase tracking-widest text-[10px] ${
+                                  chemical.exposure_details?.risk_level === 'Extreme' ? 'bg-red-600 text-white' :
+                                  chemical.exposure_details?.risk_level === 'High' ? 'bg-orange-500 text-white' :
+                                  chemical.exposure_details?.risk_level === 'Medium' ? 'bg-yellow-400 text-secondary-900' :
+                                  'bg-green-500 text-white'
+                                }`}>{chemical.exposure_details?.risk_level || 'Low'}</span>
+                              </td>
+                           </tr>
+                           <tr className="hover:bg-secondary-50 transition-colors">
+                              <th className="py-4 px-6 text-xs font-black text-secondary-400 uppercase tracking-widest">Health Indicators</th>
+                              <td className="py-4 px-6 text-sm font-bold flex gap-2">
+                                {chemical.exposure_details?.carcinogenic && <span className="text-red-600 border border-red-200 bg-red-50 px-2 py-0.5 rounded text-[9px] uppercase">Carcinogenic</span>}
+                                {chemical.exposure_details?.mutagenic && <span className="text-purple-600 border border-purple-200 bg-purple-50 px-2 py-0.5 rounded text-[9px] uppercase">Mutagenic</span>}
+                                {!chemical.exposure_details?.carcinogenic && !chemical.exposure_details?.mutagenic && <span className="text-secondary-400">No CMR indicators</span>}
+                              </td>
+                           </tr>
+                           <tr className="hover:bg-secondary-50 transition-colors">
+                              <th className="py-4 px-6 text-xs font-black text-secondary-400 uppercase tracking-widest">Infrastructure Req.</th>
+                              <td className="py-4 px-6 text-sm font-bold text-secondary-900">
+                                {chemical.exposure_details?.fume_hood_required ? '⚠️ Fume Hood Mandatory' : 'Standard Ventilation'}
+                              </td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
 
            </div>
 

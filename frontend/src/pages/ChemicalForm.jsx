@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import QRCodeLib from "react-qr-code";
 const QRCode = QRCodeLib.default || QRCodeLib;
 import axios from "axios";
-import { HAZARD_CLASSES } from "../constants/hazards.jsx";
+import { HAZARD_CLASSES, PPE_OPTIONS, NFPA_RATINGS, EXPOSURE_RISKS } from "../constants/hazards.jsx";
 
 const ChemicalForm = ({ initialData, onClose, onSave }) => {
   const [formData, setFormData] = useState(initialData ? {
@@ -35,7 +35,17 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     sds_file_url: initialData.sds_file_url || "",
     sds_attached: initialData.sds_attached === 1 || initialData.sds_attached === true,
     ghs_classes: initialData.ghs_classes || [],
-    threshold: initialData.threshold || 5
+    threshold: initialData.threshold || 5,
+    // Advanced Safety Fields
+    ghs_hazards: initialData.ghs_hazards || { categories: [], signal_word: 'None', h_codes: [], p_codes: [], pictograms: [] },
+    nfpa_rating: initialData.nfpa_rating || { health: 0, flammability: 0, reactivity: 0, special: "" },
+    hazard_summary: initialData.hazard_summary || { health: false, physical: false, environmental: false },
+    ppe_requirements: initialData.ppe_requirements || [],
+    incompatibility: initialData.incompatibility || [],
+    emergency_response: initialData.emergency_response || { first_aid: "", fire_response: "", evacuation: "", neutralization: "", shutdown_steps: "", contacts: [] },
+    exposure_details: initialData.exposure_details || { acute_toxicity: "", chronic_toxicity: "", carcinogenic: false, mutagenic: false, exposure_limits: "", risk_level: "Low", ventilation_required: false, fume_hood_required: false },
+    restricted_access: initialData.restricted_access || false,
+    training_required: initialData.training_required || false
   } : {
     name: "",
     iupac_name: "",
@@ -70,12 +80,23 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     emergency_instructions: "",
     exposure_risks: [],
     ghs_classes: [],
-    sds_attached: false
+    sds_attached: false,
+    // Advanced Safety Fields Defaults
+    ghs_hazards: { categories: [], signal_word: 'None', h_codes: [], p_codes: [], pictograms: [] },
+    nfpa_rating: { health: 0, flammability: 0, reactivity: 0, special: "" },
+    hazard_summary: { health: false, physical: false, environmental: false },
+    ppe_requirements: [],
+    incompatibility: [],
+    emergency_response: { first_aid: "", fire_response: "", evacuation: "", neutralization: "", shutdown_steps: "", contacts: [] },
+    exposure_details: { acute_toxicity: "", chronic_toxicity: "", carcinogenic: false, mutagenic: false, exposure_limits: "", risk_level: "Low", ventilation_required: false, fume_hood_required: false },
+    restricted_access: false,
+    training_required: false
   });
 
   const [errors, setErrors] = useState({});
   const [sdsFile, setSdsFile] = useState(null);
   const [qrCodeData, setQrCodeData] = useState("");
+  const [incompatibilityWarning, setIncompatibilityWarning] = useState(null);
 
   // Location hierarchy state
   const [locHierarchy, setLocHierarchy] = useState({ buildings: [], rooms: [], cabinets: [], shelves: [] });
@@ -110,6 +131,23 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
   }, [formData.cabinet]);
 
   useEffect(() => {
+    if (formData.building && formData.room && formData.cabinet && formData.shelf) {
+      const targetLoc = `${formData.building}-${formData.room}-${formData.cabinet}-${formData.shelf}`;
+      axios.get(`/api/safety/check-incompatibility/${targetLoc}`, { params: { chemicalId: initialData?.id } })
+        .then(res => {
+          if (res.data.incompatible) {
+            setIncompatibilityWarning(res.data);
+          } else {
+            setIncompatibilityWarning(null);
+          }
+        })
+        .catch(err => console.error("Incompatibility check failed", err));
+    } else {
+      setIncompatibilityWarning(null);
+    }
+  }, [formData.building, formData.room, formData.cabinet, formData.shelf]);
+
+  useEffect(() => {
     const liquidUnits = ['L', 'mL', 'uL'];
     const solidUnits = ['kg', 'g', 'mg'];
     
@@ -126,6 +164,23 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
       setFormData(prev => ({ ...prev, quantity: total }));
     }
   }, [formData.num_containers, formData.quantity_per_container]);
+
+  // UI Warning placement
+  const renderIncompatibilityWarning = () => {
+    if (!incompatibilityWarning) return null;
+    return (
+      <div className="mt-2 p-4 bg-orange-50 border border-orange-200 rounded-xl flex flex-col gap-2 animate-pulse">
+         <div className="flex items-center gap-2 text-orange-700">
+           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+           <span className="text-[10px] font-black uppercase tracking-widest">Incompatible Storage Conflict</span>
+         </div>
+         <p className="text-[10px] font-bold text-orange-600">
+           Storing this chemical here is <span className="font-black">Dangerous</span>. 
+           This shelf already contains <span className="underline">{incompatibilityWarning.conflicting_chemical}</span>.
+         </p>
+      </div>
+    );
+  };
 
   useEffect(() => {
     if (initialData && initialData.id) {
@@ -271,9 +326,11 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                e.preventDefault(); 
                const payload = new FormData();
                Object.keys(formData).forEach(k => {
-                 if (k === 'ghs_classes') payload.append('ghs_classes', JSON.stringify(formData.ghs_classes));
-                 else if (k === 'exposure_risks') payload.append('exposure_risks', JSON.stringify(formData.exposure_risks));
-                 else payload.append(k, formData[k]);
+                 if (['ghs_classes', 'exposure_risks', 'ghs_hazards', 'nfpa_rating', 'hazard_summary', 'ppe_requirements', 'incompatibility', 'emergency_response', 'exposure_details'].includes(k)) {
+                   payload.append(k, JSON.stringify(formData[k]));
+                 } else {
+                   payload.append(k, formData[k]);
+                 }
                });
                if (sdsFile) payload.append('sds_file', sdsFile);
                onSave(payload); 
@@ -514,6 +571,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="group col-span-2">
                            <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Combined Identifier (Auto)</label>
+{renderIncompatibilityWarning()}
                            <input type="text" readOnly value={formData.building ? `${formData.building}-${formData.room}-${formData.cabinet}-${formData.shelf}`.replace(/-+$/, '') : formData.location} className="w-full bg-secondary-100 border-transparent rounded-xl p-3 text-xs font-mono text-secondary-600" />
                         </div>
                         <div className="group">
@@ -568,53 +626,141 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                     <textarea value={formData.remarks} onChange={e => setFormData({...formData, remarks: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm h-24 resize-none" placeholder="Initial stock entry, handle with care..."></textarea>
                  </div>
                </section>
+                <section>
+                  <div className="flex items-center gap-3 mb-5">
+                     <div className="h-px bg-secondary-200 flex-1"></div>
+                     <div className="text-[10px] font-black text-red-600 uppercase tracking-widest">CRITICAL SAFETY & HAZARD DIRECTIVES</div>
+                     <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
+                  </div>
 
-               <section>
-                 <div className="flex items-center gap-3 mb-5">
-                    <div className="h-px bg-secondary-200 flex-1"></div>
-                    <div className="text-[10px] font-black text-red-600 uppercase tracking-widest">CRITICAL SAFETY & HAZARD DIRECTIVES</div>
-                    <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
-                 </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    {/* GHS Details */}
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest">GHS Signal Word</label>
+                        <div className="flex gap-2">
+                           {['None', 'Warning', 'Danger'].map(word => (
+                             <button key={word} type="button" onClick={() => setFormData({...formData, ghs_hazards: {...formData.ghs_hazards, signal_word: word}})} className={`px-3 py-1 text-[10px] font-black rounded-md border ${formData.ghs_hazards.signal_word === word ? 'bg-secondary-900 text-white border-secondary-900' : 'bg-white text-secondary-500 border-secondary-200'}`}>
+                               {word}
+                             </button>
+                           ))}
+                        </div>
+                      </div>
+                      <div className="group">
+                        <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block">H-Codes (Hazard Statements)</label>
+                        <input type="text" value={formData.ghs_hazards.h_codes.join(', ')} onChange={e => setFormData({...formData, ghs_hazards: {...formData.ghs_hazards, h_codes: e.target.value.split(',').map(s => s.trim()).filter(Boolean)}})} className="w-full bg-white border border-secondary-200 rounded-xl p-3 text-sm" placeholder="e.g. H225, H319" />
+                      </div>
+                      <div className="group">
+                        <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block">P-Codes (Precautionary)</label>
+                        <input type="text" value={formData.ghs_hazards.p_codes.join(', ')} onChange={e => setFormData({...formData, ghs_hazards: {...formData.ghs_hazards, p_codes: e.target.value.split(',').map(s => s.trim()).filter(Boolean)}})} className="w-full bg-white border border-secondary-200 rounded-xl p-3 text-sm" placeholder="e.g. P210, P280" />
+                      </div>
+                    </div>
 
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                   <div className="group">
-                     <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Chemical Family / Compatibility Class</label>
-                     <select value={formData.chemical_family} onChange={e => setFormData({...formData, chemical_family: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm cursor-pointer outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-400">
-                        <option value="General">General / Non-Reactive</option>
-                        <option value="Acid">Acid</option>
-                        <option value="Base">Base</option>
-                        <option value="Oxidizer">Oxidizer</option>
-                        <option value="Flammable">Flammable / Solvent</option>
-                        <option value="Reactive">Highly Reactive / Unstable</option>
-                     </select>
-                   </div>
-                   <div className="group">
-                     <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Exposure Risks (CMR / Special)</label>
-                     <div className="flex flex-wrap gap-2">
-                        {['Carcinogen', 'Mutagen', 'Teratogen', 'Sensitizer', 'Asphyxiant'].map(risk => (
-                           <button 
-                             key={risk} type="button" 
-                             onClick={() => setFormData(prev => ({...prev, exposure_risks: prev.exposure_risks.includes(risk) ? prev.exposure_risks.filter(r => r !== risk) : [...prev.exposure_risks, risk]}))}
-                             className={`px-3 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border ${formData.exposure_risks.includes(risk) ? 'bg-red-500 text-white border-red-500 shadow-md' : 'bg-white text-secondary-500 border-secondary-200 hover:border-red-300'}`}
-                           >
-                             {risk}
-                           </button>
-                        ))}
+                    {/* NFPA Diamond Logic */}
+                    <div className="bg-secondary-900 rounded-3xl p-6 text-white relative overflow-hidden">
+                       <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+                       <label className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-4 block">NFPA 704 Diamond Rating</label>
+                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                          {NFPA_RATINGS.map(rating => (
+                            <div key={rating.label} className="space-y-2">
+                               <label className={`text-[9px] font-bold uppercase ${
+                                 rating.color === 'red' ? 'text-red-400' : 
+                                 rating.color === 'blue' ? 'text-blue-400' : 
+                                 rating.color === 'yellow' ? 'text-yellow-400' : 'text-white'
+                               }`}>{rating.label}</label>
+                               
+                               {rating.label === 'Special' ? (
+                                 <select 
+                                   value={formData.nfpa_rating.special} 
+                                   onChange={e => setFormData({...formData, nfpa_rating: {...formData.nfpa_rating, special: e.target.value}})}
+                                   className="w-full bg-white/10 border border-white/20 rounded-xl p-2 text-xs font-bold focus:bg-white focus:text-secondary-900 transition-all outline-none"
+                                 >
+                                    {rating.options.map(opt => <option key={opt} value={opt}>{opt || "None"}</option>)}
+                                 </select>
+                               ) : (
+                                 <select 
+                                   value={formData.nfpa_rating[rating.label === 'Instability' ? 'reactivity' : rating.label.toLowerCase()]} 
+                                   onChange={e => {
+                                     const key = rating.label === 'Instability' ? 'reactivity' : rating.label.toLowerCase();
+                                     setFormData({...formData, nfpa_rating: {...formData.nfpa_rating, [key]: Number(e.target.value)}});
+                                   }}
+                                   className="w-full bg-white/10 border border-white/20 rounded-xl p-2 text-xs font-bold focus:bg-white focus:text-secondary-900 transition-all outline-none"
+                                 >
+                                    {[0,1,2,3,4].map(num => <option key={num} value={num}>{num} - {rating.levels[num]}</option>)}
+                                 </select>
+                               )}
+                            </div>
+                          ))}
+                       </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                     {/* PPE Requirements */}
+                     <div className="space-y-4">
+                        <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 block">Mandatory PPE</label>
+                        <div className="flex flex-wrap gap-2">
+                           {PPE_OPTIONS.map(ppe => (
+                             <button key={ppe} type="button" onClick={() => setFormData(prev => ({...prev, ppe_requirements: prev.ppe_requirements.includes(ppe) ? prev.ppe_requirements.filter(p => p !== ppe) : [...prev.ppe_requirements, ppe]}))} className={`px-3 py-2 text-[10px] font-bold rounded-xl border transition-all ${formData.ppe_requirements.includes(ppe) ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-secondary-500 border-secondary-200'}`}>
+                               {ppe}
+                             </button>
+                           ))}
+                        </div>
                      </div>
-                   </div>
-                 </div>
 
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                   <div className="group">
-                     <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Emergency Spill Procedures</label>
-                     <textarea value={formData.spill_instructions} onChange={e => setFormData({...formData, spill_instructions: e.target.value})} className="w-full bg-red-50/50 border border-red-100 rounded-[1rem] p-4 text-sm font-medium shadow-sm h-32 resize-none outline-none focus:border-red-400" placeholder="e.g. Neutralize with sodium bi-carbonate, ventilate area..."></textarea>
-                   </div>
-                   <div className="group">
-                     <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Medical Emergency Instructions</label>
-                     <textarea value={formData.emergency_instructions} onChange={e => setFormData({...formData, emergency_instructions: e.target.value})} className="w-full bg-red-50/50 border border-red-100 rounded-[1rem] p-4 text-sm font-medium shadow-sm h-32 resize-none outline-none focus:border-red-400" placeholder="e.g. Wash eyes for 15 mins, administer calcium gluconate if skin contact..."></textarea>
-                   </div>
-                 </div>
-               </section>
+                     {/* Access & Training */}
+                     <div className="bg-white border border-secondary-200 rounded-3xl p-6 space-y-4">
+                        <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest block mb-2">Access Control</label>
+                        <div className="flex items-center justify-between p-3 bg-secondary-50 rounded-2xl">
+                           <span className="text-xs font-bold text-secondary-700">Restricted Access</span>
+                           <input type="checkbox" checked={formData.restricted_access} onChange={e => setFormData({...formData, restricted_access: e.target.checked})} className="w-5 h-5 accent-primary-600" />
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-secondary-50 rounded-2xl">
+                           <span className="text-xs font-bold text-secondary-700">Safety Training Required</span>
+                           <input type="checkbox" checked={formData.training_required} onChange={e => setFormData({...formData, training_required: e.target.checked})} className="w-5 h-5 accent-primary-600" />
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                    <div className="group">
+                      <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Exposure Risks (CMR / Special)</label>
+                      <div className="flex flex-wrap gap-2">
+                         {['Carcinogen', 'Mutagen', 'Teratogen', 'Sensitizer', 'Asphyxiant'].map(risk => (
+                            <button 
+                              key={risk} type="button" 
+                              onClick={() => setFormData(prev => ({...prev, exposure_risks: prev.exposure_risks.includes(risk) ? prev.exposure_risks.filter(r => r !== risk) : [...prev.exposure_risks, risk]}))}
+                              className={`px-3 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border ${formData.exposure_risks.includes(risk) ? 'bg-red-500 text-white border-red-500 shadow-md' : 'bg-white text-secondary-500 border-secondary-200 hover:border-red-300'}`}
+                            >
+                              {risk}
+                            </button>
+                         ))}
+                      </div>
+                    </div>
+                    <div className="group">
+                       <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Chemical Family / Compatibility Class</label>
+                       <select value={formData.chemical_family} onChange={e => setFormData({...formData, chemical_family: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm cursor-pointer outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-400">
+                          <option value="General">General / Non-Reactive</option>
+                          <option value="Acid">Acid</option>
+                          <option value="Base">Base</option>
+                          <option value="Oxidizer">Oxidizer</option>
+                          <option value="Flammable">Flammable / Solvent</option>
+                          <option value="Reactive">Highly Reactive / Unstable</option>
+                       </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                    <div className="group">
+                      <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Emergency Spill Procedures</label>
+                      <textarea value={formData.spill_instructions} onChange={e => setFormData({...formData, spill_instructions: e.target.value})} className="w-full bg-red-50/50 border border-red-100 rounded-[1rem] p-4 text-sm font-medium shadow-sm h-32 resize-none outline-none focus:border-red-400" placeholder="e.g. Neutralize with sodium bi-carbonate, ventilate area..."></textarea>
+                    </div>
+                    <div className="group">
+                      <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Medical Emergency Instructions</label>
+                      <textarea value={formData.emergency_instructions} onChange={e => setFormData({...formData, emergency_instructions: e.target.value})} className="w-full bg-red-50/50 border border-red-100 rounded-[1rem] p-4 text-sm font-medium shadow-sm h-32 resize-none outline-none focus:border-red-400" placeholder="e.g. Wash eyes for 15 mins, administer calcium gluconate if skin contact..."></textarea>
+                    </div>
+                  </div>
+                </section>
 
               {/* ACTION FOOTER */}
               <div className="pt-4 flex flex-col md:flex-row gap-4">

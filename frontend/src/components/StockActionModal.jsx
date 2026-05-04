@@ -44,6 +44,8 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
 
   // Location hierarchy for Transfer TO dropdowns
   const [toHierarchy, setToHierarchy] = useState({ buildings: [], rooms: [], cabinets: [], shelves: [] });
+  const [incompatibilityWarning, setIncompatibilityWarning] = useState(null);
+  const [safetyAcknowledged, setSafetyAcknowledged] = useState(false);
 
   // Fetch buildings on mount
   useEffect(() => {
@@ -75,6 +77,35 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
       .then(res => setToHierarchy(prev => ({ ...prev, shelves: res.data.shelves })))
       .catch(() => {});
   }, [toCabinet]);
+
+  // Check Incompatibility
+  useEffect(() => {
+    if ((action === 'TRANSFER' || action === 'IN') && toBuilding && toRoom && toCabinet && toShelf) {
+      const targetLoc = `${toBuilding}-${toRoom}-${toCabinet}-${toShelf}`;
+      axios.get(`/api/safety/check-incompatibility/${targetLoc}`, { params: { chemicalId: chemical.id } })
+        .then(res => {
+          if (res.data.incompatible) {
+            setIncompatibilityWarning(res.data);
+          } else {
+            setIncompatibilityWarning(null);
+          }
+        })
+        .catch(err => console.error("Incompatibility check failed", err));
+    } else if (action === 'IN' && building && room && cabinet && shelf) {
+       const targetLoc = `${building}-${room}-${cabinet}-${shelf}`;
+       axios.get(`/api/safety/check-incompatibility/${targetLoc}`, { params: { chemicalId: chemical.id } })
+         .then(res => {
+           if (res.data.incompatible) {
+             setIncompatibilityWarning(res.data);
+           } else {
+             setIncompatibilityWarning(null);
+           }
+         })
+         .catch(err => console.error("Incompatibility check failed", err));
+    } else {
+      setIncompatibilityWarning(null);
+    }
+  }, [toBuilding, toRoom, toCabinet, toShelf, building, room, cabinet, shelf, action, chemical.id]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -153,6 +184,13 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
         setLoading(false);
         return;
       }
+    }
+
+    // Safety Acknowledgment Validation
+    if ((chemical.restricted_access || chemical.training_required) && !safetyAcknowledged) {
+      setError("Compliance Error: You must acknowledge safety training and access protocols for this restricted material.");
+      setLoading(false);
+      return;
     }
 
     try {
@@ -593,6 +631,44 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
               <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 animate-pulse">
                 <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
                 <p className="text-xs font-bold">{error}</p>
+              </div>
+            )}
+
+            {incompatibilityWarning && (
+              <div className="p-4 bg-orange-50 border border-orange-200 rounded-2xl space-y-2 animate-in slide-in-from-bottom-2 duration-300">
+                <div className="flex items-center gap-3 text-orange-700">
+                  <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                  <p className="text-xs font-black uppercase tracking-widest">Incompatible Storage Warning</p>
+                </div>
+                <p className="text-[10px] font-bold text-orange-600 leading-tight">
+                  This location contains <span className="underline">{incompatibilityWarning.conflicting_chemical}</span> ({incompatibilityWarning.conflicting_family}). 
+                  Storing <span className="underline">{chemical.name}</span> here is <span className="font-black uppercase">Dangerous</span> due to {incompatibilityWarning.reason}.
+                </p>
+              </div>
+            )}
+
+            {(chemical.restricted_access || chemical.training_required) && (
+              <div className="p-5 bg-amber-50 border border-amber-200 rounded-3xl space-y-4 animate-in slide-in-from-bottom-2 duration-500">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black uppercase tracking-widest text-amber-900">Compliance Acknowledgment</h4>
+                    <p className="text-[10px] font-bold text-amber-700 leading-tight mt-1">
+                      This material is under strict regulatory control. By proceeding, you confirm you have completed the required safety training and have authorization to handle this substance.
+                    </p>
+                  </div>
+                </div>
+                <label className="flex items-center gap-3 p-3 bg-white/60 rounded-xl border border-amber-200 cursor-pointer hover:bg-white transition-all">
+                  <input 
+                    type="checkbox" 
+                    checked={safetyAcknowledged} 
+                    onChange={e => setSafetyAcknowledged(e.target.checked)}
+                    className="w-5 h-5 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                  />
+                  <span className="text-[10px] font-black uppercase text-amber-900">I confirm safety training compliance</span>
+                </label>
               </div>
             )}
           </form>

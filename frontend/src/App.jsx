@@ -22,6 +22,7 @@ import LocationManager from "./pages/LocationManager";
 import PrintLabel from "./pages/PrintLabel";
 import ScanQR from "./pages/ScanQR";
 import ChemicalDetails from "./pages/ChemicalDetails";
+import SafetyDashboard from "./pages/SafetyDashboard";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -102,6 +103,11 @@ function App() {
             <Route path="/locations" element={
               <ProtectedRoute allowedRoles={["Admin", "Lab Manager"]}>
                 <LocationManager />
+              </ProtectedRoute>
+            } />
+            <Route path="/safety" element={
+              <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer"]}>
+                <SafetyDashboard />
               </ProtectedRoute>
             } />
             <Route path="*" element={<Navigate to="/" replace />} />
