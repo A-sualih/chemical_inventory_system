@@ -272,7 +272,7 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.si
     return res.status(400).json({ error: 'Invalid CAS number format.' });
   }
 
-  let parsedGhs = data.ghs;
+  let parsedGhs = data.ghs_classes || data.ghs;
   if (typeof parsedGhs === 'string') {
     try { parsedGhs = JSON.parse(parsedGhs); } catch (e) { parsedGhs = []; }
   }
@@ -427,7 +427,7 @@ router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.si
     return res.status(400).json({ error: 'Invalid CAS number format.' });
   }
 
-  let parsedGhs = data.ghs;
+  let parsedGhs = data.ghs_classes || data.ghs;
   if (typeof parsedGhs === 'string') {
     try { parsedGhs = JSON.parse(parsedGhs); } catch (e) { parsedGhs = []; }
   }

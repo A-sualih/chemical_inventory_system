@@ -26,7 +26,10 @@ const getDateRange = (start, end) => {
 router.get('/inventory', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), async (req, res) => {
   try {
     const now = new Date();
-    const nearExpiryCutoff = new Date(now.getTime() + (parseInt(process.env.NEAR_EXPIRY_THRESHOLD) || 30) * 24 * 60 * 60 * 1000);
+    now.setHours(0, 0, 0, 0); // Normalize to start of day for cleaner comparisons
+    
+    const nearExpiryThreshold = parseInt(process.env.NEAR_EXPIRY_THRESHOLD) || 30;
+    const nearExpiryCutoff = new Date(now.getTime() + (nearExpiryThreshold + 1) * 24 * 60 * 60 * 1000);
 
     const totalChemicals = await Chemical.countDocuments({ archived: false });
     
@@ -34,7 +37,7 @@ router.get('/inventory', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), asyn
     const lowStock = await Chemical.countDocuments({ 
       archived: false,
       $expr: { $lte: ["$quantity", { $ifNull: ["$threshold", 5] }] },
-      quantity: { $gt: 0 } // Don't count "Out of Stock" as "Low Stock"
+      quantity: { $gt: 0 }
     });
 
     const expired = await Chemical.countDocuments({ 

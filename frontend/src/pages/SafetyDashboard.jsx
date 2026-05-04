@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Shield, AlertTriangle, FileText, Zap, Activity, LifeBuoy, Users } from 'lucide-react';
+import { Shield, AlertTriangle, FileText, Zap, Activity, LifeBuoy, Users, Droplets, HeartPulse } from 'lucide-react';
 import { HAZARD_CLASSES } from '../constants/hazards';
 import HazardBadge from '../components/HazardBadge';
+import Layout from '../layout/Layout';
 
 const SafetyDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -27,14 +28,18 @@ const SafetyDashboard = () => {
     fetchData();
   }, []);
 
-  if (loading) return <div className="p-8 animate-pulse text-secondary-500 font-bold">Initializing Safety Protocol...</div>;
+  if (loading) return (
+    <Layout>
+      <div className="p-8 animate-pulse text-secondary-500 font-bold">Initializing Safety Protocol...</div>
+    </Layout>
+  );
 
   return (
-    <div className="p-8 bg-secondary-50 min-h-screen">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <Layout>
+      <div className="space-y-8">
         
         {/* Header */}
-        <div className="flex justify-between items-end">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
             <h1 className="text-3xl font-black text-secondary-950 tracking-tighter uppercase italic">Safety & Hazard <span className="text-red-600">Command</span></h1>
             <p className="text-secondary-500 font-medium">Global compliance monitoring and emergency response management.</p>
@@ -104,14 +109,33 @@ const SafetyDashboard = () => {
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-secondary-100">
            <h2 className="text-xl font-black text-secondary-900 mb-6 uppercase tracking-tight">Emergency Response Protocols</h2>
            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <ProtocolLink title="Spill Response" desc="Neutralization and cleanup steps for all chemical families." icon="🌊" />
-              <ProtocolLink title="First Aid" desc="Immediate medical actions for exposure scenarios." icon="🏥" />
-              <ProtocolLink title="Evacuation Plan" desc="Map of exits and assembly points for Laboratory 4." icon="🏃" />
+              <ProtocolLink 
+                title="Spill Response" 
+                desc="Neutralization and cleanup steps for all chemical families." 
+                icon={<Droplets className="text-blue-500" size={32} />} 
+              />
+              <ProtocolLink 
+                title="First Aid" 
+                desc="Immediate medical actions for exposure scenarios." 
+                icon={<HeartPulse className="text-red-500" size={32} />} 
+              />
+              <ProtocolLink 
+                title="Evacuation Plan" 
+                desc="Map of exits and assembly points for Laboratory 4." 
+                icon={
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-emerald-600">
+                    <circle cx="15" cy="5" r="2" />
+                    <path d="M13 7a2 2 0 0 1-2 2H8l-3 3v4" />
+                    <path d="m9 14 3-2 3 3 3-1" />
+                    <path d="M17 14v4l-4 3" />
+                  </svg>
+                } 
+              />
            </div>
         </div>
 
       </div>
-    </div>
+    </Layout>
   );
 };
 
@@ -129,10 +153,11 @@ const StatCard = ({ title, value, icon, color = "text-secondary-900" }) => (
 
 const ProtocolLink = ({ title, desc, icon }) => (
   <div className="p-6 bg-secondary-50 rounded-2xl border border-secondary-100 hover:border-secondary-300 transition-colors cursor-pointer group">
-     <div className="text-3xl mb-4 group-hover:scale-110 transition-transform inline-block">{icon}</div>
+     <div className="mb-4 group-hover:scale-110 transition-transform inline-block">{icon}</div>
      <h3 className="font-black text-secondary-900 uppercase text-sm mb-1">{title}</h3>
      <p className="text-xs text-secondary-500 leading-relaxed font-medium">{desc}</p>
   </div>
 );
 
 export default SafetyDashboard;
+
