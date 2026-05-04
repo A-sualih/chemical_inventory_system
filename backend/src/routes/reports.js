@@ -25,8 +25,9 @@ const getDateRange = (start, end) => {
 // GET /api/reports/inventory - Current Stock Summary
 router.get('/inventory', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), async (req, res) => {
   try {
+    // Normalize to UTC start of day to avoid timezone offset bugs
     const now = new Date();
-    now.setHours(0, 0, 0, 0); // Normalize to start of day for cleaner comparisons
+    now.setUTCHours(0, 0, 0, 0);
     
     const nearExpiryThreshold = parseInt(process.env.NEAR_EXPIRY_THRESHOLD) || 30;
     const nearExpiryCutoff = new Date(now.getTime() + (nearExpiryThreshold + 1) * 24 * 60 * 60 * 1000);
@@ -40,14 +41,15 @@ router.get('/inventory', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), asyn
       quantity: { $gt: 0 }
     });
 
+    // Query by status field to avoid BSON string/Date mismatch from legacy data
     const expired = await Chemical.countDocuments({ 
       archived: false, 
-      expiry_date: { $lt: now } 
+      status: 'Expired'
     });
 
     const nearExpiry = await Chemical.countDocuments({ 
       archived: false, 
-      expiry_date: { $gte: now, $lte: nearExpiryCutoff } 
+      status: 'Near Expiry'
     });
 
     // Hazard Distribution
@@ -66,12 +68,12 @@ router.get('/inventory', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), asyn
 
     const expiredList = await Chemical.find({ 
       archived: false, 
-      expiry_date: { $lt: now } 
+      status: 'Expired'
     }).select('name id expiry_date location batch_number').lean();
 
     const nearExpiryList = await Chemical.find({ 
       archived: false, 
-      expiry_date: { $gte: now, $lte: nearExpiryCutoff } 
+      status: 'Near Expiry'
     }).select('name id expiry_date location batch_number').lean();
 
     const lowStockList = await Chemical.find({

@@ -349,7 +349,16 @@ router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.si
       sds_file_name: sdsFileName,
       sds_file_url: sdsFileUrl,
       location: data.building ? `${data.building}-${data.room || ''}-${data.cabinet || ''}-${data.shelf || ''}`.replace(/-+$/, '') : (data.location || 'Pending Assignment'),
-      status: 'In Stock'
+      status: (() => {
+        if (!data.expiry_date && !data.expiry) return 'In Stock';
+        const exp = new Date(data.expiry_date || data.expiry);
+        const now = new Date();
+        now.setUTCHours(0, 0, 0, 0);
+        const diff = (exp - now) / (1000 * 60 * 60 * 24);
+        if (diff < 0) return 'Expired';
+        if (diff <= (parseInt(process.env.NEAR_EXPIRY_THRESHOLD) || 30)) return 'Near Expiry';
+        return 'In Stock';
+      })()
     });
 
     await newChem.save();
@@ -660,15 +669,21 @@ router.get('/:id/label', authenticate, async (req, res) => {
     // Generate QR Code data for the label
     const qrData = await QRCode.toDataURL(chemical.id);
     
+    // Return field names matching PrintLabel.jsx expectations exactly
     const labelData = {
       name: chemical.name,
       id: chemical.id,
       cas_number: chemical.cas_number,
-      ghs: chemical.ghs_hazards || {},
-      nfpa: chemical.nfpa_rating || {},
-      ppe: chemical.ppe_requirements || [],
+      formula: chemical.formula,
+      // Field names must match what PrintLabel.jsx reads
+      ghs_hazards: chemical.ghs_hazards || { signal_word: 'None', h_codes: [], p_codes: [], pictograms: [] },
+      ghs_classes: chemical.ghs_classes || [],
+      nfpa_rating: chemical.nfpa_rating || { health: 0, flammability: 0, reactivity: 0, special: '' },
+      ppe_requirements: chemical.ppe_requirements || [],
       qrCode: qrData,
-      location: chemical.location
+      location: chemical.location,
+      expiry_date: chemical.expiry_date,
+      status: chemical.status
     };
     
     res.json(labelData);
