@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNotifications } from '../NotificationContext';
+import { useNotifications } from '../../context/NotificationContext';
 import NotificationPanel from './NotificationPanel';
 
 const NotificationBell = () => {

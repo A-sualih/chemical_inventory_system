@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Sidebar from "./Sidebar";
-import NotificationBell from "../components/NotificationBell";
-import { useAuth } from "../AuthContext";
+import NotificationBell from "../components/feedback/NotificationBell";
+import { useAuth } from "../context/AuthContext";
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);

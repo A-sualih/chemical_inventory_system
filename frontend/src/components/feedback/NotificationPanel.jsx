@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNotifications } from '../NotificationContext';
+import { useNotifications } from '../../context/NotificationContext';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
 

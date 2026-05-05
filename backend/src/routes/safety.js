@@ -179,6 +179,92 @@ router.get('/export-sds/:id', authenticate, async (req, res) => {
   }
 });
 
+// Global Incompatibility Scan — all locations
+router.get('/incompatibility/global', authenticate, async (req, res) => {
+  try {
+    const INCOMPATIBLE_PAIRS = [
+      ['Acid', 'Base'],
+      ['Flammable', 'Oxidizer'],
+      ['Acid', 'Oxidizer'],
+      ['Base', 'Oxidizer'],
+      ['Water-Reactive', 'Aqueous Solutions'],
+    ];
+
+    // Get all non-archived chemicals that have a location
+    const chemicals = await Chemical.find({ archived: false, location: { $exists: true, $ne: '' } });
+
+    // Group by location
+    const byLocation = {};
+    for (const c of chemicals) {
+      const loc = c.location || 'Unknown';
+      if (!byLocation[loc]) byLocation[loc] = [];
+      byLocation[loc].push(c);
+    }
+
+    const allConflicts = [];
+
+    for (const [location, group] of Object.entries(byLocation)) {
+      if (group.length < 2) continue;
+
+      for (let i = 0; i < group.length; i++) {
+        for (let j = i + 1; j < group.length; j++) {
+          const c1 = group[i];
+          const c2 = group[j];
+
+          // Family-based check
+          for (const pair of INCOMPATIBLE_PAIRS) {
+            if (
+              pair.includes(c1.chemical_family) &&
+              pair.includes(c2.chemical_family) &&
+              c1.chemical_family !== c2.chemical_family
+            ) {
+              allConflicts.push({
+                location,
+                chemicals: [c1.name, c2.name],
+                reason: `Incompatible families: ${c1.chemical_family} ↔ ${c2.chemical_family}`,
+                severity: 'High',
+              });
+            }
+          }
+
+          // Explicit incompatibility check
+          if (
+            c1.incompatibility?.includes(c2.name) ||
+            c1.incompatibility?.includes(c2.chemical_family) ||
+            c2.incompatibility?.includes(c1.name) ||
+            c2.incompatibility?.includes(c1.chemical_family)
+          ) {
+            allConflicts.push({
+              location,
+              chemicals: [c1.name, c2.name],
+              reason: `Explicit incompatibility declared between ${c1.name} and ${c2.name}`,
+              severity: 'Critical',
+            });
+          }
+        }
+      }
+    }
+
+    // De-duplicate (same pair may be flagged by both checks)
+    const seen = new Set();
+    const uniqueConflicts = allConflicts.filter((c) => {
+      const key = [...c.chemicals].sort().join('|') + c.location;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    res.json({
+      total: uniqueConflicts.length,
+      conflicts: uniqueConflicts,
+    });
+  } catch (err) {
+    console.error('Global incompatibility scan error:', err);
+    res.status(500).json({ error: 'Global incompatibility scan failed' });
+  }
+});
+
 module.exports = router;
+
 
 

@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import Layout from "../layout/Layout";
+import Layout from "../../layout/Layout";
 import axios from "axios";
-import HazardBadge from "../components/HazardBadge";
+import HazardBadge from "../../components/feedback/HazardBadge";
 import QRCodeLib from "react-qr-code";
 const QRCode = QRCodeLib.default || QRCodeLib;
-import NFPADiamond from "../components/NFPADiamond";
+import NFPADiamond from "../../components/feedback/NFPADiamond";
 import { Shield, AlertTriangle, Zap, LifeBuoy, Info } from 'lucide-react';
 
 const ChemicalDetails = () => {

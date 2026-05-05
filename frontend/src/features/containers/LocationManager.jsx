@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import Layout from "../layout/Layout";
+import Layout from "../../layout/Layout";
 import axios from "axios";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../../context/AuthContext";
 
 const LocationManager = () => {
   const { user } = useAuth();

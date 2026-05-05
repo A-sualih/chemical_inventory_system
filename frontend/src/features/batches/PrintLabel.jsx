@@ -3,8 +3,8 @@ import { useParams, Link } from "react-router-dom";
 import QRCodeLib from "react-qr-code";
 const QRCode = QRCodeLib.default || QRCodeLib;
 import axios from "axios";
-import NFPADiamond from "../components/NFPADiamond";
-import { HAZARD_CLASSES } from "../constants/hazards";
+import NFPADiamond from "../../components/feedback/NFPADiamond";
+import { HAZARD_CLASSES } from "../../constants/hazards";
 
 const PrintLabel = () => {
   const { id } = useParams();
