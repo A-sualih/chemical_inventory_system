@@ -41,15 +41,15 @@ router.get('/inventory', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), asyn
       quantity: { $gt: 0 }
     });
 
-    // Query by status field to avoid BSON string/Date mismatch from legacy data
+    // Use dynamic date queries instead of static status strings
     const expired = await Chemical.countDocuments({ 
       archived: false, 
-      status: 'Expired'
+      expiry_date: { $lt: now }
     });
 
     const nearExpiry = await Chemical.countDocuments({ 
       archived: false, 
-      status: 'Near Expiry'
+      expiry_date: { $gte: now, $lte: nearExpiryCutoff }
     });
 
     // Hazard Distribution
@@ -68,12 +68,12 @@ router.get('/inventory', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), asyn
 
     const expiredList = await Chemical.find({ 
       archived: false, 
-      status: 'Expired'
+      expiry_date: { $lt: now }
     }).select('name id expiry_date location batch_number').lean();
 
     const nearExpiryList = await Chemical.find({ 
       archived: false, 
-      status: 'Near Expiry'
+      expiry_date: { $gte: now, $lte: nearExpiryCutoff }
     }).select('name id expiry_date location batch_number').lean();
 
     const lowStockList = await Chemical.find({
