@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import Layout from "../layout/Layout";
-import { useAuth } from "../AuthContext";
+import Layout from "../../layout/Layout";
+import { useAuth } from "../../context/AuthContext";
 
 const MFASetup = () => {
   const { user } = useAuth();

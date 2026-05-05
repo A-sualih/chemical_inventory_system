@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import QRCodeLib from "react-qr-code";
 const QRCode = QRCodeLib.default || QRCodeLib;
 import axios from "axios";
-import { HAZARD_CLASSES, PPE_OPTIONS, NFPA_RATINGS, EXPOSURE_RISKS } from "../constants/hazards.jsx";
+import { HAZARD_CLASSES, PPE_OPTIONS, NFPA_RATINGS, EXPOSURE_RISKS } from "../../constants/hazards.jsx";
 
 const ChemicalForm = ({ initialData, onClose, onSave }) => {
   const [formData, setFormData] = useState(initialData ? {

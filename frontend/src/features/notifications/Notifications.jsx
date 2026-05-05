@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../layout/Layout';
-import { useNotifications } from '../NotificationContext';
+import Layout from '../../layout/Layout';
+import { useNotifications } from '../../context/NotificationContext';
 import axios from 'axios';
 
 const Notifications = () => {

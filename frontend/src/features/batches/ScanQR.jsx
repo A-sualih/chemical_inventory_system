@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Html5QrcodeScanner } from "html5-qrcode";
-import Layout from "../layout/Layout";
+import Layout from "../../layout/Layout";
 import axios from "axios";
 import { useCallback } from "react";
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import Layout from "../layout/Layout";
-import { useAuth } from "../AuthContext";
+import Layout from "../../layout/Layout";
+import { useAuth } from "../../context/AuthContext";
 import { Navigate } from "react-router-dom";
 import axios from "axios";
 

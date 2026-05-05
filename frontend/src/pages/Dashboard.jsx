@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import Layout from "../layout/Layout";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../context/AuthContext";
 import { HAZARD_CLASSES } from "../constants/hazards.jsx";
-import HazardBadge from "../components/HazardBadge";
+import HazardBadge from "../components/feedback/HazardBadge";
 
 const Dashboard = () => {
   const { user, hasPermission } = useAuth();

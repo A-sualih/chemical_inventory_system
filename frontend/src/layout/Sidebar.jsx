@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();

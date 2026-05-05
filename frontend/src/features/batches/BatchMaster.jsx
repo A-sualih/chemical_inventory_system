@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from '../AuthContext';
-import Layout from '../layout/Layout';
+import { useAuth } from '../../context/AuthContext';
+import Layout from '../../layout/Layout';
 
 // Inline SVG components to replace heroicons for better stability
 const TagIcon = ({ className }) => (

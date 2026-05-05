@@ -1,5 +1,5 @@
 import React from 'react';
-import { HAZARD_CLASSES } from '../constants/hazards.jsx';
+import { HAZARD_CLASSES } from '../../constants/hazards.jsx';
 
 export const HazardBadge = ({ hazards = [], size = "md", showLabel = false }) => {
   if (!hazards || !Array.isArray(hazards) || hazards.length === 0) return null;

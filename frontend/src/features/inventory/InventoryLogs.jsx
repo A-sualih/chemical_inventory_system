@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import Layout from "../layout/Layout";
-import { useAuth } from "../AuthContext";
+import Layout from "../../layout/Layout";
+import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
-import StockActionModal from "../components/StockActionModal";
+import StockActionModal from "./StockActionModal";
 
 const InventoryLogs = () => {
   const { hasPermission } = useAuth();
