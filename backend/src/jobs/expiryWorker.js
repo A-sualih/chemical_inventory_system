@@ -6,17 +6,12 @@ const Chemical = require('../models/Chemical');
 const { notifyExpiry } = require('../services/notificationService');
 
 
-/**
- * Run a comprehensive check on all batches and containers to update their expiry status.
- * @param {Object} options - Configuration for the check.
- * @param {number} options.nearExpiryDays - Threshold for 'Near Expiry' status (default: 30).
- */
 const runExpiryCheck = async (options = { nearExpiryDays: parseInt(process.env.NEAR_EXPIRY_THRESHOLD) || 30 }) => {
   console.log(`[ExpiryWorker] Starting daily expiry validation at ${new Date().toISOString()}`);
-  
+
   const now = new Date();
   const nearExpiryCutoff = new Date(now.getTime() + options.nearExpiryDays * 24 * 60 * 60 * 1000);
-  
+
   let updatesCount = 0;
 
   try {
@@ -24,10 +19,10 @@ const runExpiryCheck = async (options = { nearExpiryDays: parseInt(process.env.N
     const batches = await Batch.find({ status: { $ne: 'Recalled' } });
     for (const batch of batches) {
       if (!batch.expiry_date) continue;
-      
+
       const exp = new Date(batch.expiry_date);
       let newStatus = 'Active';
-      
+
       if (exp < now) {
         newStatus = 'Expired';
       } else if (exp < nearExpiryCutoff) {
@@ -38,7 +33,7 @@ const runExpiryCheck = async (options = { nearExpiryDays: parseInt(process.env.N
         const oldStatus = batch.status;
         const chemical = await Chemical.findOne({ id: batch.chemical_id });
         const chemName = chemical ? chemical.name : 'Unknown Chemical';
-        
+
         batch.status = newStatus;
         await batch.save();
         updatesCount++;
@@ -104,7 +99,7 @@ const runExpiryCheck = async (options = { nearExpiryDays: parseInt(process.env.N
     const chemicals = await Chemical.find({ archived: false });
     for (const chemical of chemicals) {
       if (!chemical.expiry_date) continue;
-      
+
       const exp = new Date(chemical.expiry_date);
       let newStatus = chemical.status;
 
@@ -148,7 +143,7 @@ const initExpirySchedule = () => {
   cron.schedule('0 0 * * *', () => {
     runExpiryCheck();
   });
-  
+
   console.log('[ExpiryWorker] Daily expiry scheduler initialized.');
 };
 

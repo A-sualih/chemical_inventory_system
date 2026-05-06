@@ -141,15 +141,27 @@ const Notifications = () => {
                 <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin mx-auto mb-4"></div>
                 <p className="text-secondary-500 font-bold tracking-tight">Accessing notification vault...</p>
               </div>
-            ) : notifications.length === 0 ? (
-              <div className="p-20 text-center">
-                <div className="w-16 h-16 mx-auto mb-6 opacity-80"><img src="/icons/inbox.svg" alt="Empty Inbox" className="w-full h-full select-none" draggable="false" /></div>
-                <p className="text-xl font-black text-secondary-900 tracking-tight">Inbox is Empty</p>
-                <p className="text-secondary-500 font-medium">No alerts matching your criteria.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-secondary-50">
-                {notifications.map((notif) => (
+            ) : (() => {
+              const filteredNotifications = notifications.filter(notif => {
+                if (filter.type && notif.type !== filter.type) return false;
+                if (filter.severity && notif.severity !== filter.severity) return false;
+                if (filter.status && notif.status !== filter.status) return false;
+                return true;
+              });
+
+              if (filteredNotifications.length === 0) {
+                return (
+                  <div className="p-20 text-center">
+                    <div className="w-16 h-16 mx-auto mb-6 opacity-80"><img src="/icons/inbox.svg" alt="Empty Inbox" className="w-full h-full select-none" draggable="false" /></div>
+                    <p className="text-xl font-black text-secondary-900 tracking-tight">Inbox is Empty</p>
+                    <p className="text-secondary-500 font-medium">No alerts matching your criteria.</p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="divide-y divide-secondary-50">
+                  {filteredNotifications.map((notif) => (
                   <div key={notif._id} className={`p-6 hover:bg-secondary-50 transition-all flex gap-6 items-start group ${notif.status === 'unread' ? 'bg-primary-50/20' : ''}`}>
                     <div className="w-14 h-14 rounded-2xl bg-secondary-50 border border-secondary-100 flex items-center justify-center shadow-sm">
                       {notif.type === 'LOW_STOCK' ? <img src="/icons/box.svg" className="w-6 h-6 select-none" draggable="false" alt="Box" /> : notif.type === 'EXPIRY' ? <img src="/icons/warning-red.svg" className="w-6 h-6 select-none" draggable="false" alt="Warning" /> : notif.type === 'UNAUTHORIZED_ACCESS' ? <img src="/icons/lock.svg" className="w-6 h-6 select-none" draggable="false" alt="Lock" /> : <img src="/icons/info.svg" className="w-6 h-6 select-none" draggable="false" alt="Info" />}
@@ -207,7 +219,8 @@ const Notifications = () => {
                   </div>
                 ))}
               </div>
-            )}
+              );
+            })()}
           </div>
         </div>
       </div>
