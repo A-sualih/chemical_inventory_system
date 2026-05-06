@@ -10,7 +10,8 @@ const PERMISSIONS = {
   SUBMIT_REQUEST: 'submit_request',
   UPDATE_STOCK: 'update_stock',
   VIEW_SAFETY_INFO: 'view_safety_info',
-  MANAGE_SETTINGS: 'manage_settings'
+  MANAGE_SETTINGS: 'manage_settings',
+  MANAGE_USERS: 'manage_users'
 };
 
 const ROLES = {
