@@ -14,6 +14,7 @@ const expiryRoutes = require('./routes/expiry');
 const notificationRoutes = require('./routes/notifications');
 const locationRoutes = require('./routes/locations');
 const safetyRoutes = require('./routes/safety');
+const procurementRoutes = require('./routes/procurementRoutes');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/expiry', expiryRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/safety', safetyRoutes);
+app.use('/api/procurement', procurementRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
