@@ -27,21 +27,14 @@ function convertToBase(value, unit) {
   return value * rate;
 }
 
-/**
- * Converts a value from a base unit to a target unit.
- * @param {number} valueInBase 
- * @param {string} targetUnit 
- * @returns {number} Value in target units
- */
+
 function convertFromBase(valueInBase, targetUnit) {
   const rate = CONVERSION_RATES[targetUnit];
   if (!rate) return valueInBase;
   return valueInBase / rate;
 }
 
-/**
- * Determines the base unit for a given unit.
- */
+
 function getBaseUnit(unit) {
   if (['kg', 'g', 'mg', 'mcg'].includes(unit)) return 'kg';
   if (['L', 'mL', 'ml', 'ul', 'nl'].includes(unit)) return 'L';

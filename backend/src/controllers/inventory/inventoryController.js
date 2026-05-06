@@ -224,20 +224,21 @@ exports.handleTransaction = async (req, res) => {
             { container_id: cId }
           ].filter(q => q._id !== undefined || q.container_id !== undefined)
         });
-        if (checkContainer && checkContainer.status === 'Expired') {
-          return res.status(403).json({ error: "SAFETY ALERT: Usage of expired chemical container is strictly prohibited." });
+        if (checkContainer && checkContainer.status === 'Expired' && action === 'OUT') {
+          return res.status(403).json({ error: "SAFETY ALERT: Usage of expired chemical container is strictly prohibited. Please use the Disposal process." });
         }
       } else if (batch || chem.batch_number) {
         const checkBatch = await Batch.findOne({ batch_number: batch || chem.batch_number });
-        if (checkBatch && checkBatch.status === 'Expired') {
+        if (checkBatch && checkBatch.status === 'Expired' && action === 'OUT') {
           return res.status(403).json({ error: "SAFETY ALERT: This chemical batch has expired. Please process for proper disposal instead of usage." });
         }
       }
 
       if (!req.body.containerId && !req.body.container_id) {
+        const statusFilter = action === 'DISPOSAL' ? ['Empty'] : ['Expired', 'Empty'];
         const validContainers = await Container.find({
           chemical_id: targetChem.id,
-          status: { $nin: ['Expired', 'Empty'] },
+          status: { $nin: statusFilter },
           quantity: { $gt: 0 }
         }).sort({ expiry_date: 1, createdAt: 1 });
 
@@ -479,7 +480,13 @@ exports.handleFifoUsage = async (req, res) => {
       return res.status(400).json({ error: 'Valid quantity is required' });
     }
 
-    const chem = await Chemical.findOne({ $or: [{ id: chemical_id }, { _id: chemical_id }] });
+    const mongoose = require('mongoose');
+    const query = [{ id: chemical_id }];
+    if (mongoose.Types.ObjectId.isValid(chemical_id)) {
+      query.push({ _id: chemical_id });
+    }
+
+    const chem = await Chemical.findOne({ $or: query });
     if (!chem) return res.status(404).json({ error: 'Chemical not found' });
 
     const txUnit = unit || chem.unit;
