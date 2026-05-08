@@ -12,8 +12,7 @@ import HazardBadge from "../../components/feedback/HazardBadge";
 import FilterPanel from "../../components/forms/FilterPanel";
 import axios from "axios";
 import { debounce } from "lodash-es";
-
-
+import "../../styles/Chemicals.css";
 
 const Chemicals = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -75,7 +74,6 @@ const Chemicals = () => {
     }
   };
 
-  // Debounced Search
   const debouncedFetch = useCallback(
     debounce((q, f, isArchived) => fetchChemicals(1, q, f, isArchived), 400),
     []
@@ -85,15 +83,12 @@ const Chemicals = () => {
     debouncedFetch(searchTerm, filters, showArchived);
   }, [searchTerm, filters, showArchived]);
 
-  // Hardware Scanner Listener
   useEffect(() => {
     if (searchTerm.startsWith("CIMS:")) {
       try {
         const parts = searchTerm.split('|');
         const idPart = parts[0];
         const extractedId = idPart.split(':')[1];
-        
-        // When scanned, we just set the search term to that ID and let the effect trigger
         setSearchTerm(extractedId);
       } catch (e) {
         console.error("Scanner parse error", e);
@@ -143,25 +138,24 @@ const Chemicals = () => {
 
   return (
     <Layout>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl lg:text-4xl font-black heading-font text-secondary-900 tracking-tight">Chemical Repository</h1>
-          <p className="text-secondary-500 font-medium">Precision search & lifecycle management.</p>
+      <div className="repository-header">
+        <div className="header-title-section">
+          <h1>Chemical Repository</h1>
+          <p className="header-subtitle">Precision search & lifecycle management.</p>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="header-actions-row">
           <button
             onClick={() => setShowArchived(!showArchived)}
-            className={`px-6 py-3 rounded-2xl font-bold text-sm transition-all border shadow-sm ${showArchived ? 'bg-secondary-900 text-white border-secondary-900' : 'bg-white text-secondary-600 border-secondary-200 hover:bg-secondary-50'
-              }`}
+            className={`archive-toggle-button ${showArchived ? 'archive-active' : 'archive-inactive'}`}
           >
             {showArchived ? "Back to Active" : "View Archive"}
           </button>
           {canCreate && (
             <button
               onClick={() => { setEditingChemical(null); setShowForm(true); }}
-              className="bg-primary-600 hover:bg-primary-500 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-xl shadow-primary-600/20 active:scale-95 transition-all"
+              className="enroll-button"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="enroll-icon" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
               </svg>
               <span>Enroll Asset</span>
@@ -170,9 +164,8 @@ const Chemicals = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Filter Sidebar */}
-        <div className="lg:col-span-1">
+      <div className="repository-layout-grid">
+        <div className="filter-sidebar-wrapper">
           <FilterPanel 
             filters={filters} 
             setFilters={setFilters} 
@@ -180,91 +173,90 @@ const Chemicals = () => {
               setSearchTerm("");
               setFilters({ hazard: [], status: [], building: "", room: "", expiryStatus: "" });
             }}
-            buildings={['Block-A', 'Block-B', 'Lab-X']} // In real app, fetch from backend or unique locations
+            buildings={['Block-A', 'Block-B', 'Lab-X']}
           />
         </div>
 
-        {/* Main Content Area */}
-        <div className="lg:col-span-3 space-y-6">
-          <div className="bg-white rounded-[2.5rem] border border-secondary-100 shadow-xl overflow-hidden">
-            <div className="p-6 border-b border-secondary-50 bg-gradient-to-r from-secondary-50/30 to-transparent">
-              <div className="relative w-full">
+        <div className="main-content-wrapper">
+          <div className="repository-card">
+            <div className="search-bar-container">
+              <div className="search-input-wrapper">
                 <input
                   type="text"
                   placeholder="Deep search by Name, CAS, or Barcode/ID..."
-                  className="w-full bg-white border border-secondary-200 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-4 focus:ring-primary-500/10 outline-none hover:border-primary-300 transition-all shadow-sm"
+                  className="search-input"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   autoFocus
                 />
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 absolute left-4 top-4 text-secondary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 {loading && (
-                  <div className="absolute right-4 top-4">
-                    <div className="w-6 h-6 border-2 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
+                  <div className="loading-indicator-mini">
+                    <div className="spinner-mini"></div>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="overflow-x-auto p-4">
+            <div className="table-container">
               {chemicals.length === 0 && !loading ? (
-                <div className="py-20 text-center">
-                  <div className="w-20 h-20 bg-secondary-50 rounded-full flex items-center justify-center mx-auto mb-6 text-secondary-300">
-                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <div className="empty-state">
+                  <div className="empty-icon-wrapper">
+                    <svg className="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                   </div>
-                  <h3 className="text-xl font-black text-secondary-900 mb-2">No Chemicals Found</h3>
-                  <p className="text-secondary-500 font-medium">Try adjusting your filters or search terms.</p>
+                  <h3 className="empty-title">No Chemicals Found</h3>
+                  <p className="empty-text">Try adjusting your filters or search terms.</p>
                 </div>
               ) : (
-                <table className="w-full text-left min-w-[700px]">
+                <table className="repository-table">
                   <thead>
-                    <tr className="bg-secondary-50/50 text-secondary-400 uppercase text-[10px] font-black tracking-widest border-b border-secondary-50">
-                      <th className="px-6 py-5">Identity</th>
-                      <th className="px-6 py-5">Inventory Data</th>
-                      <th className="px-6 py-5 text-center">QR Code</th>
-                      <th className="px-6 py-5 text-center">Actions</th>
+                    <tr className="table-header-row">
+                      <th className="table-th">Identity</th>
+                      <th className="table-th">Inventory Data</th>
+                      <th className="table-th text-center">QR Code</th>
+                      <th className="table-th text-center">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-secondary-50">
+                  <tbody>
                     {chemicals.map((item) => (
-                      <tr key={item.id} className="hover:bg-primary-50/20 transition-all group">
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-secondary-900 text-white flex items-center justify-center font-black text-xs shadow-lg shadow-secondary-900/10">
+                      <tr key={item.id} className="table-tr">
+                        <td className="table-td">
+                          <div className="identity-cell">
+                            <div className="id-badge">
                               {item.id}
                             </div>
                             <div>
-                              <div className="font-black text-secondary-900 text-lg leading-tight tracking-tight">{item.name}</div>
-                              <div className="flex gap-2 mt-1">
-                                <span className="bg-secondary-100 text-secondary-500 text-[9px] font-black px-1.5 py-0.5 rounded uppercase">CAS: {item.cas_number || 'N/A'}</span>
-                                <span className="bg-primary-50 text-primary-600 text-[9px] font-black px-1.5 py-0.5 rounded uppercase">{item.formula}</span>
-                                {item.batch_number && <span className="bg-orange-50 text-orange-600 text-[9px] font-black px-1.5 py-0.5 rounded uppercase">Batch: {item.batch_number}</span>}
+                              <div className="item-name">{item.name}</div>
+                              <div className="item-meta-badges">
+                                <span className="meta-badge meta-cas">CAS: {item.cas_number || 'N/A'}</span>
+                                <span className="meta-badge meta-formula">{item.formula}</span>
+                                {item.batch_number && <span className="meta-badge meta-batch">Batch: {item.batch_number}</span>}
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-5">
-                          <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-3">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
-                                item.status === 'Expired' ? 'bg-red-50 text-red-600 border-red-100' :
-                                item.status === 'Near Expiry' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                'bg-green-50 text-green-600 border-green-100'
+                        <td className="table-td">
+                          <div className="inventory-data-cell">
+                            <div className="status-hazard-row">
+                              <span className={`status-badge ${
+                                item.status === 'Expired' ? 'status-expired' :
+                                item.status === 'Near Expiry' ? 'status-near-expiry' :
+                                'status-active'
                               }`}>
                                 {item.status}
                               </span>
                               <HazardBadge hazards={item.ghs_classes} size="sm" />
                             </div>
-                            <div className="text-xs font-bold text-secondary-600 flex flex-wrap items-center gap-x-2">
-                              <span className="text-primary-600">[{item.location}]</span>
-                              <span>•</span>
+                            <div className="inventory-subtext">
+                              <span className="location-text">[{item.location}]</span>
+                              <span className="separator">•</span>
                               <span>{item.quantity} {item.unit}</span>
                               {item.batch_number && (
                                 <>
-                                  <span>•</span>
-                                  <span className="flex items-center gap-1 text-[10px] bg-secondary-100 text-secondary-500 px-1.5 py-0.5 rounded-md font-black uppercase">
+                                  <span className="separator">•</span>
+                                  <span className="batch-sub-badge">
                                     Batch: {item.batch_number}
                                   </span>
                                 </>
@@ -272,52 +264,62 @@ const Chemicals = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-5 text-center">
-                           <div className="inline-block p-1.5 bg-white rounded-lg shadow-sm border border-secondary-200">
-                             <QRCode value={`${window.location.origin}/chemicals/details/${item.id}`} size={48} />
+                        <td className="table-td qr-cell">
+                           <div className="qr-mini-wrapper">
+                             <QRCode value={`${window.location.origin}/chemicals/details/${item.id}`} size={72} />
                            </div>
                         </td>
-                        <td className="px-6 py-5">
-                           <div className="flex justify-center gap-2">
+                        <td className="table-td actions-cell">
+                           <div className="action-buttons-group">
                             <button
                               onClick={() => { setSelectedFIFOChemical(item); setShowFIFOModal(true); }}
-                              className="w-10 h-10 flex items-center justify-center bg-white border border-secondary-200 rounded-xl text-primary-600 hover:bg-primary-600 hover:text-white hover:border-primary-600 transition-all shadow-sm"
+                              className="icon-action-button fifo-button"
                               title="Quick FIFO Use"
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                               <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                             </button>
                             <button
                               onClick={() => { setEditingChemical(item); setShowForm(true); }}
-                              className="w-10 h-10 flex items-center justify-center bg-white border border-secondary-200 rounded-xl text-secondary-400 hover:text-secondary-900 transition-all shadow-sm"
+                              className="icon-action-button edit-button"
                               title="Edit"
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                               <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             </button>
                             <button
                               onClick={() => { setSelectedHistoryChemical(item); setShowHistoryModal(true); }}
-                              className="w-10 h-10 flex items-center justify-center bg-white border border-secondary-200 rounded-xl text-secondary-400 hover:text-secondary-900 transition-all shadow-sm"
+                              className="icon-action-button history-button"
                               title="History"
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                               <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </button>
+                            <Link
+                              to={`/chemicals/details/${item.id}`}
+                              className="icon-action-button view-button"
+                              title="View Full Information"
+                            >
+                               <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                               </svg>
+                            </Link>
                             <Link
                               to={`/print/${item.id}`}
                               target="_blank"
-                              className="w-10 h-10 flex items-center justify-center bg-white border border-secondary-200 rounded-xl text-secondary-400 hover:text-primary-600 hover:border-primary-600 transition-all shadow-sm"
+                              className="icon-action-button print-button"
                               title="Print Label"
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                               <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                             </Link>
                             {canDelete && (
                               <button
                                 onClick={() => toggleArchive(item.id, item.archived)}
-                                className={`w-10 h-10 flex items-center justify-center bg-white border border-secondary-200 rounded-xl transition-all shadow-sm ${item.archived ? 'text-green-500 hover:text-green-700 hover:border-green-500' : 'text-red-400 hover:text-red-600 hover:border-red-500'}`}
+                                className={`archive-action-button ${item.archived ? 'restore-mode' : 'delete-mode'}`}
                                 title={item.archived ? "Restore" : "Archive (Soft Delete)"}
                               >
                                 {item.archived ? (
-                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                   <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                                 ) : (
-                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                   <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                 )}
                               </button>
                             )}
@@ -330,17 +332,16 @@ const Chemicals = () => {
               )}
             </div>
 
-            {/* Pagination Controls */}
             {pagination.totalPages > 1 && (
-              <div className="p-6 border-t border-secondary-50 bg-secondary-50/20 flex items-center justify-between">
-                <div className="text-xs font-bold text-secondary-500 uppercase tracking-widest">
+              <div className="pagination-container">
+                <div className="pagination-info">
                   Showing {(pagination.page - 1) * pagination.limit + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} entries
                 </div>
-                <div className="flex gap-2">
+                <div className="pagination-actions">
                   <button
                     disabled={pagination.page === 1}
                     onClick={() => fetchChemicals(pagination.page - 1)}
-                    className="px-4 py-2 bg-white border border-secondary-200 rounded-xl text-xs font-black disabled:opacity-50 hover:bg-secondary-50 transition-all"
+                    className="pagination-nav-button"
                   >
                     Prev
                   </button>
@@ -348,10 +349,8 @@ const Chemicals = () => {
                     <button
                       key={i + 1}
                       onClick={() => fetchChemicals(i + 1)}
-                      className={`w-10 h-10 rounded-xl text-xs font-black transition-all ${
-                        pagination.page === i + 1 
-                          ? 'bg-secondary-900 text-white shadow-lg shadow-secondary-900/20' 
-                          : 'bg-white border border-secondary-200 text-secondary-600 hover:bg-secondary-50'
+                      className={`pagination-number-button ${
+                        pagination.page === i + 1 ? 'page-active' : 'page-inactive'
                       }`}
                     >
                       {i + 1}
@@ -360,7 +359,7 @@ const Chemicals = () => {
                   <button
                     disabled={pagination.page === pagination.totalPages}
                     onClick={() => fetchChemicals(pagination.page + 1)}
-                    className="px-4 py-2 bg-white border border-secondary-200 rounded-xl text-xs font-black disabled:opacity-50 hover:bg-secondary-50 transition-all"
+                    className="pagination-nav-button"
                   >
                     Next
                   </button>

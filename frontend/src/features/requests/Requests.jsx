@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Layout from "../../layout/Layout";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
+import "../../styles/Requests.css";
 
 const Requests = () => {
   const { user, hasPermission } = useAuth();
@@ -184,35 +185,35 @@ const Requests = () => {
 
   return (
     <Layout>
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="requests-header">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold heading-font text-secondary-900">Request & Approval System</h1>
-          <p className="text-secondary-500 mt-1 text-sm">Every usage must go through a request → approval process.</p>
+          <h1 className="requests-title">Request & Approval System</h1>
+          <p className="requests-subtitle">Every usage must go through a request → approval process.</p>
         </div>
-        <div className="flex items-center gap-2">
-           <button onClick={fetchRequests} className="p-2 bg-white border border-secondary-200 rounded-xl hover:bg-secondary-50 transition-colors shadow-sm text-secondary-600">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+           <button onClick={fetchRequests} className="refresh-btn">
+              <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
            </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+      <div className="requests-layout">
         
         {/* Step 5.2 — Submit Request (Normal User Side) */}
         {hasPermission("submit_request") && (
-          <div className="bg-white p-6 sm:p-8 rounded-[2rem] lg:rounded-[2.5rem] border border-secondary-100 shadow-sm lg:col-span-1 h-fit">
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm font-bold">1</span>
+          <div className="requests-panel col-span-1">
+            <h2 className="panel-heading">
+              <span className="step-indicator step-1">1</span>
               Submit Request
             </h2>
-            <form onSubmit={handleSubmitRequest} className="space-y-4">
+            <form onSubmit={handleSubmitRequest} className="form-layout">
               <div>
-                <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Select Chemical</label>
+                <label className="form-label">Select Chemical</label>
                 <select 
                   value={selectedChem} 
                   onChange={(e) => setSelectedChem(e.target.value)} 
                   required 
-                  className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none mt-1"
+                  className="form-input"
                 >
                   <option value="">-- Choose Chemical --</option>
                   {chemicals.map(c => (
@@ -223,17 +224,17 @@ const Requests = () => {
 
               {selectedChem && (
                 <div>
-                  <div className="flex items-center justify-between mb-1 px-1">
-                    <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest">Select Container</label>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem', padding: '0 0.25rem' }}>
+                    <label className="form-label" style={{ padding: 0 }}>Select Container</label>
                     {fifoContainer && (
-                      <span className="text-[10px] font-black text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">🔵 FIFO auto-selected</span>
+                      <span className="fifo-badge">🔵 FIFO auto-selected</span>
                     )}
                   </div>
                   <select
                     value={selectedContainer}
                     onChange={(e) => { setSelectedContainer(e.target.value); setSubmitError(null); }}
                     required
-                    className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                    className="form-input"
                   >
                     <option value="">-- Choose Container --</option>
                     {containers.map(c => {
@@ -248,17 +249,17 @@ const Requests = () => {
 
                   {/* FIFO deviation warning */}
                   {fifoContainer && selectedContainer && selectedContainer !== fifoContainer.fifo_container_id && (
-                    <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
-                      <span className="text-amber-500 text-lg leading-none">⚠️</span>
-                      <div className="flex-1">
-                        <p className="text-xs font-bold text-amber-700">FIFO Order Warning</p>
-                        <p className="text-[11px] text-amber-600 mt-0.5">
+                    <div className="fifo-warning">
+                      <span style={{ color: '#f59e0b', fontSize: '1.125rem', lineHeight: 1 }}>⚠️</span>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b45309' }}>FIFO Order Warning</p>
+                        <p style={{ fontSize: '11px', color: '#d97706', marginTop: '0.125rem' }}>
                           You must finish <strong>{fifoContainer.container_id}</strong> first ({fifoContainer.available_quantity} {fifoContainer.unit} left). The system will block this request.
                         </p>
                         <button
                           type="button"
                           onClick={() => setSelectedContainer(fifoContainer.fifo_container_id)}
-                          className="mt-1.5 text-[11px] font-black text-blue-600 hover:text-blue-800 underline"
+                          style={{ marginTop: '0.375rem', fontSize: '11px', fontWeight: 900, color: '#2563eb', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                         >
                           → Switch to FIFO container
                         </button>
@@ -268,41 +269,42 @@ const Requests = () => {
 
                   {/* FIFO info panel when correct container is selected */}
                   {fifoContainer && selectedContainer === fifoContainer.fifo_container_id && (
-                    <div className="mt-2 p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-2">
-                      <span className="text-blue-500">🔵</span>
-                      <p className="text-[11px] text-blue-700 font-semibold">
+                    <div className="fifo-info">
+                      <span style={{ color: '#3b82f6' }}>🔵</span>
+                      <p style={{ fontSize: '11px', color: '#1d4ed8', fontWeight: 600 }}>
                         FIFO compliant — this is the correct container to use next ({fifoContainer.available_quantity} {fifoContainer.unit} available).
                       </p>
                     </div>
                   )}
 
                   {selectedChem && containers.length === 0 && (
-                    <p className="text-[10px] text-red-500 font-bold mt-1 px-1">
+                    <p style={{ fontSize: '10px', color: '#ef4444', fontWeight: 700, marginTop: '0.25rem', padding: '0 0.25rem' }}>
                       ⚠️ No active containers found for this chemical. It may be out of stock.
                     </p>
                   )}
                 </div>
               )}
 
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2">
-                  <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Quantity</label>
+              <div className="grid-cols-quantity">
+                <div className="col-span-q">
+                  <label className="form-label">Quantity</label>
                   <input 
                     type="number" 
                     step="0.01" 
                     value={quantity} 
                     onChange={(e) => setQuantity(e.target.value)} 
                     required 
-                    className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none mt-1" 
+                    className="form-input" 
                     placeholder="0.00"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Unit</label>
+                  <label className="form-label">Unit</label>
                   <select
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
-                    className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none mt-1 text-secondary-900 font-bold"
+                    className="form-input"
+                    style={{ fontWeight: 700, color: 'var(--secondary-900)' }}
                   >
                     {chemicals.find(c => c._id === selectedChem)?.state?.toLowerCase() === 'liquid' || 
                      chemicals.find(c => c._id === selectedChem)?.unit === 'L' || 
@@ -325,12 +327,12 @@ const Requests = () => {
 
 
               <div>
-                <label className="text-xs font-bold text-secondary-500 uppercase tracking-widest px-1">Reason (Experiment/Project)</label>
+                <label className="form-label">Reason (Experiment/Project)</label>
                 <textarea 
                   value={reason} 
                   onChange={(e) => setReason(e.target.value)} 
                   required 
-                  className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-500/20 outline-none mt-1" 
+                  className="form-input" 
                   rows="3" 
                   placeholder="Why do you need this?"
                 ></textarea>
@@ -338,8 +340,8 @@ const Requests = () => {
 
               {/* Submit error (including FIFO violations) */}
               {submitError && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-xl space-y-2">
-                  <p className="text-xs font-bold text-red-700 flex items-center gap-1.5">
+                <div className="submit-error-box">
+                  <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b91c1c', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                     <span>🚫</span> {submitError.error}
                   </p>
                   {submitError.fifo_container_id && (
@@ -349,7 +351,7 @@ const Requests = () => {
                         setSelectedContainer(submitError.fifo_container_id);
                         setSubmitError(null);
                       }}
-                      className="text-[11px] font-black text-blue-600 hover:text-blue-800 underline"
+                      style={{ fontSize: '11px', fontWeight: 900, color: '#2563eb', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}
                     >
                       → Switch to correct container: {submitError.fifo_container_label} ({submitError.fifo_available_native} {submitError.fifo_unit})
                     </button>
@@ -360,135 +362,131 @@ const Requests = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-primary-600 hover:bg-primary-500 disabled:bg-secondary-300 text-white p-4 rounded-xl font-bold transition-all mt-2 flex items-center justify-center gap-2"
+                className="btn-primary"
               >
                 {submitting ? "Submitting..." : "Submit Request"}
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
               </button>
             </form>
           </div>
         )}
 
         {/* Step 5.3 — Approval System (Manager side) */}
-        <div className={`bg-white p-6 sm:p-8 rounded-[2rem] lg:rounded-[2.5rem] border border-secondary-100 shadow-sm ${hasPermission("submit_request") ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <span className="w-8 h-8 rounded-full bg-secondary-100 text-secondary-600 flex items-center justify-center text-sm font-bold">2</span>
+        <div className={`requests-panel ${hasPermission("submit_request") ? 'col-span-2' : 'col-span-3'}`}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+            <h2 className="panel-heading" style={{ marginBottom: 0 }}>
+              <span className="step-indicator step-2">2</span>
               {hasPermission("approve_request") ? "Approval Dashboard" : "My Requests History"}
             </h2>
-            <div className="flex items-center gap-2">
-               <span className="bg-secondary-50 text-secondary-500 text-[10px] font-bold px-2 py-1 rounded-md border border-secondary-100 uppercase tracking-wider">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+               <span className="total-badge">
                   Total: {requests.length}
                </span>
             </div>
           </div>
           
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
-              <p className="text-sm text-secondary-400 mt-4">Loading requests ledger...</p>
+            <div className="loading-view">
+              <div className="spinner-primary"></div>
+              <p style={{ fontSize: '0.875rem', color: 'var(--secondary-400)', marginTop: '1rem' }}>Loading requests ledger...</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {requests.length === 0 && (
-                <div className="text-center py-12 bg-secondary-50 rounded-3xl border border-dashed border-secondary-200">
-                  <p className="text-secondary-500 font-medium">No requests in queue.</p>
+                <div className="empty-state">
+                  <p style={{ color: 'var(--secondary-500)', fontWeight: 500 }}>No requests in queue.</p>
                 </div>
               )}
               
               {requests.map(req => (
-                <div key={req._id} className="group p-5 border border-secondary-100 rounded-[1.5rem] hover:border-primary-200 hover:bg-primary-50/10 transition-all duration-300">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-bold text-lg text-secondary-900">{req.chemical_id?.name || "Unknown Chemical"}</span>
-                        <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider border ${
-                          req.status === 'Approved' ? 'bg-green-100 text-green-700 border-green-200' :
-                          req.status === 'Rejected' ? 'bg-red-100 text-red-700 border-red-200' :
-                          'bg-yellow-100 text-yellow-700 border-yellow-200 animate-pulse'
-                        }`}>
+                <div key={req._id} className="request-card">
+                  <div style={{ display: 'flex', flexDirection: 'column', width: '100%', minWidth: 0, gap: '1rem' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="req-header">
+                        <span className="req-title">{req.chemical_id?.name || "Unknown Chemical"}</span>
+                        <span className={`req-status status-${req.status}`}>
                           {req.status}
                         </span>
                       </div>
                       
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 mb-3">
-                        <div className="flex items-center gap-2 text-xs text-secondary-500">
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                          Requester: <span className="font-bold text-secondary-700">{req.user_id?.name || "Unknown"}</span>
+                      <div className="req-details-grid">
+                        <div className="req-detail-item">
+                          <svg style={{ width: '0.875rem', height: '0.875rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                          Requester: <span className="req-detail-val">{req.user_id?.name || "Unknown"}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-secondary-500">
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                          Container: <span className="font-bold text-secondary-700">{req.container_id?.container_id || "N/A"}</span>
+                        <div className="req-detail-item">
+                          <svg style={{ width: '0.875rem', height: '0.875rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                          Container: <span className="req-detail-val">{req.container_id?.container_id || "N/A"}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-secondary-500">
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                          Requested: <span className="font-bold text-secondary-700">{new Date(req.createdAt).toLocaleString()}</span>
+                        <div className="req-detail-item">
+                          <svg style={{ width: '0.875rem', height: '0.875rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                          Requested: <span className="req-detail-val">{new Date(req.createdAt).toLocaleString()}</span>
                         </div>
                         {req.handled_at && (
-                           <div className="flex items-center gap-2 text-xs text-secondary-500">
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            Handled: <span className="font-bold text-secondary-700">{new Date(req.handled_at).toLocaleString()}</span>
+                           <div className="req-detail-item">
+                            <svg style={{ width: '0.875rem', height: '0.875rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Handled: <span className="req-detail-val">{new Date(req.handled_at).toLocaleString()}</span>
                           </div>
                         )}
                       </div>
 
-                      <div className="bg-secondary-50 p-3 rounded-xl border border-secondary-100">
-                        <p className="text-secondary-400 text-[10px] uppercase font-black mb-1">Reason for usage</p>
-                        <p className="text-sm italic text-secondary-700">"{req.reason}"</p>
+                      <div className="req-reason-box">
+                        <p style={{ color: 'var(--secondary-400)', fontSize: '10px', textTransform: 'uppercase', fontWeight: 900, marginBottom: '0.25rem' }}>Reason for usage</p>
+                        <p style={{ fontSize: '0.875rem', fontStyle: 'italic', color: 'var(--secondary-700)' }}>"{req.reason}"</p>
                       </div>
 
                       {req.notes && (
-                        <div className="mt-2 bg-primary-50 px-3 py-2 rounded-xl border border-primary-100">
-                           <p className="text-primary-400 text-[10px] uppercase font-black mb-1">Decision Notes</p>
-                           <p className="text-sm text-primary-700 font-medium">{req.notes}</p>
+                        <div className="req-notes-box">
+                           <p style={{ color: '#60a5fa', fontSize: '10px', textTransform: 'uppercase', fontWeight: 900, marginBottom: '0.25rem' }}>Decision Notes</p>
+                           <p style={{ fontSize: '0.875rem', color: '#1d4ed8', fontWeight: 500 }}>{req.notes}</p>
                         </div>
                       )}
                     </div>
+                  </div>
 
-                    <div className="flex flex-col gap-2 min-w-[140px] w-full md:w-auto">
-                      <div className="text-center bg-secondary-900 text-white rounded-[1.2rem] py-3 px-6 shadow-xl shadow-secondary-900/10">
-                        <span className="block text-[10px] uppercase text-secondary-400 font-black mb-0.5 tracking-tighter">Amount Needed</span>
-                        <span className="font-mono text-xl font-black">{req.quantity} <span className="text-xs uppercase text-primary-400">{req.unit}</span></span>
+                  <div className="req-action-col">
+                    <div className="amount-box">
+                      <span className="amount-label">Amount Needed</span>
+                      <span className="amount-val">{req.quantity} <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#60a5fa' }}>{req.unit}</span></span>
+                    </div>
+
+                    {req.status === 'Pending' && hasPermission("approve_request") && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                         <textarea 
+                          onChange={(e) => setNotes(e.target.value)}
+                          placeholder="Decision notes..."
+                          className="action-textarea"
+                         />
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
+                          <button 
+                            onClick={() => {
+                              if(window.confirm("Approve this usage request? Stock will be reduced.")) {
+                                handleAction(req._id, 'Approved', notes);
+                                setNotes("");
+                              }
+                            }} 
+                            className="btn-approve"
+                            title="Approve Request"
+                          >
+                            <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                            <span style={{ marginLeft: '0.25rem', fontSize: '0.75rem', fontWeight: 700 }} className="hide-on-mobile">Approve</span>
+                          </button>
+                          <button 
+                            onClick={() => {
+                              if(window.confirm("Reject this request?")) {
+                                handleAction(req._id, 'Rejected', notes);
+                                setNotes("");
+                              }
+                            }} 
+                            className="btn-reject"
+                            title="Reject Request"
+                          >
+                            <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            <span style={{ marginLeft: '0.25rem', fontSize: '0.75rem', fontWeight: 700 }} className="hide-on-mobile">Reject</span>
+                          </button>
+                        </div>
                       </div>
-
-                      {req.status === 'Pending' && hasPermission("approve_request") && (
-                        <div className="flex flex-col gap-2 mt-2">
-                           <textarea 
-                            onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Decision notes..."
-                            className="text-xs p-2 border border-secondary-200 rounded-lg outline-none focus:ring-2 focus:ring-primary-500/20"
-                           />
-                          <div className="grid grid-cols-2 gap-2">
-                            <button 
-                              onClick={() => {
-                                if(window.confirm("Approve this usage request? Stock will be reduced.")) {
-                                  handleAction(req._id, 'Approved', notes);
-                                  setNotes("");
-                                }
-                              }} 
-                              className="bg-green-600 hover:bg-green-500 text-white rounded-xl py-2.5 transition-all shadow-md shadow-green-600/20 flex items-center justify-center"
-                              title="Approve Request"
-                            >
-                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
-                              <span className="ml-1 text-xs font-bold md:hidden lg:inline">Approve</span>
-                            </button>
-                            <button 
-                              onClick={() => {
-                                if(window.confirm("Reject this request?")) {
-                                  handleAction(req._id, 'Rejected', notes);
-                                  setNotes("");
-                                }
-                              }} 
-                              className="bg-red-600 hover:bg-red-500 text-white rounded-xl py-2.5 transition-all shadow-md shadow-red-600/20 flex items-center justify-center"
-                              title="Reject Request"
-                            >
-                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                              <span className="ml-1 text-xs font-bold md:hidden lg:inline">Reject</span>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </div>
               ))}

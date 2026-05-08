@@ -4,7 +4,7 @@ import axios from "axios";
 import Layout from "../layout/Layout";
 import { useAuth } from "../context/AuthContext";
 import { HAZARD_CLASSES } from "../constants/hazards.jsx";
-import HazardBadge from "../components/feedback/HazardBadge";
+import "../styles/Dashboard.css";
 
 const Dashboard = () => {
   const { user, hasPermission } = useAuth();
@@ -26,7 +26,6 @@ const Dashboard = () => {
     fetchStats();
   }, []);
 
-  // Fetch real requests from API
   useEffect(() => {
     if (hasPermission("approve_request")) {
       fetchRequests();
@@ -49,13 +48,12 @@ const Dashboard = () => {
   const handleRequestAction = async (id, status) => {
     try {
       await axios.put(`/api/inventory/requests/${id}`, { status });
-      fetchRequests(); // Refresh the list
+      fetchRequests();
     } catch (err) {
       alert("Error updating request: " + (err.response?.data?.error || err.message));
     }
   };
 
-  // Format relative time (e.g., "2h ago", "3d ago")
   const timeAgo = (dateStr) => {
     const now = new Date();
     const date = new Date(dateStr);
@@ -70,7 +68,6 @@ const Dashboard = () => {
     return date.toLocaleDateString();
   };
 
-  // Fetch real audit logs for Live Activity
   useEffect(() => {
     if (hasPermission("view_audit_logs")) {
       fetchAuditLogs();
@@ -83,7 +80,7 @@ const Dashboard = () => {
     try {
       const { data } = await axios.get('/api/audit');
       const logsArray = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
-      setAuditLogs(logsArray.slice(0, 6)); // Latest 6 events
+      setAuditLogs(logsArray.slice(0, 6));
     } catch (err) {
       console.error("Failed to fetch audit logs", err);
     } finally {
@@ -93,94 +90,94 @@ const Dashboard = () => {
 
   const stats = [
     { label: "Total Chemicals", value: dbStats.total.toString().padStart(3, '0'), sub: "Active Listings", color: "primary", icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" /></svg>
+      <svg className="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" /></svg>
     )},
     { label: "Flammables", value: dbStats.flammables.toString().padStart(3, '0'), sub: "Class 3 Assets", color: "orange", icon: (
-      <div className="w-6 h-6">
+      <div className="icon-md">
         {HAZARD_CLASSES.find(h => h.id === 'Flammable')?.icon}
       </div>
     )},
     { label: "Critical Stock", value: dbStats.lowStock.toString().padStart(2, '0'), sub: "Reorder Required", color: "red", icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+      <svg className="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
     )},
     { label: "Safety Audit", value: dbStats.auditScore, sub: "Passing Score", color: "green", icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+      <svg className="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
     )},
   ];
 
   const storageThemes = [
-    { base: 'blue', bg: 'bg-blue-500', fill: 'from-blue-400 to-blue-600', light: 'bg-blue-500/10', ring: 'ring-blue-500/30' },
-    { base: 'violet', bg: 'bg-violet-500', fill: 'from-violet-400 to-violet-600', light: 'bg-violet-500/10', ring: 'ring-violet-500/30' },
-    { base: 'emerald', bg: 'bg-emerald-500', fill: 'from-emerald-400 to-emerald-600', light: 'bg-emerald-500/10', ring: 'ring-emerald-500/30' },
-    { base: 'amber', bg: 'bg-amber-500', fill: 'from-amber-400 to-amber-600', light: 'bg-amber-500/10', ring: 'ring-amber-500/30' },
+    { bg: 'bg-blue-500', fill: 'theme-blue', ring: 'ring-blue', text: 'text-blue-600' },
+    { bg: 'bg-violet-500', fill: 'theme-violet', ring: 'ring-violet', text: 'text-violet-600' },
+    { bg: 'bg-emerald-500', fill: 'theme-emerald', ring: 'ring-emerald', text: 'text-emerald-600' },
+    { bg: 'bg-amber-500', fill: 'theme-amber', ring: 'ring-amber', text: 'text-amber-600' },
   ];
+
   return (
     <Layout>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+      <div className="dashboard-header">
         <div>
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black heading-font text-secondary-950 tracking-tight leading-none">
-              Welcome back, <span className="text-primary-600">{user?.name?.split(' ')[0] || "Guest"}</span>
+          <div className="welcome-section">
+            <h1 className="welcome-title">
+              Welcome back, <span>{user?.name?.split(' ')[0] || "Guest"}</span>
             </h1>
             {user?.role && (
-              <span className="px-3 py-1 bg-primary-100 text-primary-700 text-xs font-bold uppercase tracking-widest rounded-lg border border-primary-200 shadow-sm">
+              <span className="role-badge-pill">
                 {user.role}
               </span>
             )}
           </div>
-          <p className="text-secondary-500 mt-2 font-medium text-sm">System status is <span className="text-green-600 font-bold">Optimal</span> • Last audit {dbStats.lastAuditAgo}</p>
+          <p className="system-status-text">System status is <span className="status-optimal">Optimal</span> • Last audit {dbStats.lastAuditAgo}</p>
         </div>
         
-        <div className="flex flex-wrap gap-3">
-           <button className="bg-white border border-secondary-200 px-4 py-2.5 rounded-2xl text-sm font-bold text-secondary-700 hover:bg-secondary-50 transition-all flex items-center gap-2">
-             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-             <span className="hidden sm:inline">Search SDS</span>
+        <div className="header-actions">
+           <button className="search-sds-btn">
+             <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+             <span className="hidden-mobile">Search SDS</span>
            </button>
             {hasPermission("create_chemical") && (
-              <Link to="/chemicals" className="bg-secondary-950 text-white px-4 py-2.5 rounded-2xl text-sm font-bold hover:bg-black transition-all flex items-center gap-2 shadow-xl shadow-secondary-900/10">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
-                <span className="hidden sm:inline">New Inventory</span>
+              <Link to="/chemicals" className="new-inventory-btn">
+                <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+                <span className="hidden-mobile">New Inventory</span>
               </Link>
             )}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+      <div className="stats-grid">
         {stats.map((stat, i) => (
-          <div key={i} className="bg-white p-4 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] border border-secondary-100 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
-            <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-[0.03] group-hover:scale-150 transition-transform duration-700 ${
+          <div key={i} className="stat-card">
+            <div className={`stat-card-bg-icon ${
               stat.color === 'red' ? 'bg-red-500' : 
               stat.color === 'orange' ? 'bg-orange-500' :
               stat.color === 'green' ? 'bg-green-500' : 'bg-primary-500'
             }`}></div>
 
-            <div className={`w-12 h-12 rounded-2xl mb-4 flex items-center justify-center ${
+            <div className={`stat-icon-wrapper ${
               stat.color === 'red' ? 'bg-red-50 text-red-600' : 
               stat.color === 'orange' ? 'bg-orange-50 text-orange-600' :
               stat.color === 'green' ? 'bg-green-50 text-green-600' : 'bg-primary-50 text-primary-600'
             }`}>
               {stat.icon}
             </div>
-            <div className="text-xs font-bold text-secondary-400 uppercase tracking-widest mb-1">{stat.label}</div>
-            <div className="text-3xl font-black text-secondary-900">{stat.value}</div>
-            <div className="text-[10px] font-bold text-secondary-500 mt-1">{stat.sub}</div>
+            <div className="stat-label">{stat.label}</div>
+            <div className="stat-value">{stat.value}</div>
+            <div className="stat-subtext">{stat.sub}</div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          {/* Storage Capacity Section */}
-          <div className="bg-white rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-8 lg:p-10 border border-secondary-100 shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-               <h2 className="text-xl sm:text-2xl font-black text-secondary-950 heading-font">Storage Capacity</h2>
-               <span className="text-xs font-bold text-primary-600 px-3 py-1 bg-primary-50 rounded-full hidden sm:block">Automated Sensing</span>
+      <div className="dashboard-main-grid">
+        <div className="dashboard-col-left">
+          <div className="dashboard-section" style={{marginBottom: '2rem'}}>
+            <div className="section-header">
+               <h2 className="section-title">Storage Capacity</h2>
+               <span className="section-badge">Automated Sensing</span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="storage-units-grid">
                {(dbStats.storageBreakdown || []).length === 0 ? (
-                 <div className="col-span-2 text-center py-8">
-                   <p className="text-sm font-bold text-secondary-400">No storage locations assigned yet</p>
-                   <p className="text-[10px] text-secondary-500 mt-1">Add locations to chemicals to see storage breakdown.</p>
+                 <div style={{gridColumn: 'span 2', textAlign: 'center', padding: '2rem 0'}}>
+                   <p className="stat-label" style={{fontSize: '0.875rem'}}>No storage locations assigned yet</p>
+                   <p className="stat-subtext">Add locations to chemicals to see storage breakdown.</p>
                  </div>
                ) : (dbStats.storageBreakdown || []).map((unit, i) => {
                  const theme = storageThemes[i % storageThemes.length];
@@ -188,16 +185,16 @@ const Dashboard = () => {
                  const maxQty = Math.max(...storageList.map(u => u.totalQty), 1);
                  const fill = Math.round((unit.totalQty / maxQty) * 100);
                  return (
-                   <div key={i} className="space-y-3 group cursor-pointer">
-                     <div className="flex justify-between text-sm font-bold text-secondary-700 group-hover:text-secondary-950 transition-colors">
-                       <span className="truncate mr-2 flex items-center gap-2">
-                         <div className={`w-2 h-2 rounded-full ${theme.bg}`}></div>
+                   <div key={i} className="storage-unit-item">
+                     <div className="storage-unit-label-row">
+                       <span className="unit-name-wrapper">
+                         <div className={`unit-status-dot ${theme.bg}`}></div>
                          {unit.name}
                        </span>
-                       <span className="shrink-0 text-secondary-500 group-hover:text-secondary-700">{unit.count} items • {unit.totalQty} units</span>
+                       <span className="unit-stats-summary">{unit.count} items • {unit.totalQty} units</span>
                      </div>
-                     <div className="h-4 w-full bg-secondary-100 rounded-full overflow-hidden p-1 shadow-inner">
-                       <div className={`h-full rounded-full transition-all duration-1000 bg-gradient-to-r ${theme.fill} shadow-sm`} style={{ width: `${fill}%` }}></div>
+                     <div className="progress-track">
+                       <div className={`progress-fill ${theme.fill}`} style={{ width: `${fill}%` }}></div>
                      </div>
                    </div>
                  );
@@ -205,49 +202,48 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Pending Approvals Section — LIVE DATA */}
           {hasPermission("approve_request") && (
-            <div className="bg-secondary-950 rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-8 lg:p-10 text-white relative overflow-hidden shadow-2xl">
-               <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 blur-[100px] rounded-full"></div>
-               <div className="flex justify-between items-center mb-6 relative z-10">
-                 <h2 className="text-2xl font-black heading-font">Pending Approvals</h2>
-                 <span className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">
+            <div className="dashboard-section approvals-section" style={{marginBottom: '2rem'}}>
+               <div className="approvals-bg-glow"></div>
+               <div className="section-header" style={{position: 'relative', zIndex: 10}}>
+                 <h2 className="section-title" style={{color: 'white'}}>Pending Approvals</h2>
+                 <span className="stat-label">
                    {pendingRequests.filter(r => r.status === 'Pending').length} Pending
                  </span>
                </div>
 
-               <div className="space-y-3 relative z-10">
+               <div className="approval-list">
                   {requestsLoading ? (
-                    <div className="flex flex-col items-center py-10">
-                      <div className="w-8 h-8 border-2 border-primary-400/30 border-t-primary-400 rounded-full animate-spin mb-3"></div>
-                      <p className="text-xs font-bold text-secondary-500 uppercase tracking-widest">Loading requests...</p>
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2.5rem 0'}}>
+                      <div className="spinner-mini" style={{width: '2rem', height: '2rem'}}></div>
+                      <p className="stat-label" style={{marginTop: '0.75rem'}}>Loading requests...</p>
                     </div>
                   ) : pendingRequests.length === 0 ? (
-                    <div className="text-center py-10">
-                      <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                        <svg className="w-6 h-6 text-secondary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <div style={{textAlign: 'center', padding: '2.5rem 0'}}>
+                      <div style={{width: '3rem', height: '3rem', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.75rem'}}>
+                        <svg className="icon-md" style={{ color: 'var(--secondary-500)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       </div>
-                      <p className="text-sm font-bold text-secondary-500">No requests found</p>
-                      <p className="text-[10px] text-secondary-600 mt-1">All clear — nothing to review.</p>
+                      <p style={{fontSize: '0.875rem', fontWeight: 700, color: 'var(--secondary-500)'}}>No requests found</p>
+                      <p className="stat-subtext" style={{marginTop: '0.25rem'}}>All clear — nothing to review.</p>
                     </div>
                   ) : (
                     pendingRequests.slice(0, 5).map((req) => (
-                      <div key={req._id} className="bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between hover:bg-white/10 transition-all group gap-3">
-                        <div className="flex items-center gap-4 min-w-0">
-                           <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-bold text-sm shrink-0">
+                      <div key={req._id} className="approval-card">
+                        <div className="approval-info">
+                           <div className="approval-avatar">
                               {(req.chemical_name || req.chemical_id?.name || '?')[0].toUpperCase()}
                            </div>
-                           <div className="min-w-0">
-                              <div className="font-bold text-sm tracking-tight truncate">{req.chemical_name || req.chemical_id?.name || req.chemical_id}</div>
-                              <div className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest mt-0.5">
+                           <div className="approval-details">
+                              <div className="approval-item-name">{req.chemical_name || req.chemical_id?.name || req.chemical_id}</div>
+                              <div className="approval-meta">
                                 REQ BY {(req.user_name || req.user_id?.name || 'Unknown').toUpperCase()} • {timeAgo(req.created_at)} • QTY: {req.quantity}
                               </div>
                            </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                           <span className={`text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider ${
-                             req.status === 'Approved' ? 'bg-green-500/20 text-green-400' :
-                             req.status === 'Rejected' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'
+                        <div className="approval-actions">
+                           <span className={`status-tag ${
+                             req.status === 'Approved' ? 'status-approved' :
+                             req.status === 'Rejected' ? 'status-rejected' : 'status-pending'
                            }`}>
                               {req.status}
                            </span>
@@ -255,64 +251,61 @@ const Dashboard = () => {
                              <>
                                <button
                                  onClick={() => handleRequestAction(req._id, 'Approved')}
-                                 className="w-8 h-8 rounded-lg bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white flex items-center justify-center transition-all"
+                                 className="action-btn-circle approve-btn"
                                  title="Approve"
                                >
-                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"/></svg>
+                                 <svg className="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"/></svg>
                                </button>
                                <button
                                  onClick={() => handleRequestAction(req._id, 'Rejected')}
-                                 className="w-8 h-8 rounded-lg bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white flex items-center justify-center transition-all"
+                                 className="action-btn-circle reject-btn"
                                  title="Reject"
                                >
-                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                 <svg className="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                                </button>
                              </>
                            )}
-                           <Link to="/requests" className="p-2 rounded-lg bg-white/5 hover:bg-white text-white hover:text-secondary-950 transition-all opacity-0 group-hover:opacity-100">
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                           <Link to="/requests" className="view-more-arrow">
+                              <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
                            </Link>
                         </div>
                       </div>
                     ))
                   )}
                </div>
-               <Link to="/requests" className="block text-center w-full mt-6 py-4 rounded-2xl bg-primary-600 hover:bg-primary-500 text-white font-bold transition-all shadow-xl shadow-primary-600/20 active:scale-[0.98] relative z-10">
+               <Link to="/requests" className="request-center-btn">
                   Go to Request Center
                </Link>
             </div>
           )}
 
-          {/* Inventory Overview Chart */}
-          <div className="bg-white rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-8 lg:p-10 border border-secondary-100 shadow-xl shadow-secondary-200/20 relative overflow-hidden group/chart">
-            <div className="absolute inset-x-0 bottom-0 top-[80px] bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-30 pointer-events-none"></div>
+          <div className="dashboard-section inventory-chart-section">
+            <div className="chart-grid-bg"></div>
             
-            <div className="flex justify-between items-center mb-10 relative z-10">
+            <div className="section-header" style={{position: 'relative', zIndex: 10}}>
               <div>
-                <h2 className="text-2xl font-black text-secondary-950 heading-font tracking-tight">Inventory Overview</h2>
-                <p className="text-xs font-bold text-secondary-400 mt-1.5 uppercase tracking-widest">Volume distribution across locations</p>
+                <h2 className="section-title">Inventory Overview</h2>
+                <p className="stat-subtext" style={{fontSize: '0.75rem', marginTop: '0.375rem'}}>Volume distribution across locations</p>
               </div>
-              <Link to="/chemicals" className="text-primary-600 bg-primary-50 px-4 py-2 rounded-xl text-xs font-bold hover:bg-primary-100 transition-colors shadow-sm">View All →</Link>
+              <Link to="/chemicals" className="section-badge" style={{textDecoration: 'none'}}>View All →</Link>
             </div>
             
-            <div className="h-72 w-full flex items-end gap-3 pb-2 relative z-10 px-2 mt-4">
-              {/* Background grid lines */}
-              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none border-b-2 border-secondary-100 pb-2">
+            <div className="chart-container">
+              <div className="chart-y-axis">
                  {[100, 75, 50, 25, 0].map(val => (
-                   <div key={val} className="w-full flex items-center h-0.5 relative">
-                     <div className="absolute w-full border-t border-dashed border-secondary-200/60"></div>
-                     {val > 0 && <span className="absolute -left-2 -top-2.5 bg-white/80 pr-2 text-[9px] font-bold text-secondary-300">{val}%</span>}
+                   <div key={val} className="y-grid-line">
+                     {val > 0 && <span className="y-axis-label">{val}%</span>}
                    </div>
                  ))}
               </div>
 
               {(dbStats.storageBreakdown || []).length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-center pb-12 z-10">
-                  <div className="w-16 h-16 bg-secondary-50 text-secondary-300 rounded-[2rem] flex items-center justify-center mb-4 border border-secondary-100/50">
-                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                <div style={{flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', paddingBottom: '3rem', position: 'relative', zIndex: 10}}>
+                  <div style={{width: '4rem', height: '4rem', backgroundColor: 'var(--secondary-50)', color: 'var(--secondary-300)', borderRadius: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', border: '1px solid rgba(226, 232, 240, 0.5)'}}>
+                    <svg className="icon-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                   </div>
-                  <div className="text-sm text-secondary-900 font-bold mb-1">No Storage Data Found</div>
-                  <div className="text-[10px] text-secondary-500 max-w-[200px] leading-relaxed">Assign locations to chemicals (e.g. Cabinet A) to generate volumetric charts.</div>
+                  <div style={{fontSize: '0.875rem', color: 'var(--secondary-900)', fontWeight: 700, marginBottom: '0.25rem'}}>No Storage Data Found</div>
+                  <div style={{fontSize: '10px', color: 'var(--secondary-500)', maxWidth: '200px', lineHeight: 1.5}}>Assign locations to chemicals (e.g. Cabinet A) to generate volumetric charts.</div>
                 </div>
               ) : (dbStats.storageBreakdown || []).map((unit, i) => {
                 const theme = storageThemes[i % storageThemes.length];
@@ -320,27 +313,22 @@ const Dashboard = () => {
                 const maxQty = Math.max(...storageList.map(u => u.totalQty), 1);
                 const h = Math.max(Math.round((unit.totalQty / maxQty) * 100), 8);
                 return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-3 relative group h-full z-10">
-                    {/* Floating Tooltip */}
-                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-secondary-950 text-white rounded-xl py-2 px-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:-translate-y-2 pointer-events-none shadow-2xl flex flex-col items-center border border-white/10 z-50 min-w-max">
-                      <div className="text-xs font-black">{unit.totalQty} Units</div>
-                      <div className="text-[9px] font-medium text-secondary-400 mt-0.5">{unit.count} unique items</div>
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-secondary-950 rotate-45 border-r border-b border-white/10"></div>
+                  <div key={i} className="bar-column">
+                    <div className="chart-tooltip">
+                      <div className="tooltip-val">{unit.totalQty} Units</div>
+                      <div className="tooltip-sub">{unit.count} unique items</div>
+                      <div className="tooltip-arrow"></div>
                     </div>
                     
-                    {/* Bar styling */}
-                    <div className="w-full flex-1 flex items-end justify-center pt-8">
-                       <div className={`w-full max-w-[100px] relative rounded-t-[1.5rem] md:rounded-t-[2rem] transition-all duration-500 ${theme.light} group-hover:scale-[1.02] cursor-pointer overflow-hidden backdrop-blur-sm group-hover:ring-2 ${theme.ring} ring-offset-2 ring-offset-white`} style={{ height: `${h}%` }}>
-                         {/* Inner Gradient */}
-                         <div className={`absolute inset-0 bg-gradient-to-t ${theme.fill} opacity-80 group-hover:opacity-100 transition-opacity`}></div>
-                         {/* Glass highlight top */}
-                         <div className="absolute top-0 inset-x-0 h-4 bg-white/30 rounded-t-[1.5rem] md:rounded-t-[2rem]"></div>
-                         {/* Inner volume dots */}
-                         <div className="absolute inset-0 bg-[radial-gradient(white_1px,transparent_1px)] [background-size:8px_8px] opacity-10"></div>
+                    <div className="bar-wrapper">
+                       <div className={`bar-actual bg-secondary-100`} style={{ height: `${h}%` }}>
+                         <div className={`bar-gradient ${theme.fill}`}></div>
+                         <div className="bar-highlight-glass"></div>
+                         <div className="bar-dots-pattern"></div>
                        </div>
                     </div>
 
-                    <span className={`text-[10px] font-bold uppercase tracking-wider text-center leading-tight truncate w-full px-1 transition-colors ${theme.text} group-hover:text-secondary-950`}>{unit.name}</span>
+                    <span className={`bar-label ${theme.text}`}>{unit.name}</span>
                   </div>
                 );
               })}
@@ -348,148 +336,145 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="space-y-8">
-           {/* Hazard distribution section */}
-           <div className="bg-white rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-8 lg:p-10 border border-secondary-100 shadow-sm relative overflow-hidden group">
-              <div className="flex justify-between items-center mb-6">
-                 <h2 className="text-xl font-black text-secondary-950 heading-font">Risk Profile</h2>
-                 <span className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">Global GHS Analysis</span>
+        <div className="dashboard-col-right">
+           <div className="dashboard-section">
+              <div className="section-header">
+                 <h2 className="section-title" style={{fontSize: '1.25rem'}}>Risk Profile</h2>
+                 <span className="stat-label" style={{fontSize: '10px'}}>Global GHS Analysis</span>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="hazard-profile-grid">
                  {(dbStats.hazardSummary || []).length === 0 ? (
-                   <div className="col-span-2 text-center py-4 bg-secondary-50 rounded-2xl border border-dashed border-secondary-200">
-                     <p className="text-[10px] font-bold text-secondary-400 uppercase">No hazards logged</p>
+                   <div style={{gridColumn: 'span 2', textAlign: 'center', padding: '1rem 0', backgroundColor: 'var(--secondary-50)', borderRadius: '1rem', border: '1px dashed var(--secondary-200)'}}>
+                     <p className="stat-label" style={{fontSize: '10px'}}>No hazards logged</p>
                    </div>
                  ) : (dbStats.hazardSummary || []).map(h => {
                    const hazardInfo = HAZARD_CLASSES.find(x => x.id === h.id || x.label === h.id);
                    if (!hazardInfo) return null;
                    return (
-                     <div key={h.id} className="flex items-center gap-3 p-3 bg-secondary-50/50 hover:bg-white border border-secondary-100 hover:border-primary-100 rounded-2xl transition-all group/hazard">
-                        <div className={`w-8 h-8 rounded-lg ${hazardInfo.color} text-white p-1.5 shadow-sm group-hover/hazard:scale-110 transition-transform`}>
+                     <div key={h.id} className="hazard-mini-card">
+                        <div className={`hazard-mini-icon ${hazardInfo.color}`}>
                            {hazardInfo.icon}
                         </div>
-                        <div className="min-w-0">
-                           <div className="text-xs font-black text-secondary-900 leading-none truncate mb-1">{hazardInfo.label}</div>
-                           <div className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">{h.count} Chemicals</div>
+                        <div className="hazard-mini-info">
+                           <div className="hazard-mini-name">{hazardInfo.label}</div>
+                           <div className="hazard-mini-count">{h.count} Chemicals</div>
                         </div>
                      </div>
                    );
                  })}
               </div>
-              <div className="mt-6 pt-4 border-t border-secondary-50">
-                 <div className="text-[10px] font-black text-primary-600 uppercase tracking-[0.2em] mb-2">Primary Threat</div>
-                 <div className="flex items-center gap-3">
-                    <div className="text-lg font-black text-secondary-950">
+              <div className="primary-threat-box">
+                 <div className="threat-label">Primary Threat</div>
+                 <div className="threat-value-row">
+                    <div className="threat-name">
                        {(dbStats.hazardSummary || [])[0]?.id || "None Reported"}
                     </div>
-                    <div className="h-4 w-px bg-secondary-200"></div>
-                    <div className="text-xs font-bold text-secondary-500">Highest occurrence</div>
+                    <div className="threat-divider"></div>
+                    <div className="threat-subtext">Highest occurrence</div>
                  </div>
               </div>
            </div>
 
-           {/* Safety Protocol */}
-           <div className="bg-gradient-to-br from-primary-600 to-primary-800 rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-8 lg:p-10 text-white shadow-2xl shadow-primary-900/20 border border-primary-500/20">
-              <h2 className="text-xl font-black mb-2 heading-font text-white/90">Safety Protocol</h2>
-              <p className="text-primary-100 text-sm font-medium leading-relaxed mb-8">All personnel must verify SDS documentation before container opening.</p>
-              <div className="space-y-3">
-                 <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl text-xs font-bold border border-white/5 truncate">
-                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center p-1">
-                     <svg className="w-full h-full text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>
+           <div className="safety-protocol-card">
+              <h2 className="safety-title">Safety Protocol</h2>
+              <p className="safety-description">All personnel must verify SDS documentation before container opening.</p>
+              <div className="safety-items-list">
+                 <div className="safety-item-pill">
+                   <span className="safety-item-icon-box">
+                     <svg className="icon-full text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>
                    </span>
                    HazMat Guidelines 2026
                  </div>
-                 <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl text-xs font-bold border border-white/5 truncate">
-                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center p-1">
-                     <svg className="w-full h-full text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" /></svg>
+                 <div className="safety-item-pill">
+                   <span className="safety-item-icon-box">
+                     <svg className="icon-full text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" /></svg>
                    </span>
                    Spill Kit Locations Map
                  </div>
-                 <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl text-xs font-bold border border-white/5 truncate">
-                   <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center p-1">
-                     <svg className="w-full h-full text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.55,11.2C17.42,10.6 17.22,10.06 16.94,9.57C16.36,8.56 15.5,7.74 14.5,7.11C15.2,8.87 14.3,10.45 13.5,11.3C13.2,11.62 12.86,11.9 12.5,12.11C11.5,12.7 10.32,12.94 9.2,12.83C7.54,12.67 6.13,11.85 5.31,10.63C5.11,11.23 5,11.87 5,12.54C5,16.4 8.13,19.54 12,19.54C15.87,19.54 19,16.4 19,12.54C19,12.08 18.96,11.64 18.87,11.21C18.84,11.2 18.8,11.21 18.77,11.21C18.36,11.21 17.95,11.21 17.55,11.21V11.2M12,2C12,2 12,5 10,7C10,7 13.5,5.5 14,9C14,9 16,8 16,11C16,11 19,10 17,5C17,5 20,9 17,14C17,14 18,11 15,10C15,10 16,13 13,15C13,15 15,14 14,11C14,11 12,12 11,10C11,10 12,14 8,15C8,15 11,14 10,11C10,11 9,13 7,13C7,13 8,11 7,9C7,9 5,11 5,14C5,14 6,10 10,8C10,8 9,7 10,5C10,5 11,6 12,2Z" /></svg>
+                 <div className="safety-item-pill">
+                   <span className="safety-item-icon-box">
+                     <svg className="icon-full text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.55,11.2C17.42,10.6 17.22,10.06 16.94,9.57C16.36,8.56 15.5,7.74 14.5,7.11C15.2,8.87 14.3,10.45 13.5,11.3C13.2,11.62 12.86,11.9 12.5,12.11C11.5,12.7 10.32,12.94 9.2,12.83C7.54,12.67 6.13,11.85 5.31,10.63C5.11,11.23 5,11.87 5,12.54C5,16.4 8.13,19.54 12,19.54C15.87,19.54 19,16.4 19,12.54C19,12.08 18.96,11.64 18.87,11.21C18.84,11.2 18.8,11.21 18.77,11.21C18.36,11.21 17.95,11.21 17.55,11.21V11.2M12,2C12,2 12,5 10,7C10,7 13.5,5.5 14,9C14,9 16,8 16,11C16,11 19,10 17,5C17,5 20,9 17,14C17,14 18,11 15,10C15,10 16,13 13,15C13,15 15,14 14,11C14,11 12,12 11,10C11,10 12,14 8,15C8,15 11,14 10,11C10,11 9,13 7,13C7,13 8,11 7,9C7,9 5,11 5,14C5,14 6,10 10,8C10,8 9,7 10,5C10,5 11,6 12,2Z" /></svg>
                    </span>
                    Emergency Extraction Plan
                  </div>
               </div>
            </div>
 
-           {/* Expirations — LIVE DATA */}
-           <div className="bg-white rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-8 lg:p-10 border border-secondary-100 shadow-sm relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full -mr-8 -mt-8"></div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-black text-secondary-950 heading-font">Expirations</h2>
-                <span className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">{dbStats.expirations.length} upcoming</span>
+           <div className="dashboard-section expirations-card">
+              <div className="expirations-bg-accent"></div>
+              <div className="section-header">
+                <h2 className="section-title" style={{fontSize: '1.25rem'}}>Expirations</h2>
+                <span className="stat-label" style={{fontSize: '10px'}}>{dbStats.expirations.length} upcoming</span>
               </div>
-              <div className="space-y-5">
+              <div className="expiration-list">
                  {(dbStats.expirations || []).length === 0 ? (
-                   <div className="text-center py-6">
-                     <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center mx-auto mb-2">
-                       <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                   <div style={{textAlign: 'center', padding: '1.5rem 0'}}>
+                     <div style={{width: '2.5rem', height: '2.5rem', backgroundColor: '#f0fdf4', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.5rem'}}>
+                       <svg className="icon-sm" style={{ color: '#22c55e' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
                      </div>
-                     <p className="text-sm font-bold text-secondary-500">All clear</p>
-                     <p className="text-[10px] text-secondary-400 mt-1">No chemicals expiring within 90 days.</p>
+                     <p style={{fontSize: '0.875rem', fontWeight: 700, color: 'var(--secondary-500)'}}>All clear</p>
+                     <p className="stat-subtext" style={{marginTop: '0.25rem'}}>No chemicals expiring within 90 days.</p>
                    </div>
                  ) : (
                    (dbStats.expirations || []).map((item, i) => (
-                     <div key={i} className="flex justify-between items-center border-b border-secondary-50 pb-4 last:border-0 last:pb-0">
-                        <div>
-                          <div className="text-sm font-bold text-secondary-800">{item.name}</div>
-                          <div className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest">
+                     <div key={i} className="expiration-item">
+                        <div className="exp-item-info">
+                          <div className="exp-item-name">{item.name}</div>
+                          <div className="exp-item-meta">
                             {item.location} {item.batch_number && `• Batch: ${item.batch_number}`}
                           </div>
                         </div>
-                        <div className={`text-[10px] font-black px-2 py-1 rounded ${item.days <= 7 ? 'bg-red-50 text-red-600' : item.days <= 30 ? 'bg-orange-50 text-orange-600' : 'bg-secondary-50 text-secondary-600'}`}>
+                        <div className={`exp-days-badge ${item.days <= 7 ? 'exp-urgent' : item.days <= 30 ? 'exp-warning' : 'exp-normal'}`}>
                           {item.days <= 0 ? 'EXPIRED' : `IN ${item.days}D`}
                         </div>
                      </div>
                    ))
                  )}
               </div>
-              <Link to="/chemicals" className="w-full mt-6 text-xs font-black text-secondary-400 hover:text-secondary-950 transition-colors uppercase tracking-[0.2em] block text-center">Manage All Expiries</Link>
+              <Link to="/chemicals" className="manage-expiries-link">Manage All Expiries</Link>
            </div>
 
             {hasPermission("view_audit_logs") && (
-              <div className="bg-secondary-950 rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-8 lg:p-10 border border-white/5 shadow-2xl relative overflow-hidden">
-                 <div className="absolute top-[-20%] right-[-20%] w-[60%] h-[60%] bg-primary-600/10 rounded-full blur-[80px]"></div>
-                 <div className="flex justify-between items-center mb-6 relative z-10">
-                   <h2 className="text-xl font-black text-white heading-font">Live Activity</h2>
-                   <span className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest">{auditLogs.length} Latest</span>
+              <div className="dashboard-section activity-card">
+                 <div className="activity-bg-glow"></div>
+                 <div className="section-header" style={{position: 'relative', zIndex: 10}}>
+                   <h2 className="section-title" style={{color: 'white', fontSize: '1.25rem'}}>Live Activity</h2>
+                   <span className="stat-label" style={{fontSize: '10px'}}>{auditLogs.length} Latest</span>
                  </div>
-                 <div className="space-y-5 relative z-10">
+                 <div className="activity-timeline">
                    {auditLoading ? (
-                     <div className="flex flex-col items-center py-8">
-                       <div className="w-7 h-7 border-2 border-primary-400/30 border-t-primary-400 rounded-full animate-spin mb-3"></div>
-                       <p className="text-xs font-bold text-secondary-500 uppercase tracking-widest">Loading activity...</p>
+                     <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2rem 0'}}>
+                       <div className="spinner-mini" style={{width: '1.75rem', height: '1.75rem'}}></div>
+                       <p className="stat-label" style={{marginTop: '0.75rem'}}>Loading activity...</p>
                      </div>
                    ) : auditLogs.length === 0 ? (
-                     <div className="text-center py-8">
-                       <p className="text-sm font-bold text-secondary-500">No activity recorded yet</p>
+                     <div style={{textAlign: 'center', padding: '2rem 0'}}>
+                       <p style={{fontSize: '0.875rem', fontWeight: 700, color: 'var(--secondary-500)'}}>No activity recorded yet</p>
                      </div>
                    ) : (
                      auditLogs.map((log, i) => (
-                       <div key={log._id || i} className="flex gap-4">
-                         <div className="flex flex-col items-center">
-                           <div className="w-2 h-2 rounded-full bg-primary-500 mt-2 shadow-[0_0_8px_rgba(59,130,246,0.6)]"></div>
-                           {i < auditLogs.length - 1 && <div className="w-px flex-1 bg-white/10 mt-1"></div>}
+                       <div key={log._id || i} className="timeline-item">
+                         <div className="timeline-indicator">
+                           <div className="indicator-dot"></div>
+                           {i < auditLogs.length - 1 && <div className="indicator-line"></div>}
                          </div>
-                         <div className="pb-4">
-                           <div className="text-sm font-semibold text-white leading-tight">
+                         <div className="timeline-content">
+                           <div className="timeline-user">
                              {log.user_name || 'System'}
                            </div>
-                           <div className="text-xs text-secondary-400 mt-1 leading-snug">
+                           <div className="timeline-action">
                              {log.action}{log.details ? ` — ${log.details}` : ''}
                            </div>
-                           <div className="flex items-center gap-2 mt-1.5">
-                             <span className="text-[9px] font-bold text-secondary-500 uppercase tracking-widest">{timeAgo(log.timestamp)}</span>
-                             <span className="text-[9px] font-mono text-primary-400/80 bg-primary-900/40 px-1.5 py-0.5 rounded leading-none">{log.action?.split(' ')[0]?.toUpperCase()}</span>
+                           <div className="timeline-meta-row">
+                             <span className="timeline-time">{timeAgo(log.timestamp)}</span>
+                             <span className="action-type-tag">{log.action?.split(' ')[0]?.toUpperCase()}</span>
                            </div>
                          </div>
                        </div>
                      ))
                    )}
                  </div>
-                 <Link to="/audit" className="block text-center w-full mt-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-white text-xs font-bold hover:bg-white hover:text-secondary-950 transition-all relative z-10">
+                 <Link to="/audit" className="view-all-audit-btn">
                    View All Audit Logs
                  </Link>
               </div>

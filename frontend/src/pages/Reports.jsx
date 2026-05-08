@@ -2,30 +2,31 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../layout/Layout';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, AreaChart, Area 
+  PieChart, Pie, Cell, AreaChart, Area 
 } from 'recharts';
 import { 
   TrendingUp, Package, AlertTriangle, Clock, 
-  FileText, Download, Filter, RefreshCw 
+  FileText, Download, RefreshCw 
 } from 'lucide-react';
 import axios from 'axios';
+import '../styles/Reports.css';
 
 const COLORS = ['#0f172a', '#3b82f6', '#f59e0b', '#ef4444', '#10b981', '#6366f1'];
 
 const ReportCard = ({ title, value, icon: Icon, color, trend }) => (
-  <div className="bg-white p-6 rounded-[2rem] border border-secondary-100 shadow-sm hover:shadow-md transition-all group">
-    <div className="flex justify-between items-start mb-4">
-      <div className={`p-3 rounded-2xl ${color} bg-opacity-10 text-${color.split('-')[1]}-600 group-hover:scale-110 transition-transform`}>
+  <div className="report-card">
+    <div className="card-top-row">
+      <div className={`card-icon-box ${color}`} style={{ backgroundColor: color.includes('bg-') ? '' : color }}>
         <Icon size={24} />
       </div>
       {trend && (
-        <span className={`text-[10px] font-black px-2 py-1 rounded-lg bg-green-50 text-green-600`}>
+        <span className="trend-badge">
           {trend}
         </span>
       )}
     </div>
-    <h3 className="text-secondary-400 text-[10px] font-black uppercase tracking-widest mb-1">{title}</h3>
-    <div className="text-2xl font-black text-secondary-900 heading-font">{value}</div>
+    <h3 className="card-label">{title}</h3>
+    <div className="card-value">{value}</div>
   </div>
 );
 
@@ -42,7 +43,6 @@ const Reports = () => {
         axios.get('/api/reports/inventory'),
         axios.get('/api/reports/usage', { params: dateRange })
       ]);
-      console.log("Reports Data Loaded:", { inventory: invRes.data, usage: usageRes.data });
       setInventoryData(invRes.data);
       setUsageData(usageRes.data);
     } catch (err) {
@@ -79,8 +79,8 @@ const Reports = () => {
   if (loading && !inventoryData) {
     return (
       <Layout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-100 border-t-primary-600"></div>
+        <div className="loading-container">
+          <div className="spinner-lg"></div>
         </div>
       </Layout>
     );
@@ -88,101 +88,97 @@ const Reports = () => {
 
   return (
     <Layout>
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
+      <div className="reports-header">
         <div>
-          <h1 className="text-4xl font-black heading-font text-secondary-900 tracking-tight">Intelligence & Analytics</h1>
-          <p className="text-secondary-500 font-medium mt-1">Data-driven insights for laboratory compliance.</p>
+          <h1 className="reports-title">Intelligence & Analytics</h1>
+          <p className="reports-subtitle">Data-driven insights for laboratory compliance.</p>
         </div>
-        <div className="flex flex-wrap gap-3 w-full lg:w-auto">
-          <div className="flex bg-white rounded-2xl border border-secondary-100 p-1 shadow-sm">
+        <div className="reports-actions-group">
+          <div className="date-picker-range">
              <input 
               type="date" 
-              className="px-3 py-2 text-xs font-bold bg-transparent outline-none"
+              className="date-input"
               value={dateRange.start}
               onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
              />
-             <div className="px-2 self-center text-secondary-300">→</div>
+             <div className="date-separator">→</div>
              <input 
               type="date" 
-              className="px-3 py-2 text-xs font-bold bg-transparent outline-none"
+              className="date-input"
               value={dateRange.end}
               onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
              />
           </div>
           <button 
             onClick={fetchData}
-            className="p-3 bg-secondary-900 text-white rounded-2xl hover:bg-secondary-800 transition-all shadow-lg shadow-secondary-900/10 active:scale-95"
+            className="refresh-btn"
           >
             <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
           </button>
           <button 
             onClick={() => handleExport('excel')}
-            className="flex items-center gap-2 px-6 py-3 bg-white text-secondary-900 border border-secondary-200 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-secondary-50 transition-all shadow-sm active:scale-95"
+            className="export-btn"
           >
             <Download size={16} />
-            <span>XLSX</span>
+            <span className="hidden-mobile">XLSX</span>
           </button>
           <button 
             onClick={() => handleExport('pdf')}
-            className="flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary-500 transition-all shadow-lg shadow-primary-600/20 active:scale-95"
+            className="export-primary-btn"
           >
             <FileText size={16} />
             <span>Export PDF</span>
           </button>
-
         </div>
       </div>
 
-      {/* KPI Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      <div className="report-grid">
         <ReportCard 
           title="Active Assets" 
           value={inventoryData?.summary?.totalChemicals || 0} 
           icon={Package} 
-          color="bg-secondary-100" 
+          color="rgba(15, 23, 42, 0.05)" 
           trend="+12% vs last month"
         />
         <ReportCard 
           title="Expired Items" 
           value={inventoryData?.summary?.expired || 0} 
           icon={AlertTriangle} 
-          color="bg-red-100" 
+          color="rgba(239, 68, 68, 0.05)" 
         />
         <ReportCard 
           title="Near Expiry" 
           value={inventoryData?.summary?.nearExpiry || 0} 
           icon={Clock} 
-          color="bg-amber-100" 
+          color="rgba(245, 158, 11, 0.05)" 
         />
         <ReportCard 
           title="Low Stock" 
           value={inventoryData?.summary?.lowStock || 0} 
           icon={TrendingUp} 
-          color="bg-blue-100" 
+          color="rgba(59, 130, 246, 0.05)" 
         />
       </div>
 
-      {/* Critical Alerts Lists */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-        {/* Expired List */}
-        <div className="bg-white p-6 rounded-[2.5rem] border border-red-100 shadow-xl shadow-red-900/5">
-          <h3 className="text-lg font-black text-red-600 mb-4 flex items-center gap-2">
-            <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
+      <div className="status-list-grid">
+        <div className="status-list-card card-red">
+          <h3 className="status-list-title title-red">
+            <div className="pulse-dot dot-red"></div>
             Expired Inventory
           </h3>
-          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="status-items-container custom-scrollbar">
             {inventoryData?.lists?.expired?.length === 0 ? (
-              <p className="text-xs text-secondary-400 font-bold italic">No expired items detected.</p>
+              <p className="empty-state-text">No expired items detected.</p>
             ) : (
               inventoryData.lists.expired.map(item => (
-                <div key={item.id} className="p-3 bg-red-50/50 rounded-xl border border-red-100 flex justify-between items-center">
-                  <div className="min-w-0">
-                    <p className="text-xs font-black text-secondary-900 truncate">{item.name}</p>
-                    <p className="text-[10px] text-secondary-500 font-bold uppercase">
+                <div key={item.id} className="status-item-row bg-red-light">
+                  <div className="item-main-info">
+                    <p className="item-name-sm">{item.name}</p>
+                    <p className="item-meta-xs">
                       {item.location || 'No Location'} {item.batch_number && `• Batch: ${item.batch_number}`}
                     </p>
                   </div>
-                  <span className="text-[9px] font-black text-red-600 bg-white px-2 py-1 rounded shadow-sm shrink-0">
+                  <span className="item-badge-xs badge-red">
                     {new Date(item.expiry_date).toLocaleDateString()}
                   </span>
                 </div>
@@ -191,25 +187,24 @@ const Reports = () => {
           </div>
         </div>
 
-        {/* Near Expiry List */}
-        <div className="bg-white p-6 rounded-[2.5rem] border border-orange-100 shadow-xl shadow-orange-900/5">
-          <h3 className="text-lg font-black text-orange-600 mb-4 flex items-center gap-2">
-            <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse"></div>
+        <div className="status-list-card card-orange">
+          <h3 className="status-list-title title-orange">
+            <div className="pulse-dot dot-orange"></div>
             Near Expiry (30d)
           </h3>
-          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="status-items-container custom-scrollbar">
             {inventoryData?.lists?.nearExpiry?.length === 0 ? (
-              <p className="text-xs text-secondary-400 font-bold italic">No items near expiry.</p>
+              <p className="empty-state-text">No items near expiry.</p>
             ) : (
               inventoryData.lists.nearExpiry.map(item => (
-                <div key={item.id} className="p-3 bg-orange-50/50 rounded-xl border border-orange-100 flex justify-between items-center">
-                  <div className="min-w-0">
-                    <p className="text-xs font-black text-secondary-900 truncate">{item.name}</p>
-                    <p className="text-[10px] text-secondary-500 font-bold uppercase">
+                <div key={item.id} className="status-item-row bg-orange-light">
+                  <div className="item-main-info">
+                    <p className="item-name-sm">{item.name}</p>
+                    <p className="item-meta-xs">
                       {item.location || 'No Location'} {item.batch_number && `• Batch: ${item.batch_number}`}
                     </p>
                   </div>
-                  <span className="text-[9px] font-black text-orange-600 bg-white px-2 py-1 rounded shadow-sm shrink-0">
+                  <span className="item-badge-xs badge-orange">
                     {new Date(item.expiry_date).toLocaleDateString()}
                   </span>
                 </div>
@@ -218,23 +213,22 @@ const Reports = () => {
           </div>
         </div>
 
-        {/* Low Stock List */}
-        <div className="bg-white p-6 rounded-[2.5rem] border border-blue-100 shadow-xl shadow-blue-900/5">
-          <h3 className="text-lg font-black text-blue-600 mb-4 flex items-center gap-2">
-            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+        <div className="status-list-card card-blue">
+          <h3 className="status-list-title title-blue">
+            <div className="pulse-dot dot-blue"></div>
             Low Stock Alerts
           </h3>
-          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="status-items-container custom-scrollbar">
             {inventoryData?.lists?.lowStock?.length === 0 ? (
-              <p className="text-xs text-secondary-400 font-bold italic">All stock levels adequate.</p>
+              <p className="empty-state-text">All stock levels adequate.</p>
             ) : (
               inventoryData.lists.lowStock.map(item => (
-                <div key={item.id} className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex justify-between items-center">
-                  <div className="min-w-0">
-                    <p className="text-xs font-black text-secondary-900 truncate">{item.name}</p>
-                    <p className="text-[10px] text-secondary-500 font-bold uppercase">{item.id}</p>
+                <div key={item.id} className="status-item-row bg-blue-light">
+                  <div className="item-main-info">
+                    <p className="item-name-sm">{item.name}</p>
+                    <p className="item-meta-xs">{item.id}</p>
                   </div>
-                  <span className="text-[9px] font-black text-blue-600 bg-white px-2 py-1 rounded shadow-sm shrink-0">
+                  <span className="item-badge-xs badge-blue">
                     {item.quantity} {item.unit}
                   </span>
                 </div>
@@ -244,14 +238,13 @@ const Reports = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-        {/* Usage Trend */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-xl">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="text-lg font-black text-secondary-900 heading-font">Consumption Velocity</h3>
-            <div className="text-[10px] font-black text-secondary-400 uppercase tracking-widest">Daily Outflow</div>
+      <div className="charts-grid">
+        <div className="chart-section-card">
+          <div className="chart-card-header">
+            <h3 className="chart-card-title">Consumption Velocity</h3>
+            <div className="chart-card-subtitle">Daily Outflow</div>
           </div>
-          <div className="h-[300px]">
+          <div className="chart-container-inner">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={usageData?.usageStats}>
                 <defs>
@@ -273,13 +266,12 @@ const Reports = () => {
           </div>
         </div>
 
-        {/* Hazard Distribution */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-xl">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="text-lg font-black text-secondary-900 heading-font">Risk Landscape</h3>
-            <div className="text-[10px] font-black text-secondary-400 uppercase tracking-widest">Hazard Groups</div>
+        <div className="chart-section-card">
+          <div className="chart-card-header">
+            <h3 className="chart-card-title">Risk Landscape</h3>
+            <div className="chart-card-subtitle">Hazard Groups</div>
           </div>
-          <div className="h-[300px] flex items-center">
+          <div className="chart-container-inner">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -303,13 +295,12 @@ const Reports = () => {
           </div>
         </div>
 
-        {/* Top Used Chemicals */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-secondary-100 shadow-xl lg:col-span-2">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="text-lg font-black text-secondary-900 heading-font">Most Consumed Assets</h3>
-            <div className="text-[10px] font-black text-secondary-400 uppercase tracking-widest">Top 10 Volume</div>
+        <div className="chart-section-card col-span-full">
+          <div className="chart-card-header">
+            <h3 className="chart-card-title">Most Consumed Assets</h3>
+            <div className="chart-card-subtitle">Top 10 Volume</div>
           </div>
-          <div className="h-[400px]">
+          <div className="chart-container-large">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={usageData?.topChemicals}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />

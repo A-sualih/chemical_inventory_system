@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Layout from "../../layout/Layout";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import "../../styles/LocationManager.css";
 
 const LocationManager = () => {
   const { user } = useAuth();
@@ -118,36 +119,35 @@ const LocationManager = () => {
 
   return (
     <Layout>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+      <div className="loc-manager-header">
         <div>
-          <h1 className="text-3xl lg:text-4xl font-black heading-font text-secondary-900 tracking-tight">Storage Locations</h1>
-          <p className="text-secondary-500 font-medium">Manage the Building → Room → Cabinet → Shelf hierarchy.</p>
+          <h1 className="loc-title">Storage Locations</h1>
+          <p className="loc-subtitle">Manage the Building → Room → Cabinet → Shelf hierarchy.</p>
         </div>
-        <div className="flex gap-3 flex-wrap">
-          {/* Building filter */}
+        <div className="loc-actions">
           {/* View Toggle */}
-          <div className="flex bg-secondary-100 rounded-2xl p-1 shadow-inner">
+          <div className="view-toggle">
             <button 
               onClick={() => setViewMode("list")} 
-              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${viewMode === "list" ? "bg-white text-primary-600 shadow-sm" : "text-secondary-500 hover:text-secondary-700"}`}
+              className={`view-btn ${viewMode === "list" ? "active" : ""}`}
             >
               List
             </button>
             <button 
               onClick={() => setViewMode("map")} 
-              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${viewMode === "map" ? "bg-white text-primary-600 shadow-sm" : "text-secondary-500 hover:text-secondary-700"}`}
+              className={`view-btn ${viewMode === "map" ? "active" : ""}`}
             >
               Visual Map
             </button>
           </div>
 
-          <select value={filterBuilding} onChange={e => setFilterBuilding(e.target.value)} className="px-4 py-2.5 rounded-2xl border border-secondary-200 bg-white text-sm font-bold text-secondary-600 shadow-sm">
+          <select value={filterBuilding} onChange={e => setFilterBuilding(e.target.value)} className="building-select">
             <option value="">All Buildings</option>
             {buildings.map(b => <option key={b} value={b}>{b}</option>)}
           </select>
           {isAdmin && (
-            <button onClick={openCreate} className="bg-primary-600 hover:bg-primary-500 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-xl shadow-primary-600/20 transition-all active:scale-95">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
+            <button onClick={openCreate} className="add-loc-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
               Add Location
             </button>
           )}
@@ -155,30 +155,30 @@ const LocationManager = () => {
       </div>
 
       {/* Toast messages */}
-      {success && <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl font-semibold text-sm flex items-center gap-2"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>{success}</div>}
-      {error && <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl font-semibold text-sm flex items-center gap-2"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>{error}</div>}
+      {success && <div className="toast-msg toast-success"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>{success}</div>}
+      {error && <div className="toast-msg toast-error"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>{error}</div>}
 
       {/* Stats bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      <div className="stats-grid">
         {[
           { label: "Total Slots", value: locations.length, icon: (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
           ) },
           { label: "Buildings", value: buildings.length, icon: (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
           ) },
           { label: "Rooms", value: [...new Set(locations.map(l => `${l.building}-${l.room}`))].length, icon: (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
           ) },
           { label: "Cabinets", value: [...new Set(locations.map(l => `${l.building}-${l.room}-${l.cabinet}`))].length, icon: (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
           ) },
         ].map(stat => (
-          <div key={stat.label} className="bg-white rounded-2xl border border-secondary-100 p-4 shadow-sm flex items-center gap-3">
-            <span className="text-2xl">{stat.icon}</span>
+          <div key={stat.label} className="stat-card">
+            <span className="stat-icon">{stat.icon}</span>
             <div>
-              <div className="text-2xl font-black text-secondary-900">{stat.value}</div>
-              <div className="text-[10px] font-bold text-secondary-400 uppercase tracking-wider">{stat.label}</div>
+              <div className="stat-val">{stat.value}</div>
+              <div className="stat-label">{stat.label}</div>
             </div>
           </div>
         ))}
@@ -186,129 +186,129 @@ const LocationManager = () => {
 
       {/* Location cards grouped by building */}
       {loading ? (
-        <div className="flex justify-center items-center py-24">
-          <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '6rem 0' }}>
+          <div className="spinner-primary" style={{ width: '2.5rem', height: '2.5rem', border: '4px solid #bfdbfe', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
         </div>
       ) : locations.length === 0 ? (
-        <div className="bg-white rounded-[2rem] border border-secondary-100 shadow-xl py-24 text-center">
-          <div className="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4">
-             <svg className="w-10 h-10 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+        <div className="empty-state">
+          <div className="empty-icon-box">
+             <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
           </div>
-          <h3 className="text-xl font-black text-secondary-900 mb-2">No Locations Configured</h3>
-          <p className="text-secondary-500 font-medium mb-6">Add your first storage location to enable smart dropdowns in the Chemical Form.</p>
-          {isAdmin && <button onClick={openCreate} className="bg-primary-600 text-white px-8 py-3 rounded-2xl font-bold shadow-xl shadow-primary-600/20">Add First Location</button>}
+          <h3 className="empty-title">No Locations Configured</h3>
+          <p className="empty-desc">Add your first storage location to enable smart dropdowns in the Chemical Form.</p>
+          {isAdmin && <button onClick={openCreate} className="add-loc-btn" style={{ margin: '0 auto' }}>Add First Location</button>}
         </div>
       ) : viewMode === "map" ? (
-        <div className="bg-white rounded-[2.5rem] border border-secondary-100 shadow-xl p-8 min-h-[600px] relative overflow-auto">
-          <div className="absolute top-6 right-8 flex items-center gap-4">
-             <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                <span className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest">Available</span>
+        <div className="map-view">
+          <div className="map-legend">
+             <div className="legend-item">
+                <div className="legend-dot" style={{ backgroundColor: '#10b981' }}></div>
+                <span className="legend-label">Available</span>
              </div>
-             <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-amber-400"></div>
-                <span className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest">Near Full</span>
+             <div className="legend-item">
+                <div className="legend-dot" style={{ backgroundColor: '#fbbf24' }}></div>
+                <span className="legend-label">Near Full</span>
              </div>
-             <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <span className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest">Full</span>
+             <div className="legend-item">
+                <div className="legend-dot" style={{ backgroundColor: '#ef4444' }}></div>
+                <span className="legend-label">Full</span>
              </div>
           </div>
 
-          <h3 className="text-xl font-black text-secondary-900 mb-8 flex items-center gap-2">
-            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--secondary-900)', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <svg width="24" height="24" color="#2563eb" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             Visual Storage Layout
           </h3>
 
-          <div className="relative border-2 border-dashed border-secondary-200 rounded-[2rem] bg-secondary-50/30 p-12 min-w-[800px] min-h-[500px]">
+          <div className="map-container">
              {locations.map(loc => {
                const colors = getCapacityColor(loc.current_load, loc.capacity);
                const pct = loc.capacity > 0 ? Math.round((loc.current_load / loc.capacity) * 100) : 0;
                return (
                  <div 
                    key={loc._id}
-                   style={{ left: `${loc.x || 0}%`, top: `${loc.y || 0}%`, position: 'absolute' }}
-                   className={`w-40 bg-white rounded-2xl border-2 shadow-xl p-3 cursor-pointer group hover:scale-105 hover:z-10 transition-all ${colors.bg.split(' ')[1]} ${colors.bg.split(' ')[0]}`}
+                   style={{ left: `${loc.x || 0}%`, top: `${loc.y || 0}%` }}
+                   className={`map-node ${colors.bg.split(' ')[1]} ${colors.bg.split(' ')[0]}`}
                    onClick={() => isAdmin && openEdit(loc)}
                  >
-                   <div className="flex justify-between items-start mb-2">
-                     <span className={`text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded ${colors.bg.split(' ')[0]} ${colors.text}`}>Shelf {loc.shelf}</span>
-                     <span className={`text-[10px] font-black ${colors.text}`}>{pct}%</span>
+                   <div className="node-header">
+                     <span className={`node-shelf ${colors.bg.split(' ')[0]} ${colors.text}`}>Shelf {loc.shelf}</span>
+                     <span className={`node-pct ${colors.text}`}>{pct}%</span>
                    </div>
-                   <div className="text-[11px] font-bold text-secondary-900 truncate mb-1">{loc.cabinet}</div>
-                   <div className="text-[9px] font-medium text-secondary-500 truncate">{loc.building} • {loc.room}</div>
-                   <div className="mt-2 h-1 w-full bg-secondary-100 rounded-full overflow-hidden">
-                      <div className={`h-full transition-all ${colors.bar}`} style={{ width: `${pct}%` }}></div>
+                   <div className="node-cab">{loc.cabinet}</div>
+                   <div className="node-room">{loc.building} • {loc.room}</div>
+                   <div style={{ marginTop: '0.5rem', height: '0.25rem', width: '100%', backgroundColor: 'var(--secondary-100)', borderRadius: '9999px', overflow: 'hidden' }}>
+                      <div className={`cap-fill ${colors.bar}`} style={{ width: `${pct}%` }}></div>
                    </div>
                  </div>
                );
              })}
           </div>
-          <p className="mt-8 text-center text-secondary-400 text-xs font-medium italic">Locations are positioned based on their X/Y coordinates defined in settings.</p>
+          <p style={{ marginTop: '2rem', textAlign: 'center', color: 'var(--secondary-400)', fontSize: '0.75rem', fontWeight: 500, fontStyle: 'italic' }}>Locations are positioned based on their X/Y coordinates defined in settings.</p>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           {Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b)).map(([building, locs]) => (
-            <div key={building} className="bg-white rounded-[2rem] border border-secondary-100 shadow-xl overflow-hidden">
+            <div key={building} className="building-group">
               {/* Building header */}
-              <div className="px-6 py-4 bg-gradient-to-r from-secondary-900 to-secondary-800 flex items-center gap-3">
-                <div className="w-8 h-8 bg-primary-500 rounded-xl flex items-center justify-center text-white font-black text-sm">{building.charAt(0)}</div>
+              <div className="building-header">
+                <div className="building-icon">{building.charAt(0)}</div>
                 <div>
-                  <h2 className="text-white font-black text-lg">{building}</h2>
-                  <p className="text-secondary-400 text-xs font-medium">{locs.length} storage slot{locs.length !== 1 ? "s" : ""}</p>
+                  <h2 className="building-title">{building}</h2>
+                  <p className="building-count">{locs.length} storage slot{locs.length !== 1 ? "s" : ""}</p>
                 </div>
               </div>
 
               {/* Location rows */}
-              <div className="divide-y divide-secondary-50">
+              <div>
                 {locs.sort((a, b) => `${a.room}-${a.cabinet}-${a.shelf}`.localeCompare(`${b.room}-${b.cabinet}-${b.shelf}`)).map(loc => {
                   const pct = loc.capacity > 0 ? Math.min(100, Math.round((loc.current_load / loc.capacity) * 100)) : 0;
                   const colors = getCapacityColor(loc.current_load, loc.capacity);
                   return (
-                    <div key={loc._id} className="px-6 py-4 flex flex-wrap items-center gap-4 hover:bg-secondary-50/40 transition-all group">
+                    <div key={loc._id} className="loc-row">
                       {/* Path breadcrumb */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 text-sm font-bold text-secondary-900 flex-wrap">
-                          <span className="bg-secondary-100 text-secondary-600 px-2 py-0.5 rounded-lg text-xs font-mono">{loc.building}</span>
-                          <svg className="w-3 h-3 text-secondary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-                          <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-lg text-xs font-mono">{loc.room}</span>
-                          <svg className="w-3 h-3 text-secondary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-                          <span className="bg-purple-50 text-purple-600 px-2 py-0.5 rounded-lg text-xs font-mono">{loc.cabinet}</span>
-                          <svg className="w-3 h-3 text-secondary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-                          <span className="bg-primary-50 text-primary-600 px-2 py-0.5 rounded-lg text-xs font-mono">Shelf {loc.shelf}</span>
+                      <div className="loc-path">
+                        <div className="path-crumbs">
+                          <span className="crumb crumb-b">{loc.building}</span>
+                          <svg className="path-sep" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                          <span className="crumb crumb-r">{loc.room}</span>
+                          <svg className="path-sep" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                          <span className="crumb crumb-c">{loc.cabinet}</span>
+                          <svg className="path-sep" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                          <span className="crumb crumb-s">Shelf {loc.shelf}</span>
                         </div>
                         {(loc.safety_warnings || loc.notes) && (
-                          <div className="mt-1 text-xs text-secondary-500 truncate flex items-center gap-1">
-                            {loc.safety_warnings && <span className="text-amber-600 font-semibold mr-2 flex items-center gap-1"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>{loc.safety_warnings}</span>}
+                          <div className="loc-notes">
+                            {loc.safety_warnings && <span className="loc-warn"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>{loc.safety_warnings}</span>}
                             {loc.notes && <span>{loc.notes}</span>}
                           </div>
                         )}
                       </div>
 
                       {/* Capacity bar */}
-                      <div className="w-36 shrink-0">
-                        <div className={`flex justify-between text-[10px] font-bold uppercase mb-1 ${colors.text}`}>
+                      <div className="cap-bar-wrapper">
+                        <div className={`cap-labels ${colors.text}`}>
                           <span>Capacity</span>
                           <span>{loc.current_load}/{loc.capacity}</span>
                         </div>
-                        <div className="h-1.5 bg-secondary-100 rounded-full">
-                          <div className={`h-full rounded-full transition-all ${colors.bar}`} style={{ width: `${pct}%` }}></div>
+                        <div className="cap-track">
+                          <div className={`cap-fill ${colors.bar}`} style={{ width: `${pct}%` }}></div>
                         </div>
                       </div>
 
                       {/* Status badge */}
-                      <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border ${colors.bg} ${colors.text}`}>
+                      <div className={`status-badge ${colors.bg} ${colors.text}`}>
                         {pct >= 90 ? "Full" : pct >= 70 ? "Near Full" : "Available"}
                       </div>
 
                       {/* Actions */}
                       {isAdmin && (
-                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                          <button onClick={() => openEdit(loc)} className="w-8 h-8 flex items-center justify-center bg-white border border-secondary-200 rounded-xl text-secondary-400 hover:text-secondary-900 transition-all shadow-sm" title="Edit">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        <div className="loc-actions-col">
+                          <button onClick={() => openEdit(loc)} className="action-btn action-edit" title="Edit">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                           </button>
-                          <button onClick={() => setDeleteConfirm(loc)} className="w-8 h-8 flex items-center justify-center bg-white border border-secondary-200 rounded-xl text-red-400 hover:text-red-600 hover:border-red-400 transition-all shadow-sm" title="Deactivate">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          <button onClick={() => setDeleteConfirm(loc)} className="action-btn action-del" title="Deactivate">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                           </button>
                         </div>
                       )}
@@ -323,66 +323,66 @@ const LocationManager = () => {
 
       {/* Add / Edit Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-secondary-900/50 backdrop-blur-md" onClick={() => setShowForm(false)}></div>
-          <div className="relative w-full max-w-lg bg-white rounded-[2rem] shadow-2xl border border-secondary-100 p-8 animate-in zoom-in-95 duration-200">
-            <h2 className="text-2xl font-black text-secondary-900 mb-1">{editingLoc ? "Edit Location" : "Add New Location"}</h2>
-            <p className="text-secondary-500 text-sm font-medium mb-6">{editingLoc ? `Editing: ${editingLoc.building}/${editingLoc.room}/${editingLoc.cabinet}/Shelf-${editingLoc.shelf}` : "Define a new storage slot in the hierarchy."}</p>
+        <div className="modal-overlay">
+          <div className="modal-backdrop" onClick={() => setShowForm(false)}></div>
+          <div className="modal-content">
+            <h2 className="modal-title">{editingLoc ? "Edit Location" : "Add New Location"}</h2>
+            <p className="modal-desc">{editingLoc ? `Editing: ${editingLoc.building}/${editingLoc.room}/${editingLoc.cabinet}/Shelf-${editingLoc.shelf}` : "Define a new storage slot in the hierarchy."}</p>
 
-            <form onSubmit={handleSave} className="space-y-4">
+            <form onSubmit={handleSave}>
               {/* Building / Room */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="form-grid-2">
                 <div>
-                  <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-1.5 block">Building *</label>
-                  <input type="text" value={form.building} onChange={e => setForm({ ...form, building: e.target.value })} disabled={!!editingLoc} placeholder="e.g. Block-A" className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-primary-400" required />
+                  <label className="field-label">Building *</label>
+                  <input type="text" value={form.building} onChange={e => setForm({ ...form, building: e.target.value })} disabled={!!editingLoc} placeholder="e.g. Block-A" className="field-input" required />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-1.5 block">Room *</label>
-                  <input type="text" value={form.room} onChange={e => setForm({ ...form, room: e.target.value })} disabled={!!editingLoc} placeholder="e.g. 101" className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-primary-400" required />
+                  <label className="field-label">Room *</label>
+                  <input type="text" value={form.room} onChange={e => setForm({ ...form, room: e.target.value })} disabled={!!editingLoc} placeholder="e.g. 101" className="field-input" required />
                 </div>
               </div>
               {/* Cabinet / Shelf */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="form-grid-2">
                 <div>
-                  <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-1.5 block">Cabinet *</label>
-                  <input type="text" value={form.cabinet} onChange={e => setForm({ ...form, cabinet: e.target.value })} disabled={!!editingLoc} placeholder="e.g. C1" className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-primary-400" required />
+                  <label className="field-label">Cabinet *</label>
+                  <input type="text" value={form.cabinet} onChange={e => setForm({ ...form, cabinet: e.target.value })} disabled={!!editingLoc} placeholder="e.g. C1" className="field-input" required />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-1.5 block">Shelf *</label>
-                  <input type="text" value={form.shelf} onChange={e => setForm({ ...form, shelf: e.target.value })} disabled={!!editingLoc} placeholder="e.g. 1" className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-primary-400" required />
+                  <label className="field-label">Shelf *</label>
+                  <input type="text" value={form.shelf} onChange={e => setForm({ ...form, shelf: e.target.value })} disabled={!!editingLoc} placeholder="e.g. 1" className="field-input" required />
                 </div>
               </div>
               {/* Capacity & Coordinates */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="form-grid-3">
                 <div>
-                  <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-1.5 block">Max Capacity</label>
-                  <input type="number" min="1" value={form.capacity} onChange={e => setForm({ ...form, capacity: Number(e.target.value) })} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-bold text-primary-700 focus:outline-none focus:border-primary-400" />
+                  <label className="field-label">Max Capacity</label>
+                  <input type="number" min="1" value={form.capacity} onChange={e => setForm({ ...form, capacity: Number(e.target.value) })} className="field-input" style={{ color: '#1d4ed8', fontWeight: 700 }} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-1.5 block">X Coord (%)</label>
-                  <input type="number" min="0" max="100" value={form.x} onChange={e => setForm({ ...form, x: Number(e.target.value) })} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-bold text-secondary-700 focus:outline-none focus:border-primary-400" />
+                  <label className="field-label">X Coord (%)</label>
+                  <input type="number" min="0" max="100" value={form.x} onChange={e => setForm({ ...form, x: Number(e.target.value) })} className="field-input" style={{ color: 'var(--secondary-700)', fontWeight: 700 }} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-1.5 block">Y Coord (%)</label>
-                  <input type="number" min="0" max="100" value={form.y} onChange={e => setForm({ ...form, y: Number(e.target.value) })} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-bold text-secondary-700 focus:outline-none focus:border-primary-400" />
+                  <label className="field-label">Y Coord (%)</label>
+                  <input type="number" min="0" max="100" value={form.y} onChange={e => setForm({ ...form, y: Number(e.target.value) })} className="field-input" style={{ color: 'var(--secondary-700)', fontWeight: 700 }} />
                 </div>
               </div>
               {/* Safety warnings */}
-              <div>
-                <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-1.5 block">Safety Warnings</label>
-                <input type="text" value={form.safety_warnings} onChange={e => setForm({ ...form, safety_warnings: e.target.value })} placeholder="e.g. Flammables only, keep dry" className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium focus:outline-none focus:border-amber-400" />
+              <div className="form-field">
+                <label className="field-label">Safety Warnings</label>
+                <input type="text" value={form.safety_warnings} onChange={e => setForm({ ...form, safety_warnings: e.target.value })} placeholder="e.g. Flammables only, keep dry" className="field-input" />
               </div>
               {/* Notes */}
-              <div>
-                <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-1.5 block">Notes</label>
-                <input type="text" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Optional additional notes" className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium focus:outline-none focus:border-primary-400" />
+              <div className="form-field">
+                <label className="field-label">Notes</label>
+                <input type="text" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Optional additional notes" className="field-input" />
               </div>
 
-              {formError && <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-semibold">{formError}</div>}
+              {formError && <div style={{ padding: '0.75rem', backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 600, marginTop: '1rem' }}>{formError}</div>}
 
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-3 border border-secondary-200 rounded-2xl text-secondary-600 font-bold hover:bg-secondary-50 transition-all">Cancel</button>
-                <button type="submit" disabled={saving} className="flex-[2] bg-primary-600 hover:bg-primary-500 text-white py-3 rounded-2xl font-black shadow-xl shadow-primary-600/20 transition-all active:scale-95 disabled:opacity-60">
+              <div className="modal-actions">
+                <button type="button" onClick={() => setShowForm(false)} className="btn-cancel">Cancel</button>
+                <button type="submit" disabled={saving} className="btn-submit">
                   {saving ? "Saving..." : editingLoc ? "Save Changes" : "Create Location"}
                 </button>
               </div>
@@ -393,20 +393,20 @@ const LocationManager = () => {
 
       {/* Delete Confirm Modal */}
       {deleteConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-secondary-900/50 backdrop-blur-md" onClick={() => setDeleteConfirm(null)}></div>
-          <div className="relative w-full max-w-sm bg-white rounded-[2rem] shadow-2xl border border-secondary-100 p-8 text-center">
-            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        <div className="modal-overlay">
+          <div className="modal-backdrop" onClick={() => setDeleteConfirm(null)}></div>
+          <div className="modal-content modal-content-sm">
+            <div style={{ width: '4rem', height: '4rem', backgroundColor: '#fef2f2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color: '#ef4444' }}>
+              <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
             </div>
-            <h3 className="text-xl font-black text-secondary-900 mb-2">Deactivate Location?</h3>
-            <p className="text-secondary-500 text-sm mb-1 font-medium">
-              <span className="font-bold text-secondary-900">{deleteConfirm.building}/{deleteConfirm.room}/{deleteConfirm.cabinet}/Shelf-{deleteConfirm.shelf}</span>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--secondary-900)', marginBottom: '0.5rem' }}>Deactivate Location?</h3>
+            <p style={{ color: 'var(--secondary-500)', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.25rem' }}>
+              <span style={{ fontWeight: 700, color: 'var(--secondary-900)' }}>{deleteConfirm.building}/{deleteConfirm.room}/{deleteConfirm.cabinet}/Shelf-{deleteConfirm.shelf}</span>
             </p>
-            <p className="text-secondary-400 text-xs mb-6">This will hide it from dropdowns. Cannot be done if chemicals are assigned here.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-3 border border-secondary-200 rounded-2xl text-secondary-600 font-bold hover:bg-secondary-50 transition-all">Cancel</button>
-              <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-2xl font-black transition-all">Deactivate</button>
+            <p style={{ color: 'var(--secondary-400)', fontSize: '0.75rem', marginBottom: '1.5rem' }}>This will hide it from dropdowns. Cannot be done if chemicals are assigned here.</p>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button onClick={() => setDeleteConfirm(null)} className="btn-cancel">Cancel</button>
+              <button onClick={() => handleDelete(deleteConfirm)} className="btn-danger">Deactivate</button>
             </div>
           </div>
         </div>

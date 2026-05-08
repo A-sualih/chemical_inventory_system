@@ -3,8 +3,10 @@ import QRCodeLib from "react-qr-code";
 const QRCode = QRCodeLib.default || QRCodeLib;
 import axios from "axios";
 import { HAZARD_CLASSES, PPE_OPTIONS, NFPA_RATINGS, EXPOSURE_RISKS } from "../../constants/hazards.jsx";
+import "../../styles/ChemicalForm.css";
 
 const ChemicalForm = ({ initialData, onClose, onSave }) => {
+  // ... (state remains same)
   const [formData, setFormData] = useState(initialData ? {
     ...initialData,
     cas_number: initialData.cas_number || "",
@@ -98,16 +100,13 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
   const [qrCodeData, setQrCodeData] = useState("");
   const [incompatibilityWarning, setIncompatibilityWarning] = useState(null);
 
-  // Location hierarchy state
   const [locHierarchy, setLocHierarchy] = useState({ buildings: [], rooms: [], cabinets: [], shelves: [] });
   const [locLoading, setLocLoading] = useState(false);
 
-  // Fetch buildings on mount
   useEffect(() => {
     axios.get('/api/locations/hierarchy').then(res => setLocHierarchy(prev => ({ ...prev, buildings: res.data.buildings })));
   }, []);
 
-  // Fetch rooms when building changes
   useEffect(() => {
     if (!formData.building) return setLocHierarchy(prev => ({ ...prev, rooms: [], cabinets: [], shelves: [] }));
     setLocLoading(true);
@@ -116,14 +115,12 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
       .finally(() => setLocLoading(false));
   }, [formData.building]);
 
-  // Fetch cabinets when room changes
   useEffect(() => {
     if (!formData.building || !formData.room) return setLocHierarchy(prev => ({ ...prev, cabinets: [], shelves: [] }));
     axios.get('/api/locations/hierarchy', { params: { building: formData.building, room: formData.room } })
       .then(res => setLocHierarchy(prev => ({ ...prev, cabinets: res.data.cabinets, shelves: [] })));
   }, [formData.room]);
 
-  // Fetch shelves when cabinet changes
   useEffect(() => {
     if (!formData.building || !formData.room || !formData.cabinet) return setLocHierarchy(prev => ({ ...prev, shelves: [] }));
     axios.get('/api/locations/hierarchy', { params: { building: formData.building, room: formData.room, cabinet: formData.cabinet } })
@@ -148,37 +145,25 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
   }, [formData.building, formData.room, formData.cabinet, formData.shelf]);
 
   useEffect(() => {
-    const liquidUnits = ['L', 'mL', 'uL'];
-    const solidUnits = ['kg', 'g', 'mg'];
-    
-    if (formData.state === 'Liquid' && !liquidUnits.includes(formData.unit)) {
-      setFormData(prev => ({ ...prev, unit: 'L' }));
-    } else if (formData.state === 'Solid' && !solidUnits.includes(formData.unit)) {
-      setFormData(prev => ({ ...prev, unit: 'g' }));
-    }
-  }, [formData.state]);
-
-  useEffect(() => {
     const total = (Number(formData.num_containers) || 0) * (Number(formData.quantity_per_container) || 0);
     if (total > 0) {
       setFormData(prev => ({ ...prev, quantity: total }));
     }
   }, [formData.num_containers, formData.quantity_per_container]);
 
-  // UI Warning placement
   const renderIncompatibilityWarning = () => {
     if (!incompatibilityWarning) return null;
     return (
-      <div className="mt-2 p-4 bg-orange-50 border border-orange-200 rounded-xl flex flex-col gap-2 animate-pulse">
-         <div className="flex items-center gap-2 text-orange-700">
-           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-           <span className="text-[10px] font-black uppercase tracking-widest">Incompatible Storage Conflict</span>
-         </div>
-         <p className="text-[10px] font-bold text-orange-600">
-           Storing this chemical here is <span className="font-black">Dangerous</span>. 
-           This shelf already contains <span className="underline">{incompatibilityWarning.conflicting_chemical}</span>.
-         </p>
-      </div>
+       <div className="incompatibility-warning">
+          <div className="warning-header">
+            <svg className="warning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            <span className="warning-title">Incompatible Storage Conflict</span>
+          </div>
+          <p className="warning-message">
+            Storing this chemical here is <span className="dangerous-text">Dangerous</span>. 
+            This shelf already contains <span className="underline-text">{incompatibilityWarning.conflicting_chemical}</span>.
+          </p>
+       </div>
     );
   };
 
@@ -191,21 +176,8 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
   }, [initialData]);
 
   const validateCas = (val) => {
-    // Simple CAS: 2 to 7 digits, hyphen, 2 digits, hyphen, 1 digit
     const regex = /^\d{2,7}-\d{2}-\d$/;
     return regex.test(val);
-  };
-
-  const handleCasChange = (e) => {
-    const val = e.target.value;
-    setFormData({ ...formData, cas: val });
-    if (val && !validateCas(val)) {
-      setErrors({ ...errors, cas: "Invalid CAS format (e.g. 67-64-1)" });
-    } else {
-      const newErrors = { ...errors };
-      delete newErrors.cas;
-      setErrors(newErrors);
-    }
   };
 
   const toggleGhs = (hazardId) => {
@@ -216,97 +188,91 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="absolute inset-0 bg-secondary-900/40 backdrop-blur-md" onClick={onClose}></div>
+    <div className="chemical-form-overlay">
+      <div className="chemical-form-backdrop" onClick={onClose}></div>
       
-      <div className="relative w-full max-w-5xl bg-secondary-50 text-secondary-900 rounded-t-[2rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row h-[92vh] sm:h-[90vh] md:h-[80vh] animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 border border-white/40">
+      <div className="chemical-form-container">
         
         {/* Left Control Panel */}
-        <div className="w-full md:w-[300px] lg:w-[340px] bg-white p-6 md:p-8 flex flex-col border-b md:border-b-0 md:border-r border-secondary-100 relative overflow-hidden shrink-0 md:overflow-y-auto">
-          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-primary-50/50 to-transparent pointer-events-none"></div>
+        <div className="sidebar-panel">
+          <div className="sidebar-gradient"></div>
           
-          <div className="relative z-10 flex-1 flex flex-col">
-            <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary-500/30 mb-6">
+          <div className="sidebar-content">
+            <div className="sidebar-icon-container">
               <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" /></svg>
             </div>
             
-            <h2 className="text-3xl font-black heading-font text-secondary-900 tracking-tight leading-none mb-2">
+            <h2 className="sidebar-title">
               {initialData ? "Edit Lifecycle" : "Enroll Asset"}
             </h2>
-            <p className="text-secondary-500 text-sm font-medium mb-8">
+            <p className="sidebar-subtitle">
               {initialData ? `Updating records for ${initialData.id}` : "Systemize a new chemical into the repository."}
             </p>
 
-            <div className="bg-secondary-50 rounded-[1.5rem] p-4 mb-6 border border-secondary-100 hidden md:block">
-              <div className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-3">System Identity Badge</div>
-              <div className="flex items-center gap-4 flex-col">
+            <div className="identity-badge">
+              <div className="badge-label">System Identity Badge</div>
+              <div className="qr-container">
                  {initialData?.id ? (
                    <>
-                     <div className="bg-white p-4 rounded-[2rem] shadow-xl shadow-secondary-900/10 border border-secondary-200 flex justify-center items-center w-full aspect-square relative group">
-                       <QRCode value={`${window.location.origin}/chemicals/details/${initialData.id}`} size={220} className="group-hover:scale-105 transition-transform duration-300" />
-                       <div className="absolute -bottom-3 text-[10px] font-black bg-secondary-900 text-white rounded-full px-4 py-1.5 shadow-lg tracking-widest uppercase">SCAN READY</div>
+                     <div className="qr-box">
+                       <QRCode value={`${window.location.origin}/chemicals/details/${initialData.id}`} size={220} />
+                       <div className="scan-label">SCAN READY</div>
                      </div>
-                     <a href={`/print/${initialData.id}`} target="_blank" rel="noopener noreferrer" className="mt-4 px-4 py-2 w-full bg-secondary-900 hover:bg-black text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
-                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                     <a href={`/print/${initialData.id}`} target="_blank" rel="noopener noreferrer" className="print-button">
+                       <svg className="print-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                        Print Label (Sticker)
                      </a>
                    </>
                  ) : (
-                   <div className="w-full aspect-square bg-secondary-900 rounded-2xl flex flex-col items-center justify-center p-6 gap-2 shadow-inner">
-                      <div className="grid grid-cols-4 gap-1.5 w-16 h-16 opacity-50">
-                        {Array.from({length: 16}).map((_, i) => (
-                          <div key={i} className={`rounded-[2px] ${Math.random() > 0.5 ? 'bg-primary-400' : 'bg-white/10'}`}></div>
-                        ))}
-                      </div>
-                      <span className="text-[10px] font-black uppercase text-secondary-400 tracking-widest mt-2">WAITING FOR ID</span>
-                   </div>
+                    <div className="pending-id-box">
+                       <div className="id-pending-grid">
+                         {Array.from({length: 16}).map((_, i) => (
+                           <div key={i} className="pending-square" style={{ backgroundColor: Math.random() > 0.5 ? 'var(--primary-400)' : 'rgba(255,255,255,0.1)' }}></div>
+                         ))}
+                       </div>
+                       <span className="badge-label-pending">WAITING FOR ID</span>
+                    </div>
                  )}
-                 <div className="w-full text-center mt-2">
-                   <div className="text-sm font-mono text-secondary-500 font-black leading-tight bg-white py-2 rounded-xl border border-secondary-100 shadow-sm">
+                 <div className="id-display">
+                   <div className="id-text">
                      {initialData ? (
-                       <><span className="text-primary-600">CIMS-{initialData.id}</span></>
+                       <span className="id-active">CIMS-{initialData.id}</span>
                      ) : (
-                       <><span className="text-secondary-400 opacity-50">CIMS-YYYY</span></>
+                       <span style={{ color: 'var(--secondary-400)', opacity: 0.5 }}>CIMS-YYYY</span>
                      )}
                    </div>
                  </div>
               </div>
             </div>
 
-            <div className="flex-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-secondary-400 block mb-3">Global Hazard Classification</label>
-              <div className="grid grid-cols-4 lg:grid-cols-5 gap-2">
+            <div className="ghs-section">
+              <label className="badge-label" style={{ display: 'block', marginBottom: '0.75rem' }}>Global Hazard Classification</label>
+              <div className="ghs-grid">
                 {HAZARD_CLASSES.map((item) => (
                   <button 
                     key={item.id} 
                     type="button"
                     onClick={() => toggleGhs(item.id)}
-                    className={`group relative h-12 w-12 rounded-xl flex items-center justify-center transition-all border-2 ${
-                      formData.ghs_classes.includes(item.id) || formData.ghs_classes.includes(item.label) 
-                        ? `${item.color} border-transparent text-white shadow-lg scale-105` 
-                        : 'bg-secondary-50 border-secondary-100 text-secondary-400 hover:border-secondary-300 hover:bg-white'
-                    }`}
+                    className={`ghs-button ${formData.ghs_classes.includes(item.id) || formData.ghs_classes.includes(item.label) ? `active ${item.color}` : ''}`}
                   >
                     <div className="w-6 h-6">
                       {item.icon}
                     </div>
-                    {/* Floating Tooltip */}
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 p-2 bg-secondary-900 text-white text-[9px] rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none shadow-xl">
-                      <p className="font-bold mb-0.5">{item.label}</p>
-                      <p className="text-secondary-400 leading-tight line-clamp-2">{item.description}</p>
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-secondary-900"></div>
+                    <div className="ghs-tooltip">
+                      <p style={{ fontWeight: 'bold', marginBottom: '2px' }}>{item.label}</p>
+                      <p style={{ color: 'var(--secondary-400)', lineHeight: '1.1' }}>{item.description}</p>
                     </div>
                   </button>
                 ))}
               </div>
               {formData.ghs_classes.length > 0 && (
-                <div className="mt-4 p-3 bg-primary-50/50 rounded-xl border border-primary-100/50">
-                   <div className="text-[9px] font-black text-primary-600 uppercase tracking-widest mb-1">Active Hazard Profiles</div>
-                   <div className="flex flex-wrap gap-1">
+                <div className="hazard-profiles">
+                   <div className="section-title" style={{ fontSize: '9px', marginBottom: '0.25rem' }}>Active Hazard Profiles</div>
+                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
                       {formData.ghs_classes.map(id => {
                         const h = HAZARD_CLASSES.find(x => x.id === id || x.label === id);
                         return h ? (
-                          <span key={id} className={`px-2 py-0.5 rounded-md text-[8px] font-bold text-white uppercase ${h.color}`}>{h.label}</span>
+                          <span key={id} className={`hazard-badge ${h.color}`}>{h.label}</span>
                         ) : null;
                       })}
                    </div>
@@ -314,14 +280,14 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
               )}
             </div>
 
-            <button onClick={onClose} className="w-full mt-4 py-3 text-sm font-bold text-secondary-500 hover:text-secondary-900 hover:bg-secondary-100 rounded-2xl transition-all">
-              Cancel &amp; Discard
+            <button onClick={onClose} className="cancel-button">
+              Cancel & Discard
             </button>
           </div>
         </div>
 
         {/* Right Form Container */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar relative">
+        <div className="form-content-area">
            <form onSubmit={(e) => { 
                e.preventDefault(); 
                const payload = new FormData();
@@ -335,24 +301,24 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                if (sdsFile) payload.append('sds_file', sdsFile);
                onSave(payload); 
              }} 
-             className="p-5 sm:p-8 md:p-12 space-y-8"
+             className="form-main"
            >
               
               {/* SECTION: IDENTIFICATION */}
-              <section>
-                <div className="flex items-center gap-3 mb-5">
-                   <div className="h-px bg-secondary-200 flex-1"></div>
-                   <div className="text-[10px] font-black text-primary-600 uppercase tracking-widest">Nomenclature & Identity</div>
-                   <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
+              <section className="form-section">
+                <div className="section-header">
+                   <div className="header-line"></div>
+                   <div className="section-title">Nomenclature & Identity</div>
+                   <div className="header-line hide-mobile"></div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
-                  <div className="group">
-                    <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">Common Name</label>
-                    <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium text-secondary-900 shadow-sm" placeholder="e.g. Sodium Chloride" required />
+                <div className="grid-cols-1-2">
+                  <div className="form-group">
+                    <label className="form-label">Common Name</label>
+                    <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="form-input" placeholder="e.g. Sodium Chloride" required />
                   </div>
-                  <div className="group">
-                    <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">CAS Registry Number</label>
+                  <div className="form-group">
+                    <label className="form-label">CAS Registry Number</label>
                     <input type="text" value={formData.cas_number} onChange={(e) => {
                       const val = e.target.value;
                       setFormData({ ...formData, cas_number: val });
@@ -363,40 +329,40 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                         delete newErrors.cas_number;
                         setErrors(newErrors);
                       }
-                    }} className={`w-full bg-white border rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-mono font-medium shadow-sm ${errors.cas_number ? 'border-red-400 focus:border-red-500 focus:ring-red-500/10' : 'border-secondary-200'}`} placeholder="7647-14-5" required />
-                    {errors.cas_number && <div className="text-[10px] font-bold text-red-500 ml-1 mt-1.5 uppercase">{errors.cas_number}</div>}
+                    }} className={`form-input font-mono ${errors.cas_number ? 'error' : ''}`} placeholder="7647-14-5" required />
+                    {errors.cas_number && <div className="error-text">{errors.cas_number}</div>}
                   </div>
                 </div>
-                <div className="group">
-                  <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block group-focus-within:text-primary-600 transition-colors">IUPAC Name</label>
-                  <input type="text" value={formData.iupac_name} onChange={e => setFormData({...formData, iupac_name: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium text-secondary-900 shadow-sm" placeholder="Systematic name..." />
+                <div className="form-group">
+                  <label className="form-label">IUPAC Name</label>
+                  <input type="text" value={formData.iupac_name} onChange={e => setFormData({...formData, iupac_name: e.target.value})} className="form-input" placeholder="Systematic name..." />
                 </div>
               </section>
 
-               <section>
-                 <div className="flex items-center gap-3 mb-5">
-                    <div className="h-px bg-secondary-200 flex-1"></div>
-                    <div className="text-[10px] font-black text-primary-600 uppercase tracking-widest">Physicality & Containers</div>
-                    <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
+               <section className="form-section">
+                 <div className="section-header">
+                    <div className="header-line"></div>
+                    <div className="section-title">Physicality & Containers</div>
+                    <div className="header-line hide-mobile"></div>
                  </div>
                  
-                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-                  <div className="group">
-                    <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block">State</label>
-                    <div className="relative">
-                      <select value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium appearance-none cursor-pointer">
+                 <div className="grid-cols-2-4">
+                  <div className="form-group">
+                    <label className="form-label">State</label>
+                    <div className="select-wrapper">
+                      <select value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} className="form-select">
                          <option>Liquid</option><option>Solid</option><option>Gas</option>
                       </select>
-                      <svg className="w-4 h-4 absolute right-4 top-4 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                      <svg className="select-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                   </div>
-                  <div className="group">
-                    <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block">Unit</label>
-                    <div className="relative">
+                  <div className="form-group">
+                    <label className="form-label">Unit</label>
+                    <div className="select-wrapper">
                       <select 
                         value={formData.unit} 
                         onChange={e => setFormData({...formData, unit: e.target.value})} 
-                        className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none hover:border-secondary-300 transition-all font-medium shadow-sm appearance-none cursor-pointer"
+                        className="form-select"
                       >
                          {formData.state === 'Liquid' ? (
                            <>
@@ -417,122 +383,116 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                            </>
                          )}
                       </select>
-                      <svg className="w-4 h-4 absolute right-4 top-4 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                      <svg className="select-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                   </div>
-                    <div className="group">
-                      <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block transition-colors">Total Qty</label>
-                      <input type="number" step="any" value={formData.quantity} onChange={e => setFormData({...formData, quantity: Number(e.target.value)})} className="w-full bg-secondary-50 border border-secondary-200 rounded-[1rem] p-4 text-sm font-mono font-bold shadow-sm text-primary-700" placeholder="0.0" />
+                    <div className="form-group">
+                      <label className="form-label">Total Qty</label>
+                      <input type="number" step="any" value={formData.quantity} onChange={e => setFormData({...formData, quantity: Number(e.target.value)})} className="form-input font-mono qty-input" placeholder="0.0" />
                     </div>
-                   <div className="group">
-                     <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block transition-colors">Purity (%)</label>
-                     <input type="text" value={formData.purity} onChange={e => setFormData({...formData, purity: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm outline-none hover:border-secondary-300 focus:border-primary-400 transition-all font-medium shadow-sm" placeholder="99.9%" />
+                   <div className="form-group">
+                     <label className="form-label">Purity (%)</label>
+                     <input type="text" value={formData.purity} onChange={e => setFormData({...formData, purity: e.target.value})} className="form-input" placeholder="99.9%" />
                    </div>
-                   <div className="group">
-                     <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block transition-colors">Alert Threshold</label>
-                     <input type="number" step="any" value={formData.threshold} onChange={e => setFormData({...formData, threshold: Number(e.target.value)})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm outline-none hover:border-secondary-300 focus:border-primary-400 transition-all font-bold shadow-sm text-amber-600" placeholder="5" />
+                   <div className="form-group">
+                     <label className="form-label">Alert Threshold</label>
+                     <input type="number" step="any" value={formData.threshold} onChange={e => setFormData({...formData, threshold: Number(e.target.value)})} className="form-input threshold-input" placeholder="5" />
                    </div>
                  </div>
 
 
-                 <div className="bg-white border border-secondary-200 rounded-[1.5rem] p-5 mb-5 shadow-sm space-y-4">
-                    <div className="text-[10px] font-bold text-secondary-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                 <div className="card-container">
+                    <div className="card-title">
                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                        Bottle & Container Metrics
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="group">
-                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Count</label>
-                         <input type="number" value={formData.num_containers} onChange={e => setFormData({...formData, num_containers: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-bold" />
+                    <div className="grid-cols-2-4" style={{ marginBottom: 0 }}>
+                      <div className="form-group">
+                         <label className="form-label">Count</label>
+                         <input type="number" value={formData.num_containers} onChange={e => setFormData({...formData, num_containers: e.target.value})} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} />
                       </div>
-                      <div className="group">
-                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Qty/Container</label>
-                         <input type="number" value={formData.quantity_per_container} onChange={e => setFormData({...formData, quantity_per_container: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-bold" />
+                      <div className="form-group">
+                         <label className="form-label">Qty/Container</label>
+                         <input type="number" value={formData.quantity_per_container} onChange={e => setFormData({...formData, quantity_per_container: e.target.value})} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} />
                       </div>
-                      <div className="group">
-                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Type</label>
-                         <input type="text" value={formData.container_type} onChange={e => setFormData({...formData, container_type: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-medium" />
+                      <div className="form-group">
+                         <label className="form-label">Type</label>
+                         <input type="text" value={formData.container_type} onChange={e => setFormData({...formData, container_type: e.target.value})} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} />
                       </div>
-                      <div className="group">
-                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Container ID</label>
-                         <input type="text" value={formData.container_id_series} onChange={e => setFormData({...formData, container_id_series: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-mono" placeholder="CONT-X" />
+                      <div className="form-group">
+                         <label className="form-label">Container ID</label>
+                         <input type="text" value={formData.container_id_series} onChange={e => setFormData({...formData, container_id_series: e.target.value})} className="form-input font-mono" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} placeholder="CONT-X" />
                       </div>
                     </div>
                  </div>
                </section>
 
-               <section>
-                 <div className="flex items-center gap-3 mb-5">
-                    <div className="h-px bg-secondary-200 flex-1"></div>
-                    <div className="text-[10px] font-black text-primary-600 uppercase tracking-widest">Facility & Storage Taxonomy</div>
-                    <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
+               <section className="form-section">
+                 <div className="section-header">
+                    <div className="header-line"></div>
+                    <div className="section-title">Facility & Storage Taxonomy</div>
+                    <div className="header-line hide-mobile"></div>
                  </div>
-                  <div className="bg-white border border-secondary-200 rounded-[1.5rem] p-5 mb-5 shadow-sm space-y-5">
-                     {/* Cascading Location Dropdowns */}
-                     <div className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                  <div className="card-container" style={{ padding: '1.25rem', marginBottom: '1.25rem' }}>
+                     <div className="card-title">
                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                        Select Storage Location
-                       {locLoading && <span className="ml-auto text-primary-500 animate-pulse">Loading...</span>}
+                       {locLoading && <span style={{ marginLeft: 'auto', color: 'var(--primary-500)' }} className="animate-pulse">Loading...</span>}
                      </div>
 
-                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                       {/* Building */}
-                       <div className="group">
-                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Building</label>
-                         <div className="relative">
+                     <div className="location-grid">
+                       <div className="form-group">
+                         <label className="form-label">Building</label>
+                         <div className="select-wrapper">
                            {locHierarchy.buildings.length > 0 ? (
-                             <select value={formData.building} onChange={e => setFormData({ ...formData, building: e.target.value, room: '', cabinet: '', shelf: '' })} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-medium appearance-none cursor-pointer pr-8">
+                             <select value={formData.building} onChange={e => setFormData({ ...formData, building: e.target.value, room: '', cabinet: '', shelf: '' })} className="form-select" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }}>
                                <option value="">-- Select --</option>
                                {locHierarchy.buildings.map(b => <option key={b} value={b}>{b}</option>)}
                              </select>
                            ) : (
-                             <input type="text" value={formData.building} onChange={e => setFormData({ ...formData, building: e.target.value })} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="e.g. Block-A" />
+                             <input type="text" value={formData.building} onChange={e => setFormData({ ...formData, building: e.target.value })} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} placeholder="e.g. Block-A" />
                            )}
-                           {locHierarchy.buildings.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                           {locHierarchy.buildings.length > 0 && <svg className="select-icon" style={{ right: '0.75rem', top: '0.875rem', width: '0.75rem', height: '0.75rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
                          </div>
                        </div>
 
-                       {/* Room */}
-                       <div className="group">
-                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Room</label>
-                         <div className="relative">
+                       <div className="form-group">
+                         <label className="form-label">Room</label>
+                         <div className="select-wrapper">
                            {locHierarchy.rooms.length > 0 ? (
-                             <select value={formData.room} onChange={e => setFormData({ ...formData, room: e.target.value, cabinet: '', shelf: '' })} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-medium appearance-none cursor-pointer pr-8">
+                             <select value={formData.room} onChange={e => setFormData({ ...formData, room: e.target.value, cabinet: '', shelf: '' })} className="form-select" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }}>
                                <option value="">-- Select --</option>
                                {locHierarchy.rooms.map(r => <option key={r} value={r}>{r}</option>)}
                              </select>
                            ) : (
-                             <input type="text" value={formData.room} onChange={e => setFormData({ ...formData, room: e.target.value })} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="e.g. 102" />
+                             <input type="text" value={formData.room} onChange={e => setFormData({ ...formData, room: e.target.value })} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} placeholder="e.g. 102" />
                            )}
-                           {locHierarchy.rooms.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                           {locHierarchy.rooms.length > 0 && <svg className="select-icon" style={{ right: '0.75rem', top: '0.875rem', width: '0.75rem', height: '0.75rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
                          </div>
                        </div>
 
-                       {/* Cabinet */}
-                       <div className="group">
-                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Cabinet</label>
-                         <div className="relative">
+                       <div className="form-group">
+                         <label className="form-label">Cabinet</label>
+                         <div className="select-wrapper">
                            {locHierarchy.cabinets.length > 0 ? (
-                             <select value={formData.cabinet} onChange={e => setFormData({ ...formData, cabinet: e.target.value, shelf: '' })} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-medium appearance-none cursor-pointer pr-8">
+                             <select value={formData.cabinet} onChange={e => setFormData({ ...formData, cabinet: e.target.value, shelf: '' })} className="form-select" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }}>
                                <option value="">-- Select --</option>
                                {locHierarchy.cabinets.map(c => <option key={c} value={c}>{c}</option>)}
                              </select>
                            ) : (
-                             <input type="text" value={formData.cabinet} onChange={e => setFormData({ ...formData, cabinet: e.target.value })} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="e.g. C2" />
+                             <input type="text" value={formData.cabinet} onChange={e => setFormData({ ...formData, cabinet: e.target.value })} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} placeholder="e.g. C2" />
                            )}
-                           {locHierarchy.cabinets.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                           {locHierarchy.cabinets.length > 0 && <svg className="select-icon" style={{ right: '0.75rem', top: '0.875rem', width: '0.75rem', height: '0.75rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
                          </div>
                        </div>
 
-                       {/* Shelf */}
-                       <div className="group">
-                         <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Shelf</label>
-                         <div className="relative">
+                       <div className="form-group">
+                         <label className="form-label">Shelf</label>
+                         <div className="select-wrapper">
                            {locHierarchy.shelves.length > 0 ? (
                              <select value={formData.shelf} onChange={e => {
-                               const sel = locHierarchy.shelves.find(s => s.shelf === e.target.value);
                                setFormData({ ...formData, shelf: e.target.value });
-                             }} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm font-medium appearance-none cursor-pointer pr-8">
+                             }} className="form-select" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }}>
                                <option value="">-- Select --</option>
                                {locHierarchy.shelves.map(s => (
                                  <option key={s._id} value={s.shelf}>
@@ -541,141 +501,136 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                                ))}
                              </select>
                            ) : (
-                             <input type="text" value={formData.shelf} onChange={e => setFormData({ ...formData, shelf: e.target.value })} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" placeholder="e.g. 1" />
+                             <input type="text" value={formData.shelf} onChange={e => setFormData({ ...formData, shelf: e.target.value })} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} placeholder="e.g. 1" />
                            )}
-                           {locHierarchy.shelves.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                           {locHierarchy.shelves.length > 0 && <svg className="select-icon" style={{ right: '0.75rem', top: '0.875rem', width: '0.75rem', height: '0.75rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
                          </div>
                        </div>
                      </div>
 
-                     {/* Shelf capacity indicator */}
                      {formData.shelf && locHierarchy.shelves.length > 0 && (() => {
                        const sel = locHierarchy.shelves.find(s => s.shelf === formData.shelf);
                        if (!sel) return null;
                        const pct = Math.min(100, Math.round((sel.current_load / sel.capacity) * 100));
                        return (
-                         <div className="mt-1 p-3 bg-secondary-50 rounded-xl border border-secondary-100">
-                           <div className="flex justify-between text-[10px] font-bold text-secondary-500 uppercase mb-1.5">
+                         <div className="capacity-indicator">
+                           <div className="capacity-header">
                              <span>Shelf Capacity</span>
-                             <span className={pct >= 90 ? 'text-red-500' : pct >= 70 ? 'text-amber-500' : 'text-green-600'}>{sel.current_load}/{sel.capacity} slots</span>
+                             <span style={{ color: pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#16a34a' }}>{sel.current_load}/{sel.capacity} slots</span>
                            </div>
-                           <div className="h-1.5 bg-secondary-200 rounded-full">
-                             <div className={`h-full rounded-full transition-all ${pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-400' : 'bg-green-500'}`} style={{ width: `${pct}%` }}></div>
+                           <div className="capacity-bar-bg">
+                             <div className="capacity-bar-fill" style={{ width: `${pct}%`, backgroundColor: pct >= 90 ? '#ef4444' : pct >= 70 ? '#fbbf24' : '#22c55e' }}></div>
                            </div>
-                           {sel.safety_warnings && <p className="text-[10px] text-amber-600 font-semibold mt-1.5 flex items-center gap-1"><img src="/icons/warning.svg" alt="Warning" className="w-3.5 h-3.5 select-none" draggable="false" /> {sel.safety_warnings}</p>}
+                           {sel.safety_warnings && <p className="safety-warning"><img src="/icons/warning.svg" alt="Warning" style={{ width: '0.875rem', height: '0.875rem' }} /> {sel.safety_warnings}</p>}
                          </div>
                        );
                      })()}
 
-                     {/* Auto Combined ID */}
-                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="group col-span-2">
-                           <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Combined Identifier (Auto)</label>
-{renderIncompatibilityWarning()}
-                           <input type="text" readOnly value={formData.building ? `${formData.building}-${formData.room}-${formData.cabinet}-${formData.shelf}`.replace(/-+$/, '') : formData.location} className="w-full bg-secondary-100 border-transparent rounded-xl p-3 text-xs font-mono text-secondary-600" />
+                     <div className="location-grid" style={{ marginTop: '1.25rem' }}>
+                        <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                           <label className="form-label">Combined Identifier (Auto)</label>
+                           {renderIncompatibilityWarning()}
+                           <input type="text" readOnly value={formData.building ? `${formData.building}-${formData.room}-${formData.cabinet}-${formData.shelf}`.replace(/-+$/, '') : formData.location} className="form-input combined-id" />
                         </div>
-                        <div className="group">
-                           <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Temp (°C)</label>
-                           <input type="number" value={formData.storage_temp} onChange={e => setFormData({...formData, storage_temp: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" />
+                        <div className="form-group">
+                           <label className="form-label">Temp (°C)</label>
+                           <input type="number" value={formData.storage_temp} onChange={e => setFormData({...formData, storage_temp: e.target.value})} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} />
                         </div>
-                        <div className="group">
-                           <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Humidity (%)</label>
-                           <input type="number" value={formData.storage_humidity} onChange={e => setFormData({...formData, storage_humidity: e.target.value})} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-3 text-sm" />
+                        <div className="form-group">
+                           <label className="form-label">Humidity (%)</label>
+                           <input type="number" value={formData.storage_humidity} onChange={e => setFormData({...formData, storage_humidity: e.target.value})} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} />
                         </div>
                      </div>
                   </div>
                </section>
 
-               <section>
-                 <div className="flex items-center gap-3 mb-5">
-                    <div className="h-px bg-secondary-200 flex-1"></div>
-                    <div className="text-[10px] font-black text-primary-600 uppercase tracking-widest">Procurement & Traceability</div>
-                    <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
+               <section className="form-section">
+                 <div className="section-header">
+                    <div className="header-line"></div>
+                    <div className="section-title">Procurement & Traceability</div>
+                    <div className="header-line hide-mobile"></div>
                  </div>
 
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                   <div className="space-y-4">
-                     <div className="group">
-                       <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Vendor Name</label>
-                       <input type="text" value={formData.supplier} onChange={e => setFormData({...formData, supplier: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm" placeholder="LabChem Supplies" />
+                 <div className="grid-cols-1-2">
+                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                     <div className="form-group">
+                       <label className="form-label">Vendor Name</label>
+                       <input type="text" value={formData.supplier} onChange={e => setFormData({...formData, supplier: e.target.value})} className="form-input" placeholder="LabChem Supplies" />
                      </div>
-                     <div className="grid grid-cols-2 gap-4">
-                        <div className="group">
-                          <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Purchase Date</label>
-                          <input type="date" value={formData.purchase_date} onChange={e => setFormData({...formData, purchase_date: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm" />
+                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                        <div className="form-group">
+                          <label className="form-label">Purchase Date</label>
+                          <input type="date" value={formData.purchase_date} onChange={e => setFormData({...formData, purchase_date: e.target.value})} className="form-input" />
                         </div>
-                        <div className="group">
-                          <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">MFG Date</label>
-                          <input type="date" value={formData.manufacturing_date} onChange={e => setFormData({...formData, manufacturing_date: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm" />
+                        <div className="form-group">
+                          <label className="form-label">MFG Date</label>
+                          <input type="date" value={formData.manufacturing_date} onChange={e => setFormData({...formData, manufacturing_date: e.target.value})} className="form-input" />
                         </div>
                      </div>
                    </div>
-                   <div className="space-y-4">
-                      <div className="group">
-                        <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Lot / Batch Number</label>
-                        <input type="text" value={formData.batch_number} onChange={e => setFormData({...formData, batch_number: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-mono font-bold shadow-sm" placeholder="LOT-2025-X" />
+                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <div className="form-group">
+                        <label className="form-label">Lot / Batch Number</label>
+                        <input type="text" value={formData.batch_number} onChange={e => setFormData({...formData, batch_number: e.target.value})} className="form-input font-mono" style={{ fontWeight: 'bold' }} placeholder="LOT-2025-X" />
                       </div>
-                      <div className="group">
-                        <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Expiry Date</label>
-                        <input type="date" value={formData.expiry_date} onChange={e => setFormData({...formData, expiry_date: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm text-red-600" required />
+                      <div className="form-group">
+                        <label className="form-label">Expiry Date</label>
+                        <input type="date" value={formData.expiry_date} onChange={e => setFormData({...formData, expiry_date: e.target.value})} className="form-input" style={{ color: '#dc2626' }} required />
                       </div>
                    </div>
                  </div>
-                 <div className="group">
-                    <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Safety Remarks & Tracking Notes</label>
-                    <textarea value={formData.remarks} onChange={e => setFormData({...formData, remarks: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm h-24 resize-none" placeholder="Initial stock entry, handle with care..."></textarea>
+                 <div className="form-group">
+                    <label className="form-label">Safety Remarks & Tracking Notes</label>
+                    <textarea value={formData.remarks} onChange={e => setFormData({...formData, remarks: e.target.value})} className="textarea-input" placeholder="Initial stock entry, handle with care..."></textarea>
                  </div>
                </section>
-                <section>
-                  <div className="flex items-center gap-3 mb-5">
-                     <div className="h-px bg-secondary-200 flex-1"></div>
-                     <div className="text-[10px] font-black text-red-600 uppercase tracking-widest">CRITICAL SAFETY & HAZARD DIRECTIVES</div>
-                     <div className="h-px bg-secondary-200 flex-1 md:hidden"></div>
+
+                <section className="form-section">
+                  <div className="section-header">
+                     <div className="header-line"></div>
+                     <div className="section-title critical-title">CRITICAL SAFETY & HAZARD DIRECTIVES</div>
+                     <div className="header-line hide-mobile"></div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                  <div className="grid-cols-1-2" style={{ marginBottom: '2rem' }}>
                     {/* GHS Details */}
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest">GHS Signal Word</label>
-                        <div className="flex gap-2">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <div className="ghs-signal-header">
+                        <label className="badge-label">GHS Signal Word</label>
+                        <div className="signal-word-group">
                            {['None', 'Warning', 'Danger'].map(word => (
-                             <button key={word} type="button" onClick={() => setFormData({...formData, ghs_hazards: {...formData.ghs_hazards, signal_word: word}})} className={`px-3 py-1 text-[10px] font-black rounded-md border ${formData.ghs_hazards.signal_word === word ? 'bg-secondary-900 text-white border-secondary-900' : 'bg-white text-secondary-500 border-secondary-200'}`}>
+                             <button key={word} type="button" onClick={() => setFormData({...formData, ghs_hazards: {...formData.ghs_hazards, signal_word: word}})} className={`signal-word-btn ${formData.ghs_hazards.signal_word === word ? 'active' : ''}`}>
                                {word}
                              </button>
                            ))}
                         </div>
                       </div>
-                      <div className="group">
-                        <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block">H-Codes (Hazard Statements)</label>
-                        <input type="text" value={formData.ghs_hazards.h_codes.join(', ')} onChange={e => setFormData({...formData, ghs_hazards: {...formData.ghs_hazards, h_codes: e.target.value.split(',').map(s => s.trim()).filter(Boolean)}})} className="w-full bg-white border border-secondary-200 rounded-xl p-3 text-sm" placeholder="e.g. H225, H319" />
+                      <div className="form-group">
+                        <label className="form-label">H-Codes (Hazard Statements)</label>
+                        <input type="text" value={formData.ghs_hazards.h_codes.join(', ')} onChange={e => setFormData({...formData, ghs_hazards: {...formData.ghs_hazards, h_codes: e.target.value.split(',').map(s => s.trim()).filter(Boolean)}})} className="form-input" style={{ padding: '0.75rem' }} placeholder="e.g. H225, H319" />
                       </div>
-                      <div className="group">
-                        <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 block">P-Codes (Precautionary)</label>
-                        <input type="text" value={formData.ghs_hazards.p_codes.join(', ')} onChange={e => setFormData({...formData, ghs_hazards: {...formData.ghs_hazards, p_codes: e.target.value.split(',').map(s => s.trim()).filter(Boolean)}})} className="w-full bg-white border border-secondary-200 rounded-xl p-3 text-sm" placeholder="e.g. P210, P280" />
+                      <div className="form-group">
+                        <label className="form-label">P-Codes (Precautionary)</label>
+                        <input type="text" value={formData.ghs_hazards.p_codes.join(', ')} onChange={e => setFormData({...formData, ghs_hazards: {...formData.ghs_hazards, p_codes: e.target.value.split(',').map(s => s.trim()).filter(Boolean)}})} className="form-input" style={{ padding: '0.75rem' }} placeholder="e.g. P210, P280" />
                       </div>
                     </div>
 
                     {/* NFPA Diamond Logic */}
-                    <div className="bg-secondary-900 rounded-3xl p-6 text-white relative overflow-hidden">
-                       <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-                       <label className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-4 block">NFPA 704 Diamond Rating</label>
-                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="nfpa-diamond-card">
+                       <div style={{ position: 'absolute', top: 0, right: 0, width: '8rem', height: '8rem', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '9999px', marginRight: '-4rem', marginTop: '-4rem', filter: 'blur(48px)' }}></div>
+                       <label className="badge-label" style={{ color: 'var(--secondary-400)', marginBottom: '1rem', display: 'block' }}>NFPA 704 Diamond Rating</label>
+                       <div className="nfpa-grid">
                           {NFPA_RATINGS.map(rating => (
-                            <div key={rating.label} className="space-y-2">
-                               <label className={`text-[9px] font-bold uppercase ${
-                                 rating.color === 'red' ? 'text-red-400' : 
-                                 rating.color === 'blue' ? 'text-blue-400' : 
-                                 rating.color === 'yellow' ? 'text-yellow-400' : 'text-white'
-                               }`}>{rating.label}</label>
+                            <div key={rating.label} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                               <label className="nfpa-label" style={{ color: rating.color === 'red' ? '#f87171' : rating.color === 'blue' ? '#60a5fa' : rating.color === 'yellow' ? '#fbbf24' : 'white' }}>{rating.label}</label>
                                
                                {rating.label === 'Special' ? (
                                  <select 
                                    value={formData.nfpa_rating.special} 
                                    onChange={e => setFormData({...formData, nfpa_rating: {...formData.nfpa_rating, special: e.target.value}})}
-                                   className="w-full bg-white/10 border border-white/20 rounded-xl p-2 text-xs font-bold focus:bg-white focus:text-secondary-900 transition-all outline-none"
+                                   className="nfpa-select"
                                  >
-                                    {rating.options.map(opt => <option key={opt} value={opt}>{opt || "None"}</option>)}
+                                    {rating.options.map(opt => <option key={opt} value={opt} style={{ color: 'var(--secondary-900)' }}>{opt || "None"}</option>)}
                                  </select>
                                ) : (
                                  <select 
@@ -684,9 +639,9 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                                      const key = rating.label === 'Instability' ? 'reactivity' : rating.label.toLowerCase();
                                      setFormData({...formData, nfpa_rating: {...formData.nfpa_rating, [key]: Number(e.target.value)}});
                                    }}
-                                   className="w-full bg-white/10 border border-white/20 rounded-xl p-2 text-xs font-bold focus:bg-white focus:text-secondary-900 transition-all outline-none"
+                                   className="nfpa-select"
                                  >
-                                    {[0,1,2,3,4].map(num => <option key={num} value={num}>{num} - {rating.levels[num]}</option>)}
+                                    {[0,1,2,3,4].map(num => <option key={num} value={num} style={{ color: 'var(--secondary-900)' }}>{num} - {rating.levels[num]}</option>)}
                                  </select>
                                )}
                             </div>
@@ -695,13 +650,13 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                  <div className="grid-cols-1-2" style={{ marginBottom: '2rem' }}>
                      {/* PPE Requirements */}
-                     <div className="space-y-4">
-                        <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 block">Mandatory PPE</label>
-                        <div className="flex flex-wrap gap-2">
+                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <label className="form-label">Mandatory PPE</label>
+                        <div className="ppe-grid">
                            {PPE_OPTIONS.map(ppe => (
-                             <button key={ppe} type="button" onClick={() => setFormData(prev => ({...prev, ppe_requirements: prev.ppe_requirements.includes(ppe) ? prev.ppe_requirements.filter(p => p !== ppe) : [...prev.ppe_requirements, ppe]}))} className={`px-3 py-2 text-[10px] font-bold rounded-xl border transition-all ${formData.ppe_requirements.includes(ppe) ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-secondary-500 border-secondary-200'}`}>
+                             <button key={ppe} type="button" onClick={() => setFormData(prev => ({...prev, ppe_requirements: prev.ppe_requirements.includes(ppe) ? prev.ppe_requirements.filter(p => p !== ppe) : [...prev.ppe_requirements, ppe]}))} className={`ppe-button ${formData.ppe_requirements.includes(ppe) ? 'active' : ''}`}>
                                {ppe}
                              </button>
                            ))}
@@ -709,37 +664,37 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                      </div>
 
                      {/* Access & Training */}
-                     <div className="bg-white border border-secondary-200 rounded-3xl p-6 space-y-4">
-                        <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest block mb-2">Access Control</label>
-                        <div className="flex items-center justify-between p-3 bg-secondary-50 rounded-2xl">
-                           <span className="text-xs font-bold text-secondary-700">Restricted Access</span>
-                           <input type="checkbox" checked={formData.restricted_access} onChange={e => setFormData({...formData, restricted_access: e.target.checked})} className="w-5 h-5 accent-primary-600" />
+                     <div className="access-control-card">
+                        <label className="form-label" style={{ marginBottom: '0.5rem' }}>Access Control</label>
+                        <div className="toggle-item">
+                           <span className="toggle-label">Restricted Access</span>
+                           <input type="checkbox" checked={formData.restricted_access} onChange={e => setFormData({...formData, restricted_access: e.target.checked})} className="toggle-checkbox" />
                         </div>
-                        <div className="flex items-center justify-between p-3 bg-secondary-50 rounded-2xl">
-                           <span className="text-xs font-bold text-secondary-700">Safety Training Required</span>
-                           <input type="checkbox" checked={formData.training_required} onChange={e => setFormData({...formData, training_required: e.target.checked})} className="w-5 h-5 accent-primary-600" />
+                        <div className="toggle-item">
+                           <span className="toggle-label">Safety Training Required</span>
+                           <input type="checkbox" checked={formData.training_required} onChange={e => setFormData({...formData, training_required: e.target.checked})} className="toggle-checkbox" />
                         </div>
                      </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                    <div className="group">
-                      <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Exposure Risks (CMR / Special)</label>
-                      <div className="flex flex-wrap gap-2">
+                  <div className="grid-cols-1-2">
+                    <div className="form-group">
+                      <label className="form-label">Exposure Risks (CMR / Special)</label>
+                      <div className="ppe-grid">
                          {['Carcinogen', 'Mutagen', 'Teratogen', 'Sensitizer', 'Asphyxiant'].map(risk => (
                             <button 
                               key={risk} type="button" 
                               onClick={() => setFormData(prev => ({...prev, exposure_risks: prev.exposure_risks.includes(risk) ? prev.exposure_risks.filter(r => r !== risk) : [...prev.exposure_risks, risk]}))}
-                              className={`px-3 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border ${formData.exposure_risks.includes(risk) ? 'bg-red-500 text-white border-red-500 shadow-md' : 'bg-white text-secondary-500 border-secondary-200 hover:border-red-300'}`}
+                              className={`risk-button ${formData.exposure_risks.includes(risk) ? 'active' : ''}`}
                             >
                               {risk}
                             </button>
                          ))}
                       </div>
                     </div>
-                    <div className="group">
-                       <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Chemical Family / Compatibility Class</label>
-                       <select value={formData.chemical_family} onChange={e => setFormData({...formData, chemical_family: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-[1rem] p-4 text-sm font-medium shadow-sm cursor-pointer outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-400">
+                    <div className="form-group">
+                       <label className="form-label">Chemical Family / Compatibility Class</label>
+                       <select value={formData.chemical_family} onChange={e => setFormData({...formData, chemical_family: e.target.value})} className="form-select family-select" style={{ height: 'auto' }}>
                           <option value="General">General / Non-Reactive</option>
                           <option value="Acid">Acid</option>
                           <option value="Base">Base</option>
@@ -750,39 +705,39 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                    <div className="group">
-                      <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Emergency Spill Procedures</label>
-                      <textarea value={formData.spill_instructions} onChange={e => setFormData({...formData, spill_instructions: e.target.value})} className="w-full bg-red-50/50 border border-red-100 rounded-[1rem] p-4 text-sm font-medium shadow-sm h-32 resize-none outline-none focus:border-red-400" placeholder="e.g. Neutralize with sodium bi-carbonate, ventilate area..."></textarea>
+                  <div className="risk-procedures-grid" style={{ marginTop: '1.25rem' }}>
+                    <div className="form-group">
+                      <label className="form-label">Emergency Spill Procedures</label>
+                      <textarea value={formData.spill_instructions} onChange={e => setFormData({...formData, spill_instructions: e.target.value})} className="textarea-input procedure-textarea" placeholder="e.g. Neutralize with sodium bi-carbonate, ventilate area..."></textarea>
                     </div>
-                    <div className="group">
-                      <label className="text-[10px] font-bold text-secondary-500 uppercase ml-1 mb-1.5 block">Medical Emergency Instructions</label>
-                      <textarea value={formData.emergency_instructions} onChange={e => setFormData({...formData, emergency_instructions: e.target.value})} className="w-full bg-red-50/50 border border-red-100 rounded-[1rem] p-4 text-sm font-medium shadow-sm h-32 resize-none outline-none focus:border-red-400" placeholder="e.g. Wash eyes for 15 mins, administer calcium gluconate if skin contact..."></textarea>
+                    <div className="form-group">
+                      <label className="form-label">Medical Emergency Instructions</label>
+                      <textarea value={formData.emergency_instructions} onChange={e => setFormData({...formData, emergency_instructions: e.target.value})} className="textarea-input procedure-textarea" placeholder="e.g. Wash eyes for 15 mins, administer calcium gluconate if skin contact..."></textarea>
                     </div>
                   </div>
                 </section>
 
               {/* ACTION FOOTER */}
-              <div className="pt-4 flex flex-col md:flex-row gap-4">
+              <div className="action-footer">
                 
                 <div 
-                  className={`flex-[1.2] p-4 rounded-[1.2rem] border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-2 group ${
-                  sdsFile || formData.sds_file_name ? 'bg-primary-50/50 border-primary-200 text-primary-700' : 'bg-white border-secondary-200 text-secondary-400 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50/20'
-                }`} onClick={() => document.getElementById('sds-upload').click()}>
-                  <svg className={`w-6 h-6 transition-transform group-hover:-translate-y-1 ${sdsFile || formData.sds_file_name ? 'text-primary-500' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-center truncate w-full px-2" title={sdsFile ? sdsFile.name : formData.sds_file_name}>
+                  className={`sds-upload-box ${sdsFile || formData.sds_file_name ? 'active' : ''}`} 
+                  onClick={() => document.getElementById('sds-upload').click()}
+                >
+                  <svg className="sds-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                  <span className="sds-text" title={sdsFile ? sdsFile.name : formData.sds_file_name}>
                      {sdsFile ? sdsFile.name : (formData.sds_file_name ? `Stored: ${formData.sds_file_name}` : "Attach SDS File (.pdf)")}
                   </span>
                   <input id="sds-upload" type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => setSdsFile(e.target.files[0])} />
                 </div>
                 
                 {formData.sds_file_url && !sdsFile && (
-                  <a href={process.env.NODE_ENV === 'production' ? formData.sds_file_url : `http://localhost:5001${formData.sds_file_url}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center px-6 rounded-[1.2rem] bg-secondary-900 text-white hover:bg-secondary-800 transition-all shadow-md group border border-secondary-800" title="View Current SDS">
-                     <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                  <a href={process.env.NODE_ENV === 'production' ? formData.sds_file_url : `http://localhost:5001${formData.sds_file_url}`} target="_blank" rel="noopener noreferrer" className="sds-view-button" title="View Current SDS">
+                     <svg className="sds-view-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                   </a>
                 )}
                 
-                <button type="submit" className="flex-[2] bg-primary-600 hover:bg-primary-500 text-white rounded-[1.2rem] py-5 font-black text-lg transition-all shadow-xl shadow-primary-600/30 active:scale-[0.98] border border-primary-500">
+                <button type="submit" className="submit-button">
                   {initialData ? "Apply Lifecycle Update" : "Authorize System Entry"}
                 </button>
               </div>
@@ -796,3 +751,4 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
 };
 
 export default ChemicalForm;
+

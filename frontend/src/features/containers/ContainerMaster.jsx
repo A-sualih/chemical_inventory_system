@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../layout/Layout';
+import '../../styles/Containers.css';
 
 // Inline SVG components to replace heroicons for stability
 const PlusIcon = ({ className }) => (
@@ -218,53 +219,53 @@ const Containers = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Full': return 'bg-green-100 text-green-700 border-green-200';
-      case 'In Use': return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'Empty': return 'bg-secondary-100 text-secondary-600 border-secondary-200';
-      case 'Expired': return 'bg-red-500 text-white border-red-600 shadow-sm';
-      case 'Near Expiry': return 'bg-orange-500 text-white border-orange-600 shadow-sm animate-pulse';
-      case 'Damaged': return 'bg-red-100 text-red-700 border-red-200';
-      default: return 'bg-secondary-50 text-secondary-500';
+      case 'Full': return 'status-badge-full';
+      case 'In Use': return 'status-badge-inuse';
+      case 'Empty': return 'status-badge-empty';
+      case 'Expired': return 'status-badge-expired';
+      case 'Near Expiry': return 'status-badge-near';
+      case 'Damaged': return 'status-badge-damaged';
+      default: return 'status-badge-default';
     }
   };
 
   return (
     <Layout>
-      <div className="pb-20">
+      <div className="containers-wrapper">
         {loading ? (
-          <div className="flex items-center justify-center h-[60vh]">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary-600"></div>
+          <div className="loader-container" style={{ height: '60vh' }}>
+            <div className="loader-spinner"></div>
           </div>
         ) : (
           <>
-            <div className="bg-white border-b border-secondary-200 sticky top-0 z-30 px-6 py-4">
-              <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-2xl font-black text-secondary-900 flex items-center gap-3">
-                    <ArchiveBoxIcon className="className w-8 h-8 text-primary-600" />
+            <div className="containers-header-sticky">
+              <div className="containers-header-content">
+                <div className="containers-title-group">
+                  <h1 className="containers-main-title">
+                    <ArchiveBoxIcon className="icon-xl text-primary-600" />
                     Container Mastery
                   </h1>
-                  <p className="text-sm text-secondary-500 font-medium">Granular tracking for individual chemical vessels</p>
+                  <p className="containers-main-desc">Granular tracking for individual chemical vessels</p>
                 </div>
                 
-                <div className="flex items-center gap-3">
-                  <div className="relative group">
-                    <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400 group-focus-within:text-primary-500 transition-colors" />
+                <div className="containers-actions-group">
+                  <div className="containers-search-box">
+                    <MagnifyingGlassIcon className="containers-search-icon" />
                     <input 
                       type="text" 
                       placeholder="Search container ID, chemical, batch..." 
                       value={search}
                       onChange={e => setSearch(e.target.value)}
-                      className="pl-10 pr-4 py-2.5 bg-secondary-50 border border-secondary-200 rounded-xl text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 transition-all outline-none md:w-80"
+                      className="containers-search-input"
                     />
                   </div>
                   
                   {hasPermission("create_chemical") && (
                     <button 
                       onClick={() => handleOpenModal()}
-                      className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-primary-500/30 transition-all hover:-translate-y-0.5"
+                      className="btn-add-container"
                     >
-                      <PlusIcon className="w-5 h-5" />
+                      <PlusIcon className="icon-md" />
                       Add Container
                     </button>
                   )}
@@ -272,38 +273,34 @@ const Containers = () => {
               </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 mt-8">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="containers-max-width mt-8">
+              <div className="containers-stats-grid">
                 {[
                   { label: 'Total Containers', value: containers.length, icon: InboxIcon, color: 'primary' },
                   { label: 'In Use', value: containers.filter(c => c.status === 'In Use').length, icon: BeakerIcon, color: 'blue' },
                   { label: 'Expired / Critical', value: containers.filter(c => c.status === 'Expired' || c.status === 'Near Expiry').length, icon: ExclamationCircleIcon, color: 'red' },
                   { label: 'Available', value: containers.filter(c => c.status === 'Full').length, icon: CheckCircleIcon, color: 'green' },
                 ].map((stat, i) => (
-                  <div key={i} className="bg-white p-6 rounded-3xl border border-secondary-100 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className={`p-2.5 rounded-2xl bg-${stat.color}-50 text-${stat.color}-600`}>
-                        <stat.icon className="w-6 h-6" />
+                  <div key={i} className="container-stat-card">
+                    <div className="container-stat-header">
+                      <div className={`container-stat-icon-wrap bg-${stat.color}-stat`}>
+                        <stat.icon className="icon-lg" />
                       </div>
-                      <span className="text-2xl font-black text-secondary-900">{stat.value}</span>
+                      <span className="container-stat-value">{stat.value}</span>
                     </div>
-                    <p className="text-sm font-bold text-secondary-500">{stat.label}</p>
+                    <p className="container-stat-label">{stat.label}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="bg-white rounded-[32px] border border-secondary-200 shadow-xl shadow-secondary-200/20 overflow-hidden">
-                <div className="p-6 border-b border-secondary-100 flex items-center justify-between flex-wrap gap-4">
-                  <div className="flex items-center gap-2">
+              <div className="containers-table-card">
+                <div className="containers-table-filters">
+                  <div className="status-filter-group">
                     {['All', 'Full', 'In Use', 'Empty', 'Expired', 'Near Expiry', 'Damaged'].map(status => (
                       <button
                         key={status}
                         onClick={() => setFilterStatus(status)}
-                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-                          filterStatus === status 
-                          ? 'bg-secondary-900 text-white shadow-lg' 
-                          : 'bg-secondary-50 text-secondary-500 hover:bg-secondary-100'
-                        }`}
+                        className={`status-filter-btn ${filterStatus === status ? 'active' : ''}`}
                       >
                         {status}
                       </button>
@@ -312,83 +309,81 @@ const Containers = () => {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left">
+                  <table className="containers-table">
                     <thead>
-                      <tr className="bg-secondary-50/50">
-                        <th className="p-6 text-[11px] font-black text-secondary-500 uppercase tracking-widest">Container Details</th>
-                        <th className="p-6 text-[11px] font-black text-secondary-500 uppercase tracking-widest">Chemical & Batch</th>
-                        <th className="p-6 text-[11px] font-black text-secondary-500 uppercase tracking-widest">Location</th>
-                        <th className="p-6 text-[11px] font-black text-secondary-500 uppercase tracking-widest">Status & Qty</th>
-                        <th className="p-6 text-[11px] font-black text-secondary-500 uppercase tracking-widest">Actions</th>
+                      <tr>
+                        <th>Container Details</th>
+                        <th>Chemical & Batch</th>
+                        <th>Location</th>
+                        <th>Status & Qty</th>
+                        <th style={{ textAlign: 'right' }}>Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-secondary-100">
+                    <tbody>
                       {filteredContainers.map((container) => (
-                        <tr key={container._id} className="group hover:bg-secondary-50/30 transition-colors">
-                          <td className="p-6">
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-white border-2 border-secondary-100 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:border-primary-200 group-hover:bg-primary-50 transition-all">
-                                <ArchiveBoxIcon className="w-6 h-6 text-secondary-400 group-hover:text-primary-500" />
+                        <tr key={container._id}>
+                          <td>
+                            <div className="container-id-cell">
+                              <div className="container-icon-box">
+                                <ArchiveBoxIcon className="icon-lg text-secondary-400" />
                               </div>
                               <div>
-                                <div className="text-sm font-black text-secondary-900 flex items-center gap-2">
+                                <div className="container-id-text">
                                   {container.container_id}
-                                  {container.barcode && <QrCodeIcon className="w-4 h-4 text-secondary-300" />}
+                                  {container.barcode && <QrCodeIcon className="icon-sm text-secondary-300" />}
                                 </div>
-                                <div className="text-[11px] text-secondary-400 font-bold uppercase tracking-tight">{container.container_type}</div>
+                                <div className="container-type-text">{container.container_type}</div>
                               </div>
                             </div>
                           </td>
-                          <td className="p-6">
-                            <div className="text-sm font-bold text-secondary-800">{container.chemical_name}</div>
-                            <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                          <td>
+                            <div className="chemical-name-text">{container.chemical_name}</div>
+                            <div className="batch-tags">
                               {container.batch_number && (
-                                <div className="flex items-center gap-1">
-                                  <TagIcon className="w-3 h-3 text-secondary-400" />
-                                  <span className="text-[10px] bg-secondary-100 text-secondary-600 px-1.5 py-0.5 rounded font-bold">Batch: {container.batch_number}</span>
+                                <div className="batch-tag bg-secondary-100">
+                                  <TagIcon className="icon-xs" />
+                                  <span>Batch: {container.batch_number}</span>
                                 </div>
                               )}
                               {container.expiry_date && (
-                                <div className="flex items-center gap-1">
-                                  <CalendarIcon className="w-3 h-3 text-red-500" />
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold border ${new Date(container.expiry_date) < new Date() ? 'bg-red-50 text-red-600 border-red-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>
-                                    EXP: {new Date(container.expiry_date).toISOString().split('T')[0]}
-                                  </span>
+                                <div className={`batch-tag ${new Date(container.expiry_date) < new Date() ? 'bg-red-50-badge' : 'bg-orange-50-badge'}`}>
+                                  <CalendarIcon className="icon-xs" />
+                                  <span>EXP: {new Date(container.expiry_date).toISOString().split('T')[0]}</span>
                                 </div>
                               )}
                             </div>
                           </td>
-                          <td className="p-6">
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center gap-1.5 text-xs font-bold text-secondary-700">
-                                <MapPinIcon className="w-3.5 h-3.5 text-primary-500" />
+                          <td>
+                            <div className="location-cell">
+                              <div className="location-main">
+                                <MapPinIcon className="icon-xs text-primary-500" />
                                 {container.building || 'Unassigned'}-{container.room}
                               </div>
-                              <div className="text-[10px] text-secondary-400 font-medium ml-5">
+                              <div className="location-sub">
                                 Cab: {container.cabinet || '-'}, Sh: {container.shelf || '-'}
                               </div>
                             </div>
                           </td>
-                          <td className="p-6">
-                            <div className="flex flex-col gap-2">
-                              <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase border w-fit ${getStatusColor(container.status)}`}>
+                          <td>
+                            <div className="status-cell">
+                              <span className={`status-badge-inline ${getStatusColor(container.status)}`}>
                                 {container.status}
                               </span>
-                              <div className="text-sm font-black text-secondary-900">
-                                {container.quantity} <span className="text-[11px] text-secondary-400 font-bold uppercase">{container.unit}</span>
+                              <div className="qty-text">
+                                {container.quantity} <span className="unit-text">{container.unit}</span>
                               </div>
                             </div>
                           </td>
-                          <td className="p-6">
-                            <div className="flex items-center gap-2">
+                          <td>
+                            <div className="action-btns" style={{ justifyContent: 'flex-end' }}>
                               {hasPermission("update_stock") && (
-                                <button onClick={() => handleOpenModal(container)} className="p-2.5 rounded-xl bg-white border border-secondary-200 text-secondary-500 hover:text-primary-600 hover:bg-primary-50 hover:border-primary-200 transition-all">
-                                  <PencilIcon className="w-4 h-4" />
+                                <button onClick={() => handleOpenModal(container)} className="btn-icon-action btn-edit">
+                                  <PencilIcon className="icon-sm" />
                                 </button>
                               )}
                               {hasPermission("delete_chemical") && (
-                                <button onClick={() => handleDelete(container.container_id)} className="p-2.5 rounded-xl bg-white border border-secondary-200 text-secondary-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all">
-                                  <TrashIcon className="w-4 h-4" />
+                                <button onClick={() => handleDelete(container.container_id)} className="btn-icon-action btn-delete">
+                                  <TrashIcon className="icon-sm" />
                                 </button>
                               )}
                             </div>
@@ -402,139 +397,137 @@ const Containers = () => {
             </div>
 
             {isModalOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-secondary-900/60 backdrop-blur-sm transition-all animate-in fade-in duration-300">
-                <div className="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl overflow-hidden border border-white/20 animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
-                  <div className="p-8 border-b border-secondary-100 flex items-center justify-between flex-shrink-0">
+              <div className="containers-modal-overlay">
+                <div className="containers-modal">
+                  <div className="containers-modal-header">
                     <div>
-                      <h2 className="text-2xl font-black text-secondary-900">{isEditing ? 'Edit Vessel' : 'Initialize Container'}</h2>
-                      <p className="text-xs text-secondary-500 font-bold uppercase tracking-widest mt-1">Granular Asset Management</p>
+                      <h2 className="modal-header-title">{isEditing ? 'Edit Vessel' : 'Initialize Container'}</h2>
+                      <p className="modal-header-subtitle">Granular Asset Management</p>
                     </div>
-                    <button onClick={handleCloseModal} className="w-10 h-10 flex items-center justify-center rounded-2xl bg-secondary-50 text-secondary-400 hover:bg-secondary-100 hover:text-secondary-600 transition-all">&times;</button>
+                    <button onClick={handleCloseModal} className="btn-close-modal">&times;</button>
                   </div>
 
-                  <form onSubmit={handleSubmit} className="overflow-y-auto p-8 custom-scrollbar">
-                    <div className="space-y-8">
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="group">
-                          <label className="text-[11px] font-black text-secondary-500 uppercase tracking-widest mb-2 block">Container ID (Unique)</label>
-                          <input 
-                            type="text" 
-                            value={formData.container_id} 
-                            onChange={e => setFormData({...formData, container_id: e.target.value})}
-                            className="w-full bg-secondary-50 border border-secondary-200 rounded-2xl p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-black"
-                            placeholder="CONT-XXXX"
+                  <form onSubmit={handleSubmit} className="containers-form">
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label-top">Container ID (Unique)</label>
+                        <input 
+                          type="text" 
+                          value={formData.container_id} 
+                          onChange={e => setFormData({...formData, container_id: e.target.value})}
+                          className="form-input-standard font-black"
+                          placeholder="CONT-XXXX"
+                          required
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label-top">Barcode / QR (Optional)</label>
+                        <input 
+                          type="text" 
+                          value={formData.barcode} 
+                          onChange={e => setFormData({...formData, barcode: e.target.value})}
+                          className="form-input-standard"
+                          placeholder="Scan or type barcode"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group full-width mb-6">
+                      <label className="form-label-top">Chemical Reference</label>
+                      <select 
+                        value={formData.chemical_id} 
+                        onChange={e => setFormData({...formData, chemical_id: e.target.value})}
+                        className="form-input-standard font-bold"
+                        required
+                      >
+                        <option value="">Select chemical...</option>
+                        {chemicals.map(chem => (
+                          <option key={chem.id} value={chem.id}>{chem.name} ({chem.id})</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label-top">Quantity per unit</label>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                           <input 
+                            type="number" 
+                            value={formData.quantity} 
+                            onChange={e => setFormData({...formData, quantity: e.target.value})}
+                            className="form-input-standard font-mono"
                             required
                           />
-                        </div>
-                        <div className="group">
-                          <label className="text-[11px] font-black text-secondary-500 uppercase tracking-widest mb-2 block">Barcode / QR (Optional)</label>
-                          <input 
-                            type="text" 
-                            value={formData.barcode} 
-                            onChange={e => setFormData({...formData, barcode: e.target.value})}
-                            className="w-full bg-secondary-50 border border-secondary-200 rounded-2xl p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all"
-                            placeholder="Scan or type barcode"
-                          />
+                          <select 
+                            value={formData.unit} 
+                            onChange={e => setFormData({...formData, unit: e.target.value})}
+                            className="form-input-standard w-24 font-bold"
+                          >
+                            <option value="L">L</option><option value="mL">mL</option><option value="kg">kg</option><option value="g">g</option>
+                          </select>
                         </div>
                       </div>
-
-                      <div className="group">
-                        <label className="text-[11px] font-black text-secondary-500 uppercase tracking-widest mb-2 block">Chemical Reference</label>
+                      <div className="form-group">
+                        <label className="form-label-top">Vessel Type</label>
                         <select 
-                          value={formData.chemical_id} 
-                          onChange={e => setFormData({...formData, chemical_id: e.target.value})}
-                          className="w-full bg-secondary-50 border border-secondary-200 rounded-2xl p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-bold appearance-none"
-                          required
+                          value={formData.container_type} 
+                          onChange={e => setFormData({...formData, container_type: e.target.value})}
+                          className="form-input-standard font-bold"
                         >
-                          <option value="">Select chemical...</option>
-                          {chemicals.map(chem => (
-                            <option key={chem.id} value={chem.id}>{chem.name} ({chem.id})</option>
-                          ))}
+                          <option value="Glass bottle">Glass bottle</option>
+                          <option value="Plastic bottle">Plastic bottle</option>
+                          <option value="Drum">Drum</option>
+                          <option value="Tank">Tank</option>
+                          <option value="Vial">Vial</option>
                         </select>
                       </div>
+                    </div>
 
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="group">
-                          <label className="text-[11px] font-black text-secondary-500 uppercase tracking-widest mb-2 block">Quantity per unit</label>
-                          <div className="flex gap-2">
-                             <input 
-                              type="number" 
-                              value={formData.quantity} 
-                              onChange={e => setFormData({...formData, quantity: e.target.value})}
-                              className="flex-1 bg-secondary-50 border border-secondary-200 rounded-2xl p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-mono"
-                              required
-                            />
-                            <select 
-                              value={formData.unit} 
-                              onChange={e => setFormData({...formData, unit: e.target.value})}
-                              className="w-24 bg-secondary-50 border border-secondary-200 rounded-2xl p-4 text-sm transition-all font-bold"
-                            >
-                              <option value="L">L</option><option value="mL">mL</option><option value="kg">kg</option><option value="g">g</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div className="group">
-                          <label className="text-[11px] font-black text-secondary-500 uppercase tracking-widest mb-2 block">Vessel Type</label>
-                          <select 
-                            value={formData.container_type} 
-                            onChange={e => setFormData({...formData, container_type: e.target.value})}
-                            className="w-full bg-secondary-50 border border-secondary-200 rounded-2xl p-4 text-sm transition-all font-bold"
-                          >
-                            <option value="Glass bottle">Glass bottle</option>
-                            <option value="Plastic bottle">Plastic bottle</option>
-                            <option value="Drum">Drum</option>
-                            <option value="Tank">Tank</option>
-                            <option value="Vial">Vial</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="bg-primary-50/30 p-8 rounded-[32px] border border-primary-100/50">
-                        <h3 className="text-[11px] font-black text-primary-600 uppercase tracking-widest mb-6 flex items-center gap-2"><MapPinIcon className="w-4 h-4" />Storage Hierarchy</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                          {['building', 'room', 'cabinet', 'shelf'].map(f => (
-                            <div key={f} className="group">
-                              <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1.5 block">{f}</label>
-                              <input type="text" value={formData[f]} onChange={e => setFormData({...formData, [f]: e.target.value})} className="w-full bg-white border border-secondary-200 rounded-xl p-3 text-sm focus:ring-4 focus:ring-primary-500/10 transition-all font-bold" placeholder={f}/>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="group">
-                          <label className="text-[11px] font-black text-secondary-500 uppercase tracking-widest mb-2 block">Batch Reference</label>
-                          <input type="text" value={formData.batch_number} onChange={e => setFormData({...formData, batch_number: e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-2xl p-4 text-sm transition-all font-bold" placeholder="Lot / Batch #"/>
-                        </div>
-                        <div className="group">
-                          <label className="text-[11px] font-black text-secondary-500 uppercase tracking-widest mb-2 block">Current Status</label>
-                          <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-2xl p-4 text-sm transition-all font-bold">
-                            <option value="Full">Full</option><option value="In Use">In Use</option><option value="Empty">Empty</option><option value="Expired">Expired</option><option value="Near Expiry">Near Expiry</option><option value="Damaged">Damaged</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-4">
-                        {[{ label: 'MFG Date', key: 'manufacturing_date' }, { label: 'EXP Date', key: 'expiry_date' }, { label: 'Opened on', key: 'opened_date' }].map(d => (
-                          <div key={d.key} className="group">
-                            <label className="text-[10px] font-black text-secondary-500 uppercase mb-1.5 block tracking-wide">{d.label}</label>
-                            <div className="relative">
-                              <CalendarIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400" />
-                              <input type="date" value={formData[d.key]} onChange={e => setFormData({...formData, [d.key]: e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl py-3 pl-9 pr-3 text-xs font-bold transition-all"/>
-                            </div>
+                    <div className="storage-hierarchy-box">
+                      <h3 className="storage-header"><MapPinIcon className="icon-sm" />Storage Hierarchy</h3>
+                      <div className="storage-grid-inputs">
+                        {['building', 'room', 'cabinet', 'shelf'].map(f => (
+                          <div key={f} className="form-group">
+                            <label className="form-label-top" style={{ fontSize: '10px', color: 'var(--secondary-400)' }}>{f}</label>
+                            <input type="text" value={formData[f]} onChange={e => setFormData({...formData, [f]: e.target.value})} className="form-input-standard" placeholder={f}/>
                           </div>
                         ))}
                       </div>
+                    </div>
 
-                      <div className="group">
-                        <label className="text-[11px] font-black text-secondary-500 uppercase tracking-widest mb-2 block">Notes / Observations</label>
-                        <textarea value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-2xl p-4 text-sm h-24 resize-none transition-all placeholder:italic" placeholder="e.g. Half used during experiment..."/>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label-top">Batch Reference</label>
+                        <input type="text" value={formData.batch_number} onChange={e => setFormData({...formData, batch_number: e.target.value})} className="form-input-standard font-bold" placeholder="Lot / Batch #"/>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label-top">Current Status</label>
+                        <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="form-input-standard font-bold">
+                          <option value="Full">Full</option><option value="In Use">In Use</option><option value="Empty">Empty</option><option value="Expired">Expired</option><option value="Near Expiry">Near Expiry</option><option value="Damaged">Damaged</option>
+                        </select>
                       </div>
                     </div>
 
-                    <div className="mt-10 flex gap-4 flex-shrink-0 sticky bottom-0 bg-white pt-4 pb-0">
-                      <button type="button" onClick={handleCloseModal} className="flex-1 px-6 py-4 rounded-2xl font-black text-secondary-500 bg-secondary-50 hover:bg-secondary-100 transition-all">Discard</button>
-                      <button type="submit" className="flex-[2] bg-primary-600 hover:bg-primary-700 text-white px-6 py-4 rounded-2xl font-black shadow-xl shadow-primary-500/30 transition-all hover:-translate-y-0.5">{isEditing ? 'Sync Changes' : 'Initialize Vessel'}</button>
+                    <div className="date-grid">
+                      {[{ label: 'MFG Date', key: 'manufacturing_date' }, { label: 'EXP Date', key: 'expiry_date' }, { label: 'Opened on', key: 'opened_date' }].map(d => (
+                        <div key={d.key} className="form-group">
+                          <label className="form-label-top" style={{ fontSize: '10px' }}>{d.label}</label>
+                          <div className="date-input-wrap">
+                            <CalendarIcon className="date-icon-inline" />
+                            <input type="date" value={formData[d.key]} onChange={e => setFormData({...formData, [d.key]: d.key === 'opened_date' ? (e.target.value || "") : e.target.value})} className="form-input-standard date-field font-bold"/>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="form-group mb-6">
+                      <label className="form-label-top">Notes / Observations</label>
+                      <textarea value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="form-input-standard h-24 italic" placeholder="e.g. Half used during experiment..." style={{ resize: 'none' }}/>
+                    </div>
+
+                    <div className="form-footer">
+                      <button type="button" onClick={handleCloseModal} className="btn-form-secondary">Discard</button>
+                      <button type="submit" className="btn-form-primary">{isEditing ? 'Sync Changes' : 'Initialize Vessel'}</button>
                     </div>
                   </form>
                 </div>

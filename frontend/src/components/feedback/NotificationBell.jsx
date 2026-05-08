@@ -18,13 +18,13 @@ const NotificationBell = () => {
   }, []);
 
   return (
-    <div className="relative" ref={bellRef}>
+    <div className="notification-bell-wrapper" ref={bellRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-secondary-500 hover:text-primary-600 bg-secondary-50 hover:bg-primary-50 rounded-xl transition-all duration-300 active:scale-95"
+        className="notification-bell-btn"
       >
         <svg
-          className="w-6 h-6"
+          className="icon-md"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -37,14 +37,14 @@ const NotificationBell = () => {
           />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white animate-pulse">
+          <span className="unread-badge">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="notification-dropdown">
           <NotificationPanel onClose={() => setIsOpen(false)} />
         </div>
       )}

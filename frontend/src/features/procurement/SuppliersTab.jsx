@@ -2,24 +2,25 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
   IconSearch, IconPlus, IconEdit, IconTrash, IconEye, IconBan,
-  IconStar, IconMail, IconPhone, IconGlobe, IconUser, IconFactory, IconMapPin
+  IconStar, IconMail, IconPhone, IconGlobe, IconUser, IconFactory, IconMapPin, IconReceipt
 } from './ProcurementIcons';
+import '../../styles/Procurement.css';
 
 const CATEGORIES = ['Chemical Manufacturer','Distributor','Wholesaler','Laboratory Supplier','Specialty Chemical','Raw Materials','Other'];
 const STATUSES = ['Active','Inactive','Blacklisted'];
 const COUNTRIES = ['USA','UK','Germany','France','China','India','Japan','Canada','Australia','Other'];
 
 const StatusBadge = ({ status }) => {
-  const map = { Active:'bg-emerald-100 text-emerald-700', Inactive:'bg-secondary-100 text-secondary-500', Blacklisted:'bg-red-100 text-red-700' };
-  return <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${map[status]||'bg-secondary-100 text-secondary-500'}`}>{status}</span>;
+  const map = { Active:'status-active', Inactive:'status-inactive', Blacklisted:'status-blacklisted' };
+  return <span className={`status-badge ${map[status]||'status-inactive'}`}>{status}</span>;
 };
 
 const Stars = ({ rating }) => (
-  <div className="flex gap-0.5">
+  <div style={{ display: 'flex', gap: '0.125rem', alignItems: 'center' }}>
     {[1,2,3,4,5].map(s => (
-      <span key={s} className={`text-sm ${s <= Math.round(rating) ? 'text-amber-400' : 'text-secondary-200'}`}>★</span>
+      <span key={s} style={{ fontSize: '0.875rem', color: s <= Math.round(rating) ? '#fbbf24' : 'var(--secondary-200)' }}>★</span>
     ))}
-    <span className="text-xs text-secondary-400 ml-1 font-medium">{rating?.toFixed(1) || '—'}</span>
+    <span style={{ fontSize: '0.75rem', color: 'var(--secondary-400)', marginLeft: '0.25rem', fontWeight: 500 }}>{rating?.toFixed(1) || '—'}</span>
   </div>
 );
 
@@ -115,30 +116,30 @@ export default function SuppliersTab() {
   const pages = Math.ceil(total / 12);
 
   return (
-    <div className="relative">
+    <div style={{ position: 'relative' }}>
       {/* Toast */}
       {toast && (
-        <div className={`fixed top-6 right-6 z-[999] px-5 py-3 rounded-2xl shadow-xl font-bold text-sm flex items-center gap-2 transition-all ${toast.type==='error'?'bg-red-600 text-white':'bg-emerald-600 text-white'}`}>
-          <span>{toast.type==='error'?'✕':'✓'}</span> {toast.msg}
+        <div className={`procurement-toast ${toast.type === 'error' ? 'toast-error' : 'toast-success'}`}>
+          <span>{toast.type === 'error' ? '✕' : '✓'}</span> {toast.msg}
         </div>
       )}
 
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-3 mb-6 items-center justify-between">
-        <div className="flex flex-wrap gap-3 flex-1">
-          <div className="relative flex-1 min-w-[180px]">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400"><IconSearch size={15} /></span>
-            <input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Search suppliers…" className="w-full pl-9 pr-4 py-2.5 bg-white border border-secondary-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-violet-400/30" />
+      <div className="procurement-toolbar">
+        <div className="toolbar-filters">
+          <div className="search-wrapper">
+            <span className="search-icon"><IconSearch size={15} /></span>
+            <input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Search suppliers…" className="search-input" />
           </div>
-          <select value={filterStatus} onChange={e=>{setFilterStatus(e.target.value);setPage(1);}} className="px-3 py-2.5 bg-white border border-secondary-200 rounded-xl text-sm font-medium outline-none">
+          <select value={filterStatus} onChange={e=>{setFilterStatus(e.target.value);setPage(1);}} className="filter-select">
             <option value="">All Statuses</option>
             {STATUSES.map(s=><option key={s}>{s}</option>)}
           </select>
-          <select value={filterCategory} onChange={e=>{setFilterCategory(e.target.value);setPage(1);}} className="px-3 py-2.5 bg-white border border-secondary-200 rounded-xl text-sm font-medium outline-none">
+          <select value={filterCategory} onChange={e=>{setFilterCategory(e.target.value);setPage(1);}} className="filter-select">
             <option value="">All Categories</option>
             {CATEGORIES.map(c=><option key={c}>{c}</option>)}
           </select>
-          <select value={sort} onChange={e=>setSort(e.target.value)} className="px-3 py-2.5 bg-white border border-secondary-200 rounded-xl text-sm font-medium outline-none">
+          <select value={sort} onChange={e=>setSort(e.target.value)} className="filter-select">
             <option value="name">Sort: Name</option>
             <option value="rating">Sort: Rating</option>
             <option value="reliability">Sort: Reliability</option>
@@ -146,74 +147,74 @@ export default function SuppliersTab() {
             <option value="newest">Sort: Newest</option>
           </select>
         </div>
-        <button onClick={openAdd} className="px-5 py-2.5 bg-violet-600 text-white rounded-xl font-bold text-sm hover:bg-violet-700 transition-all shadow-sm flex items-center gap-2">
+        <button onClick={openAdd} className="btn-add">
           <IconPlus size={16} /> Add Supplier
         </button>
       </div>
 
-      <p className="text-xs text-secondary-400 font-medium mb-4">{total} supplier{total!==1?'s':''} found</p>
+      <p className="result-count">{total} supplier{total!==1?'s':''} found</p>
 
       {/* Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="supplier-grid">
           {[...Array(6)].map((_,i)=>(
-            <div key={i} className="bg-white rounded-2xl p-6 border border-secondary-100 animate-pulse h-52" />
+            <div key={i} className="skeleton-card" />
           ))}
         </div>
       ) : suppliers.length === 0 ? (
-        <div className="text-center py-20 text-secondary-400">
-          <div className="mb-4 text-secondary-300"><IconFactory size={56} /></div>
-          <p className="font-bold text-lg">No suppliers found</p>
-          <p className="text-sm mt-1">Add your first supplier to get started.</p>
+        <div className="empty-state">
+          <div className="empty-icon"><IconFactory size={56} /></div>
+          <p className="empty-title">No suppliers found</p>
+          <p className="empty-desc">Add your first supplier to get started.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="supplier-grid">
           {suppliers.map(s => (
-            <div key={s._id} className="bg-white rounded-2xl border border-secondary-100 shadow-sm hover:shadow-md transition-all overflow-hidden group">
-              <div className="p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      {s.is_preferred && <span className="text-amber-500" title="Preferred Supplier"><IconStar size={14} /></span>}
-                      <h3 className="font-black text-secondary-900 truncate">{s.name}</h3>
+            <div key={s._id} className="supplier-card">
+              <div className="card-body">
+                <div className="card-header-row">
+                  <div className="card-title-group">
+                    <div className="card-title-flex">
+                      {s.is_preferred && <span className="pref-star" title="Preferred Supplier"><IconStar size={14} /></span>}
+                      <h3 className="card-title">{s.name}</h3>
                     </div>
-                    <p className="text-xs text-secondary-400 font-mono">{s.supplier_id}</p>
+                    <p className="card-id">{s.supplier_id}</p>
                   </div>
                   <StatusBadge status={s.status} />
                 </div>
 
-                <div className="mb-3">
+                <div className="card-rating">
                   <Stars rating={s.rating} />
                 </div>
 
-                <div className="space-y-1.5 text-xs text-secondary-500 font-medium mb-4">
-                  <p className="flex items-center gap-1.5"><IconMail size={12} className="shrink-0" /> {s.contact_email || '—'}</p>
-                  <p className="flex items-center gap-1.5"><IconPhone size={12} className="shrink-0" /> {s.contact_phone || '—'}</p>
-                  <p className="flex items-center gap-1.5"><IconGlobe size={12} className="shrink-0" /> {s.country} · {s.category}</p>
-                  {s.contact_person && <p className="flex items-center gap-1.5"><IconUser size={12} className="shrink-0" /> {s.contact_person}</p>}
+                <div className="card-details">
+                  <p className="detail-line"><IconMail size={12} className="detail-icon" /> {s.contact_email || '—'}</p>
+                  <p className="detail-line"><IconPhone size={12} className="detail-icon" /> {s.contact_phone || '—'}</p>
+                  <p className="detail-line"><IconGlobe size={12} className="detail-icon" /> {s.country} · {s.category}</p>
+                  {s.contact_person && <p className="detail-line"><IconUser size={12} className="detail-icon" /> {s.contact_person}</p>}
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 pt-3 border-t border-secondary-100">
-                  <div className="text-center">
-                    <p className="text-[9px] font-black text-secondary-400 uppercase tracking-widest">Orders</p>
-                    <p className="text-base font-black text-secondary-900">{s.total_orders}</p>
+                <div className="card-stats-grid">
+                  <div className="stat-box">
+                    <p className="stat-box-label">Orders</p>
+                    <p className="stat-box-val">{s.total_orders}</p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-[9px] font-black text-secondary-400 uppercase tracking-widest">On-Time</p>
-                    <p className={`text-base font-black ${s.on_time_delivery_rate>=90?'text-emerald-600':s.on_time_delivery_rate>=70?'text-amber-600':'text-red-600'}`}>{s.on_time_delivery_rate}%</p>
+                  <div className="stat-box">
+                    <p className="stat-box-label">On-Time</p>
+                    <p className={`stat-box-val ${s.on_time_delivery_rate>=90?'text-emerald':s.on_time_delivery_rate>=70?'text-amber':'text-red'}`}>{s.on_time_delivery_rate}%</p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-[9px] font-black text-secondary-400 uppercase tracking-widest">Reliability</p>
-                    <p className={`text-base font-black ${s.reliability_score>=80?'text-emerald-600':s.reliability_score>=60?'text-amber-600':'text-red-600'}`}>{s.reliability_score}</p>
+                  <div className="stat-box">
+                    <p className="stat-box-label">Reliability</p>
+                    <p className={`stat-box-val ${s.reliability_score>=80?'text-emerald':s.reliability_score>=60?'text-amber':'text-red'}`}>{s.reliability_score}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex border-t border-secondary-100 divide-x divide-secondary-100">
-                <button onClick={()=>openDetail(s)} className="flex-1 py-2.5 text-xs font-bold text-secondary-500 hover:text-violet-600 hover:bg-violet-50 transition-all flex items-center justify-center gap-1"><IconEye size={13}/>View</button>
-                <button onClick={()=>openEdit(s)} className="flex-1 py-2.5 text-xs font-bold text-secondary-500 hover:text-blue-600 hover:bg-blue-50 transition-all flex items-center justify-center gap-1"><IconEdit size={13}/>Edit</button>
-                {s.status !== 'Blacklisted' && <button onClick={()=>handleBlacklist(s._id)} className="flex-1 py-2.5 text-xs font-bold text-secondary-500 hover:text-red-600 hover:bg-red-50 transition-all flex items-center justify-center gap-1"><IconBan size={13}/>Blacklist</button>}
-                <button onClick={()=>handleDelete(s._id)} className="flex-1 py-2.5 text-xs font-bold text-secondary-500 hover:text-red-600 hover:bg-red-50 transition-all flex items-center justify-center gap-1"><IconTrash size={13}/>Delete</button>
+              <div className="card-actions">
+                <button onClick={()=>openDetail(s)} className="action-btn action-view"><IconEye size={13}/>View</button>
+                <button onClick={()=>openEdit(s)} className="action-btn action-edit"><IconEdit size={13}/>Edit</button>
+                {s.status !== 'Blacklisted' && <button onClick={()=>handleBlacklist(s._id)} className="action-btn action-danger"><IconBan size={13}/>Blacklist</button>}
+                <button onClick={()=>handleDelete(s._id)} className="action-btn action-danger"><IconTrash size={13}/>Delete</button>
               </div>
             </div>
           ))}
@@ -222,87 +223,89 @@ export default function SuppliersTab() {
 
       {/* Pagination */}
       {pages > 1 && (
-        <div className="flex justify-center gap-2 mt-8">
-          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1} className="px-4 py-2 rounded-xl border border-secondary-200 text-sm font-bold disabled:opacity-40">← Prev</button>
+        <div className="pagination">
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1} className="page-btn">← Prev</button>
           {[...Array(pages)].map((_,i)=>(
-            <button key={i} onClick={()=>setPage(i+1)} className={`w-9 h-9 rounded-xl text-sm font-bold ${page===i+1?'bg-violet-600 text-white':'border border-secondary-200 text-secondary-600 hover:bg-secondary-50'}`}>{i+1}</button>
+            <button key={i} onClick={()=>setPage(i+1)} className={`page-num ${page===i+1?'active':''}`}>{i+1}</button>
           ))}
-          <button onClick={()=>setPage(p=>Math.min(pages,p+1))} disabled={page===pages} className="px-4 py-2 rounded-xl border border-secondary-200 text-sm font-bold disabled:opacity-40">Next →</button>
+          <button onClick={()=>setPage(p=>Math.min(pages,p+1))} disabled={page===pages} className="page-btn">Next →</button>
         </div>
       )}
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white px-8 pt-8 pb-4 border-b border-secondary-100 rounded-t-3xl">
-              <h2 className="text-2xl font-black text-secondary-900">{editing?'Edit Supplier':'Add New Supplier'}</h2>
-              <p className="text-sm text-secondary-400 mt-1">Fill in supplier details and contact information</p>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <div>
+                <h2 className="modal-title">{editing?'Edit Supplier':'Add New Supplier'}</h2>
+                <p className="modal-subtitle">Fill in supplier details and contact information</p>
+              </div>
             </div>
-            <form onSubmit={handleSubmit} className="px-8 py-6 space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1.5 block">Company Name *</label>
-                  <input required value={formData.name} onChange={e=>setFormData({...formData,name:e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium outline-none focus:ring-2 focus:ring-violet-400/30" />
+            <form onSubmit={handleSubmit} className="modal-body">
+              <div className="form-grid">
+                <div className="form-col-full">
+                  <label className="form-label">Company Name *</label>
+                  <input required value={formData.name} onChange={e=>setFormData({...formData,name:e.target.value})} className="form-input" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1.5 block">Contact Person</label>
-                  <input value={formData.contact_person} onChange={e=>setFormData({...formData,contact_person:e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium outline-none focus:ring-2 focus:ring-violet-400/30" />
+                  <label className="form-label">Contact Person</label>
+                  <input value={formData.contact_person} onChange={e=>setFormData({...formData,contact_person:e.target.value})} className="form-input" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1.5 block">Email</label>
-                  <input type="email" value={formData.contact_email} onChange={e=>setFormData({...formData,contact_email:e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium outline-none focus:ring-2 focus:ring-violet-400/30" />
+                  <label className="form-label">Email</label>
+                  <input type="email" value={formData.contact_email} onChange={e=>setFormData({...formData,contact_email:e.target.value})} className="form-input" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1.5 block">Phone</label>
-                  <input value={formData.contact_phone} onChange={e=>setFormData({...formData,contact_phone:e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium outline-none focus:ring-2 focus:ring-violet-400/30" />
+                  <label className="form-label">Phone</label>
+                  <input value={formData.contact_phone} onChange={e=>setFormData({...formData,contact_phone:e.target.value})} className="form-input" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1.5 block">Country</label>
-                  <select value={formData.country} onChange={e=>setFormData({...formData,country:e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium outline-none">
+                  <label className="form-label">Country</label>
+                  <select value={formData.country} onChange={e=>setFormData({...formData,country:e.target.value})} className="form-input">
                     {COUNTRIES.map(c=><option key={c}>{c}</option>)}
                   </select>
                 </div>
-                <div className="col-span-2">
-                  <label className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1.5 block">Office Address</label>
-                  <input value={formData.address} onChange={e=>setFormData({...formData,address:e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium outline-none focus:ring-2 focus:ring-violet-400/30" />
+                <div className="form-col-full">
+                  <label className="form-label">Office Address</label>
+                  <input value={formData.address} onChange={e=>setFormData({...formData,address:e.target.value})} className="form-input" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1.5 block">Category</label>
-                  <select value={formData.category} onChange={e=>setFormData({...formData,category:e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium outline-none">
+                  <label className="form-label">Category</label>
+                  <select value={formData.category} onChange={e=>setFormData({...formData,category:e.target.value})} className="form-input">
                     {CATEGORIES.map(c=><option key={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1.5 block">Status</label>
-                  <select value={formData.status} onChange={e=>setFormData({...formData,status:e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium outline-none">
+                  <label className="form-label">Status</label>
+                  <select value={formData.status} onChange={e=>setFormData({...formData,status:e.target.value})} className="form-input">
                     {STATUSES.map(s=><option key={s}>{s}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1.5 block">Tax / VAT Number</label>
-                  <input value={formData.tax_vat_number} onChange={e=>setFormData({...formData,tax_vat_number:e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium outline-none" />
+                  <label className="form-label">Tax / VAT Number</label>
+                  <input value={formData.tax_vat_number} onChange={e=>setFormData({...formData,tax_vat_number:e.target.value})} className="form-input" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1.5 block">Contract Expiry</label>
-                  <input type="date" value={formData.contract_expiry} onChange={e=>setFormData({...formData,contract_expiry:e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium outline-none" />
+                  <label className="form-label">Contract Expiry</label>
+                  <input type="date" value={formData.contract_expiry} onChange={e=>setFormData({...formData,contract_expiry:e.target.value})} className="form-input" />
                 </div>
-                <div className="col-span-2">
-                  <label className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1.5 block">Chemical Types Supplied <span className="normal-case font-medium">(comma-separated)</span></label>
-                  <input placeholder="e.g. Acids, Solvents, Reagents" value={formData.chemical_types_supplied} onChange={e=>setFormData({...formData,chemical_types_supplied:e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium outline-none" />
+                <div className="form-col-full">
+                  <label className="form-label">Chemical Types Supplied <span style={{ textTransform: 'none', fontWeight: 500 }}>(comma-separated)</span></label>
+                  <input placeholder="e.g. Acids, Solvents, Reagents" value={formData.chemical_types_supplied} onChange={e=>setFormData({...formData,chemical_types_supplied:e.target.value})} className="form-input" />
                 </div>
-                <div className="col-span-2">
-                  <label className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1.5 block">Notes</label>
-                  <textarea rows={3} value={formData.notes} onChange={e=>setFormData({...formData,notes:e.target.value})} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-medium outline-none resize-none" />
+                <div className="form-col-full">
+                  <label className="form-label">Notes</label>
+                  <textarea rows={3} value={formData.notes} onChange={e=>setFormData({...formData,notes:e.target.value})} className="form-input form-textarea" />
                 </div>
-                <div className="col-span-2 flex items-center gap-3">
-                  <input type="checkbox" id="preferred" checked={formData.is_preferred} onChange={e=>setFormData({...formData,is_preferred:e.target.checked})} className="w-4 h-4 rounded accent-violet-600" />
-                  <label htmlFor="preferred" className="text-sm font-bold text-secondary-700">Mark as Preferred Supplier ⭐</label>
+                <div className="form-col-full checkbox-row">
+                  <input type="checkbox" id="preferred" checked={formData.is_preferred} onChange={e=>setFormData({...formData,is_preferred:e.target.checked})} className="form-checkbox" />
+                  <label htmlFor="preferred" className="checkbox-label">Mark as Preferred Supplier ⭐</label>
                 </div>
               </div>
-              <div className="flex gap-3 pt-4 border-t border-secondary-100">
-                <button type="button" onClick={()=>setShowModal(false)} className="flex-1 py-3 bg-secondary-50 border border-secondary-200 text-secondary-700 rounded-xl font-bold hover:bg-secondary-100 transition-all">Cancel</button>
-                <button type="submit" disabled={submitting} className="flex-1 py-3 bg-violet-600 text-white rounded-xl font-bold hover:bg-violet-700 transition-all disabled:opacity-50">
+              <div className="form-actions">
+                <button type="button" onClick={()=>setShowModal(false)} className="btn-cancel">Cancel</button>
+                <button type="submit" disabled={submitting} className="btn-submit">
                   {submitting ? 'Saving…' : editing ? 'Update Supplier' : 'Add Supplier'}
                 </button>
               </div>
@@ -313,57 +316,61 @@ export default function SuppliersTab() {
 
       {/* Detail Modal */}
       {detailSupplier && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white px-8 pt-8 pb-4 border-b border-secondary-100 rounded-t-3xl flex justify-between items-start">
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  {detailSupplier.is_preferred && <span className="text-amber-500"><IconStar size={16}/></span>}
-                  <h2 className="text-2xl font-black text-secondary-900">{detailSupplier.name}</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                  {detailSupplier.is_preferred && <span className="pref-star"><IconStar size={16}/></span>}
+                  <h2 className="modal-title">{detailSupplier.name}</h2>
                 </div>
-                <p className="text-sm text-secondary-400 mt-0.5 font-mono">{detailSupplier.supplier_id} · {detailSupplier.category}</p>
+                <p className="modal-subtitle">{detailSupplier.supplier_id} · {detailSupplier.category}</p>
               </div>
-              <button onClick={()=>{setDetailSupplier(null);setDetailData(null);}} className="w-9 h-9 rounded-xl bg-secondary-100 text-secondary-600 hover:bg-secondary-200 transition-all flex items-center justify-center font-bold">✕</button>
+              <button onClick={()=>{setDetailSupplier(null);setDetailData(null);}} className="modal-close">✕</button>
             </div>
 
-            <div className="px-8 py-6 space-y-6">
+            <div className="modal-body">
               {/* Stats row */}
-              <div className="grid grid-cols-4 gap-3">
-                {[
-                  { label:'Total Orders', value: detailSupplier.total_orders },
-                  { label:'On-Time Rate', value: `${detailSupplier.on_time_delivery_rate}%` },
-                  { label:'Reliability', value: detailSupplier.reliability_score },
-                  { label:'Avg Lead Time', value: `${detailSupplier.average_lead_time_days}d` }
-                ].map(s=>(
-                  <div key={s.label} className="bg-secondary-50 rounded-xl p-3 text-center">
-                    <p className="text-[9px] font-black text-secondary-400 uppercase tracking-widest">{s.label}</p>
-                    <p className="text-xl font-black text-secondary-900 mt-1">{s.value}</p>
-                  </div>
-                ))}
+              <div className="detail-section">
+                <div className="detail-grid">
+                  {[
+                    { label:'Total Orders', value: detailSupplier.total_orders },
+                    { label:'On-Time Rate', value: `${detailSupplier.on_time_delivery_rate}%` },
+                    { label:'Reliability', value: detailSupplier.reliability_score },
+                    { label:'Avg Lead Time', value: `${detailSupplier.average_lead_time_days}d` }
+                  ].map(s=>(
+                    <div key={s.label} className="detail-stat">
+                      <p className="detail-stat-label">{s.label}</p>
+                      <p className="detail-stat-val">{s.value}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Contact */}
-              <div className="bg-secondary-50 rounded-xl p-4 space-y-2">
-                <h4 className="text-xs font-black text-secondary-500 uppercase tracking-widest mb-2">Contact Information</h4>
-                <p className="text-sm font-medium text-secondary-700 flex items-center gap-2"><IconUser size={14}/> {detailSupplier.contact_person || '—'}</p>
-                <p className="text-sm font-medium text-secondary-700 flex items-center gap-2"><IconMail size={14}/> {detailSupplier.contact_email || '—'}</p>
-                <p className="text-sm font-medium text-secondary-700 flex items-center gap-2"><IconPhone size={14}/> {detailSupplier.contact_phone || '—'}</p>
-                <p className="text-sm font-medium text-secondary-700 flex items-center gap-2"><IconMapPin size={14}/> {detailSupplier.address || '—'}, {detailSupplier.country}</p>
-                {detailSupplier.tax_vat_number && <p className="text-sm font-medium text-secondary-700 flex items-center gap-2"><IconReceipt size={14}/> VAT: {detailSupplier.tax_vat_number}</p>}
+              <div className="detail-section">
+                <h4 className="detail-section-title">Contact Information</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <p className="detail-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><IconUser size={14}/> {detailSupplier.contact_person || '—'}</p>
+                  <p className="detail-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><IconMail size={14}/> {detailSupplier.contact_email || '—'}</p>
+                  <p className="detail-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><IconPhone size={14}/> {detailSupplier.contact_phone || '—'}</p>
+                  <p className="detail-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><IconMapPin size={14}/> {detailSupplier.address || '—'}, {detailSupplier.country}</p>
+                  {detailSupplier.tax_vat_number && <p className="detail-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><IconReceipt size={14}/> VAT: {detailSupplier.tax_vat_number}</p>}
+                </div>
               </div>
 
               {/* Recent Orders */}
-              <div>
-                <h4 className="text-xs font-black text-secondary-500 uppercase tracking-widest mb-3">Recent Orders</h4>
+              <div className="detail-section" style={{ backgroundColor: 'transparent', padding: '0' }}>
+                <h4 className="detail-section-title">Recent Orders</h4>
                 {detailData?.recentOrders?.length === 0 ? (
-                  <p className="text-sm text-secondary-400 italic">No orders yet</p>
+                  <p className="detail-text-sm" style={{ fontStyle: 'italic' }}>No orders yet</p>
                 ) : (
-                  <div className="space-y-2">
+                  <div>
                     {detailData?.recentOrders?.map(o=>(
-                      <div key={o._id} className="flex items-center justify-between bg-secondary-50 rounded-xl px-4 py-2.5">
-                        <span className="text-sm font-black text-secondary-900">{o.po_number}</span>
-                        <span className="text-sm text-secondary-500 font-medium">{o.currency} {o.total_cost?.toLocaleString()}</span>
-                        <span className="text-xs font-bold text-secondary-500">{o.status}</span>
+                      <div key={o._id} className="detail-row">
+                        <span className="detail-text-bold">{o.po_number}</span>
+                        <span className="detail-text">{o.currency} {o.total_cost?.toLocaleString()}</span>
+                        <span className="detail-text-sm" style={{ fontWeight: 700 }}>{o.status}</span>
                       </div>
                     ))}
                   </div>
@@ -372,9 +379,9 @@ export default function SuppliersTab() {
 
               {/* Notes */}
               {detailSupplier.notes && (
-                <div>
-                  <h4 className="text-xs font-black text-secondary-500 uppercase tracking-widest mb-2">Notes</h4>
-                  <p className="text-sm text-secondary-600 font-medium bg-secondary-50 rounded-xl p-4">{detailSupplier.notes}</p>
+                <div className="detail-section" style={{ backgroundColor: 'transparent', padding: '0', marginTop: '1.5rem' }}>
+                  <h4 className="detail-section-title">Notes</h4>
+                  <p className="detail-text" style={{ backgroundColor: 'var(--secondary-50)', borderRadius: '0.75rem', padding: '1rem' }}>{detailSupplier.notes}</p>
                 </div>
               )}
             </div>

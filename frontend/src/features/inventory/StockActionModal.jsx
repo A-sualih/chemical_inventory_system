@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import "../../styles/Inventory.css";
 
 const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
   const [action, setAction] = useState(initialAction || "OUT"); 
@@ -251,32 +252,32 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-secondary-900/40 backdrop-blur-sm" onClick={onClose}></div>
+    <div className="modal-overlay-action">
+      <div className="backdrop-blur" onClick={onClose}></div>
       
-      <div className={`relative w-full ${action === 'IN' || action === 'OUT' ? 'max-w-3xl' : 'max-w-2xl'} bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-secondary-100 flex flex-col max-h-[90vh]`}>
-        <div className="p-8 border-b border-secondary-50 bg-white sticky top-0 z-10">
-          <div className="flex justify-between items-center">
+      <div className={`stock-modal-container ${action === 'IN' || action === 'OUT' ? 'modal-w-large' : 'modal-w-med'}`}>
+        <div className="stock-modal-header">
+          <div className="header-main-info">
             <div>
-              <h2 className="text-3xl font-black heading-font text-secondary-900 tracking-tight">Inventory Operation</h2>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-secondary-500 text-sm font-medium">{chemical.name}</span>
-                <span className="w-1 h-1 rounded-full bg-secondary-300"></span>
-                <span className="text-primary-600 text-xs font-bold bg-primary-50 px-2 py-0.5 rounded-full">{chemical.container_id_series || chemical.id}</span>
+              <h2 className="stock-op-title">Inventory Operation</h2>
+              <div className="header-subtitle-row">
+                <span className="sub-text-med">{chemical.name}</span>
+                <span className="sub-dot"></span>
+                <span className="id-chip-mini">{chemical.container_id_series || chemical.id}</span>
               </div>
             </div>
-            <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-full bg-secondary-50 text-secondary-400 hover:text-secondary-600 hover:bg-secondary-100 transition-all">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+            <button onClick={onClose} className="close-action-btn">
+              <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-          <form id="stock-action-form" onSubmit={handleSubmit} className="space-y-8">
+        <div className="stock-modal-body custom-scrollbar">
+          <form id="stock-action-form" onSubmit={handleSubmit} className="stock-form">
             {/* Action Selection */}
-            <div className="space-y-3">
-              <label className="text-[10px] font-bold text-secondary-400 uppercase tracking-[0.2em] ml-1 block">Transaction Type</label>
-              <div className="grid grid-cols-4 gap-2 bg-secondary-50 p-1.5 rounded-2xl border border-secondary-100">
+            <div className="action-selector-group">
+              <label className="action-label-mini">Transaction Type</label>
+              <div className="action-buttons-strip">
                 {[
                   { id: 'OUT', label: 'Stock Out', color: 'primary' },
                   { id: 'IN', label: 'Stock In', color: 'green' },
@@ -287,11 +288,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                     key={opt.id}
                     type="button"
                     onClick={() => setAction(opt.id)}
-                    className={`py-3 px-2 rounded-xl font-bold text-xs transition-all duration-200 ${
-                      action === opt.id 
-                        ? `bg-white text-${opt.color === 'primary' ? 'primary-600' : opt.color + '-600'} shadow-sm ring-1 ring-secondary-200` 
-                        : 'text-secondary-400 hover:text-secondary-600 hover:bg-white/50'
-                    }`}
+                    className={`strip-btn ${action === opt.id ? `active active-${opt.color}` : ''}`}
                   >
                     {opt.label}
                   </button>
@@ -299,138 +296,144 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="form-grid-2col">
               {/* Left Column: Primary Data */}
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="form-sub-section">
+                <div className="input-row-group">
                   <div className="group">
-                    <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Quantity {action === 'TRANSFER' ? 'Moved' : (action === 'OUT' ? 'Removed' : 'Added')}</label>
+                    <label className="input-field-label">Quantity {action === 'TRANSFER' ? 'Moved' : (action === 'OUT' ? 'Removed' : 'Added')}</label>
                     <input 
                       type="number" 
                       step="any"
                       value={amount} 
                       onChange={e => setAmount(e.target.value)}
-                      className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-mono font-bold"
+                      className="stock-input font-mono-bold"
                       placeholder="0.00"
                       required
                     />
                   </div>
                   <div className="group">
-                    <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Unit</label>
-                    <select 
-                      value={unit} 
-                      onChange={e => setUnit(e.target.value)}
-                      className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-bold appearance-none cursor-pointer"
-                    >
-                      {chemical.state === 'Liquid' ? (
-                        <>
-                          <option value="L">L</option>
-                          <option value="mL">mL</option>
-                        </>
-                      ) : (
-                        <>
-                          <option value="kg">kg</option>
-                          <option value="g">g</option>
-                        </>
-                      )}
-                    </select>
+                    <label className="input-field-label">Unit</label>
+                    <div className="relative-select-wrapper">
+                      <select 
+                        value={unit} 
+                        onChange={e => setUnit(e.target.value)}
+                        className="stock-select"
+                      >
+                        {chemical.state === 'Liquid' ? (
+                          <>
+                            <option value="L">L</option>
+                            <option value="mL">mL</option>
+                          </>
+                        ) : (
+                          <>
+                            <option value="kg">kg</option>
+                            <option value="g">g</option>
+                          </>
+                        )}
+                      </select>
+                      <svg className="select-arrow-mini" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
                   </div>
                 </div>
 
                 {action === 'IN' && (
-                  <div className="space-y-6 animate-in slide-in-from-top-2 duration-300">
-                    <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-green-500 pl-3 uppercase tracking-wider flex items-center"><img src="/icons/box.svg" alt="Batch" className="w-4 h-4 mr-1.5 select-none" draggable="false" /> Batch & Container Initialization</h3>
+                  <div className="form-sub-section slide-in-top">
+                    <h3 className="section-indicator-title border-green"><img src="/icons/box.svg" alt="Batch" className="input-icon-mini" /> Batch & Container Initialization</h3>
                     <div className="group">
-                      <label className="text-[10px] font-bold text-secondary-500 uppercase tracking-widest ml-1 mb-1.5 flex items-center">Batch / Lot Number <img src="/icons/flame.svg" alt="Flame" className="w-3.5 h-3.5 ml-1 select-none" draggable="false" /></label>
-                      <input type="text" value={batch} onChange={e => setBatch(e.target.value)} className="w-full bg-secondary-50 border border-secondary-100 rounded-xl p-4 text-sm font-mono font-bold text-primary-600" placeholder="LOT-2026-A" required />
+                      <label className="input-field-label-alt">Batch / Lot Number <img src="/icons/flame.svg" alt="Flame" className="input-icon-mini text-primary-accent" /></label>
+                      <input type="text" value={batch} onChange={e => setBatch(e.target.value)} className="stock-input font-mono-bold text-primary-accent" placeholder="LOT-2026-A" required />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="input-row-group">
                       <div className="group">
-                        <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Count (Units)</label>
-                        <input type="number" value={numContainers} onChange={e => setNumContainers(e.target.value)} className="w-full bg-secondary-50 border border-secondary-100 rounded-lg p-3 text-sm font-bold" />
+                        <label className="input-field-label-alt">Count (Units)</label>
+                        <input type="number" value={numContainers} onChange={e => setNumContainers(e.target.value)} className="stock-input" />
                       </div>
                       <div className="group">
-                        <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Qty / Unit</label>
-                        <input type="number" value={qtyPerContainer} onChange={e => setQtyPerContainer(e.target.value)} className="w-full bg-secondary-50 border border-secondary-100 rounded-lg p-3 text-sm font-bold" placeholder="1.0" required={action === 'IN'} />
+                        <label className="input-field-label-alt">Qty / Unit</label>
+                        <input type="number" value={qtyPerContainer} onChange={e => setQtyPerContainer(e.target.value)} className="stock-input" placeholder="1.0" required={action === 'IN'} />
                       </div>
                     </div>
                     <div className="group">
-                      <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Container Type</label>
-                      <select value={containerType} onChange={e => setContainerType(e.target.value)} className="w-full bg-secondary-50 border border-secondary-100 rounded-lg p-3 text-sm font-bold">
-                        <option value="Plastic Bottle">Plastic Bottle</option>
-                        <option value="Glass Bottle">Glass Bottle</option>
-                        <option value="Drum">Drum</option>
-                        <option value="Vial">Vial</option>
-                      </select>
+                      <label className="input-field-label-alt">Container Type</label>
+                      <div className="relative-select-wrapper">
+                        <select value={containerType} onChange={e => setContainerType(e.target.value)} className="stock-select">
+                          <option value="Plastic Bottle">Plastic Bottle</option>
+                          <option value="Glass Bottle">Glass Bottle</option>
+                          <option value="Drum">Drum</option>
+                          <option value="Vial">Vial</option>
+                        </select>
+                        <svg className="select-arrow-mini" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {action === 'TRANSFER' && (
-                  <div className="space-y-6 animate-in slide-in-from-top-2 pt-4">
-                    <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-blue-500 pl-3 flex items-center"><img src="/icons/location.svg" alt="Location" className="w-4 h-4 mr-1.5 select-none" draggable="false" /> Destination Location (TO)</h3>
-                    <div className="space-y-3">
+                  <div className="form-sub-section slide-in-top">
+                    <h3 className="section-indicator-title border-blue"><img src="/icons/location.svg" alt="Location" className="input-icon-mini" /> Destination Location (TO)</h3>
+                    <div className="form-sub-section">
                       {/* TO Building */}
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="input-row-group">
                         <div className="group">
-                          <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">To Building</label>
-                          <div className="relative">
+                          <label className="input-field-label">To Building</label>
+                          <div className="relative-select-wrapper">
                             {toHierarchy.buildings.length > 0 ? (
-                              <select value={toBuilding} onChange={e => { setToBuilding(e.target.value); setToRoom(''); setToCabinet(''); setToShelf(''); }} className="w-full bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm font-bold appearance-none cursor-pointer focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all pr-8">
+                              <select value={toBuilding} onChange={e => { setToBuilding(e.target.value); setToRoom(''); setToCabinet(''); setToShelf(''); }} className="stock-select">
                                 <option value="">-- Select --</option>
                                 {toHierarchy.buildings.map(b => <option key={b} value={b}>{b}</option>)}
                               </select>
                             ) : (
-                              <input type="text" value={toBuilding} onChange={e => setToBuilding(e.target.value)} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none" placeholder="Building ID" />
+                              <input type="text" value={toBuilding} onChange={e => setToBuilding(e.target.value)} className="stock-input" placeholder="Building ID" />
                             )}
-                            {toHierarchy.buildings.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                            {toHierarchy.buildings.length > 0 && <svg className="select-arrow-mini" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
                           </div>
                         </div>
                         <div className="group">
-                          <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">To Room</label>
-                          <div className="relative">
+                          <label className="input-field-label">To Room</label>
+                          <div className="relative-select-wrapper">
                             {toHierarchy.rooms.length > 0 ? (
-                              <select value={toRoom} onChange={e => { setToRoom(e.target.value); setToCabinet(''); setToShelf(''); }} className="w-full bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm font-bold appearance-none cursor-pointer focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all pr-8">
+                              <select value={toRoom} onChange={e => { setToRoom(e.target.value); setToCabinet(''); setToShelf(''); }} className="stock-select">
                                 <option value="">-- Select --</option>
                                 {toHierarchy.rooms.map(r => <option key={r} value={r}>{r}</option>)}
                               </select>
                             ) : (
-                              <input type="text" value={toRoom} onChange={e => setToRoom(e.target.value)} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none" placeholder="Room #" />
+                              <input type="text" value={toRoom} onChange={e => setToRoom(e.target.value)} className="stock-input" placeholder="Room #" />
                             )}
-                            {toHierarchy.rooms.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                            {toHierarchy.rooms.length > 0 && <svg className="select-arrow-mini" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
                           </div>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="input-row-group">
                         <div className="group">
-                          <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">To Cabinet</label>
-                          <div className="relative">
+                          <label className="input-field-label">To Cabinet</label>
+                          <div className="relative-select-wrapper">
                             {toHierarchy.cabinets.length > 0 ? (
-                              <select value={toCabinet} onChange={e => { setToCabinet(e.target.value); setToShelf(''); }} className="w-full bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm font-bold appearance-none cursor-pointer focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all pr-8">
+                              <select value={toCabinet} onChange={e => { setToCabinet(e.target.value); setToShelf(''); }} className="stock-select">
                                 <option value="">-- Select --</option>
                                 {toHierarchy.cabinets.map(c => <option key={c} value={c}>{c}</option>)}
                               </select>
                             ) : (
-                              <input type="text" value={toCabinet} onChange={e => setToCabinet(e.target.value)} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none" placeholder="Cabinet" />
+                              <input type="text" value={toCabinet} onChange={e => setToCabinet(e.target.value)} className="stock-input" placeholder="Cabinet" />
                             )}
-                            {toHierarchy.cabinets.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                            {toHierarchy.cabinets.length > 0 && <svg className="select-arrow-mini" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
                           </div>
                         </div>
                         <div className="group">
-                          <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">To Shelf</label>
-                          <div className="relative">
+                          <label className="input-field-label">To Shelf</label>
+                          <div className="relative-select-wrapper">
                             {toHierarchy.shelves.length > 0 ? (
-                              <select value={toShelf} onChange={e => setToShelf(e.target.value)} className="w-full bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm font-bold appearance-none cursor-pointer focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all pr-8">
+                              <select value={toShelf} onChange={e => setToShelf(e.target.value)} className="stock-select">
                                 <option value="">-- Select --</option>
                                 {toHierarchy.shelves.map(s => (
                                   <option key={s._id} value={s.shelf}>Shelf {s.shelf} ({s.current_load}/{s.capacity} used)</option>
                                 ))}
                               </select>
                             ) : (
-                              <input type="text" value={toShelf} onChange={e => setToShelf(e.target.value)} className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none" placeholder="Shelf" />
+                              <input type="text" value={toShelf} onChange={e => setToShelf(e.target.value)} className="stock-input" placeholder="Shelf" />
                             )}
-                            {toHierarchy.shelves.length > 0 && <svg className="w-3 h-3 absolute right-3 top-3.5 text-secondary-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                            {toHierarchy.shelves.length > 0 && <svg className="select-arrow-mini" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
                           </div>
                         </div>
                       </div>
@@ -441,39 +444,39 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                         if (!sel) return null;
                         const pct = Math.min(100, Math.round((sel.current_load / sel.capacity) * 100));
                         return (
-                          <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 mt-2">
-                            <div className="flex justify-between text-[10px] font-bold text-blue-600 uppercase mb-1.5">
+                          <div className="capacity-info-box">
+                            <div className="capacity-bar-header">
                               <span>Shelf Capacity</span>
-                              <span className={pct >= 90 ? 'text-red-500' : pct >= 70 ? 'text-amber-500' : 'text-emerald-600'}>{sel.current_load}/{sel.capacity} used</span>
+                              <span className={pct >= 90 ? 'text-red-accent' : pct >= 70 ? 'text-amber-accent' : 'text-green-accent'}>{sel.current_load}/{sel.capacity} used</span>
                             </div>
-                            <div className="h-1.5 bg-blue-100 rounded-full">
-                              <div className={`h-full rounded-full ${pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-400' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }}></div>
+                            <div className="bar-bg-mini">
+                              <div className={`bar-fill-mini ${pct >= 90 ? 'fill-red' : pct >= 70 ? 'fill-amber' : 'fill-green'}`} style={{ width: `${pct}%` }}></div>
                             </div>
-                            {sel.safety_warnings && <p className="text-[10px] text-amber-600 font-semibold mt-1.5">⚠ {sel.safety_warnings}</p>}
+                            {sel.safety_warnings && <p className="warning-text-mini">⚠ {sel.safety_warnings}</p>}
                           </div>
                         );
                       })()}
                     </div>
 
-                    <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-blue-400 pl-3 flex items-center"><img src="/icons/box.svg" alt="Container" className="w-4 h-4 mr-1.5 select-none" draggable="false" /> Container & Approval</h3>
-                    <div className="grid grid-cols-2 gap-4">
+                    <h3 className="section-indicator-title border-blue"><img src="/icons/box.svg" alt="Container" className="input-icon-mini" /> Container & Approval</h3>
+                    <div className="input-row-group">
                       <div className="group">
-                        <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Container ID</label>
+                        <label className="input-field-label">Container ID</label>
                         <input 
                           type="text" 
                           value={containerId} 
                           onChange={e => setContainerId(e.target.value)}
-                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all font-bold"
+                          className="stock-input"
                           placeholder="CONT-00x"
                         />
                       </div>
                       <div className="group">
-                        <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Qty Containers</label>
+                        <label className="input-field-label">Qty Containers</label>
                         <input 
                           type="number" 
                           value={numContainersMoved} 
                           onChange={e => setNumContainersMoved(e.target.value)}
-                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all font-bold"
+                          className="stock-input"
                         />
                       </div>
                     </div>
@@ -481,11 +484,11 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                 )}
 
                 <div className="group">
-                   <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Reason / Purpose (Required)</label>
+                   <label className="input-field-label">Reason / Purpose (Required)</label>
                    <textarea 
                      value={reason}
                      onChange={e => setReason(e.target.value)}
-                     className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-medium h-24 resize-none"
+                     className="stock-textarea"
                      placeholder={action === 'OUT' ? "e.g. pH Analysis experiment" : "Additional details..."}
                      required
                    />
@@ -493,53 +496,56 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
               </div>
 
               {/* Right Column: Detailed Tracking (Context Specific) */}
-              <div className="space-y-6">
+              <div className="form-sub-section">
                 {(action === 'OUT' || action === 'IN' || action === 'TRANSFER' || action === 'DISPOSAL') && (
                   <>
-                    <h3 className={`text-secondary-900 font-bold text-sm border-l-4 ${action === 'DISPOSAL' ? 'border-red-500' : 'border-primary-500'} pl-3 flex items-center`}><img src="/icons/tag.svg" alt="Tag" className="w-4 h-4 mr-1.5 select-none" draggable="false" /> Identification & Location</h3>
+                    <h3 className={`section-indicator-title ${action === 'DISPOSAL' ? 'border-red' : 'border-primary'}`}><img src="/icons/tag.svg" alt="Tag" className="input-icon-mini" /> Identification & Location</h3>
                     
-                    <div className="group mt-4">
-                      <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Target Container {action !== 'IN' ? ' (Select for Auto-Status)' : ''}</label>
+                    <div className="group">
+                      <label className="input-field-label">Target Container {action !== 'IN' ? ' (Select for Auto-Status)' : ''}</label>
                       {action === 'IN' ? (
                         <input 
                           type="text" 
                           value={containerId} 
                           onChange={e => setContainerId(e.target.value)}
-                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all font-bold"
+                          className="stock-input"
                           placeholder="CONT-00x"
                         />
                       ) : (
-                        <select 
-                          value={containerId}
-                          onChange={e => handleContainerSelect(e.target.value)}
-                          className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-bold cursor-pointer"
-                        >
-                          <option value="">Select a specific vessel...</option>
-                          {availableContainers.map(c => (
-                            <option key={c._id} value={c.container_id}>
-                              {c.container_id} ({c.quantity} {c.unit}) - {c.status}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="relative-select-wrapper">
+                          <select 
+                            value={containerId}
+                            onChange={e => handleContainerSelect(e.target.value)}
+                            className="stock-select"
+                          >
+                            <option value="">Select a specific vessel...</option>
+                            {availableContainers.map(c => (
+                              <option key={c._id} value={c.container_id}>
+                                {c.container_id} ({c.quantity} {c.unit}) - {c.status}
+                              </option>
+                            ))}
+                          </select>
+                          <svg className="select-arrow-mini" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                        </div>
                       )}
                     </div>
                     
                     <div className="group">
-                      <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Batch Reference</label>
+                      <label className="input-field-label">Batch Reference</label>
                       <input 
                         type="text" 
                         value={batch} 
                         onChange={e => setBatch(e.target.value)}
-                        className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-4 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-bold"
+                        className="stock-input font-mono-bold"
                         placeholder="Batch ID"
                         readOnly={action === 'IN'}
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="input-row-group">
                       {['building', 'room', 'cabinet', 'shelf'].map(field => (
                         <div key={field} className="group">
-                          <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block uppercase text-[10px] tracking-widest">{field}</label>
+                          <label className="input-field-label-alt">{field}</label>
                           <input 
                             type="text" 
                             value={
@@ -554,70 +560,73 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                                if (field === 'cabinet') setCabinet(e.target.value);
                                if (field === 'shelf') setShelf(e.target.value);
                             }}
-                            className="w-full bg-secondary-50 border border-secondary-200 rounded-xl p-3 text-xs focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 outline-none transition-all font-bold"
+                            className="stock-input"
                           />
                         </div>
                       ))}
                     </div>
 
                     {action === 'IN' && (
-                      <div className="bg-green-50/50 p-6 rounded-3xl border border-green-100 space-y-4 animate-in fade-in duration-300">
-                        <label className="text-[10px] font-black text-green-700 uppercase tracking-widest flex items-center mb-2"><img src="/icons/calendar.svg" alt="Timeline" className="w-3.5 h-3.5 mr-1.5 select-none" draggable="false" /> Batch Timeline</label>
-                        <div className="grid grid-cols-1 gap-4">
+                      <div className="special-info-panel bg-green-alt slide-in-top">
+                        <label className="panel-header-mini text-green-alt"><img src="/icons/calendar.svg" alt="Timeline" className="input-icon-mini" /> Batch Timeline</label>
+                        <div className="form-sub-section">
                           <div className="group">
-                            <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Expiry Date</label>
-                            <input type="date" value={expiry} onChange={e => setExpiry(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-lg p-2 text-sm font-bold text-red-600" required={action === 'IN'} />
+                            <label className="input-field-label-alt">Expiry Date</label>
+                            <input type="date" value={expiry} onChange={e => setExpiry(e.target.value)} className="stock-input stock-input-white text-red-accent" required={action === 'IN'} />
                           </div>
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="input-row-group">
                             <div className="group">
-                              <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">MFG Date</label>
-                              <input type="date" value={mfgDate} onChange={e => setMfgDate(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-lg p-2 text-xs" />
+                              <label className="input-field-label-alt">MFG Date</label>
+                              <input type="date" value={mfgDate} onChange={e => setMfgDate(e.target.value)} className="stock-input stock-input-white" />
                             </div>
                             <div className="group">
-                              <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Purchase Date</label>
-                              <input type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-lg p-2 text-xs" />
+                              <label className="input-field-label-alt">Purchase Date</label>
+                              <input type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} className="stock-input stock-input-white" />
                             </div>
                           </div>
                         </div>
-                        <div className="group">
-                          <label className="text-[10px] font-bold text-secondary-400 uppercase mb-1 block">Supplier</label>
-                          <input type="text" value={supplier} onChange={e => setSupplier(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-lg p-2 text-sm font-bold" placeholder="LabChem Vendor" />
+                        <div className="group" style={{ marginTop: '1rem' }}>
+                          <label className="input-field-label-alt">Supplier</label>
+                          <input type="text" value={supplier} onChange={e => setSupplier(e.target.value)} className="stock-input stock-input-white" placeholder="LabChem Vendor" />
                         </div>
                       </div>
                     )}
 
                     {action === 'OUT' && (
-                      <div className="space-y-4 pt-2 animate-in slide-in-from-top-2">
-                        <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-primary-500 pl-3 uppercase tracking-wider flex items-center"><img src="/icons/flask.svg" alt="Usage" className="w-4 h-4 mr-1.5 select-none" draggable="false" /> Usage Context</h3>
+                      <div className="form-sub-section slide-in-top">
+                        <h3 className="section-indicator-title border-primary"><img src="/icons/flask.svg" alt="Usage" className="input-icon-mini" /> Usage Context</h3>
                         <div className="group">
-                          <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Experiment Name</label>
-                          <input type="text" value={experimentName} onChange={e => setExperimentName(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-xl p-4 text-sm font-bold" placeholder="e.g. Titration Analysis" />
+                          <label className="input-field-label">Experiment Name</label>
+                          <input type="text" value={experimentName} onChange={e => setExperimentName(e.target.value)} className="stock-input stock-input-white" placeholder="e.g. Titration Analysis" />
                         </div>
                         <div className="group">
-                          <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Department</label>
-                          <input type="text" value={department} onChange={e => setDepartment(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-xl p-4 text-sm font-bold" placeholder="Chemistry Dept" />
+                          <label className="input-field-label">Department</label>
+                          <input type="text" value={department} onChange={e => setDepartment(e.target.value)} className="stock-input stock-input-white" placeholder="Chemistry Dept" />
                         </div>
                       </div>
                     )}
 
                     {action === 'DISPOSAL' && (
-                      <div className="space-y-4 pt-2 animate-in slide-in-from-top-2">
-                        <h3 className="text-secondary-900 font-bold text-sm border-l-4 border-red-500 pl-3 italic uppercase tracking-widest flex items-center"><img src="/icons/warning-red.svg" alt="Disposal" className="w-4 h-4 mr-1.5 select-none" draggable="false" /> Disposal Protocol</h3>
+                      <div className="form-sub-section slide-in-top">
+                        <h3 className="section-indicator-title border-red"><img src="/icons/warning-red.svg" alt="Disposal" className="input-icon-mini" /> Disposal Protocol</h3>
                         <div className="group">
-                          <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Disposal Method</label>
-                          <input type="text" value={disposalMethod} onChange={e => setDisposalMethod(e.target.value)} className="w-full bg-red-50/30 border border-red-100 rounded-xl p-4 text-sm font-black text-red-700" placeholder="e.g. Incineration" required={action === 'DISPOSAL'} />
+                          <label className="input-field-label">Disposal Method</label>
+                          <input type="text" value={disposalMethod} onChange={e => setDisposalMethod(e.target.value)} className="stock-input bg-red-alt text-red-accent font-mono-bold" placeholder="e.g. Incineration" required={action === 'DISPOSAL'} />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="input-row-group">
                           <div className="group">
-                            <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Approved By</label>
-                            <input type="text" value={disposalApprovedBy} onChange={e => setDisposalApprovedBy(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-xl p-3 text-xs font-bold" required={action === 'DISPOSAL'} />
+                            <label className="input-field-label">Approved By</label>
+                            <input type="text" value={disposalApprovedBy} onChange={e => setDisposalApprovedBy(e.target.value)} className="stock-input stock-input-white" required={action === 'DISPOSAL'} />
                           </div>
                           <div className="group">
-                            <label className="text-[11px] font-bold text-secondary-500 mb-1.5 block">Role</label>
-                            <select value={disposalApprovedRole} onChange={e => setDisposalApprovedRole(e.target.value)} className="w-full bg-white border border-secondary-100 rounded-xl p-3 text-xs font-bold">
-                              <option value="safety_officer">Safety Officer</option>
-                              <option value="lab_manager">Lab Manager</option>
-                            </select>
+                            <label className="input-field-label">Role</label>
+                            <div className="relative-select-wrapper">
+                              <select value={disposalApprovedRole} onChange={e => setDisposalApprovedRole(e.target.value)} className="stock-select stock-input-white">
+                                <option value="safety_officer">Safety Officer</option>
+                                <option value="lab_manager">Lab Manager</option>
+                              </select>
+                              <svg className="select-arrow-mini" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -628,58 +637,58 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
             </div>
 
             {error && (
-              <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 animate-pulse">
-                <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
-                <p className="text-xs font-bold">{error}</p>
+              <div className="error-alert-box pulse-alert">
+                <svg className="alert-icon" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+                <p className="alert-text">{error}</p>
               </div>
             )}
 
             {incompatibilityWarning && (
-              <div className="p-4 bg-orange-50 border border-orange-200 rounded-2xl space-y-2 animate-in slide-in-from-bottom-2 duration-300">
-                <div className="flex items-center gap-3 text-orange-700">
-                  <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                  <p className="text-xs font-black uppercase tracking-widest">Incompatible Storage Warning</p>
+              <div className="warning-alert-box slide-in-top">
+                <div className="warning-header-row">
+                  <svg className="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                  <p className="warning-title-text">Incompatible Storage Warning</p>
                 </div>
-                <p className="text-[10px] font-bold text-orange-600 leading-tight">
-                  This location contains <span className="underline">{incompatibilityWarning.conflicting_chemical}</span> ({incompatibilityWarning.conflicting_family}). 
-                  Storing <span className="underline">{chemical.name}</span> here is <span className="font-black uppercase">Dangerous</span> due to {incompatibilityWarning.reason}.
+                <p className="warning-body-text">
+                  This location contains <span className="italic">{incompatibilityWarning.conflicting_chemical}</span> ({incompatibilityWarning.conflicting_family}). 
+                  Storing <span className="italic">{chemical.name}</span> here is <span className="font-mono-bold">Dangerous</span> due to {incompatibilityWarning.reason}.
                 </p>
               </div>
             )}
 
             {(chemical.restricted_access || chemical.training_required) && (
-              <div className="p-5 bg-amber-50 border border-amber-200 rounded-3xl space-y-4 animate-in slide-in-from-bottom-2 duration-500">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              <div className="compliance-panel slide-in-top">
+                <div className="compliance-header">
+                  <div className="compliance-icon-box">
+                    <svg className="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                   </div>
                   <div>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-amber-900">Compliance Acknowledgment</h4>
-                    <p className="text-[10px] font-bold text-amber-700 leading-tight mt-1">
+                    <h4 className="compliance-title">Compliance Acknowledgment</h4>
+                    <p className="compliance-body">
                       This material is under strict regulatory control. By proceeding, you confirm you have completed the required safety training and have authorization to handle this substance.
                     </p>
                   </div>
                 </div>
-                <label className="flex items-center gap-3 p-3 bg-white/60 rounded-xl border border-amber-200 cursor-pointer hover:bg-white transition-all">
+                <label className="compliance-checkbox-label">
                   <input 
                     type="checkbox" 
                     checked={safetyAcknowledged} 
                     onChange={e => setSafetyAcknowledged(e.target.checked)}
-                    className="w-5 h-5 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                    className="compliance-checkbox"
                   />
-                  <span className="text-[10px] font-black uppercase text-amber-900">I confirm safety training compliance</span>
+                  <span className="compliance-confirm-text">I confirm safety training compliance</span>
                 </label>
               </div>
             )}
           </form>
         </div>
 
-        <div className="p-8 border-t border-secondary-50 bg-secondary-50/30 sticky bottom-0 z-10 backdrop-blur-md">
-          <div className="flex gap-4">
+        <div className="modal-footer-action">
+          <div className="footer-btn-group">
             <button 
               type="button" 
               onClick={onClose}
-              className="flex-1 py-4 rounded-2xl font-bold text-secondary-500 hover:text-secondary-700 hover:bg-secondary-100 transition-all"
+              className="btn-cancel-modal"
             >
               Cancel
             </button>
@@ -687,22 +696,22 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
               form="stock-action-form"
               type="submit" 
               disabled={loading}
-              className={`flex-[2] py-4 rounded-2xl font-black text-white shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 ${
-                action === 'IN' ? 'bg-green-600 hover:bg-green-500 shadow-green-600/20' : 
-                action === 'DISPOSAL' ? 'bg-red-600 hover:bg-red-500 shadow-red-600/20' : 
-                action === 'TRANSFER' ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/20' :
-                'bg-primary-600 hover:bg-primary-500 shadow-primary-600/20'
+              className={`btn-confirm-op ${
+                action === 'IN' ? 'bg-in' : 
+                action === 'DISPOSAL' ? 'bg-disposal' : 
+                action === 'TRANSFER' ? 'bg-transfer' :
+                'bg-out'
               }`}
             >
               {loading ? (
                 <>
-                  <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  <svg className="refresh-btn loading h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                   <span>Processing...</span>
                 </>
               ) : (
                 <>
                   <span>Confirm {action} Operation</span>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                  <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                 </>
               )}
             </button>

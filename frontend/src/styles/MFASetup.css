@@ -1,0 +1,330 @@
+/* MFASetup.css */
+
+.mfa-setup-wrapper {
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 2.5rem;
+  padding-bottom: 2.5rem;
+}
+
+.mfa-setup-header {
+  font-size: 2.25rem;
+  font-weight: 900;
+  color: var(--secondary-950);
+  margin-bottom: 0.5rem;
+  font-family: inherit;
+}
+
+.mfa-setup-desc {
+  color: var(--secondary-500);
+  margin-bottom: 2.5rem;
+}
+
+/* Alerts */
+.mfa-alert {
+  padding: 1rem;
+  border-radius: 1rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mfa-alert-success {
+  background-color: #f0fdf4; /* green-50 */
+  border: 1px solid #bbf7d0; /* green-200 */
+  color: #15803d; /* green-700 */
+}
+
+.mfa-alert-error {
+  background-color: #fef2f2; /* red-50 */
+  border: 1px solid #fecaca; /* red-200 */
+  color: #b91c1c; /* red-700 */
+}
+
+.mfa-alert-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Overview Panel */
+.mfa-method-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mfa-method-card {
+  background-color: white;
+  border: 1px solid var(--secondary-100);
+  border-radius: 2.5rem;
+  padding: 2rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+
+.mfa-method-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.mfa-method-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mfa-method-info {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.mfa-method-icon-box {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mfa-method-icon-box.primary {
+  background-color: var(--primary-100);
+  color: var(--primary-600);
+}
+
+.mfa-method-icon-box.orange {
+  background-color: #ffedd5; /* orange-100 */
+  color: #ea580c; /* orange-600 */
+}
+
+.mfa-method-icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+.mfa-method-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--secondary-900);
+  margin: 0 0 0.25rem 0;
+}
+
+.mfa-method-subtitle {
+  color: var(--secondary-500);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.mfa-btn {
+  padding: 0.625rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.mfa-btn-primary {
+  background-color: var(--primary-600);
+  color: white;
+  border: none;
+}
+
+.mfa-btn-primary:hover:not(:disabled) { background-color: var(--primary-500); }
+.mfa-btn-primary:active:not(:disabled) { transform: scale(0.95); }
+.mfa-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.mfa-btn-secondary {
+  background-color: white;
+  color: var(--secondary-900);
+  border: 1px solid var(--secondary-200);
+}
+
+.mfa-btn-secondary:hover { background-color: var(--secondary-50); }
+.mfa-btn-secondary:active { transform: scale(0.95); }
+
+.mfa-disable-btn {
+  color: #ef4444; /* red-500 */
+  font-weight: 700;
+  font-size: 0.875rem;
+  background: none;
+  border: none;
+  padding: 0 1rem;
+  margin-top: 1rem;
+  cursor: pointer;
+}
+
+.mfa-disable-btn:hover { text-decoration: underline; }
+
+/* Setup Panels */
+.mfa-setup-panel {
+  background-color: white;
+  border: 1px solid var(--secondary-100);
+  border-radius: 2.5rem;
+  padding: 2.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: zoom-in-setup 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes zoom-in-setup {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.mfa-back-btn {
+  color: var(--secondary-400);
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.mfa-back-btn:hover { color: var(--secondary-900); }
+.mfa-back-icon { width: 1rem; height: 1rem; }
+
+.mfa-panel-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--secondary-900);
+  margin-bottom: 1.5rem;
+  font-family: inherit;
+}
+
+/* TOTP Form */
+.mfa-totp-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .mfa-totp-grid {
+    flex-direction: row;
+  }
+}
+
+.mfa-qr-box {
+  background-color: var(--secondary-50);
+  padding: 1rem;
+  border-radius: 1.5rem;
+  border: 1px solid var(--secondary-100);
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.mfa-qr-img {
+  width: 12rem;
+  height: 12rem;
+  mix-blend-mode: multiply;
+}
+
+.mfa-totp-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mfa-step-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mfa-step-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--secondary-700);
+  margin: 0;
+}
+
+.mfa-step-desc {
+  font-size: 0.75rem;
+  color: var(--secondary-500);
+  margin: 0;
+}
+
+.mfa-code-input {
+  width: 100%;
+  background-color: var(--secondary-50);
+  border: 1px solid var(--secondary-200);
+  border-radius: 1rem;
+  padding: 1rem;
+  text-align: center;
+  font-size: 1.875rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.mfa-code-input:focus {
+  box-shadow: 0 0 0 2px var(--primary-500);
+}
+
+.mfa-submit-btn {
+  width: 100%;
+  background-color: var(--primary-600);
+  color: white;
+  padding: 1rem;
+  border-radius: 1rem;
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 10px 15px -3px var(--primary-200);
+  transition: all 0.2s;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.mfa-submit-btn:hover:not(:disabled) { background-color: var(--primary-500); }
+.mfa-submit-btn:active:not(:disabled) { transform: scale(0.95); }
+.mfa-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* SMS Form */
+.mfa-sms-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 24rem;
+}
+
+.mfa-input-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--secondary-500);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0 0.25rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.mfa-text-input {
+  width: 100%;
+  background-color: var(--secondary-50);
+  border: 1px solid var(--secondary-200);
+  border-radius: 1rem;
+  padding: 1rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.mfa-text-input:focus {
+  box-shadow: 0 0 0 2px var(--primary-500);
+}
+
+.mfa-input-hint {
+  font-size: 10px;
+  color: var(--secondary-400);
+  padding: 0 0.25rem;
+  font-style: italic;
+  margin-top: 0.25rem;
+}

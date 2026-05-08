@@ -1,0 +1,537 @@
+/* Batches.css */
+
+.batches-container {
+  padding-bottom: 5rem;
+}
+
+.batches-header-bar {
+  background-color: white;
+  border-bottom: 1px solid var(--secondary-200);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding: 1.5rem;
+}
+
+.batches-header-content {
+  max-width: 80rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .batches-header-content {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.batches-title-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.batches-icon-box {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(to bottom right, #4f46e5, #4338ca);
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2);
+}
+
+.batches-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--secondary-900);
+  margin: 0;
+}
+
+.batches-subtitle {
+  font-size: 0.875rem;
+  color: var(--secondary-500);
+  font-weight: 500;
+  margin: 0;
+}
+
+.batches-action-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.batches-search-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .batches-search-wrapper {
+    width: 24rem;
+    flex: none;
+  }
+}
+
+.batches-search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--secondary-400);
+  pointer-events: none;
+  width: 1rem;
+  height: 1rem;
+}
+
+.batches-search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  background-color: var(--secondary-50);
+  border: 1px solid var(--secondary-200);
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.batches-search-input:focus {
+  background-color: white;
+  border-color: #818cf8;
+  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.1);
+}
+
+.btn-new-batch {
+  background-color: #4f46e5;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-new-batch:hover {
+  background-color: #4338ca;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+}
+
+.batches-stats {
+  max-width: 80rem;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .batches-stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.batch-stat-card {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  border: 1px solid var(--secondary-100);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.batch-stat-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bg-indigo-light { background-color: #eef2ff; color: #4f46e5; }
+.bg-rose-light { background-color: #fff1f2; color: #e11d48; }
+.bg-amber-light { background-color: #fffbeb; color: #d97706; }
+.bg-emerald-light { background-color: #ecfdf5; color: #059669; }
+
+/* Icon Utilities */
+.icon-lg { width: 1.5rem; height: 1.5rem; }
+.icon-md { width: 1.25rem; height: 1.25rem; }
+.icon-sm { width: 1rem; height: 1rem; }
+.icon-xs { width: 0.75rem; height: 0.75rem; }
+
+/* Layout Utilities */
+.flex-row-gap-2 { display: flex; align-items: center; gap: 0.5rem; }
+.w-unit-select { width: 6rem; }
+.h-notes-area { height: 6rem; resize: none; }
+
+.batch-stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.batch-stat-label {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--secondary-400);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.batch-stat-value {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--secondary-900);
+}
+
+.batches-table-wrap {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.batches-table-card {
+  background-color: white;
+  border-radius: 2rem;
+  border: 1px solid var(--secondary-200);
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.batches-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.batches-table th {
+  padding: 1.25rem 1.5rem;
+  background-color: var(--secondary-50);
+  text-align: left;
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--secondary-500);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.batches-table tr {
+  border-bottom: 1px solid var(--secondary-100);
+  transition: background-color 0.2s;
+}
+
+.batches-table tr:hover {
+  background-color: var(--secondary-50);
+}
+
+.batches-table td {
+  padding: 1.5rem;
+}
+
+.batch-id-cell {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.batch-id-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background-color: white;
+  border: 1px solid var(--secondary-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--secondary-400);
+}
+
+.batch-id-text {
+  font-weight: 900;
+  color: var(--secondary-900);
+  font-size: 0.875rem;
+}
+
+.batch-chem-text {
+  font-size: 0.75rem;
+  color: var(--secondary-500);
+  font-weight: 500;
+}
+
+.chem-main-text {
+  font-weight: 700;
+  color: var(--secondary-800);
+  font-size: 0.875rem;
+}
+
+.chem-id-text {
+  font-size: 11px;
+  color: var(--secondary-400);
+  font-family: monospace;
+}
+
+.date-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.date-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--secondary-400);
+  text-transform: uppercase;
+}
+
+.date-value {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--secondary-700);
+}
+
+.status-indicator {
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.5rem;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+}
+
+.status-active { background-color: #d1fae5; color: #065f46; }
+.status-expired { background-color: #fee2e2; color: #991b1b; }
+.status-near-expiry { background-color: #fff7ed; color: #9a3412; }
+
+.batch-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-icon-btn {
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  background-color: var(--secondary-50);
+  color: var(--secondary-500);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-edit:hover { 
+  color: #4f46e5; 
+  background-color: white; 
+  border-color: #c7d2fe;
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1), 0 2px 4px -1px rgba(79, 70, 229, 0.06);
+  transform: translateY(-2px);
+}
+
+.action-delete {
+  color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.action-delete:hover { 
+  color: #b91c1c; 
+  background-color: white; 
+  border-color: #fca5a5;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.15), 0 2px 4px -1px rgba(239, 68, 68, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Modal */
+.batch-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1.5rem;
+}
+
+.batch-modal-card {
+  background-color: white;
+  width: 100%;
+  max-width: 40rem;
+  border-radius: 2rem;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.batch-modal-header {
+  padding: 2rem;
+  border-bottom: 1px solid var(--secondary-100);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.batch-modal-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--secondary-900);
+  margin: 0;
+}
+
+.btn-close-batch {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--secondary-400);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.btn-close-batch:hover { color: var(--secondary-600); }
+
+.batch-form {
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.form-field-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-field-label {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--secondary-500);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.form-field-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background-color: var(--secondary-50);
+  border: 1px solid var(--secondary-200);
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.form-field-input:focus {
+  background-color: white;
+  border-color: #818cf8;
+  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.1);
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.batch-form-footer {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--secondary-100);
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-batch-cancel {
+  flex: 1;
+  padding: 0.875rem;
+  border-radius: 1rem;
+  background-color: var(--secondary-50);
+  border: none;
+  color: var(--secondary-600);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-batch-cancel:hover { background-color: var(--secondary-100); }
+
+.btn-batch-submit {
+  flex: 2;
+  padding: 0.875rem;
+  border-radius: 1rem;
+  background-color: #4f46e5;
+  border: none;
+  color: white;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-batch-submit:hover {
+  background-color: #4338ca;
+  box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+}
+
+/* ── Icon size utilities for BatchMaster ── */
+.icon-lg { width: 1.25rem; height: 1.25rem; }
+.icon-md { width: 1rem; height: 1rem; }
+.icon-sm { width: 0.875rem; height: 0.875rem; }
+
+/* ── Stat card icon colours ── */
+.stat-icon-indigo {
+  background-color: #eef2ff;
+  color: #4f46e5;
+}
+.stat-icon-rose {
+  background-color: #fff1f2;
+  color: #e11d48;
+}
+.stat-icon-amber {
+  background-color: #fffbeb;
+  color: #d97706;
+}
+.stat-icon-emerald {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+
+/* -- Quantity progress cell -- */
+.qty-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 8rem;
+}
+
+.qty-line {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--secondary-900);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.qty-bar-track {
+  height: 0.375rem;
+  background-color: var(--secondary-100);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.qty-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.5s ease;
+}
