@@ -15,6 +15,7 @@ const notificationRoutes = require('./routes/notifications');
 const locationRoutes = require('./routes/locations');
 const safetyRoutes = require('./routes/safety');
 const procurementRoutes = require('./routes/procurementRoutes');
+const wasteRoutes = require('./routes/wasteRoutes');
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/safety', safetyRoutes);
 app.use('/api/procurement', procurementRoutes);
+app.use('/api/waste', wasteRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });

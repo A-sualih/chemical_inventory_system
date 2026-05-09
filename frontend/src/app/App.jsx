@@ -24,6 +24,7 @@ import ScanQR from "../features/batches/ScanQR";
 import ChemicalDetails from "../features/chemicals/ChemicalDetails";
 import SafetyDashboard from "../features/safety/SafetyDashboard";
 import ProcurementDashboard from "../features/procurement/ProcurementDashboard";
+import WasteDashboard from "../features/waste/WasteDashboard";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -114,6 +115,11 @@ function App() {
             <Route path="/procurement" element={
               <ProtectedRoute allowedRoles={["Admin", "Lab Manager"]}>
                 <ProcurementDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/waste" element={
+              <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer"]}>
+                <WasteDashboard />
               </ProtectedRoute>
             } />
             <Route path="*" element={<Navigate to="/" replace />} />
