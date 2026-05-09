@@ -1,22 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { IconFileText, IconPlus, IconX } from './WasteIcons';
+import { IconFileText, IconPlus, IconX, IconCheckCircle, IconAlertTriangle } from './WasteIcons';
+import { useAuth } from '../../context/AuthContext';
 
 const COMPLIANCE_TYPES = ['Manifest', 'Inspection', 'Violation', 'Corrective Action', 'Permit Update', 'Government Report'];
 
 export default function ComplianceTab() {
+  const { user, hasPermission } = useAuth();
   const [logs, setLogs] = useState([]);
+  const [permits, setPermits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showPermitModal, setShowPermitModal] = useState(false);
+  
   const [form, setForm] = useState({
     type: 'Manifest', title: '', regulatory_body: '', reference_number: '', description: '', status: 'Active'
   });
 
-  const fetchLogs = async () => {
+  const [permitForm, setPermitForm] = useState({
+    permit_number: '', regulatory_body: '', type: 'Hazardous Waste Generation', issue_date: '', expiry_date: '', limits: []
+  });
+
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('/api/waste/compliance');
-      setLogs(res.data);
+      const [logsRes, permitsRes] = await Promise.all([
+        axios.get('/api/waste/compliance'),
+        axios.get('/api/waste/permits')
+      ]);
+      setLogs(logsRes.data);
+      setPermits(permitsRes.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -24,29 +37,85 @@ export default function ComplianceTab() {
     }
   };
 
-  useEffect(() => { fetchLogs(); }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await axios.post('/api/waste/compliance', form);
       setShowModal(false);
-      fetchLogs();
+      fetchData();
     } catch (err) {
       alert('Failed to log compliance entry');
     }
   };
 
+  const handleSign = async (id) => {
+    if (!window.confirm('Electronically sign this compliance log?')) return;
+    try {
+      await axios.put(`/api/waste/compliance/${id}/sign`);
+      fetchData();
+    } catch (err) {
+      alert('Signature failed');
+    }
+  };
+
+  const handleCreatePermit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post('/api/waste/permits', permitForm);
+      setShowPermitModal(false);
+      fetchData();
+    } catch (err) {
+      alert('Failed to save permit');
+    }
+  };
+
   return (
     <div className="compliance-tab">
-      <div className="waste-card-header" style={{ padding: '0 0 2rem 0' }}>
-        <h2 className="waste-title" style={{ fontSize: '1.5rem' }}>Regulatory Compliance & Audit Trails</h2>
-        <button className="btn-waste-primary" onClick={() => setShowModal(true)}>
-          <IconPlus size={18} /> Add Compliance Log
-        </button>
+      <div className="waste-card-header" style={{ padding: '0 0 2rem 0', borderBottom: 'none' }}>
+        <div>
+          <p className="waste-subtitle">Regulatory Compliance Monitoring</p>
+          <h2 className="waste-title" style={{ fontSize: '2.5rem' }}>Compliance & Permits</h2>
+        </div>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          {hasPermission('manage_waste') && (
+            <button className="btn-waste-action" onClick={() => setShowPermitModal(true)}>
+              <IconFileText size={18} /> Manage Permits
+            </button>
+          )}
+          <button className="btn-waste-primary" onClick={() => setShowModal(true)}>
+            <IconPlus size={18} /> Add Compliance Log
+          </button>
+        </div>
       </div>
 
-      <div className="waste-card">
+      <div className="waste-stats-grid">
+        <div className="waste-stat-card">
+          <div className="stat-header">
+            <span className="stat-icon-box" style={{ background: '#ecfdf5', color: '#10b981' }}>
+              <IconCheckCircle size={20} />
+            </span>
+            <span className="stat-label">Active Permits</span>
+          </div>
+          <div className="stat-value">{permits.filter(p => p.status === 'Active').length}</div>
+        </div>
+        <div className="waste-stat-card">
+          <div className="stat-header">
+            <span className="stat-icon-box" style={{ background: '#fef2f2', color: '#ef4444' }}>
+              <IconAlertTriangle size={20} />
+            </span>
+            <span className="stat-label">Regulatory Violations</span>
+          </div>
+          <div className="stat-value">{logs.filter(l => l.type === 'Violation' && l.status === 'Active').length}</div>
+        </div>
+      </div>
+
+      <div className="waste-card" style={{ marginBottom: '2rem' }}>
+        <div className="waste-card-header">
+          <h3 style={{ fontWeight: 800 }}>Regulatory Compliance Logs</h3>
+          <button className="btn-waste-action" onClick={() => window.print()}>Export Inspection Report</button>
+        </div>
         <table className="waste-table">
           <thead>
             <tr>
@@ -54,33 +123,111 @@ export default function ComplianceTab() {
               <th>Type</th>
               <th>Document Title</th>
               <th>Regulatory Body</th>
-              <th>Ref #</th>
               <th>Status</th>
+              <th>Signature</th>
               <th>Date</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="7" style={{ textAlign: 'center', padding: '3rem' }}>Loading logs...</td></tr>
+              <tr><td colSpan="8" style={{ textAlign: 'center', padding: '3rem' }}>Loading logs...</td></tr>
             ) : logs.length === 0 ? (
-              <tr><td colSpan="7" style={{ textAlign: 'center', padding: '3rem' }}>No compliance logs found.</td></tr>
+              <tr><td colSpan="8" style={{ textAlign: 'center', padding: '3rem' }}>No compliance logs found.</td></tr>
             ) : logs.map(log => (
               <tr key={log._id}>
                 <td><span style={{ fontWeight: 800 }}>{log.log_id}</span></td>
                 <td><span className="waste-badge" style={{ background: 'var(--secondary-100)', color: 'var(--secondary-700)' }}>{log.type}</span></td>
                 <td>
-                  <div style={{ fontWeight: 700 }}>{log.title}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--secondary-500)' }}>{log.description?.substring(0, 50)}...</div>
+                  <div style={{ fontWeight: 800, color: 'var(--secondary-900)' }}>{log.title}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--secondary-500)', fontWeight: 500, marginTop: '0.25rem' }}>{log.description?.substring(0, 50)}...</div>
                 </td>
-                <td>{log.regulatory_body || '—'}</td>
-                <td style={{ fontFamily: 'monospace' }}>{log.reference_number || '—'}</td>
+                <td style={{ fontWeight: 700, color: 'var(--secondary-700)' }}>{log.regulatory_body || '—'}</td>
                 <td>
                   <span className={`waste-badge badge-${log.status.toLowerCase().replace(' ', '-')}`}>
                     {log.status}
                   </span>
                 </td>
+                <td>
+                  {log.digital_signature?.name ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#10b981', fontWeight: 700, fontSize: '0.75rem' }}>
+                      <IconCheckCircle size={14} /> Signed by {log.digital_signature.name}
+                    </div>
+                  ) : (
+                    <span style={{ color: 'var(--secondary-400)', fontSize: '0.75rem' }}>Unsigned</span>
+                  )}
+                </td>
                 <td>{new Date(log.event_date).toLocaleDateString()}</td>
+                <td>
+                  {!log.digital_signature?.name && hasPermission('approve_disposal') && (
+                    <button onClick={() => handleSign(log._id)} className="btn-waste-action action-approve">
+                      Sign & Verify
+                    </button>
+                  )}
+                </td>
               </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="waste-card">
+        <div className="waste-card-header">
+          <h3 style={{ fontWeight: 800 }}>Active Disposal Permits & Legal Limits</h3>
+        </div>
+        <table className="waste-table">
+          <thead>
+            <tr>
+              <th>Permit #</th>
+              <th>Authority</th>
+              <th>Type</th>
+              <th>Hazard Class</th>
+              <th>Capacity Usage</th>
+              <th>Expiry</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {permits.map(permit => (
+              permit.limits.map((limit, idx) => (
+                <tr key={`${permit._id}-${idx}`}>
+                  {idx === 0 && (
+                    <td rowSpan={permit.limits.length} style={{ fontWeight: 800 }}>{permit.permit_number}</td>
+                  )}
+                  {idx === 0 && (
+                    <td rowSpan={permit.limits.length}>{permit.regulatory_body}</td>
+                  )}
+                  {idx === 0 && (
+                    <td rowSpan={permit.limits.length}>{permit.type}</td>
+                  )}
+                  <td style={{ fontWeight: 700 }}>{limit.hazard_class}</td>
+                  <td>
+                    <div style={{ width: '100px', height: '6px', background: '#e2e8f0', borderRadius: '3px', marginBottom: '0.25rem' }}>
+                      <div style={{ 
+                        width: `${Math.min(100, (limit.current_quantity / limit.max_quantity) * 100)}%`, 
+                        height: '100%', 
+                        background: limit.current_quantity > limit.max_quantity ? '#ef4444' : '#10b981', 
+                        borderRadius: '3px' 
+                      }}></div>
+                    </div>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>
+                      {limit.current_quantity} / {limit.max_quantity} {limit.unit}
+                    </span>
+                  </td>
+                  {idx === 0 && (
+                    <td rowSpan={permit.limits.length} style={{ color: new Date(permit.expiry_date) < new Date() ? '#ef4444' : 'inherit' }}>
+                      {new Date(permit.expiry_date).toLocaleDateString()}
+                    </td>
+                  )}
+                  {idx === 0 && (
+                    <td rowSpan={permit.limits.length}>
+                      <span className={`waste-badge badge-${permit.status.toLowerCase()}`}>
+                        {permit.status}
+                      </span>
+                    </td>
+                  )}
+                </tr>
+              ))
             ))}
           </tbody>
         </table>
@@ -129,6 +276,57 @@ export default function ComplianceTab() {
               <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                 <button type="button" onClick={() => setShowModal(false)} className="btn-modal-secondary">Cancel</button>
                 <button type="submit" className="btn-waste-primary">Create Log Entry</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showPermitModal && (
+        <div className="waste-modal-overlay">
+          <div className="waste-modal-card" style={{ maxWidth: '700px' }}>
+            <div className="waste-card-header">
+              <h2 className="waste-title" style={{ fontSize: '1.25rem' }}>Add Regulatory Permit</h2>
+              <button onClick={() => setShowPermitModal(false)} className="btn-waste-action">
+                <IconX size={18} />
+              </button>
+            </div>
+            <form onSubmit={handleCreatePermit} style={{ padding: '2rem' }}>
+              <div className="procurement-form-grid">
+                <div>
+                  <label className="form-label-small">Permit Number *</label>
+                  <input required value={permitForm.permit_number} onChange={e => setPermitForm({...permitForm, permit_number: e.target.value})} className="procurement-input" />
+                </div>
+                <div>
+                  <label className="form-label-small">Regulatory Body *</label>
+                  <input required value={permitForm.regulatory_body} onChange={e => setPermitForm({...permitForm, regulatory_body: e.target.value})} className="procurement-input" />
+                </div>
+                <div>
+                  <label className="form-label-small">Issue Date</label>
+                  <input type="date" value={permitForm.issue_date} onChange={e => setPermitForm({...permitForm, issue_date: e.target.value})} className="procurement-input" />
+                </div>
+                <div>
+                  <label className="form-label-small">Expiry Date</label>
+                  <input type="date" value={permitForm.expiry_date} onChange={e => setPermitForm({...permitForm, expiry_date: e.target.value})} className="procurement-input" />
+                </div>
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label className="form-label-small">Permit Limits (Format: HazardClass:Qty:Unit, e.g. Flammable:500:kg)</label>
+                  <input 
+                    placeholder="Enter limits separated by semicolon"
+                    onBlur={e => {
+                      const limits = e.target.value.split(';').map(s => {
+                        const [hc, qty, unit] = s.split(':');
+                        return { hazard_class: hc, max_quantity: Number(qty), unit: unit || 'kg', current_quantity: 0 };
+                      }).filter(l => l.hazard_class && l.max_quantity);
+                      setPermitForm({...permitForm, limits});
+                    }}
+                    className="procurement-input"
+                  />
+                </div>
+              </div>
+              <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                <button type="button" onClick={() => setShowPermitModal(false)} className="btn-modal-secondary">Cancel</button>
+                <button type="submit" className="btn-waste-primary">Save Permit</button>
               </div>
             </form>
           </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import { IconTrash, IconClock, IconPlus, IconX, IconCheckCircle } from './WasteIcons';
+import { IconTrash, IconClock, IconPlus, IconX, IconCheckCircle, IconAlertTriangle } from './WasteIcons';
 
 const REASONS = ['Expired', 'Contaminated', 'Damaged', 'Excess stock', 'Experimental waste', 'Other'];
 const METHODS = ['Neutralization', 'Incineration', 'Chemical treatment', 'Recycling', 'Waste contractor pickup', 'Secure hazardous storage'];
@@ -37,6 +37,11 @@ export default function DisposalLogTab() {
     }
   });
 
+  const [approvingDisposal, setApprovingDisposal] = useState(null);
+  const [fifoPreview, setFifoPreview] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [approvalNotes, setApprovalNotes] = useState('Regulatory compliance verified.');
+
   const fetchDisposals = useCallback(async () => {
     setLoading(true);
     try {
@@ -70,10 +75,25 @@ export default function DisposalLogTab() {
     }
   };
 
-  const handleApprove = async (id) => {
-    if (!window.confirm('Approve this disposal? This will reduce inventory quantity.')) return;
+  const handleApproveClick = async (disposal) => {
+    setApprovingDisposal(disposal);
+    setPreviewLoading(true);
     try {
-      await axios.put(`/api/waste/disposals/${id}/approve`, { approval_notes: 'System approved' });
+      const res = await axios.get(`/api/waste/disposals/${disposal._id}/fifo-preview`);
+      setFifoPreview(res.data);
+    } catch (err) {
+      console.error('FIFO Preview Error:', err);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const handleConfirmApproval = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`/api/waste/disposals/${approvingDisposal._id}/approve`, { approval_notes: approvalNotes });
+      setApprovingDisposal(null);
+      setFifoPreview(null);
       fetchDisposals();
     } catch (err) {
       alert(err.response?.data?.error || 'Approval failed');
@@ -183,7 +203,7 @@ export default function DisposalLogTab() {
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     {d.status === 'Pending Approval' && hasPermission('approve_disposal') && (
                       <>
-                        <button onClick={() => handleApprove(d._id)} className="btn-waste-action action-approve">
+                        <button onClick={() => handleApproveClick(d)} className="btn-waste-action action-approve">
                           Approve
                         </button>
                         <button onClick={() => setRejectingId(d._id)} className="btn-waste-action action-reject">
@@ -575,6 +595,76 @@ export default function DisposalLogTab() {
                 <button type="button" onClick={() => setRejectingId(null)} className="btn-modal-secondary">Cancel</button>
                 <button type="submit" className="btn-waste-primary" style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}>
                   Confirm Rejection
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {approvingDisposal && (
+        <div className="waste-modal-overlay">
+          <div className="waste-modal-card" style={{ maxWidth: '650px' }}>
+            <div className="waste-card-header">
+              <h2 className="waste-title" style={{ fontSize: '1.25rem' }}>Approve Disposal: {approvingDisposal.disposal_id}</h2>
+              <button onClick={() => setApprovingDisposal(null)} className="btn-waste-action">
+                <IconX size={18} />
+              </button>
+            </div>
+            <form onSubmit={handleConfirmApproval} style={{ padding: '2rem' }}>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <p style={{ fontSize: '0.875rem', color: 'var(--secondary-600)', marginBottom: '1rem' }}>
+                  The following batches will be affected based on the <strong>FIFO (First to Expire)</strong> policy:
+                </p>
+                
+                {previewLoading ? (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--secondary-400)' }}>Calculating FIFO impact...</div>
+                ) : fifoPreview ? (
+                  <div style={{ background: 'var(--secondary-50)', borderRadius: '1rem', overflow: 'hidden', border: '1px solid var(--secondary-100)' }}>
+                    <table className="waste-table" style={{ fontSize: '0.8rem' }}>
+                      <thead style={{ background: 'var(--secondary-100)' }}>
+                        <tr>
+                          <th>Batch #</th>
+                          <th>Current</th>
+                          <th>Subtract</th>
+                          <th>Remaining</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {fifoPreview.affected_batches.map(b => (
+                          <tr key={b.batch_id}>
+                            <td style={{ fontWeight: 700 }}>{b.batch_number} {b.is_targeted && <span style={{ color: 'var(--waste-primary)', fontSize: '0.65rem' }}>(Selected)</span>}</td>
+                            <td>{b.current_quantity} {b.unit}</td>
+                            <td style={{ color: '#ef4444', fontWeight: 800 }}>-{b.subtract_quantity} {b.unit}</td>
+                            <td>{b.remaining_quantity} {b.unit}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {fifoPreview.insufficient_inventory && (
+                      <div style={{ padding: '1rem', background: '#fef2f2', color: '#ef4444', fontSize: '0.75rem', fontWeight: 700 }}>
+                        <IconAlertTriangle size={14} style={{ marginRight: '0.5rem' }} />
+                        Warning: Insufficient inventory. Shortfall: {fifoPreview.shortfall} {fifoPreview.unit}
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label className="form-label-small">Approval Notes</label>
+                <textarea 
+                  value={approvalNotes}
+                  onChange={e => setApprovalNotes(e.target.value)}
+                  className="procurement-input"
+                  rows="2"
+                  placeholder="Notes for compliance audit..."
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                <button type="button" onClick={() => setApprovingDisposal(null)} className="btn-modal-secondary">Cancel</button>
+                <button type="submit" disabled={fifoPreview?.insufficient_inventory} className="btn-waste-primary">
+                  Confirm Approval
                 </button>
               </div>
             </form>

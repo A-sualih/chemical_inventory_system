@@ -3,6 +3,10 @@ const WasteCompliance = require('../../models/WasteCompliance');
 const WasteSafetyIncident = require('../../models/WasteSafetyIncident');
 const Chemical = require('../../models/Chemical');
 const AuditLog = require('../../models/AuditLog');
+const WastePermit = require('../../models/WastePermit');
+const Notification = require('../../models/Notification');
+const User = require('../../models/User');
+const WasteSafetyProtocol = require('../../models/WasteSafetyProtocol');
 
 // Helper for audit logging
 const logWasteAction = async (req, action, targetId, details) => {
@@ -31,21 +35,18 @@ const logWasteAction = async (req, action, targetId, details) => {
  */
 exports.createDisposalRequest = async (req, res) => {
   try {
-    const { chemical_id, batch_id, batch_number, quantity, unit, reason, method, hazard_classification, notes } = req.body;
+    const { chemical_id, batch_id, batch_number, quantity, unit, method, reason, notes, hazard_classification } = req.body;
     
     const chemical = await Chemical.findById(chemical_id);
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
     
-    // Safety Validation: Check for incompatible chemicals (Basic implementation)
-    // In a real app, this would query an incompatibility matrix
-    if (chemical.hazard_summary?.health && method === 'Neutralization' && !req.body.method_details?.neutralization?.neutralizing_agent) {
-       // return res.status(400).json({ error: 'Neutralizing agent required for hazardous chemical neutralization.' });
-    }
+    // Clean up empty batch_id strings to prevent BSON errors
+    const cleanedBatchId = batch_id === "" ? null : batch_id;
 
     const disposal = new WasteDisposal({
       chemical_id,
       chemical_name: chemical.name,
-      batch_id,
+      batch_id: cleanedBatchId,
       batch_number,
       quantity,
       unit,
@@ -57,6 +58,38 @@ exports.createDisposalRequest = async (req, res) => {
       responsible_person_name: req.user.name,
       status: 'Pending Approval'
     });
+
+    // 2. Environmental Safety Detection: High-Risk Activities
+    const riskLevel = chemical.hazard_summary?.hazard_class === 'Toxic' || chemical.hazard_summary?.hazard_class === 'Explosive' ? 'Extreme' : 
+                      chemical.hazard_summary?.hazard_class === 'Flammable' ? 'High' : 'Moderate';
+    
+    if (riskLevel === 'Extreme' || quantity > 100) {
+       await Notification.create({
+         type: 'COMPLIANCE',
+         category: 'safety',
+         title: 'High-Risk Disposal Alert',
+         message: `A high-risk disposal activity has been requested for ${chemical.name} (${quantity} ${unit}). Risk Level: ${riskLevel}.`,
+         severity: 'critical',
+         recipients: [{ role: 'admin' }, { role: 'lab_manager' }]
+       });
+    }
+    
+    // 1. Compliance Check: Legal Disposal Limits
+    const permit = await WastePermit.findOne({ status: 'Active', 'limits.hazard_class': hazard_classification || chemical.hazard_summary?.hazard_class });
+    if (permit) {
+      const limit = permit.limits.find(l => l.hazard_class === (hazard_classification || chemical.hazard_summary?.hazard_class));
+      if (limit && (limit.current_quantity + Number(quantity)) > limit.max_quantity) {
+        // Create an alert but allow request (officer will see warning)
+        await Notification.create({
+          type: 'COMPLIANCE',
+          category: 'safety',
+          title: 'Disposal Limit Warning',
+          message: `Disposal of ${quantity} ${unit} ${chemical.name} exceeds the ${limit.period} limit of ${limit.max_quantity} ${limit.unit} for permit ${permit.permit_number}.`,
+          severity: 'high',
+          recipients: [{ role: 'admin' }, { role: 'lab_manager' }]
+        });
+      }
+    }
 
     // Immediate unit compatibility check
     const disposalBaseUnit = getBaseUnit(unit);
@@ -112,11 +145,19 @@ exports.approveDisposal = async (req, res) => {
 
       const amountToSubtractInBase = convertToBase(disposal.quantity, disposal.unit);
       
-      // 1. Update Chemical Totals
+      // Strict Quantity Validation: Prevent disposing more than available
       if (chemical.base_quantity === undefined) {
         chemical.base_quantity = convertToBase(chemical.quantity, chemical.unit);
       }
+
+      if (chemical.base_quantity < amountToSubtractInBase) {
+        const availableInSelectedUnit = convertFromBase(chemical.base_quantity, disposal.unit);
+        return res.status(400).json({ 
+          error: `Insufficient inventory: Total available is ${availableInSelectedUnit} ${disposal.unit}, but disposal request requires ${disposal.quantity} ${disposal.unit}. Please adjust the disposal quantity.` 
+        });
+      }
       
+      // 1. Update Chemical Totals
       chemical.base_quantity = Math.max(0, chemical.base_quantity - amountToSubtractInBase);
       chemical.quantity = convertFromBase(chemical.base_quantity, chemical.unit);
       
@@ -200,6 +241,87 @@ exports.approveDisposal = async (req, res) => {
 };
 
 /**
+ * Get FIFO Preview for a disposal request
+ */
+exports.getDisposalFifoPreview = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const disposal = await WasteDisposal.findById(id);
+    if (!disposal) return res.status(404).json({ error: 'Disposal record not found' });
+    
+    const chemical = await Chemical.findById(disposal.chemical_id);
+    if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
+    
+    const amountToSubtractInBase = convertToBase(disposal.quantity, disposal.unit);
+    let remainingToSubtract = amountToSubtractInBase;
+    const preview = [];
+    
+    // 1. Specific batch check
+    if (disposal.batch_id) {
+      const targetBatch = await Batch.findById(disposal.batch_id);
+      if (targetBatch) {
+        const batchQtyInBase = convertToBase(targetBatch.total_quantity, targetBatch.unit);
+        const subtractFromThisBatch = Math.min(batchQtyInBase, remainingToSubtract);
+        
+        preview.push({
+          batch_id: targetBatch._id,
+          batch_number: targetBatch.batch_number,
+          current_quantity: targetBatch.total_quantity,
+          unit: targetBatch.unit,
+          subtract_quantity: convertFromBase(subtractFromThisBatch, targetBatch.unit),
+          remaining_quantity: convertFromBase(batchQtyInBase - subtractFromThisBatch, targetBatch.unit),
+          is_targeted: true
+        });
+        
+        remainingToSubtract -= subtractFromThisBatch;
+      }
+    }
+    
+    // 2. FIFO batches
+    if (remainingToSubtract > 0) {
+      const batches = await Batch.find({ 
+        chemical_id: chemical.id,
+        _id: { $ne: disposal.batch_id }
+      }).sort({ expiry_date: 1 });
+      
+      for (const batch of batches) {
+        if (remainingToSubtract <= 0) break;
+        
+        const batchQtyInBase = convertToBase(batch.total_quantity, batch.unit);
+        if (batchQtyInBase > 0) {
+          const subtractFromThisBatch = Math.min(batchQtyInBase, remainingToSubtract);
+          
+          preview.push({
+            batch_id: batch._id,
+            batch_number: batch.batch_number,
+            current_quantity: batch.total_quantity,
+            unit: batch.unit,
+            subtract_quantity: convertFromBase(subtractFromThisBatch, batch.unit),
+            remaining_quantity: convertFromBase(batchQtyInBase - subtractFromThisBatch, batch.unit),
+            is_targeted: false,
+            expiry_date: batch.expiry_date
+          });
+          
+          remainingToSubtract -= subtractFromThisBatch;
+        }
+      }
+    }
+    
+    res.json({
+      disposal_id: disposal.disposal_id,
+      chemical_name: chemical.name,
+      requested_quantity: disposal.quantity,
+      unit: disposal.unit,
+      affected_batches: preview,
+      insufficient_inventory: remainingToSubtract > 0.001,
+      shortfall: remainingToSubtract > 0 ? convertFromBase(remainingToSubtract, disposal.unit) : 0
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/**
  * Reject disposal request
  */
 exports.rejectDisposal = async (req, res) => {
@@ -247,9 +369,67 @@ exports.completeDisposal = async (req, res) => {
     if (compliance) disposal.compliance = compliance;
     
     await disposal.save();
+    
+    // Compliance Check: Missing Manifest or Certificate
+    if (!disposal.compliance?.manifest_number || !disposal.compliance?.certificate_url) {
+      await Notification.create({
+        type: 'COMPLIANCE',
+        category: 'safety',
+        title: 'Missing Disposal Documentation',
+        message: `Disposal #${disposal.disposal_id} was completed without a manifest number or certificate link.`,
+        severity: 'medium',
+        recipients: [{ role: 'admin' }, { userId: req.user.id }]
+      });
+    }
+
     await logWasteAction(req, 'COMPLETED', disposal._id, `Completed disposal for ${disposal.chemical_name}`);
     
     res.json(disposal);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+/**
+ * Waste Permits Management
+ */
+exports.createPermit = async (req, res) => {
+  try {
+    const permit = new WastePermit(req.body);
+    await permit.save();
+    res.status(201).json(permit);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+exports.getPermits = async (req, res) => {
+  try {
+    const permits = await WastePermit.find().sort({ expiry_date: 1 });
+    res.json(permits);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/**
+ * Digital Signature for Compliance Log
+ */
+exports.signComplianceLog = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const log = await WasteCompliance.findById(id);
+    if (!log) return res.status(404).json({ error: 'Log not found' });
+    
+    log.digital_signature = {
+      user: req.user.id,
+      name: req.user.name,
+      timestamp: new Date()
+    };
+    log.status = 'Resolved';
+    
+    await log.save();
+    res.json(log);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -367,5 +547,49 @@ exports.getWasteAnalytics = async (req, res) => {
     res.json({ methodStats, statusStats, incidentStats, monthlyStats });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+/**
+ * Safety Protocols Management
+ */
+exports.getSafetyProtocols = async (req, res) => {
+  try {
+    const protocols = await WasteSafetyProtocol.find();
+    res.json(protocols);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.createSafetyProtocol = async (req, res) => {
+  try {
+    const protocol = new WasteSafetyProtocol(req.body);
+    await protocol.save();
+    res.status(201).json(protocol);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+/**
+ * Environmental Impact Assessment recording
+ */
+exports.updateIncidentImpact = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { environmental_impact_details, cleanup_procedure_followed, status } = req.body;
+    
+    const incident = await WasteSafetyIncident.findById(id);
+    if (!incident) return res.status(404).json({ error: 'Incident not found' });
+    
+    incident.environmental_impact_details = environmental_impact_details;
+    incident.cleanup_procedure_followed = cleanup_procedure_followed;
+    if (status) incident.status = status;
+    
+    await incident.save();
+    res.json(incident);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 };
