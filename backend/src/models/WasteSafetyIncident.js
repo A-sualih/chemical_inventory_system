@@ -42,7 +42,7 @@ const wasteSafetyIncidentSchema = new mongoose.Schema({
   }]
 }, { timestamps: true });
 
-wasteSafetyIncidentSchema.pre('save', async function() {
+wasteSafetyIncidentSchema.pre('validate', async function() {
   if (!this.incident_id) {
     const count = await mongoose.model('WasteSafetyIncident').countDocuments();
     this.incident_id = `INC-${String(count + 1).padStart(5, '0')}`;

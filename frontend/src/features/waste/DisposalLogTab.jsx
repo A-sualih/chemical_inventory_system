@@ -39,7 +39,7 @@ export default function DisposalLogTab() {
   useEffect(() => {
     fetchDisposals();
     // Fetch chemicals for the dropdown
-    axios.get('/api/chemicals', { params: { limit: 100 } }).then(res => setChemicals(res.data.chemicals));
+    axios.get('/api/chemicals', { params: { limit: 100 } }).then(res => setChemicals(res.data.data || []));
   }, [fetchDisposals]);
 
   const handleSubmit = async (e) => {

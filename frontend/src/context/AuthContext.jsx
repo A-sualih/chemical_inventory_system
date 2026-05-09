@@ -15,18 +15,21 @@ export const AuthProvider = ({ children }) => {
     "Admin": [
       "create_chemical", "edit_chemical", "delete_chemical", "approve_request",
       "view_reports", "view_audit_logs", "assign_roles", "view_chemicals",
-      "submit_request", "update_stock", "view_safety_info", "manage_settings"
+      "submit_request", "update_stock", "view_safety_info", "manage_settings",
+      "manage_waste", "approve_disposal"
     ],
     "Lab Manager": [
       "create_chemical", "edit_chemical", "delete_chemical", "approve_request",
       "view_reports", "view_audit_logs", "view_chemicals",
-      "submit_request", "update_stock", "view_safety_info"
+      "submit_request", "update_stock", "view_safety_info",
+      "manage_waste", "approve_disposal"
     ],
     "Lab Technician": [
-      "view_chemicals", "update_stock", "submit_request"
+      "view_chemicals", "update_stock", "submit_request", "manage_waste"
     ],
     "Safety Officer": [
-      "view_chemicals", "view_safety_info", "view_reports", "view_audit_logs"
+      "view_chemicals", "view_safety_info", "view_reports", "view_audit_logs",
+      "manage_waste", "approve_disposal"
     ],
     "Viewer / Auditor": [
       "view_chemicals", "view_reports", "view_audit_logs"

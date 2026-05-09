@@ -42,7 +42,7 @@ const wasteComplianceSchema = new mongoose.Schema({
   notes: { type: String }
 }, { timestamps: true });
 
-wasteComplianceSchema.pre('save', async function() {
+wasteComplianceSchema.pre('validate', async function() {
   if (!this.log_id) {
     const count = await mongoose.model('WasteCompliance').countDocuments();
     this.log_id = `COMP-${String(count + 1).padStart(5, '0')}`;

@@ -89,7 +89,7 @@ const wasteDisposalSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Auto-generate disposal ID (e.g., DISP-2024-001)
-wasteDisposalSchema.pre('save', async function() {
+wasteDisposalSchema.pre('validate', async function() {
   if (!this.disposal_id) {
     const year = new Date().getFullYear();
     const count = await mongoose.model('WasteDisposal').countDocuments();

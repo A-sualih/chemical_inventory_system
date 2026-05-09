@@ -17,11 +17,25 @@
   color: var(--secondary-900);
 }
 
+@media (max-width: 768px) {
+  .waste-container {
+    padding: 1rem;
+  }
+}
+
 .waste-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .waste-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .waste-title {
@@ -40,6 +54,12 @@
   margin-bottom: 2rem;
   border-bottom: 1px solid var(--secondary-200);
   padding-bottom: 0.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.waste-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .waste-tab {
@@ -112,7 +132,7 @@
   border-radius: 1.5rem;
   box-shadow: var(--shadow-md);
   border: 1px solid var(--secondary-100);
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .waste-card-header {
@@ -121,6 +141,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .waste-card-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.5rem 1rem;
+  }
 }
 
 .waste-table {
@@ -208,6 +237,16 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .waste-modal-card {
+    border-radius: 1.5rem 1.5rem 0 0;
+    max-height: 95vh;
+    position: fixed;
+    bottom: 0;
+  }
 }
 
 /* Workflows */
