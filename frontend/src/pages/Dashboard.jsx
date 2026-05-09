@@ -13,6 +13,7 @@ const Dashboard = () => {
   const [requestsLoading, setRequestsLoading] = useState(true);
   const [auditLogs, setAuditLogs] = useState([]);
   const [auditLoading, setAuditLoading] = useState(true);
+  const [wasteStats, setWasteStats] = useState({ pendingDisposals: 0, recentIncidents: 0 });
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -23,7 +24,18 @@ const Dashboard = () => {
         console.error("Failed to fetch dashboard stats", err);
       }
     };
+    const fetchWasteStats = async () => {
+      try {
+        const { data } = await axios.get('/api/waste/analytics');
+        const pending = (data.statusStats || []).find(s => s._id === 'Pending Approval')?.count || 0;
+        setWasteStats({ pendingDisposals: pending, recentIncidents: data.incidentStats?.length || 0 });
+      } catch (err) {
+        console.error("Failed to fetch waste stats", err);
+      }
+    };
+
     fetchStats();
+    fetchWasteStats();
   }, []);
 
   useEffect(() => {
@@ -100,10 +112,13 @@ const Dashboard = () => {
     { label: "Critical Stock", value: dbStats.lowStock.toString().padStart(2, '0'), sub: "Reorder Required", color: "red", icon: (
       <svg className="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
     )},
-    { label: "Safety Audit", value: dbStats.auditScore, sub: "Passing Score", color: "green", icon: (
-      <svg className="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-    )},
-  ];
+     { label: "Safety Audit", value: dbStats.auditScore, sub: "Passing Score", color: "green", icon: (
+       <svg className="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+     )},
+     { label: "Pending Disposal", value: wasteStats.pendingDisposals.toString().padStart(2, '0'), sub: "Awaiting Action", color: "indigo", icon: (
+       <svg className="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+     )},
+   ];
 
   const storageThemes = [
     { bg: 'bg-blue-500', fill: 'theme-blue', ring: 'ring-blue', text: 'text-blue-600' },
@@ -149,12 +164,14 @@ const Dashboard = () => {
             <div className={`stat-card-bg-icon ${
               stat.color === 'red' ? 'bg-red-500' : 
               stat.color === 'orange' ? 'bg-orange-500' :
+              stat.color === 'indigo' ? 'bg-indigo-500' :
               stat.color === 'green' ? 'bg-green-500' : 'bg-primary-500'
             }`}></div>
 
             <div className={`stat-icon-wrapper ${
               stat.color === 'red' ? 'bg-red-50 text-red-600' : 
               stat.color === 'orange' ? 'bg-orange-50 text-orange-600' :
+              stat.color === 'indigo' ? 'bg-indigo-50 text-indigo-600' :
               stat.color === 'green' ? 'bg-green-50 text-green-600' : 'bg-primary-50 text-primary-600'
             }`}>
               {stat.icon}

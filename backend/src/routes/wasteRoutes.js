@@ -11,6 +11,7 @@ router.use(authenticate);
 router.get('/disposals',                authorize(PERMISSIONS.VIEW_CHEMICALS), ctrl.getDisposals);
 router.post('/disposals',               authorize(PERMISSIONS.MANAGE_WASTE), ctrl.createDisposalRequest);
 router.put('/disposals/:id/approve',    authorize(PERMISSIONS.APPROVE_DISPOSAL), ctrl.approveDisposal);
+router.put('/disposals/:id/reject',     authorize(PERMISSIONS.APPROVE_DISPOSAL), ctrl.rejectDisposal);
 router.put('/disposals/:id/complete',   authorize(PERMISSIONS.MANAGE_WASTE), ctrl.completeDisposal);
 
 // Compliance Logs

@@ -4,6 +4,8 @@ const wasteDisposalSchema = new mongoose.Schema({
   disposal_id: { type: String, required: true, unique: true },
   chemical_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Chemical', required: true },
   chemical_name: { type: String, required: true },
+  batch_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Batch' },
+  batch_number: { type: String },
   container_id: { type: String }, // Optional: link to specific container if tracked
   
   quantity: { type: Number, required: true },

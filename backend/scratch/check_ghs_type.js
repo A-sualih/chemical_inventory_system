@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const path = require('path');
-const Chemical = require('../models/Chemical');
+const Chemical = require('../src/models/Chemical');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 async function checkGhsType() {

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
-const Chemical = require('../models/Chemical');
-const Batch = require('../models/Batch');
+const Chemical = require('../src/models/Chemical');
+const Batch = require('../src/models/Batch');
 
 async function run() {
     await mongoose.connect(process.env.MONGODB_URI);

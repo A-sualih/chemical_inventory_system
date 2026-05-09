@@ -99,31 +99,31 @@ export default function ComplianceTab() {
               <div className="procurement-form-grid">
                 <div>
                   <label className="form-label-small">Log Type</label>
-                  <select value={form.type} onChange={e=>setForm({...form, type:e.target.value})} className="procurement-input">
-                    {COMPLIANCE_TYPES.map(t=><option key={t} value={t}>{t}</option>)}
+                  <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="procurement-input">
+                    {COMPLIANCE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="form-label-small">Status</label>
-                  <select value={form.status} onChange={e=>setForm({...form, status:e.target.value})} className="procurement-input">
-                    {['Active', 'Pending Review', 'Resolved', 'Closed'].map(s=><option key={s} value={s}>{s}</option>)}
+                  <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="procurement-input">
+                    {['Active', 'Pending Review', 'Resolved', 'Closed'].map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
                 <div style={{ gridColumn: 'span 2' }}>
                   <label className="form-label-small">Title / Document Name *</label>
-                  <input required value={form.title} onChange={e=>setForm({...form, title:e.target.value})} className="procurement-input" placeholder="e.g. Hazardous Waste Manifest #9901" />
+                  <input required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="procurement-input" placeholder="e.g. Hazardous Waste Manifest #9901" />
                 </div>
                 <div>
                   <label className="form-label-small">Regulatory Body</label>
-                  <input value={form.regulatory_body} onChange={e=>setForm({...form, regulatory_body:e.target.value})} className="procurement-input" placeholder="EPA, OSHA, etc." />
+                  <input value={form.regulatory_body} onChange={e => setForm({ ...form, regulatory_body: e.target.value })} className="procurement-input" placeholder="EPA, OSHA, etc." />
                 </div>
                 <div>
                   <label className="form-label-small">Reference Number</label>
-                  <input value={form.reference_number} onChange={e=>setForm({...form, reference_number:e.target.value})} className="procurement-input" placeholder="Permit # or ID" />
+                  <input value={form.reference_number} onChange={e => setForm({ ...form, reference_number: e.target.value })} className="procurement-input" placeholder="Permit # or ID" />
                 </div>
                 <div style={{ gridColumn: 'span 2' }}>
                   <label className="form-label-small">Description / Notes</label>
-                  <textarea value={form.description} onChange={e=>setForm({...form, description:e.target.value})} className="procurement-input" rows="3" />
+                  <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="procurement-input" rows="3" />
                 </div>
               </div>
               <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>

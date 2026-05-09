@@ -22,10 +22,8 @@ export default function WasteDashboard() {
       <div className="waste-container">
         <header className="waste-header">
           <div>
-            <h1 className="waste-title">Waste & Disposal Management</h1>
-            <p style={{ color: 'var(--secondary-500)', fontWeight: 600, marginTop: '0.25rem' }}>
-              Safe chemical disposal, environmental tracking, and regulatory compliance
-            </p>
+            <p className="waste-subtitle">Environmental & Regulatory Compliance</p>
+            <h1 className="waste-title">Waste & Disposal</h1>
           </div>
         </header>
 

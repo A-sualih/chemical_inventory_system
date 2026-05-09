@@ -160,6 +160,6 @@
 }
 
 .content-inner {
-  max-width: 80rem; /* 7xl */
+  width: 100%;
   margin: 0 auto;
 }

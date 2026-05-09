@@ -449,6 +449,13 @@
   margin-bottom: 1.5rem;
 }
 
+@media (max-width: 768px) {
+  .procurement-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 .toolbar-filters {
   display: flex;
   flex-wrap: wrap;
@@ -643,10 +650,22 @@
   overflow-y: auto;
 }
 
+@media (max-width: 640px) {
+  .procurement-modal-body {
+    padding: 1rem;
+  }
+}
+
 .procurement-form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .procurement-form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .procurement-form-field {
@@ -693,6 +712,15 @@
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
   gap: 0.75rem;
   align-items: flex-end;
+}
+
+@media (max-width: 768px) {
+  .po-item-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .po-item-grid > *:first-child {
+    grid-column: span 2;
+  }
 }
 
 .po-item-total {
