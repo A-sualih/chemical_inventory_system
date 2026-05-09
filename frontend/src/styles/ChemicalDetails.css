@@ -870,3 +870,42 @@
 .animate-spin {
   animation: details-spin 1s linear infinite;
 }
+
+/* Archive Button on Details Page */
+.archive-details-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.75rem;
+  font-weight: 900;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.archive-mode {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fee2e2;
+}
+
+.archive-mode:hover {
+  background-color: #fee2e2;
+  transform: translateY(-1px);
+}
+
+.restore-mode {
+  background-color: #f0fdf4;
+  color: #16a34a;
+  border-color: #dcfce7;
+}
+
+.restore-mode:hover {
+  background-color: #dcfce7;
+  transform: translateY(-1px);
+}

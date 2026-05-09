@@ -50,12 +50,11 @@ const supplierSchema = new mongoose.Schema({
 });
 
 // Auto-generate supplier_id before save
-supplierSchema.pre('save', async function(next) {
+supplierSchema.pre('save', async function() {
   if (!this.supplier_id) {
     const count = await mongoose.model('Supplier').countDocuments();
     this.supplier_id = `SUP-${String(count + 1).padStart(4, '0')}`;
   }
-  next();
 });
 
 // Indexes for frequent queries

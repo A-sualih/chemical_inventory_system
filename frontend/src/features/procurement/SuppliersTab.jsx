@@ -51,11 +51,22 @@ export default function SuppliersTab() {
   const fetchSuppliers = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { search, status: filterStatus, category: filterCategory, sort, page, limit: 12 };
+      const currentPage = Math.max(1, parseInt(page) || 1);
+      const params = { 
+        search: search || undefined, 
+        status: filterStatus || undefined, 
+        category: filterCategory || undefined, 
+        sort, 
+        page: currentPage, 
+        limit: 12 
+      };
       const res = await axios.get('/api/procurement/suppliers', { params });
       setSuppliers(res.data.suppliers || []);
       setTotal(res.data.total || 0);
-    } catch (e) { showToast('Failed to fetch suppliers', 'error'); }
+    } catch (e) { 
+      console.error('Fetch Error:', e.response?.data || e.message);
+      showToast('Failed to fetch suppliers', 'error'); 
+    }
     finally { setLoading(false); }
   }, [search, filterStatus, filterCategory, sort, page]);
 
@@ -80,7 +91,25 @@ export default function SuppliersTab() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const payload = { ...formData, chemical_types_supplied: formData.chemical_types_supplied.split(',').map(x=>x.trim()).filter(Boolean) };
+      // Create a clean copy of the formData
+      const payload = { ...formData };
+      
+      // 1. Handle array field: convert comma-separated string to array
+      if (typeof payload.chemical_types_supplied === 'string') {
+        payload.chemical_types_supplied = payload.chemical_types_supplied
+          .split(',')
+          .map(x => x.trim())
+          .filter(Boolean);
+      }
+      
+      // 2. Remove all empty strings to avoid Mongoose validation errors
+      // (Mongoose often fails on empty strings for Date, Number, or Regex fields)
+      Object.keys(payload).forEach(key => {
+        if (payload[key] === '' || payload[key] === null || payload[key] === undefined) {
+          delete payload[key];
+        }
+      });
+
       if (editing) {
         await axios.put(`/api/procurement/suppliers/${editing._id}`, payload);
         showToast('Supplier updated successfully');
@@ -90,7 +119,11 @@ export default function SuppliersTab() {
       }
       setShowModal(false);
       fetchSuppliers();
-    } catch (err) { showToast(err.response?.data?.error || 'Failed to save supplier', 'error'); }
+    } catch (err) {
+      console.error('Submit Error:', err.response?.data || err.message);
+      const errorMsg = err.response?.data?.error || err.message || 'Failed to save supplier';
+      showToast(errorMsg, 'error');
+    }
     finally { setSubmitting(false); }
   };
 

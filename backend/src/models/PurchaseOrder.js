@@ -88,13 +88,12 @@ const purchaseOrderSchema = new mongoose.Schema({
 });
 
 // Auto-total calculation
-purchaseOrderSchema.pre('save', function(next) {
+purchaseOrderSchema.pre('save', async function() {
   if (this.items && this.items.length > 0) {
     this.subtotal = this.items.reduce((sum, item) => sum + item.total_price, 0);
     this.tax_amount = this.items.reduce((sum, item) => sum + (item.total_price * (item.tax_rate / 100)), 0);
     this.total_cost = this.subtotal + this.tax_amount + (this.shipping_fee || 0);
   }
-  next();
 });
 
 // Indexes

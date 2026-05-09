@@ -6,7 +6,8 @@ import HazardBadge from "../../components/feedback/HazardBadge";
 import QRCodeLib from "react-qr-code";
 const QRCode = QRCodeLib.default || QRCodeLib;
 import NFPADiamond from "../../components/feedback/NFPADiamond";
-import { Shield, AlertTriangle, Zap, LifeBuoy } from 'lucide-react';
+import { Shield, AlertTriangle, Zap, LifeBuoy, Archive, RotateCcw } from 'lucide-react';
+import { useAuth } from "../../context/AuthContext";
 import "../../styles/ChemicalDetails.css";
 
 const ChemicalDetails = () => {
@@ -16,6 +17,9 @@ const ChemicalDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [exportingPDF, setExportingPDF] = useState(false);
+  const { hasPermission } = useAuth();
+
+  const canDelete = hasPermission("delete_chemical");
 
   const handleExportSDS = async () => {
     setExportingPDF(true);
@@ -36,6 +40,24 @@ const ChemicalDetails = () => {
       console.error('SDS Export Error:', err);
     } finally {
       setExportingPDF(false);
+    }
+  };
+
+  const toggleArchive = async () => {
+    const isArchived = chemical.archived;
+    const msg = isArchived ? "Restore this chemical to active inventory?" : "Archive this chemical for compliance? (Soft delete)";
+    if (!window.confirm(msg)) return;
+    try {
+      if (isArchived) {
+        await axios.put(`/api/chemicals/${chemical.id}/restore`);
+      } else {
+        await axios.delete(`/api/chemicals/${chemical.id}`);
+      }
+      // Refresh chemical data
+      const { data } = await axios.get(`/api/chemicals/${id}`);
+      setChemical(data);
+    } catch (err) {
+      alert("Error updating chemical state.");
     }
   };
 
@@ -96,6 +118,15 @@ const ChemicalDetails = () => {
              <button onClick={() => navigate('/chemicals')} className="edit-protocol-button">
                 Edit Protocol
              </button>
+             {canDelete && (
+               <button 
+                 onClick={toggleArchive} 
+                 className={`archive-details-button ${chemical.archived ? 'restore-mode' : 'archive-mode'}`}
+               >
+                  {chemical.archived ? <RotateCcw size={16} /> : <Archive size={16} />}
+                  {chemical.archived ? "Restore Asset" : "Archive Asset"}
+               </button>
+             )}
            </div>
         </div>
 

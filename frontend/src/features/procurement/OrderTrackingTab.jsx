@@ -35,10 +35,20 @@ export default function OrderTrackingTab() {
   const fetch = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get('/api/procurement/shipments', { params:{ status:filterStatus, page, limit:12 } });
-      setShipments(res.data.shipments||[]);
-      setTotal(res.data.total||0);
-    } catch { showToast('Failed to load shipments','error'); }
+      const currentPage = Math.max(1, parseInt(page) || 1);
+      const res = await axios.get('/api/procurement/shipments', { 
+        params: { 
+          status: filterStatus || undefined, 
+          page: currentPage, 
+          limit: 12 
+        } 
+      });
+      setShipments(res.data.shipments || []);
+      setTotal(res.data.total || 0);
+    } catch (err) { 
+      console.error('Fetch Shipments Error:', err.response?.data || err.message);
+      showToast('Failed to load shipments', 'error'); 
+    }
     finally { setLoading(false); }
   }, [filterStatus, page]);
 

@@ -30,7 +30,7 @@ const vendorPerformanceSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Auto-calculate overall_rating before save
-vendorPerformanceSchema.pre('save', function(next) {
+vendorPerformanceSchema.pre('save', async function() {
   const scores = [
     this.delivery_punctuality,
     this.order_accuracy,
@@ -40,7 +40,6 @@ vendorPerformanceSchema.pre('save', function(next) {
   ];
   const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
   this.overall_rating = Math.round(avg * 10) / 10;
-  next();
 });
 
 vendorPerformanceSchema.index({ supplier_id: 1 });

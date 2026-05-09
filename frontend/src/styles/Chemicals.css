@@ -402,8 +402,8 @@
 }
 
 .action-buttons-group {
-  display: grid;
-  grid-template-columns: repeat(2, 2.5rem);
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   justify-content: flex-end;
   width: 100%;

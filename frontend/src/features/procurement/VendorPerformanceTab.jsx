@@ -69,12 +69,23 @@ export default function VendorPerformanceTab() {
     }
     setSubmitting(true);
     try {
-      await axios.post('/api/procurement/reviews', form);
+      const payload = { ...form };
+      // Remove empty strings
+      Object.keys(payload).forEach(key => {
+        if (payload[key] === '' || payload[key] === null || payload[key] === undefined) {
+          delete payload[key];
+        }
+      });
+
+      await axios.post('/api/procurement/reviews', payload);
       showToast('Review submitted successfully');
       setShowModal(false);
       setForm(emptyForm);
       fetch();
-    } catch (err) { showToast(err.response?.data?.error||'Failed','error'); }
+    } catch (err) { 
+      console.error('Submit Review Error:', err.response?.data || err.message);
+      showToast(err.response?.data?.error || 'Failed to submit review', 'error'); 
+    }
     finally { setSubmitting(false); }
   };
 

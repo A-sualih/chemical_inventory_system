@@ -46,14 +46,25 @@ export default function PurchaseOrdersTab() {
   const fetch = useCallback(async () => {
     setLoading(true);
     try {
+      const currentPage = Math.max(1, parseInt(page) || 1);
+      const params = { 
+        status: filterStatus || undefined, 
+        priority: filterPriority || undefined, 
+        search: search || undefined, 
+        page: currentPage, 
+        limit: 15 
+      };
       const [oRes, sRes] = await Promise.all([
-        axios.get('/api/procurement/orders', { params: { status: filterStatus, priority: filterPriority, search, page, limit: 15 } }),
+        axios.get('/api/procurement/orders', { params }),
         axios.get('/api/procurement/suppliers', { params: { status: 'Active', limit: 100 } })
       ]);
       setOrders(oRes.data.orders || []);
       setTotal(oRes.data.total || 0);
       setSuppliers(sRes.data.suppliers || []);
-    } catch { showToast('Failed to load orders', 'error'); }
+    } catch (err) { 
+      console.error('Fetch Orders Error:', err.response?.data || err.message);
+      showToast('Failed to load orders', 'error'); 
+    }
     finally { setLoading(false); }
   }, [filterStatus, filterPriority, search, page]);
 
@@ -78,13 +89,33 @@ export default function PurchaseOrdersTab() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const payload = { ...form, total_cost: grandTotal, subtotal: grandTotal - (parseFloat(form.shipping_fee) || 0) };
+      // Create a clean copy of the form
+      const payload = { ...form };
+      
+      // Remove empty strings to avoid Mongoose validation errors
+      Object.keys(payload).forEach(key => {
+        if (payload[key] === '' || payload[key] === null || payload[key] === undefined) {
+          delete payload[key];
+        }
+      });
+      
+      // Recalculate totals for the payload
+      payload.total_cost = grandTotal;
+      payload.subtotal = grandTotal - (parseFloat(form.shipping_fee) || 0);
+
       await axios.post('/api/procurement/orders', payload);
       setShowModal(false);
-      setForm({ supplier_id: '', priority: 'Normal', currency: 'USD', expected_delivery: '', notes: '', department: '', shipping_fee: 0, items: [{ ...emptyItem }] });
+      setForm({ 
+        supplier_id: '', priority: 'Normal', currency: 'USD', 
+        expected_delivery: '', notes: '', department: '', 
+        shipping_fee: 0, items: [{ ...emptyItem }] 
+      });
       showToast('Purchase order created');
       fetch();
-    } catch (err) { showToast(err.response?.data?.error || 'Failed to create PO', 'error'); }
+    } catch (err) { 
+      console.error('Create PO Error:', err.response?.data || err.message);
+      showToast(err.response?.data?.error || 'Failed to create PO', 'error'); 
+    }
     finally { setSubmitting(false); }
   };
 

@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
       "submit_request", "update_stock", "view_safety_info", "manage_settings"
     ],
     "Lab Manager": [
-      "create_chemical", "edit_chemical", "approve_request",
+      "create_chemical", "edit_chemical", "delete_chemical", "approve_request",
       "view_reports", "view_audit_logs", "view_chemicals",
       "submit_request", "update_stock", "view_safety_info"
     ],
