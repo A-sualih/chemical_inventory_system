@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { NotificationProvider } from "../context/NotificationContext";
+import { SettingsProvider } from "../context/SettingsContext";
 
 import Dashboard from "../pages/Dashboard";
 import Chemicals from "../features/chemicals/Chemicals";
@@ -25,6 +26,8 @@ import ChemicalDetails from "../features/chemicals/ChemicalDetails";
 import SafetyDashboard from "../features/safety/SafetyDashboard";
 import ProcurementDashboard from "../features/procurement/ProcurementDashboard";
 import WasteDashboard from "../features/waste/WasteDashboard";
+import UserProfile from "../features/profile/UserProfile";
+import SystemSettings from "../features/settings/SystemSettings";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -41,8 +44,9 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 function App() {
   return (
     <AuthProvider>
-      <NotificationProvider>
-        <BrowserRouter>
+      <SettingsProvider>
+        <NotificationProvider>
+          <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -122,11 +126,21 @@ function App() {
                 <WasteDashboard />
               </ProtectedRoute>
             } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <UserProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <SystemSettings />
+              </ProtectedRoute>
+            } />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
-      </NotificationProvider>
-
+        </NotificationProvider>
+      </SettingsProvider>
     </AuthProvider>
 
   );
