@@ -123,10 +123,7 @@ const SystemSettings = () => {
             </div>
 
             {alert.message && (
-                <div style={{ padding: "12px", marginBottom: "20px", borderRadius: "8px", 
-                    background: alert.type === "error" ? "#fee2e2" : "#d1fae5",
-                    color: alert.type === "error" ? "#991b1b" : "#065f46"
-                 }}>
+                <div className={`toast-alert toast-${alert.type}`}>
                     {alert.message}
                 </div>
             )}

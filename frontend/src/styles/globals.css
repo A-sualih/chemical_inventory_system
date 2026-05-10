@@ -55,6 +55,7 @@ a, button, [role="button"] {
   touch-action: manipulation;
 }
 
+<<<<<<< HEAD
 /* ═══════════════════════════════════════════════════════════════
    GLOBAL MOBILE-FIRST RESPONSIVE LAYER
    Applies to ALL pages: Dashboard, Batches, Expiry, AdminOnly,
@@ -272,5 +273,40 @@ h1, h2 {
 @media (max-width: 768px) {
   * {
     -webkit-overflow-scrolling: touch;
+=======
+/* Toast Notifications */
+.toast-alert {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  padding: 1rem 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+  animation: slideInBottom 0.4s ease-out forwards;
+}
+
+.toast-success {
+  background-color: #d1fae5;
+  color: #065f46;
+  border-left: 4px solid #10b981;
+}
+
+.toast-error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-left: 4px solid #ef4444;
+}
+
+@keyframes slideInBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+>>>>>>> 5112df3e (refactor: standardize alert components into global toast notifications with CSS animations)
   }
 }

@@ -110,7 +110,7 @@ const UserProfile = () => {
             </div>
 
             {alert.message && (
-                <div className={`profile-alert ${alert.type}`}>
+                <div className={`toast-alert toast-${alert.type}`}>
                     {alert.message}
                 </div>
             )}
