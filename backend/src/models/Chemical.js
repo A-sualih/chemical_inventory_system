@@ -108,7 +108,6 @@ const chemicalSchema = new mongoose.Schema({
 
 // Indexing for performance
 chemicalSchema.index({ name: 'text', iupac_name: 'text', cas_number: 'text', formula: 'text', batch_number: 'text' });
-chemicalSchema.index({ id: 1 });
 chemicalSchema.index({ cas_number: 1 });
 chemicalSchema.index({ status: 1 });
 chemicalSchema.index({ building: 1 });

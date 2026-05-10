@@ -87,7 +87,15 @@ const wasteDisposalSchema = new mongoose.Schema({
     uploaded_at: { type: Date, default: Date.now }
   }],
   
-  notes: { type: String }
+  notes: { type: String },
+  
+  // Track which batches were affected (especially for FIFO)
+  fifo_impact: [{
+    batch_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Batch' },
+    batch_number: { type: String },
+    subtract_quantity: { type: Number },
+    unit: { type: String }
+  }]
 }, { timestamps: true });
 
 // Auto-generate disposal ID (e.g., DISP-2024-001)
@@ -99,7 +107,7 @@ wasteDisposalSchema.pre('validate', async function() {
   }
 });
 
-wasteDisposalSchema.index({ disposal_id: 1 });
+// wasteDisposalSchema.index({ disposal_id: 1 }); // Already unique: true in schema
 wasteDisposalSchema.index({ chemical_id: 1 });
 wasteDisposalSchema.index({ status: 1 });
 wasteDisposalSchema.index({ method: 1 });

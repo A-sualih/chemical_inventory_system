@@ -2,10 +2,34 @@ const Batch = require('../../models/Batch');
 const Chemical = require('../../models/Chemical');
 const Container = require('../../models/Container');
 const { logAudit } = require('../../middleware/authMiddleware');
+const { convertToBase, convertFromBase } = require('../../utils/unitConverter');
+
+// Helper to reconcile chemical totals from its batches
+const reconcileChemical = async (chemicalId) => {
+  const [chemical, batches] = await Promise.all([
+    Chemical.findOne({ id: chemicalId }),
+    Batch.find({ chemical_id: chemicalId })
+  ]);
+  
+  if (!chemical) return;
+  
+  let totalInBase = 0;
+  for (const b of batches) {
+    totalInBase += convertToBase(b.total_quantity, b.unit);
+  }
+  
+  chemical.base_quantity = totalInBase;
+  chemical.quantity = convertFromBase(totalInBase, chemical.unit);
+  await chemical.save();
+};
 
 exports.getBatches = async (req, res) => {
   try {
-    const batches = await Batch.find().lean();
+    const { chemical_id } = req.query;
+    const filter = {};
+    if (chemical_id) filter.chemical_id = chemical_id;
+
+    const batches = await Batch.find(filter).lean();
     
     const enrichedBatches = await Promise.all(batches.map(async (batch) => {
       const [chemical, containers] = await Promise.all([
@@ -67,6 +91,9 @@ exports.createBatch = async (req, res) => {
       targetName: newBatch.batch_number,
       details: `Added batch ${newBatch.batch_number} for ${chemical.name}`
     });
+
+    // Reconcile chemical total
+    await reconcileChemical(data.chemical_id);
     
     res.status(201).json(newBatch);
   } catch (err) {
@@ -122,6 +149,9 @@ exports.updateBatch = async (req, res) => {
       targetName: batch.batch_number,
       details: `Updated batch information for ${batch.batch_number}`
     });
+
+    // Reconcile chemical total
+    await reconcileChemical(batch.chemical_id);
     
     res.json(batch);
   } catch (err) {
@@ -141,6 +171,9 @@ exports.deleteBatch = async (req, res) => {
       targetName: batch.batch_number,
       details: `Deleted batch ${batch.batch_number}`
     });
+
+    // Reconcile chemical total
+    await reconcileChemical(batch.chemical_id);
     
     res.json({ message: 'Deleted successfully' });
   } catch (err) {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+// Disposal Tracking Tab with Quick Log feature
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { IconTrash, IconClock, IconPlus, IconX, IconCheckCircle, IconAlertTriangle } from './WasteIcons';
@@ -6,7 +7,7 @@ import { IconTrash, IconClock, IconPlus, IconX, IconCheckCircle, IconAlertTriang
 const REASONS = ['Expired', 'Contaminated', 'Damaged', 'Excess stock', 'Experimental waste', 'Other'];
 const METHODS = ['Neutralization', 'Incineration', 'Chemical treatment', 'Recycling', 'Waste contractor pickup', 'Secure hazardous storage'];
 
-export default function DisposalLogTab() {
+export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpenModal }) {
   const { user, hasPermission } = useAuth();
   const [disposals, setDisposals] = useState([]);
   const [total, setTotal] = useState(0);
@@ -14,7 +15,6 @@ export default function DisposalLogTab() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
 
-  const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [chemicals, setChemicals] = useState([]);
 
@@ -63,10 +63,26 @@ export default function DisposalLogTab() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 1. Frontend validation: Check if quantity is available
+    const selectedChem = chemicals.find(c => c._id === form.chemical_id);
+    const selectedBatch = batches.find(b => b._id === form.batch_id);
+    const requestedQty = parseFloat(form.quantity);
+
+    if (selectedBatch) {
+      if (requestedQty > selectedBatch.total_quantity) {
+        return alert(`Insufficient batch stock: Only ${selectedBatch.total_quantity} ${selectedBatch.unit} available in batch ${selectedBatch.batch_number}.`);
+      }
+    } else if (selectedChem) {
+      if (requestedQty > selectedChem.quantity) {
+        return alert(`Insufficient total stock: Only ${selectedChem.quantity} ${selectedChem.unit} available in total inventory.`);
+      }
+    }
+
     setSubmitting(true);
     try {
       await axios.post('/api/waste/disposals', form);
-      setShowModal(false);
+      onCloseModal();
       fetchDisposals();
     } catch (err) {
       alert(err.response?.data?.error || 'Failed to submit request');
@@ -130,23 +146,185 @@ export default function DisposalLogTab() {
       <div className="waste-stats-grid">
         <div className="waste-stat-card">
           <div className="stat-header">
-            <span className="stat-icon-box" style={{ background: '#e0e7ff', color: '#4f46e5' }}>
-              <IconTrash size={20} />
+            <span className="stat-icon-box" style={{ background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)', color: '#4f46e5' }}>
+              <IconTrash size={24} />
             </span>
             <span className="stat-label">Total Logs</span>
           </div>
           <div className="stat-value">{total}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--secondary-400)', marginTop: '0.5rem', fontWeight: 600 }}>DISPOSAL RECORDS RECORDED</div>
         </div>
         <div className="waste-stat-card">
           <div className="stat-header">
-            <span className="stat-icon-box" style={{ background: '#fef3c7', color: '#d97706' }}>
-              <IconClock size={20} />
+            <span className="stat-icon-box" style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)', color: '#d97706' }}>
+              <IconClock size={24} />
             </span>
             <span className="stat-label">Pending Approval</span>
           </div>
           <div className="stat-value">{disposals.filter(d => d.status === 'Pending Approval').length}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--secondary-400)', marginTop: '0.5rem', fontWeight: 600 }}>AWAITING OFFICER REVIEW</div>
+        </div>
+        <div className="waste-stat-card">
+          <div className="stat-header">
+            <span className="stat-icon-box" style={{ background: 'linear-gradient(135deg, #d1fae5, #a7f3d0)', color: '#059669' }}>
+              <IconCheckCircle size={24} />
+            </span>
+            <span className="stat-label">Completed</span>
+          </div>
+          <div className="stat-value">{disposals.filter(d => d.status === 'Disposed').length}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--secondary-400)', marginTop: '0.5rem', fontWeight: 600 }}>SUCCESSFULLY PROCESSED</div>
         </div>
       </div>
+
+      {externalShowModal && (
+        <div className="waste-card" style={{ marginBottom: '2.5rem', border: '2px solid var(--waste-primary)', animation: 'slideDown 0.4s ease', maxWidth: '1000px' }}>
+          <div className="waste-card-header" style={{ background: 'rgba(99, 102, 241, 0.05)', padding: '0.75rem 1.5rem' }}>
+            <h2 className="waste-title" style={{ fontSize: '1rem', margin: 0 }}>New Disposal Request</h2>
+            <button 
+              onClick={onCloseModal} 
+              className="btn-modal-secondary" 
+              style={{ 
+                padding: 0, 
+                width: '28px', 
+                height: '28px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                borderRadius: '0.5rem',
+                minWidth: 'auto'
+              }}
+            >
+              <IconX size={16} />
+            </button>
+          </div>
+          <form onSubmit={handleSubmit} style={{ padding: '1.25rem 2rem' }}>
+            <div className="procurement-form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+              <div style={{ gridColumn: 'span 2' }}>
+                <label className="form-label-small" style={{ marginBottom: '0.4rem', fontSize: '0.65rem' }}>Chemical *</label>
+                <select
+                  required
+                  value={form.chemical_id}
+                  onChange={async (e) => {
+                    const chemId = e.target.value;
+                    const chem = chemicals.find(c => c._id === chemId);
+                    setForm({
+                      ...form,
+                      chemical_id: chemId,
+                      batch_id: '',
+                      batch_number: '',
+                      unit: chem ? chem.unit : ''
+                    });
+
+                    if (chemId && chem) {
+                      try {
+                        const res = await axios.get('/api/batches', { params: { chemical_id: chem.id } });
+                        setBatches(res.data.data || res.data || []);
+                      } catch (err) {
+                        console.error('Fetch Batches Error:', err);
+                      }
+                    } else {
+                      setBatches([]);
+                    }
+                  }}
+                  className="procurement-input"
+                  style={{ padding: '0.625rem 1rem', fontSize: '0.875rem' }}
+                >
+                  <option value="">Select chemical...</option>
+                  {chemicals
+                    .filter(c => c.quantity > 0)
+                    .map(c => (
+                      <option key={c._id} value={c._id}>
+                        {c.name} ({c.cas_number}) - Available: {c.quantity} {c.unit}
+                      </option>
+                    ))
+                  }
+                </select>
+              </div>
+
+              <div>
+                <label className="form-label-small" style={{ marginBottom: '0.4rem', fontSize: '0.65rem' }}>Batch (Optional)</label>
+                <select
+                  value={form.batch_id}
+                  onChange={e => {
+                    const batch = batches.find(b => b._id === e.target.value);
+                    setForm({
+                      ...form,
+                      batch_id: e.target.value,
+                      batch_number: batch ? batch.batch_number : ''
+                    });
+                  }}
+                  className="procurement-input"
+                  style={{ padding: '0.625rem 1rem', fontSize: '0.875rem' }}
+                >
+                  <option value="">Auto-FIFO (Oldest first)</option>
+                  {batches
+                    .filter(b => b.total_quantity > 0)
+                    .map(b => (
+                      <option key={b._id} value={b._id}>
+                        {b.batch_number} - Stock: {b.total_quantity} {b.unit} {b.status === 'Expired' ? '(EXPIRED)' : ''}
+                      </option>
+                    ))
+                  }
+                </select>
+              </div>
+
+              <div>
+                <label className="form-label-small" style={{ marginBottom: '0.4rem', fontSize: '0.65rem' }}>Quantity *</label>
+                <input
+                  type="number"
+                  required
+                  value={form.quantity}
+                  onChange={e => setForm({ ...form, quantity: e.target.value })}
+                  className="procurement-input"
+                  style={{ padding: '0.625rem 1rem', fontSize: '0.875rem' }}
+                />
+              </div>
+
+              <div>
+                <label className="form-label-small" style={{ marginBottom: '0.4rem', fontSize: '0.65rem' }}>Unit *</label>
+                <input
+                  type="text"
+                  required
+                  value={form.unit}
+                  onChange={e => setForm({ ...form, unit: e.target.value })}
+                  className="procurement-input"
+                  style={{ padding: '0.625rem 1rem', fontSize: '0.875rem' }}
+                />
+              </div>
+
+              <div>
+                <label className="form-label-small" style={{ marginBottom: '0.4rem', fontSize: '0.65rem' }}>Reason *</label>
+                <select
+                  value={form.reason}
+                  onChange={e => setForm({ ...form, reason: e.target.value })}
+                  className="procurement-input"
+                  style={{ padding: '0.625rem 1rem', fontSize: '0.875rem' }}
+                >
+                  {REASONS.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+
+              <div style={{ gridColumn: 'span 2' }}>
+                <label className="form-label-small" style={{ marginBottom: '0.4rem', fontSize: '0.65rem' }}>Additional Notes (Optional)</label>
+                <textarea
+                  value={form.notes}
+                  onChange={e => setForm({ ...form, notes: e.target.value })}
+                  className="procurement-input"
+                  rows="1"
+                  placeholder="Safety notes..."
+                  style={{ padding: '0.625rem 1rem', fontSize: '0.875rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                <button type="submit" disabled={submitting} className="btn-waste-primary" style={{ width: '100%', justifyContent: 'center', height: '2.75rem', padding: '0.5rem 1rem', fontSize: '0.75rem' }}>
+                  {submitting ? 'Submitting...' : 'Submit Request'}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
 
       <div className="waste-card">
         <div className="waste-card-header">
@@ -161,8 +339,12 @@ export default function DisposalLogTab() {
             />
           </div>
           {hasPermission('manage_waste') && (
-            <button className="btn-waste-primary" onClick={() => setShowModal(true)}>
-              <IconPlus size={18} /> Log New Disposal
+            <button 
+              className="btn-waste-primary" 
+              onClick={externalShowModal ? onCloseModal : onOpenModal}
+            >
+              {externalShowModal ? <IconX size={18} /> : <IconPlus size={18} />}
+              {externalShowModal ? 'Close Form' : 'Log New Disposal'}
             </button>
           )}
         </div>
@@ -236,143 +418,7 @@ export default function DisposalLogTab() {
         </table>
       </div>
 
-      {showModal && (
-        <div className="waste-modal-overlay">
-          <div className="waste-modal-card">
-            <div className="waste-card-header">
-              <h2 className="waste-title" style={{ fontSize: '1.5rem' }}>Log New Disposal Request</h2>
-              <button onClick={() => setShowModal(false)} className="btn-modal-secondary" style={{ padding: '0.5rem' }}>
-                <IconX size={20} />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} style={{ padding: '2rem', overflowY: 'auto' }}>
-              <div className="procurement-form-grid">
-                <div style={{ gridColumn: 'span 2' }}>
-                  <label className="form-label-small">Chemical *</label>
-                  <select
-                    required
-                    value={form.chemical_id}
-                    onChange={async (e) => {
-                      const chemId = e.target.value;
-                      const chem = chemicals.find(c => c._id === chemId);
-                      setForm({
-                        ...form,
-                        chemical_id: chemId,
-                        batch_id: '',
-                        batch_number: '',
-                        unit: chem ? chem.unit : ''
-                      });
 
-                      if (chemId) {
-                        try {
-                          const res = await axios.get('/api/batches', { params: { chemical_id: chemId } });
-                          setBatches(res.data.data || res.data || []);
-                        } catch (err) {
-                          console.error('Fetch Batches Error:', err);
-                        }
-                      } else {
-                        setBatches([]);
-                      }
-                    }}
-                    className="procurement-input"
-                  >
-                    <option value="">Select chemical...</option>
-                    {chemicals.map(c => <option key={c._id} value={c._id}>{c.name} ({c.cas_number})</option>)}
-                  </select>
-                </div>
-
-                <div style={{ gridColumn: 'span 2' }}>
-                  <label className="form-label-small">Batch (Optional)</label>
-                  <select
-                    value={form.batch_id}
-                    onChange={e => {
-                      const batch = batches.find(b => b._id === e.target.value);
-                      setForm({
-                        ...form,
-                        batch_id: e.target.value,
-                        batch_number: batch ? batch.batch_number : ''
-                      });
-                    }}
-                    className="procurement-input"
-                  >
-                    <option value="">Select specific batch (Auto-FIFO if empty)</option>
-                    {batches.map(b => (
-                      <option key={b._id} value={b._id}>
-                        {b.batch_number} - Stock: {b.total_quantity} {b.unit} {b.expiry_date ? `(Exp: ${new Date(b.expiry_date).toLocaleDateString()})` : ''} {b.status === 'Expired' ? '(EXPIRED)' : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="form-label-small">Quantity *</label>
-                  <input
-                    type="number"
-                    required
-                    value={form.quantity}
-                    onChange={e => setForm({ ...form, quantity: e.target.value })}
-                    className="procurement-input"
-                  />
-                </div>
-                <div>
-                  <label className="form-label-small">Unit *</label>
-                  <input
-                    type="text"
-                    required
-                    value={form.unit}
-                    onChange={e => setForm({ ...form, unit: e.target.value })}
-                    className="procurement-input"
-                    placeholder="kg, L, bottles..."
-                  />
-                  {form.chemical_id && (
-                    <div style={{ fontSize: '0.7rem', color: 'var(--secondary-400)', marginTop: '0.25rem', fontWeight: 600 }}>
-                      Current Inventory Unit: {chemicals.find(c => c._id === form.chemical_id)?.unit}
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="form-label-small">Reason *</label>
-                  <select
-                    value={form.reason}
-                    onChange={e => setForm({ ...form, reason: e.target.value })}
-                    className="procurement-input"
-                  >
-                    {REASONS.map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="form-label-small">Initial Method *</label>
-                  <select
-                    value={form.method}
-                    onChange={e => setForm({ ...form, method: e.target.value })}
-                    className="procurement-input"
-                  >
-                    {METHODS.map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                </div>
-
-                <div style={{ gridColumn: 'span 2' }}>
-                  <label className="form-label-small">Additional Notes</label>
-                  <textarea
-                    value={form.notes}
-                    onChange={e => setForm({ ...form, notes: e.target.value })}
-                    className="procurement-input"
-                    rows="3"
-                  />
-                </div>
-              </div>
-
-              <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                <button type="button" onClick={() => setShowModal(false)} className="btn-modal-secondary">Cancel</button>
-                <button type="submit" disabled={submitting} className="btn-waste-primary">
-                  {submitting ? 'Submitting...' : 'Submit Request'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {viewingDisposal && (
         <div className="waste-modal-overlay">
@@ -615,7 +661,7 @@ export default function DisposalLogTab() {
                 <p style={{ fontSize: '0.875rem', color: 'var(--secondary-600)', marginBottom: '1rem' }}>
                   The following batches will be affected based on the <strong>FIFO (First to Expire)</strong> policy:
                 </p>
-                
+
                 {previewLoading ? (
                   <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--secondary-400)' }}>Calculating FIFO impact...</div>
                 ) : fifoPreview ? (
@@ -652,7 +698,7 @@ export default function DisposalLogTab() {
 
               <div style={{ marginBottom: '1.5rem' }}>
                 <label className="form-label-small">Approval Notes</label>
-                <textarea 
+                <textarea
                   value={approvalNotes}
                   onChange={e => setApprovalNotes(e.target.value)}
                   className="procurement-input"
@@ -663,7 +709,7 @@ export default function DisposalLogTab() {
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                 <button type="button" onClick={() => setApprovingDisposal(null)} className="btn-modal-secondary">Cancel</button>
-                <button type="submit" disabled={fifoPreview?.insufficient_inventory} className="btn-waste-primary">
+                <button type="submit" className="btn-waste-primary">
                   Confirm Approval
                 </button>
               </div>

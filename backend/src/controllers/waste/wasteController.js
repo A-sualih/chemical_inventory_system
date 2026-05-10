@@ -7,6 +7,7 @@ const WastePermit = require('../../models/WastePermit');
 const Notification = require('../../models/Notification');
 const User = require('../../models/User');
 const WasteSafetyProtocol = require('../../models/WasteSafetyProtocol');
+const { getBaseUnit } = require('../../utils/unitConverter');
 
 // Helper for audit logging
 const logWasteAction = async (req, action, targetId, details) => {
@@ -17,10 +18,10 @@ const logWasteAction = async (req, action, targetId, details) => {
         name: req.user.name,
         role: req.user.role
       },
-      action: `WASTE_${action}`,
+      action: action, // Must be one of: CREATE, UPDATE, DELETE, APPROVE, REJECT, DISPOSAL
       target: {
-        type: 'waste',
-        id: targetId,
+        type: 'request',
+        id: String(targetId),
       },
       details,
       metadata: { ip: req.ip, userAgent: req.headers['user-agent'] }
@@ -101,19 +102,151 @@ exports.createDisposalRequest = async (req, res) => {
       });
     }
 
-    await disposal.save();
-    await logWasteAction(req, 'REQUEST_CREATED', disposal._id, `Requested disposal of ${quantity} ${unit} ${chemical.name}`);
+    // 3. Strict Quantity Validation (Prevention at source)
+    const requestedQtyInBase = convertToBase(quantity, unit);
+    const availableQtyInBase = chemical.base_quantity ?? convertToBase(chemical.quantity, chemical.unit);
     
+    if (requestedQtyInBase > (availableQtyInBase + 0.0001)) { // Allow tiny floating point margin
+      const availableInRequestedUnit = convertFromBase(availableQtyInBase, unit);
+      return res.status(400).json({
+        error: `Insufficient inventory: Only ${availableInRequestedUnit} ${unit} available in total inventory. Requested: ${quantity} ${unit}.`
+      });
+    }
+
+    // 4. Batch-specific check if batch is provided
+    if (cleanedBatchId) {
+      const batch = await Batch.findById(cleanedBatchId);
+      if (batch) {
+        const batchQtyInBase = convertToBase(batch.total_quantity, batch.unit);
+        if (requestedQtyInBase > (batchQtyInBase + 0.0001)) {
+          const batchAvailableInRequestedUnit = convertFromBase(batchQtyInBase, unit);
+          return res.status(400).json({
+            error: `Insufficient batch stock: Selected batch ${batch.batch_number} only has ${batchAvailableInRequestedUnit} ${unit} remaining.`
+          });
+        }
+      }
+    }
+
+    disposal.responsible_person_name = req.user.name;
+    await disposal.save();
+
+    // --- IMMEDIATE DEPLETION ON REQUEST ---
+    if (chemical) {
+      const amountToSubtractInBase = convertToBase(quantity, unit);
+      chemical.base_quantity = Math.max(0, (chemical.base_quantity || convertToBase(chemical.quantity, chemical.unit)) - amountToSubtractInBase);
+      chemical.quantity = convertFromBase(chemical.base_quantity, chemical.unit);
+      
+      const impactedBatches = [];
+      let remainingToSubtract = amountToSubtractInBase;
+
+      if (cleanedBatchId) {
+        const targetBatch = await Batch.findById(cleanedBatchId);
+        if (targetBatch) {
+          const batchQtyInBase = convertToBase(targetBatch.total_quantity, targetBatch.unit);
+          const subtract = Math.min(batchQtyInBase, remainingToSubtract);
+          targetBatch.total_quantity = convertFromBase(batchQtyInBase - subtract, targetBatch.unit);
+          await depleteContainersForBatch(targetBatch, subtract, disposal.container_id);
+          
+          impactedBatches.push({
+            batch_id: targetBatch._id,
+            batch_number: targetBatch.batch_number,
+            subtract_quantity: convertFromBase(subtract, unit),
+            unit: unit
+          });
+
+          remainingToSubtract -= subtract;
+          await targetBatch.save();
+        }
+      }
+
+      if (remainingToSubtract > 0) {
+        const batches = await Batch.find({ chemical_id: chemical.id, _id: { $ne: cleanedBatchId } }).sort({ expiry_date: 1 });
+        for (const batch of batches) {
+          if (remainingToSubtract <= 0) break;
+          const bQtyInBase = convertToBase(batch.total_quantity, batch.unit);
+          if (bQtyInBase <= 0) continue;
+
+          const subtract = Math.min(bQtyInBase, remainingToSubtract);
+          batch.total_quantity = convertFromBase(bQtyInBase - subtract, batch.unit);
+          await depleteContainersForBatch(batch, subtract, null);
+          
+          impactedBatches.push({
+            batch_id: batch._id,
+            batch_number: batch.batch_number,
+            subtract_quantity: convertFromBase(subtract, unit),
+            unit: unit
+          });
+
+          remainingToSubtract -= subtract;
+          await batch.save();
+        }
+      }
+      await chemical.save();
+      disposal.fifo_impact = impactedBatches;
+      await disposal.save();
+      
+      await InventoryLog.create({
+        chemical_id: chemical.id,
+        chemical_name: chemical.name,
+        user_id: req.user.id,
+        user_name: req.user.name,
+        action: 'DISPOSAL_REQUESTED',
+        quantity_change: -quantity,
+        unit,
+        reason: `Disposal Request: ${reason}`
+      });
+    }
+    // --------------------------------------
+
+    await logWasteAction(req, 'CREATE', disposal._id, `Requested disposal of ${quantity} ${unit} ${chemical.name}`);
     res.status(201).json(disposal);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 };
 
-const { convertToBase, convertFromBase, getBaseUnit } = require('../../utils/unitConverter');
+const { convertToBase, convertFromBase } = require('../../utils/unitConverter');
 
 const Batch = require('../../models/Batch');
+const Container = require('../../models/Container');
 const InventoryLog = require('../../models/InventoryLog');
+
+// Helper to deplete containers for a specific batch
+const depleteContainersForBatch = async (batch, amountToSubtractInBase, targetedContainerId) => {
+  let containerRemaining = amountToSubtractInBase;
+  
+  // 1. Target specific container if provided
+  if (targetedContainerId) {
+    const targetContainer = await Container.findOne({ container_id: targetedContainerId, batch_number: batch.batch_number });
+    if (targetContainer) {
+      const cQtyInBase = convertToBase(targetContainer.quantity, targetContainer.unit);
+      const cSubtract = Math.min(cQtyInBase, containerRemaining);
+      targetContainer.quantity = convertFromBase(cQtyInBase - cSubtract, targetContainer.unit);
+      containerRemaining -= cSubtract;
+      targetContainer.status = targetContainer.quantity < 0.001 ? 'Empty' : 'In Use';
+      await targetContainer.save();
+    }
+  }
+  
+  // 2. Deplete remaining amount from other containers in this batch (FIFO)
+  if (containerRemaining > 0) {
+    const containers = await Container.find({ 
+      batch_number: batch.batch_number, 
+      status: { $nin: ['Empty', 'Damaged'] },
+      container_id: { $ne: targetedContainerId } 
+    }).sort({ created_at: 1 });
+    
+    for (const c of containers) {
+      if (containerRemaining <= 0) break;
+      const cQtyInBase = convertToBase(c.quantity, c.unit);
+      const cSubtract = Math.min(cQtyInBase, containerRemaining);
+      c.quantity = convertFromBase(cQtyInBase - cSubtract, c.unit);
+      containerRemaining -= cSubtract;
+      c.status = c.quantity < 0.001 ? 'Empty' : 'In Use';
+      await c.save();
+    }
+  }
+};
 
 /**
  * Approve disposal and update inventory
@@ -130,108 +263,13 @@ exports.approveDisposal = async (req, res) => {
       return res.status(400).json({ error: 'Only pending requests can be approved.' });
     }
 
-    // Update Inventory
-    const chemical = await Chemical.findById(disposal.chemical_id);
-    if (chemical) {
-      const disposalBaseUnit = getBaseUnit(disposal.unit);
-      const chemBaseUnit = chemical.base_unit || getBaseUnit(chemical.unit);
-      
-      // Safety check: Ensure units are compatible (e.g., both mass or both volume)
-      if (chemBaseUnit && disposalBaseUnit !== chemBaseUnit) {
-        return res.status(400).json({ 
-          error: `Unit mismatch: Chemical is tracked in ${chemical.unit} (${chemBaseUnit}), but disposal was logged in ${disposal.unit} (${disposalBaseUnit}).` 
-        });
-      }
-
-      const amountToSubtractInBase = convertToBase(disposal.quantity, disposal.unit);
-      
-      // Strict Quantity Validation: Prevent disposing more than available
-      if (chemical.base_quantity === undefined) {
-        chemical.base_quantity = convertToBase(chemical.quantity, chemical.unit);
-      }
-
-      if (chemical.base_quantity < amountToSubtractInBase) {
-        const availableInSelectedUnit = convertFromBase(chemical.base_quantity, disposal.unit);
-        return res.status(400).json({ 
-          error: `Insufficient inventory: Total available is ${availableInSelectedUnit} ${disposal.unit}, but disposal request requires ${disposal.quantity} ${disposal.unit}. Please adjust the disposal quantity.` 
-        });
-      }
-      
-      // 1. Update Chemical Totals
-      chemical.base_quantity = Math.max(0, chemical.base_quantity - amountToSubtractInBase);
-      chemical.quantity = convertFromBase(chemical.base_quantity, chemical.unit);
-      
-      // 2. Update Batches
-      let remainingToSubtract = amountToSubtractInBase;
-
-      if (disposal.batch_id) {
-        // Specific batch targeted
-        const targetBatch = await Batch.findById(disposal.batch_id);
-        if (targetBatch) {
-          const batchQtyInBase = convertToBase(targetBatch.total_quantity, targetBatch.unit);
-          const subtractFromThisBatch = Math.min(batchQtyInBase, remainingToSubtract);
-          const newBatchQtyInBase = batchQtyInBase - subtractFromThisBatch;
-          
-          targetBatch.total_quantity = convertFromBase(newBatchQtyInBase, targetBatch.unit);
-          remainingToSubtract -= subtractFromThisBatch;
-          
-          if (targetBatch.total_quantity < 0.001) targetBatch.total_quantity = 0;
-          await targetBatch.save();
-        }
-      }
-
-      // If there's still quantity to subtract (or no batch was specified), use FIFO for the rest
-      if (remainingToSubtract > 0) {
-        const batches = await Batch.find({ 
-          chemical_id: chemical.id,
-          _id: { $ne: disposal.batch_id } // Don't subtract twice from the same batch
-        }).sort({ expiry_date: 1 });
-
-        for (const batch of batches) {
-          if (remainingToSubtract <= 0) break;
-          
-          const batchQtyInBase = convertToBase(batch.total_quantity, batch.unit);
-          if (batchQtyInBase > 0) {
-            const subtractFromThisBatch = Math.min(batchQtyInBase, remainingToSubtract);
-            const newBatchQtyInBase = batchQtyInBase - subtractFromThisBatch;
-            
-            batch.total_quantity = convertFromBase(newBatchQtyInBase, batch.unit);
-            remainingToSubtract -= subtractFromThisBatch;
-            
-            if (batch.total_quantity < 0.001) batch.total_quantity = 0;
-            await batch.save();
-          }
-        }
-      }
-
-      // 3. Create Inventory Log for Audit
-      await InventoryLog.create({
-        chemical_id: chemical.id,
-        chemical_name: chemical.name,
-        user_id: req.user.id,
-        user_name: req.user.name,
-        user_role: req.user.role,
-        action: 'DISPOSAL',
-        quantity_change: -disposal.quantity,
-        unit: disposal.unit,
-        batch_number: disposal.batch_number, // Log the specific batch if known
-        reason: `Waste Disposal: ${disposal.reason}`,
-        disposal_method: disposal.method,
-        disposal_approved_by: req.user.name,
-        disposal_approved_role: req.user.role,
-        compliance_notes: approval_notes
-      });
-
-      await chemical.save();
-    }
-
     disposal.status = 'Approved';
     disposal.approved_by = req.user.id;
     disposal.approval_date = new Date();
     disposal.approval_notes = approval_notes;
     
     await disposal.save();
-    await logWasteAction(req, 'APPROVED', disposal._id, `Approved disposal of ${disposal.quantity} ${disposal.unit} ${disposal.chemical_name}`);
+    await logWasteAction(req, 'APPROVE', disposal._id, `Approved disposal request for ${disposal.chemical_name}`);
 
     res.json(disposal);
   } catch (err) {
@@ -252,21 +290,53 @@ exports.getDisposalFifoPreview = async (req, res) => {
     const chemical = await Chemical.findById(disposal.chemical_id);
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
     
+    if (disposal.fifo_impact && disposal.fifo_impact.length > 0) {
+      return res.json({
+        disposal_id: disposal.disposal_id,
+        chemical_name: chemical.name,
+        requested_quantity: disposal.quantity,
+        unit: disposal.unit,
+        affected_batches: disposal.fifo_impact.map(i => ({
+          batch_id: i.batch_id,
+          batch_number: i.batch_number,
+          current_quantity: 'Reserved',
+          unit: i.unit,
+          subtract_quantity: i.subtract_quantity,
+          remaining_quantity: 'Reserved',
+          is_targeted: i.batch_id?.toString() === disposal.batch_id?.toString()
+        })),
+        insufficient_inventory: false,
+        shortfall: 0,
+        is_historical: true
+      });
+    }
+
     const amountToSubtractInBase = convertToBase(disposal.quantity, disposal.unit);
     let remainingToSubtract = amountToSubtractInBase;
     const preview = [];
+    
+    // If stock was already depleted on request but fifo_impact is missing (transitional requests),
+    // we should still allow approval if the total inventory + this disposal's quantity covers it.
+    const currentTotalInBase = chemical.base_quantity || convertToBase(chemical.quantity, chemical.unit);
+    const looksLikeAlreadyDepleted = (currentTotalInBase < amountToSubtractInBase - 0.001);
     
     // 1. Specific batch check
     if (disposal.batch_id) {
       const targetBatch = await Batch.findById(disposal.batch_id);
       if (targetBatch) {
-        const batchQtyInBase = convertToBase(targetBatch.total_quantity, targetBatch.unit);
+        let batchQtyInBase = convertToBase(targetBatch.total_quantity, targetBatch.unit);
+        
+        // If we suspect it was already depleted, the "Current" stock for preview should include the reserved amount
+        if (looksLikeAlreadyDepleted) {
+           batchQtyInBase += amountToSubtractInBase; 
+        }
+
         const subtractFromThisBatch = Math.min(batchQtyInBase, remainingToSubtract);
         
         preview.push({
           batch_id: targetBatch._id,
           batch_number: targetBatch.batch_number,
-          current_quantity: targetBatch.total_quantity,
+          current_quantity: convertFromBase(batchQtyInBase, targetBatch.unit),
           unit: targetBatch.unit,
           subtract_quantity: convertFromBase(subtractFromThisBatch, targetBatch.unit),
           remaining_quantity: convertFromBase(batchQtyInBase - subtractFromThisBatch, targetBatch.unit),
@@ -287,14 +357,21 @@ exports.getDisposalFifoPreview = async (req, res) => {
       for (const batch of batches) {
         if (remainingToSubtract <= 0) break;
         
-        const batchQtyInBase = convertToBase(batch.total_quantity, batch.unit);
+        let batchQtyInBase = convertToBase(batch.total_quantity, batch.unit);
+        
+        // Handle transitional requests where stock was already depleted
+        if (looksLikeAlreadyDepleted && batchQtyInBase < 0.001) {
+           // We'll assume this batch was the one depleted if it's now empty
+           batchQtyInBase = remainingToSubtract; 
+        }
+
         if (batchQtyInBase > 0) {
           const subtractFromThisBatch = Math.min(batchQtyInBase, remainingToSubtract);
           
           preview.push({
             batch_id: batch._id,
             batch_number: batch.batch_number,
-            current_quantity: batch.total_quantity,
+            current_quantity: convertFromBase(batchQtyInBase, batch.unit),
             unit: batch.unit,
             subtract_quantity: convertFromBase(subtractFromThisBatch, batch.unit),
             remaining_quantity: convertFromBase(batchQtyInBase - subtractFromThisBatch, batch.unit),
@@ -341,10 +418,53 @@ exports.rejectDisposal = async (req, res) => {
     }
 
     disposal.status = 'Rejected';
-    disposal.approval_notes = rejection_notes; // Reuse approval_notes field or add rejection_notes
-    
+    disposal.approval_notes = rejection_notes;
     await disposal.save();
-    await logWasteAction(req, 'REJECTED', disposal._id, `Rejected disposal for ${disposal.chemical_name}: ${rejection_notes}`);
+
+    // --- RESTORE INVENTORY ON REJECTION ---
+    const chemical = await Chemical.findById(disposal.chemical_id);
+    if (chemical) {
+      const amountToAddInBase = convertToBase(disposal.quantity, disposal.unit);
+      
+      // Update Chemical Totals
+      chemical.base_quantity = (chemical.base_quantity || convertToBase(chemical.quantity, chemical.unit)) + amountToAddInBase;
+      chemical.quantity = convertFromBase(chemical.base_quantity, chemical.unit);
+      
+      // Update Batch (Restore to specific batch if targeted, or oldest batch)
+      const targetBatch = await Batch.findOne({ chemical_id: chemical.id, batch_number: disposal.batch_number }) || 
+                          await Batch.findOne({ chemical_id: chemical.id }).sort({ expiry_date: 1 });
+      
+      if (targetBatch) {
+        const currentQtyInBase = convertToBase(targetBatch.total_quantity, targetBatch.unit);
+        targetBatch.total_quantity = convertFromBase(currentQtyInBase + amountToAddInBase, targetBatch.unit);
+        
+        // Restore to a container
+        const container = await Container.findOne({ batch_number: targetBatch.batch_number }).sort({ created_at: -1 });
+        if (container) {
+          const cQtyInBase = convertToBase(container.quantity, container.unit);
+          container.quantity = convertFromBase(cQtyInBase + amountToAddInBase, container.unit);
+          if (container.status === 'Empty') container.status = 'In Use';
+          await container.save();
+        }
+        await targetBatch.save();
+      }
+      await chemical.save();
+      
+      // Log Inventory Restoration
+      await InventoryLog.create({
+        chemical_id: chemical.id,
+        chemical_name: chemical.name,
+        user_id: req.user.id,
+        user_name: req.user.name,
+        action: 'DISPOSAL_REJECTED',
+        quantity_change: disposal.quantity,
+        unit: disposal.unit,
+        reason: `Disposal Rejected: ${rejection_notes}`
+      });
+    }
+    // --------------------------------------
+
+    await logWasteAction(req, 'REJECT', disposal._id, `Rejected disposal request for ${disposal.chemical_name}: ${rejection_notes}`);
 
     res.json(disposal);
   } catch (err) {
@@ -382,7 +502,7 @@ exports.completeDisposal = async (req, res) => {
       });
     }
 
-    await logWasteAction(req, 'COMPLETED', disposal._id, `Completed disposal for ${disposal.chemical_name}`);
+    await logWasteAction(req, 'DISPOSAL', disposal._id, `Completed disposal for ${disposal.chemical_name}`);
     
     res.json(disposal);
   } catch (err) {
@@ -593,3 +713,6 @@ exports.updateIncidentImpact = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
+
+
