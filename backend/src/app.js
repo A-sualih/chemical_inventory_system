@@ -16,12 +16,15 @@ const locationRoutes = require('./routes/locations');
 const safetyRoutes = require('./routes/safety');
 const procurementRoutes = require('./routes/procurementRoutes');
 const wasteRoutes = require('./routes/wasteRoutes');
+const settingsRoutes = require('./routes/settings');
+const profileRoutes = require('./routes/profile');
+const uploadRoutes = require('./routes/upload');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -38,6 +41,9 @@ app.use('/api/locations', locationRoutes);
 app.use('/api/safety', safetyRoutes);
 app.use('/api/procurement', procurementRoutes);
 app.use('/api/waste', wasteRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
