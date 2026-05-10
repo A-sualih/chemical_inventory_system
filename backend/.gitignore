@@ -25,7 +25,7 @@ coverage
 .nyc_output
 
 # Dependency directories
-# node_modules/
+node_modules/
 
 # cache directories
 .npm
