@@ -54,3 +54,223 @@ body {
 a, button, [role="button"] {
   touch-action: manipulation;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL MOBILE-FIRST RESPONSIVE LAYER
+   Applies to ALL pages: Dashboard, Batches, Expiry, AdminOnly,
+   Reports, Chemicals, Containers, SafetyDashboard, etc.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 1. iOS Zoom Prevention ───────────────────────────────────── */
+/* Safari zooms when input font-size < 16px. This fixes it globally */
+input,
+select,
+textarea {
+  font-size: 16px !important;
+  max-width: 100%;
+}
+
+/* ── 2. Global Overflow Lock ──────────────────────────────────── */
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+table {
+  word-break: break-word;
+}
+
+/* ── 3. Responsive Page Containers ───────────────────────────── */
+/* Any top-level page wrapper with these common naming patterns */
+.page-container,
+.dashboard-container,
+.chemicals-container,
+.batches-container,
+.expiry-container,
+.reports-container,
+.admin-container,
+.safety-container,
+.containers-container,
+.locations-container,
+.notifications-container,
+.scan-container {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .page-container,
+  .dashboard-container,
+  .chemicals-container,
+  .batches-container,
+  .expiry-container,
+  .reports-container,
+  .admin-container,
+  .safety-container,
+  .containers-container,
+  .locations-container,
+  .notifications-container,
+  .scan-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* ── 4. Global Page Title Responsiveness ─────────────────────── */
+.page-title,
+.section-title,
+h1, h2 {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 768px) {
+  .page-title {
+    font-size: clamp(1.5rem, 5vw, 1.875rem) !important;
+  }
+}
+
+/* ── 5. Global Stat / Summary Grid Reflow ────────────────────── */
+/* Catches Dashboard, Batches, Expiry, AdminOnly stat rows */
+.stats-grid,
+.summary-grid,
+.stat-cards,
+.kpi-grid,
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 576px) {
+  .stats-grid,
+  .summary-grid,
+  .stat-cards,
+  .kpi-grid,
+  .metrics-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .stats-grid,
+  .summary-grid,
+  .stat-cards,
+  .kpi-grid,
+  .metrics-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── 6. Global Table Safety Net ──────────────────────────────── */
+/* For tables not yet converted to cards – at minimum make them scroll */
+.table-responsive-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 1rem;
+}
+
+/* ── 7. Global Filter / Toolbar Reflow ───────────────────────── */
+.filters-row,
+.toolbar-row,
+.search-filter-row,
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+@media (max-width: 576px) {
+  .filters-row,
+  .toolbar-row,
+  .search-filter-row,
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filters-row input,
+  .filters-row select,
+  .toolbar-row input,
+  .toolbar-row select,
+  .search-filter-row input,
+  .search-filter-row select,
+  .filter-bar input,
+  .filter-bar select {
+    width: 100%;
+  }
+}
+
+/* ── 8. Global Modal Overlay Safety ──────────────────────────── */
+/* Ensures modals on any page are centered and won't overflow */
+[class*="modal-overlay"],
+[class*="overlay-modal"] {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem !important;
+  overflow-y: auto !important;
+}
+
+[class*="modal-card"],
+[class*="modal-content"],
+[class*="modal-box"] {
+  width: 100% !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+}
+
+/* ── 9. Global Button Responsiveness ─────────────────────────── */
+@media (max-width: 480px) {
+  /* Stack header action button groups vertically on phones */
+  .action-buttons-group,
+  .header-actions,
+  .btn-group-header {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .action-buttons-group > button,
+  .header-actions > button,
+  .btn-group-header > button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── 10. Responsive Form Grids (global) ──────────────────────── */
+@media (max-width: 640px) {
+  [class*="form-grid"],
+  [class*="grid-form"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── 11. Responsive Typography Scale ─────────────────────────── */
+@media (max-width: 480px) {
+  .ledger-title,
+  .panel-heading,
+  .section-heading {
+    font-size: 1.125rem;
+  }
+
+  .procurement-main-title,
+  .procurement-modal-title {
+    font-size: 1.25rem;
+  }
+}
+
+/* ── 12. Smooth Scrolling & Touch Feel ───────────────────────── */
+@media (max-width: 768px) {
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}

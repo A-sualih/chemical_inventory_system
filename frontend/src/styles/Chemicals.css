@@ -545,3 +545,113 @@
   width: 1.25rem;
   height: 1.25rem;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   CHEMICALS PAGE — MOBILE-FIRST RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
+/* iOS zoom fix for all search/filter inputs on this page */
+.chemicals-container input,
+.chemicals-container select,
+.repository-header input,
+.repository-header select {
+  font-size: 16px !important;
+}
+
+@media (max-width: 768px) {
+  .repository-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .action-buttons-group {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .inventory-action-btn {
+    flex: 1;
+    justify-content: center;
+    min-width: 120px;
+  }
+
+  .header-title-section h1 {
+    font-size: clamp(1.5rem, 5vw, 1.875rem);
+  }
+}
+
+@media (max-width: 640px) {
+  /* Chemical ledger card compresses */
+  .ledger-card {
+    padding: 1rem;
+    border-radius: 1.5rem;
+  }
+
+  .ledger-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .ledger-controls {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* Table → stacked cards */
+  .inventory-table thead { display: none; }
+
+  .inventory-table,
+  .inventory-table tbody,
+  .inventory-table tr,
+  .inventory-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .inventory-table tr {
+    margin-bottom: 1rem;
+    background: white;
+    border-radius: 1.25rem;
+    border: 1px solid var(--secondary-100);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    overflow: hidden;
+  }
+
+  .inventory-table td {
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-bottom: 1px solid var(--secondary-50);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    text-align: right;
+  }
+
+  .inventory-table td:last-child { border-bottom: none; }
+
+  .inventory-table td::before {
+    content: attr(data-label);
+    font-size: 0.65rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--secondary-400);
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+    text-align: left;
+  }
+}
+
+@media (max-width: 375px) {
+  .ledger-card {
+    padding: 0.875rem;
+    border-radius: 1rem;
+  }
+
+  .header-title-section h1 {
+    font-size: 1.25rem;
+  }
+}

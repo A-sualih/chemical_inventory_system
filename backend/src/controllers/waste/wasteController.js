@@ -5,6 +5,7 @@ const Chemical = require('../../models/Chemical');
 const AuditLog = require('../../models/AuditLog');
 const WastePermit = require('../../models/WastePermit');
 const Notification = require('../../models/Notification');
+const notificationService = require('../../services/notificationService');
 const User = require('../../models/User');
 const WasteSafetyProtocol = require('../../models/WasteSafetyProtocol');
 const { getBaseUnit } = require('../../utils/unitConverter');
@@ -182,6 +183,18 @@ exports.createDisposalRequest = async (req, res) => {
         }
       }
       await chemical.save();
+      
+      // Trigger Out of Stock Alert if depleted
+      if (chemical.quantity <= 0) {
+        await notificationService.createNotification({
+          type: 'SYSTEM',
+          category: 'inventory',
+          title: 'Out of Stock Alert',
+          message: `The inventory for ${chemical.name} has been completely depleted (0 ${chemical.unit}). Please restock if necessary.`,
+          severity: 'high',
+          recipients: [{ role: 'admin' }, { role: 'lab_manager' }]
+        });
+      }
       disposal.fifo_impact = impactedBatches;
       await disposal.save();
       

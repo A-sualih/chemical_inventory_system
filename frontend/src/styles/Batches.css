@@ -535,3 +535,127 @@
   border-radius: 9999px;
   transition: width 0.5s ease;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   BATCHES PAGE — MOBILE-FIRST RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
+/* iOS zoom fix */
+.batches-search-input,
+.form-field-input {
+  font-size: 16px !important;
+}
+
+@media (max-width: 767px) {
+  /* Stats: 4-col → 2-col on tablets */
+  .batches-stats {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 1rem;
+    gap: 1rem;
+  }
+
+  .batches-table-wrap {
+    padding: 0 1rem;
+  }
+
+  .batches-header-bar {
+    padding: 1rem;
+  }
+
+  .batches-action-group {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .btn-new-batch {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Stats: 2→1 col */
+  .batches-stats {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  /* Table → stacked cards */
+  .batches-table thead { display: none; }
+
+  .batches-table,
+  .batches-table tbody,
+  .batches-table tr,
+  .batches-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .batches-table tr {
+    margin-bottom: 1rem;
+    background: white;
+    border-radius: 1.25rem;
+    border: 1px solid var(--secondary-100);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+
+  .batches-table td {
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-bottom: 1px solid var(--secondary-50);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    text-align: right;
+  }
+
+  .batches-table td:last-child { border-bottom: none; }
+
+  .batches-table td::before {
+    content: attr(data-label);
+    font-size: 0.65rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--secondary-400);
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+    text-align: left;
+  }
+
+  .batch-actions {
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  /* Form grid stack */
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .batch-form { padding: 1.25rem; }
+  .batch-modal-header { padding: 1.25rem; }
+  .batch-form-footer { padding: 1rem 1.25rem; }
+}
+
+@media (max-width: 375px) {
+  .batches-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .batches-title {
+    font-size: 1.25rem;
+  }
+
+  .batch-form-footer {
+    flex-direction: column;
+  }
+
+  .btn-batch-cancel,
+  .btn-batch-submit {
+    flex: none;
+    width: 100%;
+  }
+}

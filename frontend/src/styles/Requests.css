@@ -133,6 +133,7 @@
   margin-top: 0.25rem;
   outline: none;
   transition: box-shadow 0.2s;
+  font-size: 16px; /* Prevents iOS auto-zoom */
 }
 
 .form-input:focus {
@@ -175,6 +176,15 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .grid-cols-quantity {
+    grid-template-columns: 1fr;
+  }
+  .col-span-q {
+    grid-column: span 1;
+  }
 }
 
 .col-span-q {
@@ -376,12 +386,13 @@
 }
 
 .action-textarea {
-  font-size: 0.75rem;
+  font-size: 16px; /* Prevents iOS auto-zoom */
   padding: 0.5rem;
   border: 1px solid var(--secondary-200);
   border-radius: 0.5rem;
   outline: none;
   resize: vertical;
+  width: 100%;
 }
 
 .action-textarea:focus {

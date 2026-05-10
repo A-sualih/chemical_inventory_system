@@ -385,3 +385,145 @@
 
 .info-card-title { font-size: 1.25rem; font-weight: 900; color: var(--secondary-900); margin-bottom: 0.5rem; }
 .info-card-desc { color: var(--secondary-500); font-size: 0.875rem; line-height: 1.6; font-style: italic; }
+
+/* ═══════════════════════════════════════════════════════════════
+   EXPIRY PAGE — MOBILE-FIRST RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+  .expiry-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .expiry-main-title {
+    font-size: clamp(1.5rem, 5vw, 2.25rem);
+  }
+
+  .expiry-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .expiry-stat-card {
+    padding: 1.25rem;
+    border-radius: 1.5rem;
+  }
+
+  .expiry-stat-value {
+    font-size: 2rem;
+  }
+
+  .expiry-ledger-header {
+    padding: 1.25rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .info-card {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .expiry-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .expiry-stat-icon-box {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Table → stacked cards */
+  .expiry-table thead { display: none; }
+
+  .expiry-table,
+  .expiry-table tbody,
+  .expiry-table tr,
+  .expiry-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .expiry-table tr {
+    margin-bottom: 1rem;
+    background: white;
+    border-radius: 1.25rem;
+    border: 1px solid var(--secondary-100);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+
+  .expiry-table tr.expired-row {
+    border-color: #fecaca;
+  }
+
+  .expiry-table td {
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-bottom: 1px solid var(--secondary-50);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    text-align: right;
+  }
+
+  .expiry-table td:last-child { border-bottom: none; }
+
+  .expiry-table td::before {
+    content: attr(data-label);
+    font-size: 0.65rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--secondary-400);
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+    text-align: left;
+  }
+
+  .action-cell-content {
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .expiry-footer-cards {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+
+  .report-card {
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+  }
+
+  .expiry-toast {
+    right: 0.75rem;
+    left: 0.75rem;
+    top: 1rem;
+    font-size: 0.8125rem;
+    padding: 0.875rem 1rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .expiry-main-title {
+    font-size: 1.25rem;
+  }
+
+  .expiry-stat-value {
+    font-size: 1.75rem;
+  }
+
+  .btn-purge-expired {
+    width: 100%;
+    justify-content: center;
+  }
+}

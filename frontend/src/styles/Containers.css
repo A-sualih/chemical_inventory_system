@@ -680,3 +680,195 @@ tr:hover .container-icon-box {
 /* Utilities */
 .containers-max-width { max-width: 80rem; margin-left: auto; margin-right: auto; padding-left: 1.5rem; padding-right: 1.5rem; }
 .mt-8 { margin-top: 2rem; }
+
+/* ═══════════════════════════════════════════════════════════════
+   CONTAINERS PAGE — MOBILE-FIRST RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── iOS zoom fix ─────────────────────────────────────────────── */
+.containers-search-input,
+.form-input-standard {
+  font-size: 16px !important;
+}
+
+/* ── Tablet: stat grid 2-col ──────────────────────────────────── */
+@media (max-width: 767px) {
+  .containers-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding: 0 1rem;
+    margin: 1.25rem auto;
+  }
+
+  .containers-table-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .containers-table-card {
+    border-radius: 1.5rem;
+  }
+
+  .containers-table-filters {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .status-filter-group {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .status-filter-btn {
+    flex: 1;
+    min-width: 80px;
+    text-align: center;
+  }
+
+  /* Header search goes full width */
+  .containers-actions-group {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .containers-search-box {
+    flex: 1;
+  }
+
+  .containers-search-input {
+    width: 100% !important;
+  }
+
+  .btn-add-container {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Modal tighter on mobile */
+  .containers-modal-header {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .containers-form {
+    padding: 1.25rem 1.5rem;
+  }
+}
+
+/* ── Mobile: Table → Stacked Cards ───────────────────────────── */
+@media (max-width: 640px) {
+  .containers-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Hide table header row */
+  .containers-table thead {
+    display: none;
+  }
+
+  /* Each row becomes a card */
+  .containers-table,
+  .containers-table tbody,
+  .containers-table tr,
+  .containers-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .containers-table tr {
+    margin-bottom: 1rem;
+    background: white;
+    border-radius: 1.25rem;
+    border: 1px solid var(--secondary-100);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+
+  .containers-table td {
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-bottom: 1px solid var(--secondary-50);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    text-align: right;
+  }
+
+  .containers-table td:last-child {
+    border-bottom: none;
+  }
+
+  .containers-table td::before {
+    content: attr(data-label);
+    font-size: 0.65rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--secondary-400);
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+    text-align: left;
+  }
+
+  /* Action buttons: full width on phones */
+  .action-btns {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* Form grids: single column */
+  .form-row,
+  .storage-grid-inputs {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .date-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .form-group.full-width {
+    grid-column: span 1;
+  }
+
+  .storage-hierarchy-box {
+    padding: 1.25rem;
+    border-radius: 1.25rem;
+  }
+
+  .containers-table-card {
+    border-radius: 1rem;
+  }
+}
+
+/* ── Extra small: 375px and 320px ───────────────────────────── */
+@media (max-width: 375px) {
+  .containers-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .containers-header-sticky {
+    padding: 0.75rem 1rem;
+  }
+
+  .containers-main-title {
+    font-size: 1.25rem;
+  }
+
+  .containers-form {
+    padding: 1rem;
+  }
+
+  .form-footer {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .btn-form-secondary,
+  .btn-form-primary {
+    flex: none;
+    width: 100%;
+  }
+}

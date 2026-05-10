@@ -368,3 +368,82 @@
   border-top-color: var(--primary-600);
   animation: details-spin 1s linear infinite;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   REPORTS PAGE — MOBILE-FIRST RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
+/* iOS zoom fix */
+.date-input {
+  font-size: 16px !important;
+}
+
+@media (max-width: 768px) {
+  .reports-title {
+    font-size: clamp(1.5rem, 5vw, 2.25rem);
+  }
+
+  .date-picker-range {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .date-input {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .reports-actions-group {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .refresh-btn,
+  .export-btn,
+  .export-primary-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.875rem;
+  }
+
+  .chart-section-card {
+    padding: 1.25rem;
+    border-radius: 1.5rem;
+  }
+
+  .chart-container-inner {
+    height: 220px;
+  }
+
+  .chart-container-large {
+    height: 280px;
+  }
+}
+
+@media (max-width: 576px) {
+  .status-list-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .status-list-card {
+    padding: 1.25rem;
+    border-radius: 1.5rem;
+  }
+
+  .report-card {
+    padding: 1.25rem;
+    border-radius: 1.5rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .reports-title {
+    font-size: 1.25rem;
+  }
+
+  .chart-container-inner {
+    height: 180px;
+  }
+}

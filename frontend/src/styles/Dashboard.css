@@ -914,3 +914,69 @@
 
 .bg-gradient-to-r { background-size: 200% 100%; }
 .bg-gradient-to-t { background-size: 100% 200%; }
+
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD PAGE — MOBILE-FIRST RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
+/* iOS zoom fix for any dashboard inputs */
+.dashboard-container input,
+.dashboard-container select,
+.dashboard-container textarea {
+  font-size: 16px !important;
+}
+
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .search-sds-btn,
+  .new-inventory-btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.8125rem;
+  }
+
+  .welcome-title {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .welcome-title {
+    font-size: 1.25rem;
+  }
+
+  .stat-card {
+    padding: 1.25rem;
+    border-radius: 1.5rem;
+  }
+
+  /* Any 2+ column grid inside dashboard to single column */
+  [class*="dashboard-grid"],
+  [class*="chart-grid"],
+  [class*="activity-grid"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .welcome-title {
+    font-size: 1.125rem;
+  }
+
+  .search-sds-btn,
+  .new-inventory-btn {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.75rem;
+  }
+}
