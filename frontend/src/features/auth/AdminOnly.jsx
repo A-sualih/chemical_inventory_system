@@ -124,8 +124,12 @@ const AdminOnlyPage = ({ title, description }) => {
                               <div key={u._id} className="user-card">
                                  <div className="user-card-bg-effect"></div>
                                  <div className="user-card-header">
-                                    <div className="user-avatar">
-                                       {u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                                    <div className="user-avatar" style={{ padding: u.profile_photo ? '0' : '', overflow: 'hidden' }}>
+                                       {u.profile_photo ? (
+                                          <img src={u.profile_photo} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                       ) : (
+                                          u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+                                       )}
                                     </div>
                                     <div className="user-info">
                                        <h3 className="user-name">{u.name}</h3>
