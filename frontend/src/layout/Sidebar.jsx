@@ -1,11 +1,13 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
 import "../styles/Sidebar.css";
 
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { settings } = useSettings();
 
   const handleLogout = () => {
     if (window.confirm("Confirm system logout?")) {
@@ -161,6 +163,17 @@ const Sidebar = ({ isOpen, onClose }) => {
         </svg>
       )
     },
+    { 
+      name: "System Settings", 
+      path: "/settings", 
+      roles: ["Admin"],
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      )
+    },
   ];
 
   const filteredItems = menuItems.filter(item => 
@@ -197,14 +210,18 @@ const Sidebar = ({ isOpen, onClose }) => {
         {/* Logo Header */}
         <div className="sidebar-logo-section">
           <div className="logo-wrapper">
-            <div className="logo-box">
-              <svg xmlns="http://www.w3.org/2000/svg" className="icon-logo" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
+            <div className="logo-box" style={{ padding: settings?.systemLogo ? '0' : '8px', overflow: 'hidden', background: settings?.systemLogo ? 'transparent' : '', boxShadow: settings?.systemLogo ? 'none' : '' }}>
+              {settings?.systemLogo ? (
+                <img src={settings.systemLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '0.75rem' }} />
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="icon-logo" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              )}
             </div>
             <div className="logo-text-area">
-              <h2 className="heading-font">CIMS <span>PRO</span></h2>
-              <p className="logo-subtext">Managed Stack</p>
+              <h2 className="heading-font">{settings?.systemName || "CIMS"}</h2>
+              <p className="logo-subtext">{settings?.orgName || "System"}</p>
             </div>
           </div>
           {/* Close button (mobile only) */}
@@ -242,13 +259,19 @@ const Sidebar = ({ isOpen, onClose }) => {
           <div className="user-profile-card-bg">
             <div className="user-profile-inner">
               <div className="profile-avatar-wrapper">
-                <div className="profile-avatar">
-                  {getInitials(user?.name)}
+                <div className="profile-avatar" style={{ padding: user?.profile_photo ? '0' : '', overflow: 'hidden', border: user?.profile_photo ? 'none' : '' }}>
+                  {user?.profile_photo ? (
+                    <img src={user.profile_photo} alt={user?.name || "User"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    getInitials(user?.name)
+                  )}
                 </div>
                 <div className="online-status-indicator"></div>
               </div>
               <div className="profile-info">
-                <h4 className="profile-name">{user?.name || "Guest"}</h4>
+                <Link to="/profile" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <h4 className="profile-name" title="View Profile" style={{ cursor: 'pointer' }}>{user?.name || "Guest"}</h4>
+                </Link>
                 <span className={`role-badge ${getRoleBadgeStyle(user?.role)}`}>
                   {user?.role || "Visitor"}
                 </span>
