@@ -11,6 +11,7 @@ const SystemSettings = () => {
     const [formData, setFormData] = useState({
         systemName: "",
         systemLogo: "",
+        favicon: "",
         orgName: "",
         defaultTheme: "light",
         defaultNotificationSettings: { email: true, inApp: true },
@@ -25,6 +26,7 @@ const SystemSettings = () => {
                     setFormData({
                         systemName: res.data.systemName || "",
                         systemLogo: res.data.systemLogo || "",
+                        favicon: res.data.favicon || "",
                         orgName: res.data.orgName || "",
                         defaultTheme: res.data.defaultTheme || "light",
                         defaultNotificationSettings: res.data.defaultNotificationSettings || { email: true, inApp: true },
@@ -68,6 +70,11 @@ const SystemSettings = () => {
     const handleFileUpload = async (e, fieldName) => {
         const file = e.target.files[0];
         if (!file) return;
+        
+        if (fieldName === "favicon" && file.size > 1024 * 1024) {
+            setAlert({ type: "error", message: "Favicon must be under 1 MB." });
+            return;
+        }
         
         const uploadData = new FormData();
         uploadData.append("image", file);
@@ -137,6 +144,21 @@ const SystemSettings = () => {
                                 type="file" 
                                 accept="image/*"
                                 onChange={(e) => handleFileUpload(e, "systemLogo")} 
+                                style={{ flex: 1, padding: '8px' }}
+                            />
+                        </div>
+                    </div>
+                    <div className="settings-group full-width">
+                        <label>Favicon (Upload Icon)</label>
+                        <p style={{ fontSize: '11px', color: '#6c757d', marginBottom: '8px' }}>Accepted: .ico, .png | Recommended: Square (32x32, 48x48) | Max: 1MB</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                            {formData.favicon && (
+                                <img src={formData.favicon} alt="Favicon Preview" style={{ width: '32px', height: '32px', objectFit: 'contain', borderRadius: '4px', background: '#f8f9fa', border: '1px solid #dee2e6' }} />
+                            )}
+                            <input 
+                                type="file" 
+                                accept=".ico, .png"
+                                onChange={(e) => handleFileUpload(e, "favicon")} 
                                 style={{ flex: 1, padding: '8px' }}
                             />
                         </div>

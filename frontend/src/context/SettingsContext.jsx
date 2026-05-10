@@ -19,6 +19,15 @@ export const SettingsProvider = ({ children }) => {
         if (res.data.systemName) {
           document.title = res.data.systemName;
         }
+        if (res.data.favicon) {
+          let link = document.querySelector("link[rel~='icon']");
+          if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.getElementsByTagName('head')[0].appendChild(link);
+          }
+          link.href = res.data.favicon;
+        }
       }
     } catch (err) {
       console.error('Failed to fetch global settings', err);
