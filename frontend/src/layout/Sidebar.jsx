@@ -258,7 +258,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         <div className="sidebar-footer">
           <div className="user-profile-card-bg">
             <div className="user-profile-inner">
-              <div className="profile-avatar-wrapper">
+              <Link to="/profile" className="profile-avatar-wrapper" style={{ textDecoration: 'none' }}>
                 <div className="profile-avatar" style={{ padding: user?.profile_photo ? '0' : '', overflow: 'hidden', border: user?.profile_photo ? 'none' : '' }}>
                   {user?.profile_photo ? (
                     <img src={user.profile_photo} alt={user?.name || "User"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -267,7 +267,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                   )}
                 </div>
                 <div className="online-status-indicator"></div>
-              </div>
+              </Link>
               <div className="profile-info">
                 <Link to="/profile" style={{ textDecoration: 'none', color: 'inherit' }}>
                   <h4 className="profile-name" title="View Profile" style={{ cursor: 'pointer' }}>{user?.name || "Guest"}</h4>

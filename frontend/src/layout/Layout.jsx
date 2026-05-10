@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import NotificationBell from "../components/feedback/NotificationBell";
 import { useAuth } from "../context/AuthContext";
@@ -39,9 +40,13 @@ const Layout = ({ children }) => {
               <NotificationBell />
               <div className="vertical-divider"></div>
               <div className="user-profile-summary">
-                <div className="user-avatar-badge">
-                  {user?.name?.[0] || 'U'}
-                </div>
+                <Link to="/profile" className="user-avatar-badge" style={{ padding: user?.profile_photo ? 0 : '', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
+                  {user?.profile_photo ? (
+                    <img src={user.profile_photo} alt={user?.name || 'User'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    user?.name?.[0] || 'U'
+                  )}
+                </Link>
               </div>
             </div>
           </div>

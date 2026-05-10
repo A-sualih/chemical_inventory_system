@@ -5,7 +5,7 @@ import Layout from "../../layout/Layout";
 import "./Profile.css";
 
 const UserProfile = () => {
-    const { user } = useAuth();
+    const { user, updateUserContext } = useAuth();
     const [loading, setLoading] = useState(true);
     const [alert, setAlert] = useState({ type: "", message: "" });
     const [formData, setFormData] = useState({
@@ -91,6 +91,9 @@ const UserProfile = () => {
         try {
             setAlert({ type: "", message: "" });
             await axios.put("/api/profile/me", formData);
+            if (updateUserContext) {
+                updateUserContext({ name: formData.name, phone: formData.phone, profile_photo: formData.profile_photo });
+            }
             setAlert({ type: "success", message: "Profile updated successfully!" });
         } catch (err) {
             setAlert({ type: "error", message: "Failed to update profile." });

@@ -106,6 +106,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUserContext = (newUserData) => {
+    setUser((prev) => {
+      const updatedUser = { ...prev, ...newUserData };
+      localStorage.setItem('cims_user', JSON.stringify(updatedUser));
+      return updatedUser;
+    });
+  };
+
   const hasPermission = (permission) => {
     if (!user) return false;
     const permissions = rolePermissions[user.role] || [];
@@ -113,7 +121,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading, hasPermission, sessionExpired, setSessionExpired }}>
+    <AuthContext.Provider value={{ user, token, login, logout, loading, hasPermission, sessionExpired, setSessionExpired, updateUserContext }}>
       {children}
     </AuthContext.Provider>
   );
