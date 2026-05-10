@@ -19,6 +19,15 @@ const SystemSettings = () => {
     });
 
     useEffect(() => {
+        if (alert.message) {
+            const timer = setTimeout(() => {
+                setAlert({ type: "", message: "" });
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [alert]);
+
+    useEffect(() => {
         const fetchSettings = async () => {
             try {
                 const res = await axios.get("/api/settings");

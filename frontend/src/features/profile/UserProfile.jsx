@@ -20,6 +20,15 @@ const UserProfile = () => {
     });
 
     useEffect(() => {
+        if (alert.message) {
+            const timer = setTimeout(() => {
+                setAlert({ type: "", message: "" });
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [alert]);
+
+    useEffect(() => {
         if (!user) return;
         const fetchProfile = async () => {
             try {
