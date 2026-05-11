@@ -222,14 +222,11 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   className="premium-form-input"
                 >
                   <option value="">Select chemical...</option>
-                  {chemicals
-                    .filter(c => c.quantity > 0)
-                    .map(c => (
+                  {chemicals.map(c => (
                       <option key={c._id} value={c._id}>
-                        {c.name} ({c.cas_number}) - Available: {c.quantity} {c.unit}
+                        {c.name} ({c.cas_number}) - {c.quantity > 0 ? `Available: ${c.quantity} ${c.unit}` : '(No Amount / Finished)'}
                       </option>
-                    ))
-                  }
+                    ))}
                 </select>
               </div>
 
@@ -248,14 +245,11 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   className="premium-form-input"
                 >
                   <option value="">Auto-FIFO (Oldest first)</option>
-                  {batches
-                    .filter(b => b.total_quantity > 0)
-                    .map(b => (
+                  {batches.map(b => (
                       <option key={b._id} value={b._id}>
-                        {b.batch_number} - Stock: {b.total_quantity} {b.unit} {b.status === 'Expired' ? '(EXPIRED)' : ''}
+                        {b.batch_number} - {b.total_quantity > 0 ? `Stock: ${b.total_quantity} ${b.unit}` : '(Finished)'} {b.status === 'Expired' ? '🔥 EXPIRED' : ''}
                       </option>
-                    ))
-                  }
+                    ))}
                 </select>
               </div>
 
