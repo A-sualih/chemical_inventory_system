@@ -10,6 +10,8 @@ const auditController = require('../controllers/audit/auditController');
  * @access Admin (VIEW_AUDIT_LOGS)
  */
 router.get('/', authenticate, authorize(PERMISSIONS.VIEW_AUDIT_LOGS), auditController.getAuditLogs);
+router.get('/export/excel', authenticate, authorize(PERMISSIONS.VIEW_AUDIT_LOGS), auditController.exportAuditLogsExcel);
+router.get('/export/pdf', authenticate, authorize(PERMISSIONS.VIEW_AUDIT_LOGS), auditController.exportAuditLogsPdf);
 
 module.exports = router;
 

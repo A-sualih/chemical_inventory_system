@@ -28,6 +28,7 @@ import ProcurementDashboard from "../features/procurement/ProcurementDashboard";
 import WasteDashboard from "../features/waste/WasteDashboard";
 import UserProfile from "../features/profile/UserProfile";
 import SystemSettings from "../features/settings/SystemSettings";
+import SecurityDashboard from "../features/security/SecurityDashboard";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -65,6 +66,9 @@ function App() {
             } />
             <Route path="/chemicals/new" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician"]}><ChemicalForm /></ProtectedRoute>} />
             <Route path="/chemicals/edit/:id" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician"]}><ChemicalForm /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute allowedRoles={["Admin"]}><SystemSettings /></ProtectedRoute>} />
+            <Route path="/security" element={<ProtectedRoute allowedRoles={["Admin"]}><SecurityDashboard /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
             <Route path="/print/:id" element={<ProtectedRoute><PrintLabel /></ProtectedRoute>} />
             <Route path="/scan" element={<ProtectedRoute><ScanQR /></ProtectedRoute>} />
             <Route path="/chemicals/details/:id" element={<ProtectedRoute><ChemicalDetails /></ProtectedRoute>} />

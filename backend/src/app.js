@@ -19,6 +19,7 @@ const wasteRoutes = require('./routes/wasteRoutes');
 const settingsRoutes = require('./routes/settings');
 const profileRoutes = require('./routes/profile');
 const uploadRoutes = require('./routes/upload');
+const securityRoutes = require('./routes/security');
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use('/api/waste', wasteRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/security', securityRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
