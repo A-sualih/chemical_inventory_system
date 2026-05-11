@@ -184,7 +184,7 @@ exports.createDisposalRequest = async (req, res) => {
       }
       await chemical.save();
       
-      // Trigger Out of Stock Alert if depleted
+      // Trigger Alerts based on new levels
       if (chemical.quantity <= 0) {
         await notificationService.createNotification({
           type: 'SYSTEM',
@@ -194,6 +194,16 @@ exports.createDisposalRequest = async (req, res) => {
           severity: 'high',
           recipients: [{ role: 'admin' }, { role: 'lab_manager' }]
         });
+      } else {
+        const lowStockThreshold = chemical.threshold !== undefined ? chemical.threshold : 5;
+        if (chemical.quantity <= lowStockThreshold) {
+          // Update status to Low Stock if it's currently In Stock
+          if (chemical.status === 'In Stock') {
+            chemical.status = 'Low Stock';
+            await chemical.save();
+          }
+          await notificationService.notifyLowStock(chemical, lowStockThreshold);
+        }
       }
       disposal.fifo_impact = impactedBatches;
       await disposal.save();
