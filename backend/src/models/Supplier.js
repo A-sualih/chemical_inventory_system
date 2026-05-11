@@ -1,15 +1,24 @@
-const mongoose = require('mongoose');
+const { encrypt, decrypt } = require('../utils/encryption');
 
 const supplierSchema = new mongoose.Schema({
   supplier_id: { type: String, unique: true }, // Auto-generated
   name: { type: String, required: true, trim: true },
   contact_person: { type: String, trim: true },
   contact_email: { type: String, trim: true, lowercase: true },
-  contact_phone: { type: String, trim: true },
+  contact_phone: { 
+    type: String, 
+    trim: true,
+    set: encrypt,
+    get: decrypt
+  },
   address: { type: String },
   country: { type: String, default: 'USA' },
   website: { type: String },
-  tax_vat_number: { type: String },
+  tax_vat_number: { 
+    type: String,
+    set: encrypt,
+    get: decrypt
+  },
   category: {
     type: String,
     enum: ['Chemical Manufacturer', 'Distributor', 'Wholesaler', 'Laboratory Supplier', 'Specialty Chemical', 'Raw Materials', 'Other'],
@@ -46,7 +55,9 @@ const supplierSchema = new mongoose.Schema({
   is_deleted: { type: Boolean, default: false },
   deleted_at: { type: Date }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { getters: true },
+  toObject: { getters: true }
 });
 
 // Auto-generate supplier_id before save
