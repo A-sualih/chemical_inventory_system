@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { encrypt, decrypt } = require('../utils/encryption');
 
 const supplierSchema = new mongoose.Schema({
