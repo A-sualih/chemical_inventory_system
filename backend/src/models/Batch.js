@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const batchSchema = new mongoose.Schema({
   batch_number: { type: String, required: true, unique: true },
   chemical_id: { type: String, required: true }, // Links to Chemical.id
+  lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
   total_quantity: { type: Number, required: true },
   unit: { type: String, required: true },
   manufacturing_date: { type: Date },

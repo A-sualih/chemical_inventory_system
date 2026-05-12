@@ -20,7 +20,8 @@ const settingsRoutes = require('./routes/settings');
 const profileRoutes = require('./routes/profile');
 const uploadRoutes = require('./routes/upload');
 const securityRoutes = require('./routes/security');
-
+const labRoutes = require('./routes/labs');
+const transferRoutes = require('./routes/transfers');
 const app = express();
 
 app.use(cors());
@@ -46,7 +47,8 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/security', securityRoutes);
-
+app.use('/api/labs', labRoutes);
+app.use('/api/transfers', transferRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
 });

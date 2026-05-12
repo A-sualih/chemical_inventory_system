@@ -8,21 +8,23 @@ const { logAudit } = require('../../middleware/authMiddleware');
 
 exports.getStats = async (req, res) => {
   try {
-    const totalCount = await Chemical.countDocuments({ archived: false });
-    const flammables = await Chemical.countDocuments({ ghs_classes: "Flammable", archived: false });
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const totalCount = await Chemical.countDocuments({ archived: false, ...labQuery });
+    const flammables = await Chemical.countDocuments({ ghs_classes: "Flammable", archived: false, ...labQuery });
     
     const allHazards = await Chemical.aggregate([
-      { $match: { archived: false } },
+      { $match: { archived: false, ...labQuery } },
       { $unwind: "$ghs_classes" },
       { $group: { _id: "$ghs_classes", count: { $sum: 1 } } }
     ]);
     const hazardSummary = allHazards.map(h => ({ id: h._id, count: h.count }));
-    const lowStock = await Chemical.countDocuments({ status: "Low Stock", archived: false });
+    const lowStock = await Chemical.countDocuments({ status: "Low Stock", archived: false, ...labQuery });
     
     const now = new Date();
     const in90Days = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
     const expiring = await Chemical.find({
       archived: false,
+      ...labQuery,
       expiry_date: { $gte: now, $lte: in90Days }
     }).sort({ expiry_date: 1 }).limit(5).select('name expiry_date ghs_classes location batch_number');
 
@@ -36,7 +38,7 @@ exports.getStats = async (req, res) => {
       };
     });
 
-    const allChemicals = await Chemical.find({ archived: false }).select('location quantity');
+    const allChemicals = await Chemical.find({ archived: false, ...labQuery }).select('location quantity');
     const locationMap = {};
     allChemicals.forEach(c => {
       const loc = c.location || 'Unassigned';
@@ -57,7 +59,7 @@ exports.getStats = async (req, res) => {
       lastAuditAgo = diffH < 1 ? 'Just now' : diffH < 24 ? `${diffH}h ago` : `${Math.floor(diffH / 24)}d ago`;
     }
 
-    const withSds = await Chemical.countDocuments({ archived: false, sds_attached: true });
+    const withSds = await Chemical.countDocuments({ archived: false, sds_attached: true, ...labQuery });
     const auditScore = totalCount > 0 ? Math.round((withSds / totalCount) * 100) + '%' : 'N/A';
 
     const stats = {
@@ -96,6 +98,7 @@ exports.getChemicals = async (req, res) => {
     } = req.query;
 
     const baseQuery = { archived: archived === 'true' };
+    if (req.activeLabId) baseQuery.lab = req.activeLabId;
 
     const hazardParam = hazard || req.query['hazard[]'];
     if (hazardParam) {
@@ -199,8 +202,11 @@ exports.getChemicals = async (req, res) => {
 
 exports.getChemical = async (req, res) => {
   try {
-    const chemical = await Chemical.findOne({ id: req.params.id });
-    if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
+    const query = { id: req.params.id };
+    if (req.activeLabId) query.lab = req.activeLabId;
+    
+    const chemical = await Chemical.findOne(query);
+    if (!chemical) return res.status(404).json({ error: 'Chemical not found or access denied' });
     res.json(chemical);
   } catch (err) {
     res.status(500).json({ error: 'Server error fetching chemical details' });
@@ -227,7 +233,7 @@ exports.createChemical = async (req, res) => {
     
     while (!isUnique) {
       idValue = `C${String(attempt).padStart(3, '0')}`;
-      const existing = await Chemical.findOne({ id: idValue });
+      const existing = await Chemical.findOne({ id: idValue, lab: req.activeLabId });
       if (!existing) isUnique = true;
       else attempt++;
     }
@@ -284,6 +290,7 @@ exports.createChemical = async (req, res) => {
       sds_attached: hasSdsFile || data.sdsAttached === 'true',
       sds_file_name: sdsFileName,
       sds_file_url: sdsFileUrl,
+      lab: req.activeLabId, // Stamp it with currently active lab
       location: data.building ? `${data.building}-${data.room || ''}-${data.cabinet || ''}-${data.shelf || ''}`.replace(/-+$/, '') : (data.location || 'Pending Assignment'),
       status: (() => {
         if (!data.expiry_date && !data.expiry) return 'In Stock';

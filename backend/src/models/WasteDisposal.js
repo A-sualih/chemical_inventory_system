@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const wasteDisposalSchema = new mongoose.Schema({
   disposal_id: { type: String, required: true, unique: true },
+  lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
   chemical_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Chemical', required: true },
   chemical_name: { type: String, required: true },
   batch_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Batch' },

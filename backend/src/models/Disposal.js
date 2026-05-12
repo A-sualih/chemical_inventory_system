@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const disposalSchema = new mongoose.Schema({
   chemical_id: { type: String, required: true },
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
   quantity: { type: Number },
   method: { type: String },
   regulatory_log: { type: String },

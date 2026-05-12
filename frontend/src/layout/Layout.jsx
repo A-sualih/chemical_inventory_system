@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import NotificationBell from "../components/feedback/NotificationBell";
+import LabSwitcher from "../components/common/LabSwitcher";
 import { useAuth } from "../context/AuthContext";
 import "../styles/Layout.css";
 
@@ -37,6 +38,7 @@ const Layout = ({ children }) => {
             </div>
 
             <div className="header-right">
+              <LabSwitcher />
               <NotificationBell />
               <div className="vertical-divider"></div>
               <div className="user-profile-summary">

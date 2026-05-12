@@ -19,7 +19,9 @@ const userSchema = new mongoose.Schema({
   otp: { type: String },
   otpExpiry: { type: Date },
   resetToken: { type: String },
-  resetTokenExpire: { type: Date }
+  resetTokenExpire: { type: Date },
+  labs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Lab' }],
+  active_lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const inventoryLogSchema = new mongoose.Schema({
   chemical_id: { type: String, required: true },
   chemical_name: { type: String }, // Added for easy display
+  lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   user_name: { type: String }, // Added for display (WHO)
   user_role: { type: String }, // Admin, Technician, etc. (WHO)

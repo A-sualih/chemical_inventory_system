@@ -4,6 +4,7 @@ const containerSchema = new mongoose.Schema({
   container_id: { type: String, required: true, unique: true },
   barcode: { type: String },
   chemical_id: { type: String, required: true }, // Links to Chemical.id or _id
+  lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
   quantity: { type: Number, required: true },
   unit: { type: String, required: true },
   building: { type: String },

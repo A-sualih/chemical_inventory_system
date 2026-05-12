@@ -29,6 +29,8 @@ import WasteDashboard from "../features/waste/WasteDashboard";
 import UserProfile from "../features/profile/UserProfile";
 import SystemSettings from "../features/settings/SystemSettings";
 import SecurityDashboard from "../features/security/SecurityDashboard";
+import TransferDashboard from "../features/transfers/TransferDashboard";
+import LabManagement from "../features/settings/LabManagement";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -81,6 +83,7 @@ function App() {
               
               {/* Workflow & Auditing */}
               <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
+              <Route path="/transfers" element={<ProtectedRoute><TransferDashboard /></ProtectedRoute>} />
               <Route path="/logs" element={<ProtectedRoute><InventoryLogs /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer / Auditor"]}><Reports /></ProtectedRoute>} />
               
@@ -92,6 +95,7 @@ function App() {
               {/* Admin & Security Command Center */}
               <Route path="/settings" element={<ProtectedRoute allowedRoles={["Admin"]}><SystemSettings /></ProtectedRoute>} />
               <Route path="/security" element={<ProtectedRoute allowedRoles={["Admin"]}><SecurityDashboard /></ProtectedRoute>} />
+              <Route path="/lab-management" element={<ProtectedRoute allowedRoles={["Admin"]}><LabManagement /></ProtectedRoute>} />
               <Route path="/audit" element={<ProtectedRoute allowedRoles={["Admin"]}><AdminOnly title="Master Audit Logs" description="Review all security events." /></ProtectedRoute>} />
               <Route path="/roles" element={<ProtectedRoute allowedRoles={["Admin"]}><AdminOnly title="Role Management" description="Configure permissions." /></ProtectedRoute>} />
 

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const locationSchema = new mongoose.Schema({
+  lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
   building: { type: String, required: true, trim: true },
   room:     { type: String, required: true, trim: true },
   cabinet:  { type: String, required: true, trim: true },

@@ -103,6 +103,16 @@ const Sidebar = ({ isOpen, onClose }) => {
       )
     },
     { 
+      name: "Transfers", 
+      path: "/transfers", 
+      roles: ["Admin", "Lab Manager", "Safety Officer", "Procurement Officer", "Laboratory Staff"],
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+        </svg>
+      )
+    },
+    { 
       name: "Compliance", 
       path: "/reports", 
       roles: ["Admin", "Lab Manager", "Safety Officer", "Viewer/Auditor"],
@@ -170,6 +180,16 @@ const Sidebar = ({ isOpen, onClose }) => {
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      )
+    },
+    { 
+      name: "Labs & Depts", 
+      path: "/lab-management", 
+      roles: ["Admin"],
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
       )
     },

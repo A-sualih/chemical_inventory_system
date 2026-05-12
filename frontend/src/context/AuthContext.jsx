@@ -114,6 +114,28 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
+  const switchActiveLab = async (labId) => {
+    try {
+      const response = await axios.post('/api/labs/switch', { labId });
+      if (response.data && response.data.user) {
+        const newUser = response.data.user;
+        setUser(newUser);
+        localStorage.setItem('cims_user', JSON.stringify(newUser));
+      }
+      // If a fresh token is returned, update it immediately
+      if (response.data && response.data.token) {
+        const newToken = response.data.token;
+        setToken(newToken);
+        localStorage.setItem('cims_token', newToken);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+      }
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to switch lab context', error);
+      return { success: false, error: error.response?.data?.message || 'Failed to switch lab' };
+    }
+  };
+
   const hasPermission = (permission) => {
     if (!user) return false;
     const permissions = rolePermissions[user.role] || [];
@@ -121,7 +143,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading, hasPermission, sessionExpired, setSessionExpired, updateUserContext }}>
+    <AuthContext.Provider value={{ user, token, login, logout, loading, hasPermission, sessionExpired, setSessionExpired, updateUserContext, switchActiveLab }}>
       {children}
     </AuthContext.Provider>
   );

@@ -677,6 +677,7 @@ exports.getWasteAnalytics = async (req, res) => {
 
     // Monthly trends
     const monthlyStats = await WasteDisposal.aggregate([
+      { $match: { createdAt: { $exists: true, $type: 'date' } } },
       {
         $group: {
           _id: { $month: '$createdAt' },

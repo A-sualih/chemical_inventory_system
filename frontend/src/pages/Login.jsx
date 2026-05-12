@@ -84,8 +84,14 @@ const Login = () => {
 
     try {
       const { data } = await axios.post('/api/auth/mfa/verify', { userId, code: otp });
+      
+      // CRITICAL: Save token AND set axios headers immediately
       localStorage.setItem('cims_token', data.token);
       localStorage.setItem('cims_user', JSON.stringify(data.user));
+      axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+      
+      // Navigate instead of reload so React state updates cleanly
+      navigate('/');
       window.location.reload();
     } catch (err) {
       setIsLoading(false);

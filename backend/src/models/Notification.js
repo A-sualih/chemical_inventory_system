@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const NotificationSchema = new mongoose.Schema({
+  lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
   type: {
     type: String,
     enum: ['LOW_STOCK', 'EXPIRY', 'UNAUTHORIZED_ACCESS', 'SYSTEM', 'INFO', 'COMPLIANCE'],

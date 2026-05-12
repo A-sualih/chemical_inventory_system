@@ -4,6 +4,7 @@ const requestSchema = new mongoose.Schema({
   chemical_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Chemical', required: true },
   container_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Container', required: true },
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
   quantity: { type: Number, required: true },
   unit: { type: String },
   reason: { type: String, required: true },
