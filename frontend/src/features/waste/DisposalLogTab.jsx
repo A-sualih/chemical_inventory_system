@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 // Disposal Tracking Tab with Quick Log feature
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
+import useUnits from '../../hooks/useUnits';
 import { IconTrash, IconClock, IconPlus, IconX, IconCheckCircle, IconAlertTriangle, IconFileText } from './WasteIcons';
 
 const REASONS = ['Expired', 'Contaminated', 'Damaged', 'Excess stock', 'Experimental waste', 'Other'];
@@ -9,6 +10,7 @@ const METHODS = ['Neutralization', 'Incineration', 'Chemical treatment', 'Recycl
 
 export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpenModal }) {
   const { user, hasPermission } = useAuth();
+  const { unitLabel } = useUnits();
   const [disposals, setDisposals] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -363,7 +365,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   <div className="waste-chemical-name">{d.chemical_name}</div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--secondary-400)', fontWeight: '700', marginTop: '0.2rem' }}>{d.hazard_classification}</div>
                 </div>
-                <div className="waste-td" data-label="Quantity"><span className="waste-quantity-cell">{d.quantity} {d.unit}</span></div>
+                <div className="waste-td" data-label="Quantity"><span className="waste-quantity-cell">{d.quantity} {unitLabel(d.unit)}</span></div>
                 <div className="waste-td waste-hide-1200" data-label="Method" style={{ fontWeight: '600' }}>{d.method}</div>
                 <div className="waste-td" data-label="Status">
                   <span className={`waste-badge badge-${d.status.toLowerCase().replace(' ', '-')}`}>
@@ -432,7 +434,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                 </div>
                 <div>
                   <label className="form-label-small">Quantity</label>
-                  <div style={{ fontWeight: 700 }}>{viewingDisposal.quantity} {viewingDisposal.unit}</div>
+                  <div style={{ fontWeight: 700 }}>{viewingDisposal.quantity} {unitLabel(viewingDisposal.unit)}</div>
                 </div>
                 <div>
                   <label className="form-label-small">Status</label>
@@ -670,9 +672,9 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                         {fifoPreview.affected_batches.map(b => (
                           <tr key={b.batch_id}>
                             <td style={{ fontWeight: 700 }}>{b.batch_number} {b.is_targeted && <span style={{ color: 'var(--waste-primary)', fontSize: '0.65rem' }}>(Selected)</span>}</td>
-                            <td>{b.current_quantity} {b.unit}</td>
-                            <td style={{ color: '#ef4444', fontWeight: 800 }}>-{b.subtract_quantity} {b.unit}</td>
-                            <td>{b.remaining_quantity} {b.unit}</td>
+                            <td>{b.current_quantity} {unitLabel(b.unit)}</td>
+                            <td style={{ color: '#ef4444', fontWeight: 800 }}>-{b.subtract_quantity} {unitLabel(b.unit)}</td>
+                            <td>{b.remaining_quantity} {unitLabel(b.unit)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -680,7 +682,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                     {fifoPreview.insufficient_inventory && (
                       <div style={{ padding: '1rem', background: '#fef2f2', color: '#ef4444', fontSize: '0.75rem', fontWeight: 700 }}>
                         <IconAlertTriangle size={14} style={{ marginRight: '0.5rem' }} />
-                        Warning: Insufficient inventory. Shortfall: {fifoPreview.shortfall} {fifoPreview.unit}
+                        Warning: Insufficient inventory. Shortfall: {fifoPreview.shortfall} {unitLabel(fifoPreview.unit)}
                       </div>
                     )}
                   </div>

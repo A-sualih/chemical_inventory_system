@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../layout/Layout';
 import '../../styles/Containers.css';
+import useUnits from '../../hooks/useUnits';
 
 // Inline SVG components to replace heroicons for stability
 const PlusIcon = ({ className }) => (
@@ -89,6 +90,7 @@ const QrCodeIcon = ({ className }) => (
 
 const Containers = () => {
   const { user, hasPermission } = useAuth();
+  const { unitLabel } = useUnits();
   const navigate = useNavigate();
   const [containers, setContainers] = useState([]);
   const [chemicals, setChemicals] = useState([]);
@@ -370,7 +372,7 @@ const Containers = () => {
                                 {container.status}
                               </span>
                               <div className="qty-text">
-                                {container.quantity} <span className="unit-text">{container.unit}</span>
+                                {container.quantity} <span className="unit-text">{unitLabel(container.unit)}</span>
                               </div>
                             </div>
                           </td>

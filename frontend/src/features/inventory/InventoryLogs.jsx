@@ -3,10 +3,12 @@ import Layout from "../../layout/Layout";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import StockActionModal from "./StockActionModal";
+import useUnits from "../../hooks/useUnits";
 import "../../styles/Inventory.css";
 
 const InventoryLogs = () => {
   const { hasPermission } = useAuth();
+  const { unitLabel } = useUnits();
   const [logs, setLogs] = useState([]);
   const [chemicals, setChemicals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -175,7 +177,7 @@ const InventoryLogs = () => {
                       }`}>
                         {log.action === 'IN' ? '+' : (log.action === 'OUT' || log.action === 'DISPOSAL' ? '-' : '')}
                         {Math.abs(log.quantity_change)}
-                        <span className="unit-label">{log.unit}</span>
+                        <span className="unit-label">{unitLabel(log.unit)}</span>
                       </div>
                       {log.num_containers_moved > 0 && <div className="vessels-count">{log.num_containers_moved} Individual Vessels</div>}
                     </td>

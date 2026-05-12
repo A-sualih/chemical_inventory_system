@@ -10,6 +10,7 @@ import FIFOUsageModal from "../inventory/FIFOUsageModal";
 import ChemicalHistoryModal from "./ChemicalHistoryModal";
 import HazardBadge from "../../components/feedback/HazardBadge";
 import FilterPanel from "../../components/forms/FilterPanel";
+import useUnits from "../../hooks/useUnits";
 import axios from "axios";
 import { debounce } from "lodash-es";
 import "../../styles/Chemicals.css";
@@ -43,6 +44,7 @@ const Chemicals = () => {
   const [selectedHistoryChemical, setSelectedHistoryChemical] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
   const { hasPermission } = useAuth();
+  const { unitLabel } = useUnits();
 
   const fetchChemicals = async (page = 1, search = searchTerm, currentFilters = filters, isArchived = showArchived) => {
     setLoading(true);
@@ -252,7 +254,7 @@ const Chemicals = () => {
                             <div className="inventory-subtext">
                               <span className="location-text">[{item.location}]</span>
                               <span className="separator">•</span>
-                              <span>{item.quantity} {item.unit}</span>
+                              <span>{item.quantity} {unitLabel(item.unit)}</span>
                               {item.batch_number && (
                                 <>
                                   <span className="separator">•</span>

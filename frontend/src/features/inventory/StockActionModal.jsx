@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import useUnits from "../../hooks/useUnits";
 import "../../styles/Inventory.css";
 
 const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
+  const { unitLabel, volumeUnit, weightUnit } = useUnits();
   const [action, setAction] = useState(initialAction || "OUT"); 
   const [amount, setAmount] = useState("");
-  const [unit, setUnit] = useState(chemical.unit || "L");
+  const defaultUnit = chemical.unit || (chemical.state === 'Liquid' ? volumeUnit : weightUnit);
+  const [unit, setUnit] = useState(defaultUnit);
   const [reason, setReason] = useState("");
   const [newLocation, setNewLocation] = useState("");
   
@@ -163,14 +166,14 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
       if (containerId) {
         const selected = availableContainers.find(c => c.container_id === containerId);
         if (selected && requestedAmount > selected.quantity) {
-          setError(`Insufficient stock in container ${containerId}. Available: ${selected.quantity} ${selected.unit}`);
+          setError(`Insufficient stock in container ${containerId}. Available: ${selected.quantity} ${unitLabel(selected.unit)}`);
           setLoading(false);
           return;
         }
       } 
       // Otherwise check overall chemical quantity
       else if (requestedAmount > chemical.quantity) {
-        setError(`Insufficient total stock. Available: ${chemical.quantity} ${chemical.unit}`);
+        setError(`Insufficient total stock. Available: ${chemical.quantity} ${unitLabel(chemical.unit)}`);
         setLoading(false);
         return;
       }
@@ -322,12 +325,12 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                       >
                         {chemical.state === 'Liquid' ? (
                           <>
-                            <option value="L">L</option>
+                            <option value={volumeUnit}>{unitLabel(volumeUnit)}</option>
                             <option value="mL">mL</option>
                           </>
                         ) : (
                           <>
-                            <option value="kg">kg</option>
+                            <option value={weightUnit}>{unitLabel(weightUnit)}</option>
                             <option value="g">g</option>
                           </>
                         )}
@@ -521,7 +524,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                             <option value="">Select a specific vessel...</option>
                             {availableContainers.map(c => (
                               <option key={c._id} value={c.container_id}>
-                                {c.container_id} ({c.quantity} {c.unit}) - {c.status}
+                                {c.container_id} ({c.quantity} {unitLabel(c.unit)}) - {c.status}
                               </option>
                             ))}
                           </select>

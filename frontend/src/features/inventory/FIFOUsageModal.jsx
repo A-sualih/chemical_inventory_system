@@ -1,10 +1,13 @@
 import { useState } from "react";
 import axios from "axios";
+import useUnits from "../../hooks/useUnits";
 import "../../styles/Inventory.css";
 
 const FIFOUsageModal = ({ chemical, onClose, onSuccess }) => {
+  const { unitLabel, volumeUnit, weightUnit } = useUnits();
+  const defaultUnit = chemical.unit || (chemical.state === 'Liquid' ? volumeUnit : weightUnit);
   const [amount, setAmount] = useState("");
-  const [unit, setUnit] = useState(chemical.unit || "L");
+  const [unit, setUnit] = useState(defaultUnit);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -45,7 +48,7 @@ const FIFOUsageModal = ({ chemical, onClose, onSuccess }) => {
           <div className="capacity-info-box" style={{ backgroundColor: 'var(--secondary-50)', textAlign: 'left', padding: '1.5rem', marginBottom: '2rem', border: '1px solid var(--secondary-100)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--secondary-200)', paddingBottom: '0.75rem', marginBottom: '1rem' }}>
               <span className="action-label-mini">Total Deducted</span>
-              <span className="font-mono-bold" style={{ fontSize: '1.125rem' }}>{successData.totalDeducted} {successData.unit}</span>
+              <span className="font-mono-bold" style={{ fontSize: '1.125rem' }}>{successData.totalDeducted} {unitLabel(successData.unit)}</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <span className="role-text" style={{ fontSize: '10px' }}>Containers Affected</span>
@@ -57,8 +60,8 @@ const FIFOUsageModal = ({ chemical, onClose, onSuccess }) => {
                       <span className="vessels-count">Batch: {c.batchId}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                      <span className="role-text" style={{ color: '#16a34a' }}>-{c.deductedQuantity} {c.unit}</span>
-                      <span className="vessels-count">Rem: {c.remainingQuantity} {c.unit}</span>
+                      <span className="role-text" style={{ color: '#16a34a' }}>-{c.deductedQuantity} {unitLabel(c.unit)}</span>
+                      <span className="vessels-count">Rem: {c.remainingQuantity} {unitLabel(c.unit)}</span>
                     </div>
                   </div>
                 ))}
@@ -102,7 +105,7 @@ const FIFOUsageModal = ({ chemical, onClose, onSuccess }) => {
             </div>
             <div>
               <div className="audit-user">{chemical.name}</div>
-              <div className="vessels-count">{chemical.id} • Available: {chemical.quantity} {chemical.unit}</div>
+              <div className="vessels-count">{chemical.id} • Available: {chemical.quantity} {unitLabel(chemical.unit)}</div>
             </div>
           </div>
 
@@ -130,12 +133,12 @@ const FIFOUsageModal = ({ chemical, onClose, onSuccess }) => {
                   >
                     {chemical.state === 'Liquid' ? (
                       <>
-                        <option value="L">L</option>
+                        <option value={volumeUnit}>{unitLabel(volumeUnit)}</option>
                         <option value="mL">mL</option>
                       </>
                     ) : (
                       <>
-                        <option value="kg">kg</option>
+                        <option value={weightUnit}>{unitLabel(weightUnit)}</option>
                         <option value="g">g</option>
                       </>
                     )}
