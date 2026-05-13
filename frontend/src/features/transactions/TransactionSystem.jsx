@@ -45,47 +45,25 @@ const TransactionSystem = () => {
 
     useEffect(() => {
         let scanner = null;
-
-        const startScanner = async () => {
-            if (!showCamera || scannedData || scannerRef.current) return;
-
-            try {
-                scanner = new Html5QrcodeScanner("reader", { 
-                    fps: 10, 
-                    qrbox: { width: 250, height: 250 },
-                    aspectRatio: 1.0
-                });
-
-                scanner.render((decodedText) => {
-                    setBarcode(decodedText);
-                    autoScan(decodedText);
-                    // Critical: Clear scanner FIRST, then close camera
-                    scanner.clear().then(() => {
-                        scannerRef.current = null;
-                        setShowCamera(false);
-                    }).catch(e => console.warn("Scanner clear error:", e));
-                }, (error) => {
-                    // Ignore scan errors
-                });
-
-                scannerRef.current = scanner;
-            } catch (err) {
-                console.error("Scanner initialization failed", err);
-            }
-        };
-
         if (showCamera && !scannedData) {
-            startScanner();
+            scanner = new Html5QrcodeScanner("reader", { 
+                fps: 10, 
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            });
+
+            scanner.render((decodedText) => {
+                setBarcode(decodedText);
+                autoScan(decodedText);
+                setShowCamera(false);
+            }, (err) => {
+                // Ignore errors
+            });
         }
 
         return () => {
-            if (scannerRef.current) {
-                const s = scannerRef.current;
-                scannerRef.current = null;
-                // Defer cleanup to ensure React DOM stability
-                setTimeout(() => {
-                    s.clear().catch(e => console.warn("Deferred cleanup error:", e));
-                }, 50);
+            if (scanner) {
+                scanner.clear().catch(e => console.warn(e));
             }
         };
     }, [showCamera, scannedData]);
@@ -183,13 +161,14 @@ const TransactionSystem = () => {
 
     const renderScannerView = () => (
         <div className="fast-track-card">
-            <div className={`scanner-viewport ${showCamera ? 'camera-active' : ''}`} id="reader" style={{ display: (showCamera || scannedData) ? 'block' : 'none' }}>
-                <div className="scanner-laser"></div>
+            <div className={`scanner-viewport ${showCamera ? 'camera-active' : ''}`} style={{ display: (showCamera || scannedData) ? 'block' : 'none' }}>
+                <div id="reader" style={{ width: '100%' }}></div>
+                {showCamera && !scannedData && <div className="scanner-laser"></div>}
                 {!showCamera && !scannedData && (
-                    <div className="scan-overlay-text">Ready to Scan Container Barcode</div>
+                    <div className="scan-overlay-text">System Ready</div>
                 )}
                 {scannedData && (
-                    <div className="scan-overlay-text" style={{ color: '#10b981' }}>Detection Successful</div>
+                    <div className="scan-overlay-text" style={{ color: '#10b981' }}>Resource Identified</div>
                 )}
             </div>
 
@@ -202,7 +181,7 @@ const TransactionSystem = () => {
                             style={{ padding: '0.75rem 1.5rem', fontSize: '0.8rem', gap: '0.5rem' }}
                         >
                             <QrCodeIcon style={{ width: '1.2rem' }} />
-                            {showCamera ? 'Close Camera' : 'Start Camera Scanner'}
+                            {showCamera ? 'Stop Scanner' : 'Activate Camera'}
                         </button>
                     </div>
 
