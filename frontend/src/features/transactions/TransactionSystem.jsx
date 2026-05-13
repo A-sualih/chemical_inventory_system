@@ -44,37 +44,64 @@ const TransactionSystem = () => {
     }, [activeTab]);
 
     useEffect(() => {
+        const startScanner = async () => {
+            try {
+                const scanner = new Html5QrcodeScanner("reader", { 
+                    fps: 10, 
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0
+                });
+
+                scanner.render((decodedText) => {
+                    setBarcode(decodedText);
+                    autoScan(decodedText);
+                    // Safe cleanup after scan
+                    scanner.clear().then(() => {
+                        setShowCamera(false);
+                    }).catch(e => console.warn("Scanner clear error:", e));
+                }, (error) => {
+                    // Ignore scan errors
+                });
+
+                scannerRef.current = scanner;
+            } catch (err) {
+                console.error("Scanner initialization failed", err);
+            }
+        };
+
         if (showCamera && !scannedData) {
-            const scanner = new Html5QrcodeScanner("reader", { 
-                fps: 10, 
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
-            });
-
-            scanner.render((decodedText) => {
-                setBarcode(decodedText);
-                autoScan(decodedText);
-                scanner.clear();
-                setShowCamera(false);
-            }, (err) => {
-                // Ignore scan errors
-            });
-
-            scannerRef.current = scanner;
+            startScanner();
         }
 
         return () => {
             if (scannerRef.current) {
-                scannerRef.current.clear().catch(e => console.error(e));
+                const scanner = scannerRef.current;
+                scannerRef.current = null;
+                // Wait for any pending renders before clearing
+                setTimeout(() => {
+                    scanner.clear().catch(e => console.warn("Cleanup clear error:", e));
+                }, 0);
             }
         };
     }, [showCamera, scannedData]);
 
     const autoScan = async (code) => {
+        let finalCode = code;
+        
+        // Handle full URLs (e.g. from printed labels)
+        if (code.includes('/chemicals/details/')) {
+            const parts = code.split('/');
+            finalCode = parts[parts.length - 1];
+        } else if (code.includes('/containers/')) {
+            const parts = code.split('/');
+            finalCode = parts[parts.length - 1];
+        }
+
         setLoading(true);
         try {
-            const res = await axios.get(`/api/transactions/scan/${code}`);
+            const res = await axios.get(`/api/transactions/scan/${finalCode}`);
             setScannedData(res.data);
+            setBarcode(finalCode); // Update UI to show the extracted ID
         } catch (err) {
             alert(err.response?.data?.error || 'Scan failed');
             setScannedData(null);
@@ -151,7 +178,7 @@ const TransactionSystem = () => {
 
     const renderScannerView = () => (
         <div className="fast-track-card">
-            <div className={`scanner-viewport ${showCamera ? 'camera-active' : ''}`} id="reader">
+            <div className={`scanner-viewport ${showCamera ? 'camera-active' : ''}`} id="reader" style={{ display: (showCamera || scannedData) ? 'block' : 'none' }}>
                 <div className="scanner-laser"></div>
                 {!showCamera && !scannedData && (
                     <div className="scan-overlay-text">Ready to Scan Container Barcode</div>

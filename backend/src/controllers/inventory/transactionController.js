@@ -1,4 +1,5 @@
 const Transaction = require('../../models/Transaction');
+const mongoose = require('mongoose');
 const Chemical = require('../../models/Chemical');
 const Container = require('../../models/Container');
 const AuditLog = require('../../models/AuditLog');
@@ -13,17 +14,33 @@ exports.getChemicalByBarcode = async (req, res) => {
     const { barcode } = req.params;
     
     // In this system, we'll assume container_id or a specific barcode field
-    const container = await Container.findOne({ 
+    let container = await Container.findOne({ 
       $or: [{ container_id: barcode }, { barcode: barcode }] 
-    }).populate('chemical_id');
+    });
     
+    let chemical;
+
     if (!container) {
-      return res.status(404).json({ error: 'Container not found. Please verify barcode.' });
-    }
-    
-    const chemical = container.chemical_id;
-    if (!chemical) {
-      return res.status(404).json({ error: 'Associated chemical record missing.' });
+      // Fallback: Check if this is a Chemical ID instead of a Container ID
+      chemical = await Chemical.findOne({ $or: [{ id: barcode }, { cas_number: barcode }] });
+      
+      if (chemical) {
+        // Find the first available container for this chemical
+        container = await Container.findOne({ chemical_id: { $in: [chemical.id, chemical._id.toString()] }, status: { $ne: 'Empty' } });
+        if (!container) {
+            return res.status(404).json({ error: `Chemical found (${chemical.name}), but no active containers are available for check-out.` });
+        }
+      } else {
+        return res.status(404).json({ error: 'Barcode not recognized as a Container or Chemical ID.' });
+      }
+    } else {
+      // Container found, now get its chemical
+      const chemId = container.chemical_id;
+      const chemQuery = mongoose.Types.ObjectId.isValid(chemId) ? { $or: [{ _id: chemId }, { id: chemId }] } : { id: chemId };
+      chemical = await Chemical.findOne(chemQuery);
+      if (!chemical) {
+        return res.status(404).json({ error: 'Associated chemical record missing for this container.' });
+      }
     }
 
     // Safety & Stock Check
@@ -75,10 +92,14 @@ exports.checkOut = async (req, res) => {
       device_info
     } = req.body;
 
-    const container = await Container.findById(container_id).populate('chemical_id');
+    const container = await Container.findById(container_id);
     if (!container) return res.status(404).json({ error: 'Container not found' });
     
-    const chemical = container.chemical_id;
+    // Explicitly fetch chemical document safely
+    const chemId = container.chemical_id;
+    const chemQuery = mongoose.Types.ObjectId.isValid(chemId) ? { $or: [{ _id: chemId }, { id: chemId }] } : { id: chemId };
+    const chemical = await Chemical.findOne(chemQuery);
+    if (!chemical) return res.status(404).json({ error: 'Associated chemical record missing.' });
     
     // 1. Validation
     const requestedQtyBase = convertToBase(quantity, unit);
@@ -163,10 +184,14 @@ exports.checkIn = async (req, res) => {
       is_contaminated
     } = req.body;
 
-    const container = await Container.findById(container_id).populate('chemical_id');
+    const container = await Container.findById(container_id);
     if (!container) return res.status(404).json({ error: 'Container not found' });
     
-    const chemical = container.chemical_id;
+    // Explicitly fetch chemical document safely
+    const chemId = container.chemical_id;
+    const chemQuery = mongoose.Types.ObjectId.isValid(chemId) ? { $or: [{ _id: chemId }, { id: chemId }] } : { id: chemId };
+    const chemical = await Chemical.findOne(chemQuery);
+    if (!chemical) return res.status(404).json({ error: 'Associated chemical record missing.' });
 
     // Find the most recent active checkout for this user and container
     const originalTransaction = await Transaction.findOne({

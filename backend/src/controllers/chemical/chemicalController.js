@@ -214,7 +214,15 @@ exports.getChemicals = async (req, res) => {
 exports.getChemical = async (req, res) => {
   try {
     const query = { id: req.params.id };
-    if (req.activeLabId) query.lab = req.activeLabId;
+    
+    // If not Admin, restrict to active lab or unassigned
+    if (req.user.role !== 'Admin' && req.activeLabId) {
+      query.$or = [
+        { lab: req.activeLabId },
+        { lab: { $exists: false } },
+        { lab: null }
+      ];
+    }
     
     const chemical = await Chemical.findOne(query);
     if (!chemical) return res.status(404).json({ error: 'Chemical not found or access denied' });

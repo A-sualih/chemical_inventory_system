@@ -44,13 +44,12 @@ const transactionSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Generate friendly transaction ID
-transactionSchema.pre('save', async function(next) {
+transactionSchema.pre('save', async function() {
   if (!this.transaction_id) {
     const count = await mongoose.model('Transaction').countDocuments();
     const prefix = this.type === 'Check-Out' ? 'CO' : 'CI';
     this.transaction_id = `${prefix}-${Date.now().toString().slice(-6)}-${(count + 1).toString().padStart(4, '0')}`;
   }
-  next();
 });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

@@ -1,0 +1,220 @@
+.print-label-page {
+    min-height: 100vh;
+    background: radial-gradient(circle at top right, #1e293b, #0f172a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    font-family: 'Inter', sans-serif;
+}
+
+@media print {
+    .print-label-page {
+        background: white !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+}
+
+.label-container {
+    background: white;
+    width: 100mm;
+    height: 60mm;
+    position: relative;
+    padding: 12px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+@media print {
+    .label-container {
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+    }
+}
+
+/* Safety Border Accent */
+.label-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: repeating-linear-gradient(
+        45deg,
+        #facc15,
+        #facc15 10px,
+        #000 10px,
+        #000 20px
+    );
+}
+
+.label-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    border-bottom: 2px solid #000;
+    padding-bottom: 4px;
+}
+
+.label-title {
+    font-size: 14pt;
+    font-weight: 900;
+    color: #000;
+    text-transform: uppercase;
+    line-height: 1.1;
+    max-width: 70%;
+}
+
+.label-cas {
+    font-size: 8pt;
+    font-weight: 700;
+    color: #64748b;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.label-body {
+    display: grid;
+    grid-template-columns: 70px 1fr 80px;
+    gap: 12px;
+    flex: 1;
+}
+
+.label-qr-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.qr-code-wrapper {
+    padding: 2px;
+    border: 1px solid #000;
+    background: white;
+}
+
+.label-id {
+    font-size: 6pt;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.label-hazards-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.signal-word {
+    font-size: 10pt;
+    font-weight: 950;
+    color: white;
+    background: #000;
+    padding: 2px 8px;
+    display: inline-block;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.signal-word.DANGER { background: #dc2626; }
+.signal-word.WARNING { background: #ea580c; }
+
+.ghs-icons {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.ghs-icon-box {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ghs-icon-box svg {
+    width: 24px;
+    height: 24px;
+}
+
+.label-nfpa-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.label-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 8px;
+    font-size: 7pt;
+    font-weight: 700;
+    color: #475569;
+}
+
+.ppe-badges {
+    display: flex;
+    gap: 3px;
+}
+
+.ppe-badge {
+    padding: 1px 4px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    font-size: 6pt;
+    text-transform: uppercase;
+}
+
+/* Control Buttons Overlay */
+.print-controls {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    display: flex;
+    gap: 1rem;
+    z-index: 100;
+}
+
+.print-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.print-btn-primary {
+    background: #3b82f6;
+    color: white;
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.5);
+}
+
+.print-btn-primary:hover {
+    transform: translateY(-2px);
+    background: #2563eb;
+}
+
+.print-btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.print-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
