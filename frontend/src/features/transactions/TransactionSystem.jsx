@@ -44,9 +44,13 @@ const TransactionSystem = () => {
     }, [activeTab]);
 
     useEffect(() => {
+        let scanner = null;
+
         const startScanner = async () => {
+            if (!showCamera || scannedData || scannerRef.current) return;
+
             try {
-                const scanner = new Html5QrcodeScanner("reader", { 
+                scanner = new Html5QrcodeScanner("reader", { 
                     fps: 10, 
                     qrbox: { width: 250, height: 250 },
                     aspectRatio: 1.0
@@ -55,8 +59,9 @@ const TransactionSystem = () => {
                 scanner.render((decodedText) => {
                     setBarcode(decodedText);
                     autoScan(decodedText);
-                    // Safe cleanup after scan
+                    // Critical: Clear scanner FIRST, then close camera
                     scanner.clear().then(() => {
+                        scannerRef.current = null;
                         setShowCamera(false);
                     }).catch(e => console.warn("Scanner clear error:", e));
                 }, (error) => {
@@ -75,12 +80,12 @@ const TransactionSystem = () => {
 
         return () => {
             if (scannerRef.current) {
-                const scanner = scannerRef.current;
+                const s = scannerRef.current;
                 scannerRef.current = null;
-                // Wait for any pending renders before clearing
+                // Defer cleanup to ensure React DOM stability
                 setTimeout(() => {
-                    scanner.clear().catch(e => console.warn("Cleanup clear error:", e));
-                }, 0);
+                    s.clear().catch(e => console.warn("Deferred cleanup error:", e));
+                }, 50);
             }
         };
     }, [showCamera, scannedData]);

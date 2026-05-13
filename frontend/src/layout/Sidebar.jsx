@@ -255,7 +255,12 @@ const Sidebar = ({ isOpen, onClose }) => {
           <div className="logo-wrapper">
             <div className="logo-box" style={{ padding: settings?.systemLogo ? '0' : '8px', overflow: 'hidden', background: settings?.systemLogo ? 'transparent' : '', boxShadow: settings?.systemLogo ? 'none' : '' }}>
               {settings?.systemLogo ? (
-                <img src={settings.systemLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '0.75rem' }} />
+                <img 
+                  src={settings.systemLogo} 
+                  alt="Logo" 
+                  onError={(e) => e.target.src = '/icons/building.svg'}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '0.75rem' }} 
+                />
               ) : (
                 <svg xmlns="http://www.w3.org/2000/svg" className="icon-logo" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -304,7 +309,12 @@ const Sidebar = ({ isOpen, onClose }) => {
               <Link to="/profile" className="profile-avatar-wrapper" style={{ textDecoration: 'none' }}>
                 <div className="profile-avatar" style={{ padding: user?.profile_photo ? '0' : '', overflow: 'hidden', border: user?.profile_photo ? 'none' : '' }}>
                   {user?.profile_photo ? (
-                    <img src={user.profile_photo} alt={user?.name || "User"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img 
+                        src={user.profile_photo} 
+                        alt={user?.name || 'User'} 
+                        onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=random`; }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
                   ) : (
                     getInitials(user?.name)
                   )}
