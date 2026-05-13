@@ -47,15 +47,20 @@ const TransactionSystem = () => {
         let scanner = null;
         if (showCamera && !scannedData) {
             scanner = new Html5QrcodeScanner("reader", { 
-                fps: 10, 
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
+                fps: 20, 
+                qrbox: { width: 280, height: 280 },
+                aspectRatio: 1.0,
+                rememberLastUsedCamera: true,
+                supportedScanTypes: [0] // 0 = QR_CODE
             });
 
             scanner.render((decodedText) => {
-                setBarcode(decodedText);
-                autoScan(decodedText);
+                // Immediate state updates
                 setShowCamera(false);
+                setBarcode(decodedText);
+                
+                // Non-blocking API call
+                setTimeout(() => autoScan(decodedText), 0);
             }, (err) => {
                 // Ignore errors
             });
