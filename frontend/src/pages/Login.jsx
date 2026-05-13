@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
 import "../styles/Login.css";
 
 const Login = () => {
   const { login, user: currentUser } = useAuth();
+  const { settings } = useSettings();
   const [view, setView] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -194,17 +196,24 @@ const Login = () => {
         return (
           <div className="login-view-wrapper">
             <div className="logo-header-wrapper">
-              <div className="app-logo-box">
-                <svg xmlns="http://www.w3.org/2000/svg" className="app-logo icon-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" />
-                </svg>
+              <div className="app-logo-box" style={{ 
+                backgroundColor: settings?.systemLogo ? 'transparent' : '',
+                boxShadow: settings?.systemLogo ? 'none' : ''
+              }}>
+                {settings?.systemLogo ? (
+                  <img src={settings.systemLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '1rem' }} />
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="app-logo icon-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" />
+                  </svg>
+                )}
               </div>
               <h1 className="login-title-h1">
-                CIMS Portal
+                {settings?.systemName || "CIMS Portal"}
               </h1>
               <p className="logo-subtext">
-                Chemical Inventory Management
+                {settings?.orgName || "Chemical Inventory Management"}
               </p>
             </div>
 

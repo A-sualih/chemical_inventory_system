@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
 import "../styles/Login.css";
 
 const Register = () => {
   const { user: currentUser } = useAuth();
+  const { settings } = useSettings();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,16 +49,31 @@ const Register = () => {
       <div className="login-card">
         <div className="login-view-wrapper">
           <div className="logo-header-wrapper" style={{marginBottom: '2.5rem'}}>
-            <div className="app-logo-box" style={{marginBottom: '1.5rem', cursor: 'pointer', transition: 'transform 0.3s'}} onMouseOver={e => e.currentTarget.style.transform = 'rotate(12deg)'} onMouseOut={e => e.currentTarget.style.transform = 'rotate(0)'}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="app-logo icon-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{width: '2.5rem', height: '2.5rem'}}>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-              </svg>
+            <div 
+              className="app-logo-box" 
+              style={{
+                marginBottom: '1.5rem', 
+                cursor: 'pointer', 
+                transition: 'transform 0.3s',
+                backgroundColor: settings?.systemLogo ? 'transparent' : '',
+                boxShadow: settings?.systemLogo ? 'none' : ''
+              }} 
+              onMouseOver={e => e.currentTarget.style.transform = 'rotate(12deg)'} 
+              onMouseOut={e => e.currentTarget.style.transform = 'rotate(0)'}
+            >
+              {settings?.systemLogo ? (
+                <img src={settings.systemLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '1rem' }} />
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="app-logo icon-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{width: '2.5rem', height: '2.5rem'}}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+              )}
             </div>
             <h1 className="login-title-h1">
               Create Account
             </h1>
             <p className="logo-subtext" style={{marginTop: '0.5rem'}}>
-              Join the Chemical Inventory System
+              Join {settings?.systemName || "the Chemical Inventory System"}
             </p>
           </div>
 

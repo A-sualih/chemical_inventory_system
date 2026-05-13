@@ -140,6 +140,11 @@ const SystemSettings = () => {
     return (
         <Layout>
             <div className="settings-container">
+                {/* Background Decorative Gradient Blobs */}
+                <div className="bg-blob blob-1"></div>
+                <div className="bg-blob blob-2"></div>
+                <div className="bg-blob blob-3"></div>
+
                 <header className="settings-header">
                     <h1>System <span>Administration</span></h1>
                     <p>Configure core environmental parameters, branding, and safety thresholds.</p>

@@ -91,11 +91,14 @@ const LabManagement = () => {
       <div className="lab-management-container">
         <div className="header-actions">
           <div>
-            <h1>Department & Lab Management</h1>
-            <p>Create labs and assign users efficiently across the institution.</p>
+            <h1>Lab & Access Management</h1>
+            <p>Administer laboratory facilities and provision user access protocols.</p>
           </div>
-          <button className="btn-primary" onClick={() => setIsCreateModalOpen(true)}>
-            + Create New Lab
+          <button className="btn-primary-glow" onClick={() => setIsCreateModalOpen(true)}>
+            <svg xmlns="http://www.w3.org/2000/svg" style={{width: '1.25rem', height: '1.25rem'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Provision Lab
           </button>
         </div>
 
@@ -104,72 +107,87 @@ const LabManagement = () => {
         <div className="management-sections">
           
           <div className="section-card active-labs">
-            <h2>System Labs</h2>
-            {labs.length === 0 ? <p>No labs registered yet.</p> : (
-              <ul className="lab-list">
-                {labs.map(lab => (
-                  <li key={lab._id} className="lab-card">
-                    <div className="lab-info">
-                      <span className="lab-name">{lab.name}</span>
-                      <span className="lab-desc">{lab.description || 'No description'}</span>
-                      <span className="lab-status">{lab.status}</span>
-                    </div>
-                    {user.role === 'Admin' && (
-                      <button 
-                         className="btn-danger-sm" 
-                         onClick={() => { setLabToDelete(lab); setIsDeleteModalOpen(true); }}
-                      >
-                        Delete Lab
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <h2>
+               <svg xmlns="http://www.w3.org/2000/svg" style={{width: '1.25rem'}} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+               System Facilities
+            </h2>
+            <div className="card-body">
+              {labs.length === 0 ? <p style={{color: 'var(--secondary-500)'}}>No facilities provisioned yet.</p> : (
+                <ul className="lab-list">
+                  {labs.map(lab => (
+                    <li key={lab._id} className="lab-card">
+                      <div className="lab-info">
+                        <span className="lab-name">{lab.name}</span>
+                        <span className="lab-desc">{lab.description || 'No operational parameters defined.'}</span>
+                        <span className="lab-status">{lab.status || 'Active'}</span>
+                      </div>
+                      {user.role === 'Admin' && (
+                        <button 
+                           className="btn-danger-sm" 
+                           style={{marginTop: '0.5rem', alignSelf: 'flex-start'}}
+                           onClick={() => { setLabToDelete(lab); setIsDeleteModalOpen(true); }}
+                        >
+                          Decommission Facility
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
 
           <div className="section-card user-assignment">
-            <h2>User Lab Assignments</h2>
-            {loading ? <p>Loading users...</p> : (
-              <table className="assignment-table">
-                <thead>
-                  <tr>
-                    <th>User</th>
-                    <th>Role</th>
-                    <th>Assigned Labs</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <h2>
+              <svg xmlns="http://www.w3.org/2000/svg" style={{width: '1.25rem'}} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+              Identity Access Controls (Lab Scope)
+            </h2>
+            <div className="card-body">
+              {loading ? <p style={{color: 'var(--secondary-500)'}}>Synchronizing personnel data...</p> : (
+                <div className="users-grid">
                   {users.map(u => (
-                    <tr key={u._id}>
-                      <td>
-                        <strong>{u.name}</strong><br/>
-                        <small>{u.email}</small>
-                      </td>
-                      <td><span className="role-chip">{u.role}</span></td>
-                      <td>
-                        <div className="lab-toggles">
-                          {labs.map(lab => {
-                            const isAssigned = u.labs?.includes(lab._id);
-                            return (
-                              <button 
-                                key={lab._id} 
-                                className={`toggle-btn ${isAssigned ? 'assigned' : 'unassigned'}`}
-                                onClick={() => toggleUserLab(u._id, lab._id)}
-                              >
-                                {isAssigned ? '✅ ' : '❌ '} {lab.name}
-                              </button>
-                            );
-                          })}
+                    <div key={u._id} className="user-assignment-card">
+                      <div className="user-assignment-header">
+                        <div className="user-avatar">
+                          {u.profile_photo ? <img src={u.profile_photo} alt={u.name} /> : (u.name ? u.name.charAt(0).toUpperCase() : '?')}
                         </div>
-                      </td>
-                    </tr>
+                        <div className="user-assignment-info">
+                          <h3>{u.name}</h3>
+                          <p>{u.email}</p>
+                          <span className="role-chip">{u.role}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="lab-toggles-container">
+                        <div className="lab-toggles-header">Facility Access</div>
+                        <div className="lab-toggles-list">
+                          {labs.length === 0 ? (
+                            <span style={{fontSize: '0.75rem', color: 'var(--secondary-400)'}}>No facilities available for assignment.</span>
+                          ) : (
+                            labs.map(lab => {
+                              const isAssigned = u.labs?.includes(lab._id);
+                              return (
+                                <div 
+                                  key={lab._id} 
+                                  className={`lab-toggle-row ${isAssigned ? 'assigned' : ''}`}
+                                  onClick={() => toggleUserLab(u._id, lab._id)}
+                                >
+                                  <span>{lab.name}</span>
+                                  <div className="switch-pill">
+                                    <div className="switch-circle"></div>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            )}
+                </div>
+              )}
+            </div>
           </div>
-
         </div>
 
         {/* Create Modal */}

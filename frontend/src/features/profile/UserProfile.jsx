@@ -2,6 +2,15 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import Layout from "../../layout/Layout";
+import { 
+    UserIcon, 
+    PhoneIcon, 
+    ShieldCheckIcon, 
+    BellAlertIcon, 
+    CheckCircleIcon,
+    UserCircleIcon,
+    EnvelopeIcon
+} from "@heroicons/react/24/outline";
 import "./Profile.css";
 
 const UserProfile = () => {
@@ -23,7 +32,7 @@ const UserProfile = () => {
         if (alert.message) {
             const timer = setTimeout(() => {
                 setAlert({ type: "", message: "" });
-            }, 3000);
+            }, 5000);
             return () => clearTimeout(timer);
         }
     }, [alert]);
@@ -42,7 +51,7 @@ const UserProfile = () => {
                     email_preferences: data.email_preferences || { alerts: true, updates: false }
                 });
             } catch (err) {
-                setAlert({ type: "error", message: "Failed to load profile data." });
+                setAlert({ type: "error", message: "Failed to load identity matrix." });
             } finally {
                 setLoading(false);
             }
@@ -76,14 +85,16 @@ const UserProfile = () => {
         uploadData.append("image", file);
         
         try {
+            setAlert({ type: "info", message: "Uploading asset..." });
             const res = await axios.post("/api/upload", uploadData, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
             if (res.data.url) {
                 setFormData(prev => ({ ...prev, profile_photo: res.data.url }));
+                setAlert({ type: "success", message: "Identity photo updated successfully." });
             }
         } catch (err) {
-            setAlert({ type: "error", message: "Failed to upload profile photo." });
+            setAlert({ type: "error", message: "Asset upload failed over secure connection." });
         }
     };
 
@@ -94,114 +105,183 @@ const UserProfile = () => {
             if (updateUserContext) {
                 updateUserContext({ name: formData.name, phone: formData.phone, profile_photo: formData.profile_photo });
             }
-            setAlert({ type: "success", message: "Profile updated successfully!" });
+            setAlert({ type: "success", message: "User identity synchronized successfully!" });
         } catch (err) {
-            setAlert({ type: "error", message: "Failed to update profile." });
+            setAlert({ type: "error", message: "Authentication required to modify core identity parameters." });
         }
     };
 
     if (loading) {
-        return <div className="profile-loading">Loading profile...</div>;
+        return (
+            <Layout>
+                <div className="profile-loader-box">
+                    <div className="spinner-profile"></div>
+                    <p style={{color: 'var(--secondary-500)', fontWeight: 600}}>Synchronizing Identity Credentials...</p>
+                </div>
+            </Layout>
+        );
     }
 
     return (
         <Layout>
-            <div className="profile-container">
-                <div className="profile-header">
-                <h1>My Profile</h1>
-                <p>Manage your account settings, contact information, and preferences.</p>
-            </div>
+            <div className="profile-page-wrapper">
+                <div className="bg-blob blob-1"></div>
+                <div className="bg-blob blob-2"></div>
 
-            {alert.message && (
-                <div className={`toast-alert toast-${alert.type}`}>
-                    {alert.message}
-                </div>
-            )}
-
-            <div className="profile-form-grid">
-                <div className="profile-form-group">
-                    <label>Full Name</label>
-                    <input 
-                        type="text" 
-                        name="name" 
-                        value={formData.name} 
-                        onChange={handleChange} 
-                    />
-                </div>
-                <div className="profile-form-group">
-                    <label>Phone Number</label>
-                    <input 
-                        type="tel" 
-                        name="phone" 
-                        value={formData.phone} 
-                        onChange={handleChange} 
-                        placeholder="+1 (555) 000-0000"
-                    />
+                <div className="profile-header-premium">
+                    <div className="profile-header-icon-box">
+                        <UserCircleIcon style={{ width: '2rem', height: '2rem' }} />
+                    </div>
+                    <div>
+                        <h1>User Identity</h1>
+                        <p>Manage your secure access credentials, notifications, and core parameters.</p>
+                    </div>
                 </div>
 
-                <div className="profile-form-group full-width">
-                    <label>Profile Photo</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                        {formData.profile_photo ? (
-                            <img src={formData.profile_photo} alt="Profile" style={{ width: '55px', height: '55px', objectFit: 'cover', borderRadius: '50%', border: '2px solid #dee2e6' }} />
-                        ) : (
-                            <div style={{ width: '55px', height: '55px', borderRadius: '50%', background: '#e9ecef', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6c757d', fontWeight: 'bold', fontSize: '20px' }}>
-                                {formData.name ? formData.name.charAt(0).toUpperCase() : '?'}
+                {alert.message && (
+                    <div className="toast-container" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 100 }}>
+                        <div style={{
+                            padding: '1rem 2rem', 
+                            borderRadius: '1rem', 
+                            background: alert.type === 'error' ? '#ef4444' : (alert.type === 'info' ? '#3b82f6' : '#10b981'),
+                            color: 'white',
+                            fontWeight: 700,
+                            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.2)',
+                            display: 'flex', gap: '0.75rem', alignItems: 'center'
+                        }}>
+                            {alert.message}
+                        </div>
+                    </div>
+                )}
+
+                <div className="profile-card">
+                    <div className="profile-section-heading">
+                        <UserIcon style={{ width: '1.25rem', color: 'var(--primary-600)' }} />
+                        <h2>Personal Identity</h2>
+                    </div>
+                    
+                    <div className="profile-form-layout">
+                        <div className="profile-group wide">
+                            <label>Identity Photo</label>
+                            <div className="photo-upload-container">
+                                <div className="photo-preview">
+                                    {formData.profile_photo ? (
+                                        <img src={formData.profile_photo} alt="Profile" />
+                                    ) : (
+                                        <div className="photo-preview-placeholder">
+                                            {formData.name ? formData.name.charAt(0).toUpperCase() : '?'}
+                                        </div>
+                                    )}
+                                </div>
+                                <input 
+                                    type="file" 
+                                    accept="image/*"
+                                    onChange={handleFileUpload} 
+                                    className="file-input-stylish"
+                                />
                             </div>
-                        )}
-                        <input 
-                            type="file" 
-                            accept="image/*"
-                            onChange={handleFileUpload} 
-                            style={{ flex: 1, padding: '8px' }}
-                        />
+                        </div>
+
+                        <div className="profile-group">
+                            <label>Full Name</label>
+                            <div className="profile-input-wrapper">
+                                <UserIcon className="profile-input-icon" style={{width: '1.25rem'}} />
+                                <input 
+                                    type="text" 
+                                    name="name" 
+                                    className="profile-input"
+                                    value={formData.name} 
+                                    onChange={handleChange} 
+                                    placeholder="Enter your full name"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="profile-group">
+                            <label>Secure Phone Registry</label>
+                            <div className="profile-input-wrapper">
+                                <PhoneIcon className="profile-input-icon" style={{width: '1.25rem'}} />
+                                <input 
+                                    type="tel" 
+                                    name="phone" 
+                                    className="profile-input"
+                                    value={formData.phone} 
+                                    onChange={handleChange} 
+                                    placeholder="+1 (555) 000-0000"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div className="profile-form-group">
-                    <label>Multi-Factor Authentication</label>
-                    <div className="profile-checkbox">
-                        <input 
-                            type="checkbox" 
-                            name="mfa_enabled" 
-                            id="mfa_enabled"
-                            checked={formData.mfa_enabled} 
-                            onChange={handleChange} 
-                        />
-                        <label htmlFor="mfa_enabled">Require codes on login</label>
+                <div className="profile-card">
+                    <div className="profile-section-heading">
+                        <ShieldCheckIcon style={{ width: '1.25rem', color: 'var(--primary-600)' }} />
+                        <h2>Security Protocol</h2>
+                    </div>
+                    <div className="profile-form-layout" style={{ padding: '1.5rem 2rem' }}>
+                        <div className={`pref-card ${formData.mfa_enabled ? 'active' : ''}`} onClick={() => setFormData(p => ({...p, mfa_enabled: !p.mfa_enabled}))}>
+                            <input 
+                                type="checkbox" 
+                                name="mfa_enabled" 
+                                className="pref-checkbox"
+                                checked={formData.mfa_enabled} 
+                                onChange={handleChange} 
+                                onClick={e => e.stopPropagation()}
+                            />
+                            <div style={{ flex: 1 }}>
+                                <label className="pref-label">Multi-Factor Authentication (MFA)</label>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--secondary-500)', marginTop: '0.25rem' }}>Require an SMS or App code on every login.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div className="profile-form-group">
-                    <label>Email Preferences</label>
-                    <div className="profile-checkbox">
-                        <input 
-                            type="checkbox" 
-                            name="email_alerts" 
-                            id="email_alerts"
-                            checked={formData.email_preferences.alerts} 
-                            onChange={handleChange} 
-                        />
-                        <label htmlFor="email_alerts">System alerts & notifications</label>
+                <div className="profile-card">
+                    <div className="profile-section-heading">
+                        <BellAlertIcon style={{ width: '1.25rem', color: 'var(--primary-600)' }} />
+                        <h2>Notification Architecture</h2>
                     </div>
-                    <div className="profile-checkbox">
-                        <input 
-                            type="checkbox" 
-                            name="email_updates" 
-                            id="email_updates"
-                            checked={formData.email_preferences.updates} 
-                            onChange={handleChange} 
-                        />
-                        <label htmlFor="email_updates">News and updates</label>
+                    <div className="profile-form-layout" style={{ padding: '1.5rem 2rem' }}>
+                        <div className="pref-grid">
+                            <div className={`pref-card ${formData.email_preferences.alerts ? 'active' : ''}`} onClick={() => setFormData(p => ({...p, email_preferences: {...p.email_preferences, alerts: !p.email_preferences.alerts}}))}>
+                                <input 
+                                    type="checkbox" 
+                                    className="pref-checkbox"
+                                    checked={formData.email_preferences.alerts} 
+                                    onChange={e => handleChange({target: {name: 'email_alerts', checked: e.target.checked}})} 
+                                    onClick={e => e.stopPropagation()}
+                                />
+                                <div>
+                                    <label className="pref-label">System Threat Alerts</label>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--secondary-500)' }}>Critical inventory & threshold warnings</p>
+                                </div>
+                            </div>
+                            
+                            <div className={`pref-card ${formData.email_preferences.updates ? 'active' : ''}`} onClick={() => setFormData(p => ({...p, email_preferences: {...p.email_preferences, updates: !p.email_preferences.updates}}))}>
+                                <input 
+                                    type="checkbox" 
+                                    className="pref-checkbox"
+                                    checked={formData.email_preferences.updates} 
+                                    onChange={e => handleChange({target: {name: 'email_updates', checked: e.target.checked}})} 
+                                    onClick={e => e.stopPropagation()}
+                                />
+                                <div>
+                                    <label className="pref-label">Release Updates</label>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--secondary-500)' }}>Patch notes and new feature announcements</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div className="profile-actions">
-                <button className="profile-btn-save" onClick={handleSave}>
-                    Save Changes
-                </button>
+                <div className="profile-actions-bar">
+                    <button className="btn-profile-save" onClick={handleSave}>
+                        <CheckCircleIcon style={{ width: '1.5rem' }} />
+                        Commit Data Protocol
+                    </button>
                 </div>
+
             </div>
         </Layout>
     );

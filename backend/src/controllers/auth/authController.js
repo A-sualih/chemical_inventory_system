@@ -198,7 +198,7 @@ exports.resetPassword = async (req, res) => {
 
 exports.getUsers = async (req, res) => {
   try {
-    const users = await User.find({}, 'name email role status profile_photo');
+    const users = await User.find({}, 'name email role status profile_photo labs active_lab');
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch users' });

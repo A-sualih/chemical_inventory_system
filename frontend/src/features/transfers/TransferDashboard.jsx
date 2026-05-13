@@ -93,10 +93,13 @@ const TransferDashboard = () => {
         <div className="transfer-header">
           <div>
             <h1>Cross-Lab Transfers</h1>
-            <p>Manage and approve chemical movements across departments</p>
+            <p>Administer chemical movements and provenance across facilities.</p>
           </div>
-          <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
-            Request Transfer
+          <button className="btn-primary-glow" onClick={() => setIsModalOpen(true)}>
+            <svg xmlns="http://www.w3.org/2000/svg" style={{width: '1.25rem', height: '1.25rem', marginRight: '0.5rem'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+            Initiate Transfer
           </button>
         </div>
 
@@ -104,17 +107,22 @@ const TransferDashboard = () => {
 
         <div className="transfer-list">
           {loading ? (
-            <p>Loading transfers...</p>
+            <div className="empty-state">Synchronizing transfer logs...</div>
           ) : transfers.length === 0 ? (
-            <div className="empty-state">No transfers active for this lab.</div>
+            <div className="empty-state">
+              <svg xmlns="http://www.w3.org/2000/svg" style={{width: '3rem', height: '3rem', margin: '0 auto 1rem', display: 'block', opacity: 0.3}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+              No active transfers found for this facility.
+            </div>
           ) : (
             <table className="transfer-table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Chemical</th>
-                  <th>Qty</th>
-                  <th>Source</th>
+                  <th>Request Date</th>
+                  <th>Chemical Identity</th>
+                  <th>Payload</th>
+                  <th>Origin</th>
                   <th>Destination</th>
                   <th>Status</th>
                   <th>Actions</th>
@@ -124,7 +132,7 @@ const TransferDashboard = () => {
                 {transfers.map(t => (
                   <tr key={t._id}>
                     <td>{new Date(t.transfer_date).toLocaleDateString()}</td>
-                    <td>{t.chemical_id?.name || 'Unknown'}</td>
+                    <td style={{fontWeight: 700}}>{t.chemical_id?.name || 'Unknown'}</td>
                     <td>{t.quantity_moved} {t.unit}</td>
                     <td>{t.source_lab?.name}</td>
                     <td>{t.destination_lab?.name}</td>
@@ -132,8 +140,8 @@ const TransferDashboard = () => {
                     <td>
                       {t.status === 'Pending' && t.source_lab?._id === user.active_lab && (hasPermission('approve_cross_lab_transfer') || hasPermission('approve_request')) && (
                         <div className="action-buttons">
-                          <button className="btn-success" onClick={() => handleApprove(t._id)}>Approve</button>
-                          <button className="btn-danger" onClick={() => handleReject(t._id)}>Reject</button>
+                          <button className="btn-success-sm" onClick={() => handleApprove(t._id)}>Authorize</button>
+                          <button className="btn-danger-sm" onClick={() => handleReject(t._id)}>Decline</button>
                         </div>
                       )}
                     </td>
@@ -148,78 +156,82 @@ const TransferDashboard = () => {
         {isModalOpen && (
           <div className="modal-overlay">
             <div className="transfer-modal">
-              <h2>Request Chemical Transfer</h2>
+              <h2>Initiate Protocol Transfer</h2>
               <form onSubmit={handleSubmitRequest}>
                 <div className="form-group">
-                  <label>Destination Lab (Receiving)</label>
+                  <label>Recipient Facility</label>
                   <select 
                     required 
                     value={newTransfer.destination_lab}
                     onChange={(e) => setNewTransfer({...newTransfer, destination_lab: e.target.value})}
                   >
-                    <option value="">Select a Lab...</option>
+                    <option value="">Select laboratory...</option>
                     {availableLabs.map(l => (
                       <option key={l._id} value={l._id}>{l.name}</option>
                     ))}
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Chemical ID</label>
+                  <label>Chemical Resource ID</label>
                   <input 
                     type="text" 
                     required 
-                    placeholder="e.g. ObjectID of Chemical"
+                    placeholder="Enter Chemical ObjectPath"
                     value={newTransfer.chemical_id}
                     onChange={(e) => setNewTransfer({...newTransfer, chemical_id: e.target.value})}
                   />
-                  <small>ObjectId required.</small>
-                </div>
-                <div className="form-group">
-                  <label>Batch Number (Optional)</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. BATCH-A01"
-                    value={newTransfer.batch_number}
-                    onChange={(e) => setNewTransfer({...newTransfer, batch_number: e.target.value})}
-                  />
-                  <small>If migrating a specific Batch.</small>
-                </div>
-                <div className="form-group">
-                  <label>Container ID (Optional)</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. C001-1"
-                    value={newTransfer.container_id}
-                    onChange={(e) => setNewTransfer({...newTransfer, container_id: e.target.value})}
-                  />
-                  <small>If migrating a strictly defined Container.</small>
+                  <small>System Identifier required for provenance tracking.</small>
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Quantity</label>
+                    <label>Batch Ref</label>
                     <input 
-                      type="number" 
-                      required 
-                      value={newTransfer.quantity_moved}
-                      onChange={(e) => setNewTransfer({...newTransfer, quantity_moved: e.target.value})}
+                      type="text" 
+                      placeholder="Optional"
+                      value={newTransfer.batch_number}
+                      onChange={(e) => setNewTransfer({...newTransfer, batch_number: e.target.value})}
                     />
                   </div>
                   <div className="form-group">
-                    <label>Unit</label>
-                    <select 
-                      value={newTransfer.unit}
-                      onChange={(e) => setNewTransfer({...newTransfer, unit: e.target.value})}
-                    >
-                      <option value="ml">ml</option>
-                      <option value="L">L</option>
-                      <option value="g">g</option>
-                      <option value="kg">kg</option>
-                    </select>
+                    <label>Container Ref</label>
+                    <input 
+                      type="text" 
+                      placeholder="Optional"
+                      value={newTransfer.container_id}
+                      onChange={(e) => setNewTransfer({...newTransfer, container_id: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group" style={{gridColumn: 'span 2'}}>
+                    <div style={{display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem'}}>
+                      <div>
+                        <label>Magnitude</label>
+                        <input 
+                          type="number" 
+                          required 
+                          value={newTransfer.quantity_moved}
+                          onChange={(e) => setNewTransfer({...newTransfer, quantity_moved: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label>Unit</label>
+                        <select 
+                          value={newTransfer.unit}
+                          onChange={(e) => setNewTransfer({...newTransfer, unit: e.target.value})}
+                        >
+                          <option value="ml">ml</option>
+                          <option value="L">L</option>
+                          <option value="g">g</option>
+                          <option value="kg">kg</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div className="modal-actions">
-                  <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                  <button type="submit" className="btn-primary">Submit Request</button>
+                  <button type="button" className="btn-secondary" style={{borderRadius: '1rem', padding: '0.875rem 1.5rem'}} onClick={() => setIsModalOpen(false)}>Abort</button>
+                  <button type="submit" className="btn-primary-glow">Authorize Request</button>
                 </div>
               </form>
             </div>
