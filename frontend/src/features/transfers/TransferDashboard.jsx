@@ -15,6 +15,8 @@ const TransferDashboard = () => {
   const [newTransfer, setNewTransfer] = useState({
     destination_lab: '',
     chemical_id: '',
+    batch_number: '',
+    container_id: '',
     quantity_moved: '',
     unit: 'ml',
   });
@@ -170,7 +172,27 @@ const TransferDashboard = () => {
                     value={newTransfer.chemical_id}
                     onChange={(e) => setNewTransfer({...newTransfer, chemical_id: e.target.value})}
                   />
-                  <small>In a full implementation, this would be a searchable dropdown.</small>
+                  <small>ObjectId required.</small>
+                </div>
+                <div className="form-group">
+                  <label>Batch Number (Optional)</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. BATCH-A01"
+                    value={newTransfer.batch_number}
+                    onChange={(e) => setNewTransfer({...newTransfer, batch_number: e.target.value})}
+                  />
+                  <small>If migrating a specific Batch.</small>
+                </div>
+                <div className="form-group">
+                  <label>Container ID (Optional)</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. C001-1"
+                    value={newTransfer.container_id}
+                    onChange={(e) => setNewTransfer({...newTransfer, container_id: e.target.value})}
+                  />
+                  <small>If migrating a strictly defined Container.</small>
                 </div>
                 <div className="form-row">
                   <div className="form-group">

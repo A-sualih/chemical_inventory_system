@@ -9,6 +9,7 @@ router.post('/', authorize('MANAGE_LABS'), labController.createLab);
 router.get('/', labController.getLabs);
 router.put('/assign', authorize('MANAGE_LABS'), labController.assignUser);
 router.put('/:id', authorize('MANAGE_LABS'), labController.updateLab);
+router.delete('/:id', authorize('MANAGE_LABS'), labController.deleteLab);
 router.post('/switch', labController.switchActiveLab);
 
 module.exports = router;

@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const ctrl = require('../controllers/waste/wasteController');
 const { authenticate, authorize } = require('../middleware/authMiddleware');
+const { requireLabScope } = require('../middleware/labScope');
 const { PERMISSIONS } = require('../config/roles');
 
-// All waste routes require authentication
-router.use(authenticate);
+// All waste routes require authentication and lab scope
+router.use(authenticate, requireLabScope);
 
 // Disposal Records
 router.get('/disposals',                authorize(PERMISSIONS.VIEW_CHEMICALS), ctrl.getDisposals);

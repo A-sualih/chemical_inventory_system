@@ -6,6 +6,7 @@ exports.getNotifications = async (req, res) => {
     const { type, severity, status, page = 1, limit = 20 } = req.query;
     
     const query = {};
+    if (req.activeLabId) query.lab = req.activeLabId;
     
     if (req.user.role !== 'Admin') {
       query.category = { $ne: 'security' };
@@ -37,6 +38,7 @@ exports.getNotifications = async (req, res) => {
 exports.getUnreadCount = async (req, res) => {
   try {
     const query = { status: 'unread' };
+    if (req.activeLabId) query.lab = req.activeLabId;
     if (req.user.role !== 'Admin') {
       query.category = { $ne: 'security' };
     }
@@ -50,8 +52,9 @@ exports.getUnreadCount = async (req, res) => {
 
 exports.markAsRead = async (req, res) => {
   try {
-    const notification = await Notification.findByIdAndUpdate(
-      req.params.id,
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const notification = await Notification.findOneAndUpdate(
+      { _id: req.params.id, ...labQuery },
       { status: 'read', isRead: true, readAt: new Date() },
       { new: true }
     );
@@ -64,8 +67,9 @@ exports.markAsRead = async (req, res) => {
 
 exports.dismissNotification = async (req, res) => {
   try {
-    const notification = await Notification.findByIdAndUpdate(
-      req.params.id,
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const notification = await Notification.findOneAndUpdate(
+      { _id: req.params.id, ...labQuery },
       { status: 'dismissed' },
       { new: true }
     );
@@ -81,11 +85,13 @@ exports.cleanupNotifications = async (req, res) => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
     const result = await Notification.deleteMany({
       $or: [
         { status: 'dismissed', createdAt: { $lt: thirtyDaysAgo } },
         { status: 'read', createdAt: { $lt: thirtyDaysAgo } }
-      ]
+      ],
+      ...labQuery
     });
     
     res.json({ message: 'Cleanup successful', deletedCount: result.deletedCount });
@@ -106,7 +112,8 @@ exports.triggerTestNotification = async (req, res) => {
       metadata: {
         triggeredBy: req.user.name,
         ipAddress: req.ip
-      }
+      },
+      lab: req.activeLabId
     });
     
     res.json({ message: 'Test alert triggered successfully', notification });

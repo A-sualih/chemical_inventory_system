@@ -6,6 +6,7 @@ exports.getLocations = async (req, res) => {
   try {
     const { building, room, cabinet } = req.query;
     const query = { isActive: true };
+    if (req.activeLabId) query.lab = req.activeLabId;
     if (building) query.building = building;
     if (room) query.room = room;
     if (cabinet) query.cabinet = cabinet;
@@ -18,7 +19,8 @@ exports.getLocations = async (req, res) => {
         room: loc.room,
         cabinet: loc.cabinet,
         shelf: loc.shelf,
-        archived: false
+        archived: false,
+        ...(req.activeLabId && { lab: req.activeLabId })
       });
       return { ...loc, current_load: chemCount };
     }));
@@ -33,16 +35,19 @@ exports.getLocationHierarchy = async (req, res) => {
   try {
     const { building, room } = req.query;
 
-    const buildings = await Location.distinct('building', { isActive: true });
+    const query = { isActive: true };
+    if (req.activeLabId) query.lab = req.activeLabId;
+
+    const buildings = await Location.distinct('building', query);
 
     let rooms = [];
     if (building) {
-      rooms = await Location.distinct('room', { building, isActive: true });
+      rooms = await Location.distinct('room', { building, ...query });
     }
 
     let cabinets = [];
     if (building && room) {
-      cabinets = await Location.distinct('cabinet', { building, room, isActive: true });
+      cabinets = await Location.distinct('cabinet', { building, room, ...query });
     }
 
     let shelves = [];
@@ -51,7 +56,7 @@ exports.getLocationHierarchy = async (req, res) => {
         building,
         room,
         cabinet: req.query.cabinet,
-        isActive: true
+        ...query
       }).select('shelf capacity current_load safety_warnings notes _id');
     }
 
@@ -63,7 +68,8 @@ exports.getLocationHierarchy = async (req, res) => {
 
 exports.getLocation = async (req, res) => {
   try {
-    const location = await Location.findById(req.params.id);
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const location = await Location.findOne({ _id: req.params.id, ...labQuery });
     if (!location) return res.status(404).json({ error: 'Location not found' });
 
     const chemCount = await Chemical.countDocuments({
@@ -71,7 +77,8 @@ exports.getLocation = async (req, res) => {
       room: location.room,
       cabinet: location.cabinet,
       shelf: location.shelf,
-      archived: false
+      archived: false,
+      ...labQuery
     });
 
     res.json({ ...location.toObject(), current_load: chemCount });
@@ -88,7 +95,8 @@ exports.createLocation = async (req, res) => {
       return res.status(400).json({ error: 'Building, Room, Cabinet and Shelf are required.' });
     }
 
-    const existing = await Location.findOne({ building, room, cabinet, shelf });
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const existing = await Location.findOne({ building, room, cabinet, shelf, ...labQuery });
     if (existing) {
       return res.status(409).json({ error: `Location ${building}/${room}/${cabinet}/Shelf-${shelf} already exists.` });
     }
@@ -102,7 +110,8 @@ exports.createLocation = async (req, res) => {
       x: x || 0,
       y: y || 0,
       safety_warnings, 
-      notes 
+      notes,
+      lab: req.activeLabId
     });
 
     await logAudit(req, {
@@ -122,9 +131,10 @@ exports.createLocation = async (req, res) => {
 
 exports.updateLocation = async (req, res) => {
   try {
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
     const { capacity, x, y, safety_warnings, notes, isActive } = req.body;
-    const location = await Location.findByIdAndUpdate(
-      req.params.id,
+    const location = await Location.findOneAndUpdate(
+      { _id: req.params.id, ...labQuery },
       { capacity, x, y, safety_warnings, notes, isActive },
       { new: true }
     );
@@ -146,7 +156,8 @@ exports.updateLocation = async (req, res) => {
 
 exports.deleteLocation = async (req, res) => {
   try {
-    const location = await Location.findById(req.params.id);
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const location = await Location.findOne({ _id: req.params.id, ...labQuery });
     if (!location) return res.status(404).json({ error: 'Location not found' });
 
     const assigned = await Chemical.countDocuments({
@@ -154,7 +165,8 @@ exports.deleteLocation = async (req, res) => {
       room: location.room,
       cabinet: location.cabinet,
       shelf: location.shelf,
-      archived: false
+      archived: false,
+      ...labQuery
     });
 
     if (assigned > 0) {

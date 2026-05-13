@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const chemicalSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true },
+  id: { type: String, required: true },
   name: { type: String, required: true },
   iupac_name: { type: String },
   cas_number: { type: String },
@@ -114,6 +114,7 @@ chemicalSchema.index({ status: 1 });
 chemicalSchema.index({ building: 1 });
 chemicalSchema.index({ room: 1 });
 chemicalSchema.index({ archived: 1 });
+chemicalSchema.index({ id: 1, lab: 1 }, { unique: true });
 
 module.exports = mongoose.model('Chemical', chemicalSchema);
 

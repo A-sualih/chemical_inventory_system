@@ -65,7 +65,8 @@ async function logAudit(req, { action, targetType, targetId, targetName, details
         ip: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress,
         userAgent: req.headers['user-agent'],
         status
-      }
+      },
+      lab: req.activeLabId
     };
     await AuditLog.create(auditData);
   } catch (err) {

@@ -22,12 +22,14 @@ exports.getFifoContainer = async (req, res) => {
       chemStringId = chem.id;
     }
 
-    const pendingRequests = await Request.find({ status: 'Pending' }).populate('container_id');
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const pendingRequests = await Request.find({ status: 'Pending', ...labQuery }).populate('container_id');
 
     const containers = await Container.find({
       chemical_id: chemStringId,
       status: { $nin: ['Expired', 'Empty', 'Disposed'] },
-      quantity: { $gt: 0 }
+      quantity: { $gt: 0 },
+      ...labQuery
     });
 
     if (!containers.length) {
@@ -82,11 +84,13 @@ exports.submitRequest = async (req, res) => {
   const { chemical_id, container_id, quantity, unit, reason } = req.body;
   
   try {
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
     const chemical = await Chemical.findOne({
       $or: [
         { _id: mongoose.Types.ObjectId.isValid(chemical_id) ? chemical_id : undefined },
         { id: chemical_id }
-      ].filter(q => q._id !== undefined || q.id !== undefined)
+      ].filter(q => q._id !== undefined || q.id !== undefined),
+      ...labQuery
     });
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
 
@@ -94,13 +98,15 @@ exports.submitRequest = async (req, res) => {
       $or: [
         { _id: mongoose.Types.ObjectId.isValid(container_id) ? container_id : undefined },
         { container_id: container_id }
-      ].filter(q => q._id !== undefined || q.container_id !== undefined)
+      ].filter(q => q._id !== undefined || q.container_id !== undefined),
+      ...labQuery
     });
     if (!container) return res.status(404).json({ error: 'Container not found' });
 
     const existingPending = await Request.find({ 
       container_id: container._id, 
-      status: 'Pending' 
+      status: 'Pending',
+      ...labQuery
     });
 
     let pendingTotalBase = 0;
@@ -128,10 +134,11 @@ exports.submitRequest = async (req, res) => {
     const allContainers = await Container.find({
       chemical_id: chemical.id,
       status: { $nin: ['Expired', 'Empty', 'Disposed'] },
-      quantity: { $gt: 0 }
+      quantity: { $gt: 0 },
+      ...labQuery
     });
 
-    const allPendingReqs = await Request.find({ status: 'Pending' });
+    const allPendingReqs = await Request.find({ status: 'Pending', ...labQuery });
 
     const enrichedContainers = allContainers.map(c => {
       const cPending = allPendingReqs.filter(pr =>
@@ -173,7 +180,8 @@ exports.submitRequest = async (req, res) => {
       quantity,
       unit,
       reason,
-      status: 'Pending'
+      status: 'Pending',
+      lab: req.activeLabId
     });
 
     await request.save();
@@ -194,11 +202,11 @@ exports.submitRequest = async (req, res) => {
 
 exports.getRequests = async (req, res) => {
   try {
-    let query = {};
+    let query = req.activeLabId ? { lab: req.activeLabId } : {};
     const userPermissions = require('../../config/roles').ROLE_PERMISSIONS[req.user.role] || [];
     
     if (!userPermissions.includes(PERMISSIONS.APPROVE_REQUEST)) {
-      query = { user_id: req.user.id };
+      query.user_id = req.user.id;
     }
 
     const requests = await Request.find(query)
@@ -217,7 +225,8 @@ exports.getRequests = async (req, res) => {
 exports.approveRequest = async (req, res) => {
   const { notes } = req.body;
   try {
-    const request = await Request.findById(req.params.id)
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const request = await Request.findOne({ _id: req.params.id, ...labQuery })
       .populate('chemical_id')
       .populate('container_id');
     
@@ -280,7 +289,8 @@ exports.approveRequest = async (req, res) => {
       unit: request.unit,
       reason: `Approved Request: ${request.reason}`,
       container_id: container.container_id,
-      compliance_notes: `Approved by ${req.user.name}. ${notes || ''}`
+      compliance_notes: `Approved by ${req.user.name}. ${notes || ''}`,
+      lab: req.activeLabId
     });
     await log.save();
 
@@ -303,7 +313,8 @@ exports.approveRequest = async (req, res) => {
 exports.rejectRequest = async (req, res) => {
   const { notes } = req.body;
   try {
-    const request = await Request.findById(req.params.id);
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const request = await Request.findOne({ _id: req.params.id, ...labQuery });
     if (!request) return res.status(404).json({ error: 'Request not found' });
     if (request.status !== 'Pending') return res.status(400).json({ error: 'Request is already processed' });
 

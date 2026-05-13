@@ -46,6 +46,7 @@ exports.createDisposalRequest = async (req, res) => {
     const cleanedBatchId = batch_id === "" ? null : batch_id;
 
     const disposal = new WasteDisposal({
+      lab: req.activeLabId,
       chemical_id,
       chemical_name: chemical.name,
       batch_id: cleanedBatchId,
@@ -66,7 +67,7 @@ exports.createDisposalRequest = async (req, res) => {
                       chemical.hazard_summary?.hazard_class === 'Flammable' ? 'High' : 'Moderate';
     
     if (riskLevel === 'Extreme' || quantity > 100) {
-       await Notification.create({
+       await Notification.create({ lab: req.activeLabId, 
          type: 'COMPLIANCE',
          category: 'safety',
          title: 'High-Risk Disposal Alert',
@@ -77,12 +78,13 @@ exports.createDisposalRequest = async (req, res) => {
     }
     
     // 1. Compliance Check: Legal Disposal Limits
-    const permit = await WastePermit.findOne({ status: 'Active', 'limits.hazard_class': hazard_classification || chemical.hazard_summary?.hazard_class });
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const permit = await WastePermit.findOne({ status: 'Active', ...labQuery, 'limits.hazard_class': hazard_classification || chemical.hazard_summary?.hazard_class });
     if (permit) {
       const limit = permit.limits.find(l => l.hazard_class === (hazard_classification || chemical.hazard_summary?.hazard_class));
       if (limit && (limit.current_quantity + Number(quantity)) > limit.max_quantity) {
         // Create an alert but allow request (officer will see warning)
-        await Notification.create({
+        await Notification.create({ lab: req.activeLabId, 
           type: 'COMPLIANCE',
           category: 'safety',
           title: 'Disposal Limit Warning',
@@ -116,7 +118,7 @@ exports.createDisposalRequest = async (req, res) => {
 
     // 4. Batch-specific check if batch is provided
     if (cleanedBatchId) {
-      const batch = await Batch.findById(cleanedBatchId);
+      const batch = await Batch.findOne({ _id: cleanedBatchId, ...labQuery });
       if (batch) {
         const batchQtyInBase = convertToBase(batch.total_quantity, batch.unit);
         if (requestedQtyInBase > (batchQtyInBase + 0.0001)) {
@@ -141,7 +143,7 @@ exports.createDisposalRequest = async (req, res) => {
       let remainingToSubtract = amountToSubtractInBase;
 
       if (cleanedBatchId) {
-        const targetBatch = await Batch.findById(cleanedBatchId);
+        const targetBatch = await Batch.findOne({ _id: cleanedBatchId, ...labQuery });
         if (targetBatch) {
           const batchQtyInBase = convertToBase(targetBatch.total_quantity, targetBatch.unit);
           const subtract = Math.min(batchQtyInBase, remainingToSubtract);
@@ -208,7 +210,7 @@ exports.createDisposalRequest = async (req, res) => {
       disposal.fifo_impact = impactedBatches;
       await disposal.save();
       
-      await InventoryLog.create({
+      await InventoryLog.create({ lab: req.activeLabId, 
         chemical_id: chemical.id,
         chemical_name: chemical.name,
         user_id: req.user.id,
@@ -279,7 +281,7 @@ exports.approveDisposal = async (req, res) => {
     const { id } = req.params;
     const { approval_notes } = req.body;
     
-    const disposal = await WasteDisposal.findById(id);
+    const disposal = await WasteDisposal.findOne({ _id: id, ...(req.activeLabId && { lab: req.activeLabId }) });
     if (!disposal) return res.status(404).json({ error: 'Disposal record not found' });
     
     if (disposal.status !== 'Pending Approval') {
@@ -307,7 +309,7 @@ exports.approveDisposal = async (req, res) => {
 exports.getDisposalFifoPreview = async (req, res) => {
   try {
     const { id } = req.params;
-    const disposal = await WasteDisposal.findById(id);
+    const disposal = await WasteDisposal.findOne({ _id: id, ...(req.activeLabId && { lab: req.activeLabId }) });
     if (!disposal) return res.status(404).json({ error: 'Disposal record not found' });
     
     const chemical = await Chemical.findById(disposal.chemical_id);
@@ -433,7 +435,7 @@ exports.rejectDisposal = async (req, res) => {
       return res.status(400).json({ error: 'Rejection notes are required.' });
     }
 
-    const disposal = await WasteDisposal.findById(id);
+    const disposal = await WasteDisposal.findOne({ _id: id, ...(req.activeLabId && { lab: req.activeLabId }) });
     if (!disposal) return res.status(404).json({ error: 'Disposal record not found' });
     
     if (disposal.status !== 'Pending Approval') {
@@ -474,7 +476,7 @@ exports.rejectDisposal = async (req, res) => {
       await chemical.save();
       
       // Log Inventory Restoration
-      await InventoryLog.create({
+      await InventoryLog.create({ lab: req.activeLabId, 
         chemical_id: chemical.id,
         chemical_name: chemical.name,
         user_id: req.user.id,
@@ -503,7 +505,7 @@ exports.completeDisposal = async (req, res) => {
     const { id } = req.params;
     const { method_details, environmental_impact, compliance } = req.body;
     
-    const disposal = await WasteDisposal.findById(id);
+    const disposal = await WasteDisposal.findOne({ _id: id, ...(req.activeLabId && { lab: req.activeLabId }) });
     if (!disposal) return res.status(404).json({ error: 'Disposal record not found' });
     
     disposal.status = 'Disposed';
@@ -515,7 +517,7 @@ exports.completeDisposal = async (req, res) => {
     
     // Compliance Check: Missing Manifest or Certificate
     if (!disposal.compliance?.manifest_number || !disposal.compliance?.certificate_url) {
-      await Notification.create({
+      await Notification.create({ lab: req.activeLabId, 
         type: 'COMPLIANCE',
         category: 'safety',
         title: 'Missing Disposal Documentation',
@@ -539,7 +541,7 @@ exports.completeDisposal = async (req, res) => {
 exports.deleteDisposal = async (req, res) => {
   try {
     const { id } = req.params;
-    const disposal = await WasteDisposal.findById(id);
+    const disposal = await WasteDisposal.findOne({ _id: id, ...(req.activeLabId && { lab: req.activeLabId }) });
     if (!disposal) return res.status(404).json({ error: 'Disposal record not found' });
 
     // Restore inventory if it was subtracted but not yet finalized
@@ -569,7 +571,7 @@ exports.deleteDisposal = async (req, res) => {
         }
         await chemical.save();
 
-        await InventoryLog.create({
+        await InventoryLog.create({ lab: req.activeLabId, 
           chemical_id: chemical.id,
           chemical_name: chemical.name,
           user_id: req.user.id,
@@ -633,7 +635,7 @@ exports.createPermit = async (req, res) => {
 
 exports.getPermits = async (req, res) => {
   try {
-    const permits = await WastePermit.find().sort({ expiry_date: 1 });
+    const permits = await WastePermit.find(req.activeLabId ? { lab: req.activeLabId } : {}).sort({ expiry_date: 1 });
     res.json(permits);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -646,7 +648,7 @@ exports.getPermits = async (req, res) => {
 exports.signComplianceLog = async (req, res) => {
   try {
     const { id } = req.params;
-    const log = await WasteCompliance.findById(id);
+    const log = await WasteCompliance.findOne({ _id: id, ...(req.activeLabId && { lab: req.activeLabId }) });
     if (!log) return res.status(404).json({ error: 'Log not found' });
     
     log.digital_signature = {
@@ -675,13 +677,13 @@ exports.getDisposals = async (req, res) => {
     if (method) query.method = method;
     if (search) query.chemical_name = { $regex: search, $options: 'i' };
     
-    const disposals = await WasteDisposal.find(query)
+    const disposals = await WasteDisposal.find({ ...query, ...(req.activeLabId && { lab: req.activeLabId }) })
       .populate('chemical_id', 'name cas_number hazard_summary emergency_response incompatibility')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(Number(limit));
       
-    const total = await WasteDisposal.countDocuments(query);
+    const total = await WasteDisposal.countDocuments({ ...query, ...(req.activeLabId && { lab: req.activeLabId }) });
     
     res.json({ disposals, total, page: Number(page), pages: Math.ceil(total / limit) });
   } catch (err) {
@@ -707,7 +709,7 @@ exports.createComplianceLog = async (req, res) => {
 
 exports.getComplianceLogs = async (req, res) => {
   try {
-    const logs = await WasteCompliance.find().sort({ createdAt: -1 });
+    const logs = await WasteCompliance.find(req.activeLabId ? { lab: req.activeLabId } : {}).sort({ createdAt: -1 });
     res.json(logs);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -733,7 +735,7 @@ exports.createSafetyIncident = async (req, res) => {
 
 exports.getSafetyIncidents = async (req, res) => {
   try {
-    const incidents = await WasteSafetyIncident.find().sort({ createdAt: -1 });
+    const incidents = await WasteSafetyIncident.find(req.activeLabId ? { lab: req.activeLabId } : {}).sort({ createdAt: -1 });
     res.json(incidents);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -746,22 +748,22 @@ exports.getSafetyIncidents = async (req, res) => {
 exports.getWasteAnalytics = async (req, res) => {
   try {
     // Total disposed by method
-    const methodStats = await WasteDisposal.aggregate([
+    const methodStats = await WasteDisposal.aggregate([ { $match: req.activeLabId ? { lab: req.activeLabId } : {} }, 
       { $group: { _id: '$method', count: { $sum: 1 }, totalQty: { $sum: '$quantity' } } }
     ]);
     
     // Status counts
-    const statusStats = await WasteDisposal.aggregate([
+    const statusStats = await WasteDisposal.aggregate([ { $match: req.activeLabId ? { lab: req.activeLabId } : {} }, 
       { $group: { _id: '$status', count: { $sum: 1 } } }
     ]);
     
     // Incidents by severity
-    const incidentStats = await WasteSafetyIncident.aggregate([
+    const incidentStats = await WasteSafetyIncident.aggregate([ { $match: req.activeLabId ? { lab: req.activeLabId } : {} }, 
       { $group: { _id: '$severity', count: { $sum: 1 } } }
     ]);
 
     // Monthly trends
-    const monthlyStats = await WasteDisposal.aggregate([
+    const monthlyStats = await WasteDisposal.aggregate([ { $match: req.activeLabId ? { lab: req.activeLabId } : {} }, 
       { $match: { createdAt: { $exists: true, $type: 'date' } } },
       {
         $group: {

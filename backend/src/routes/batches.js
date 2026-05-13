@@ -1,23 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const { authenticate, authorize } = require('../middleware/authMiddleware');
+const { requireLabScope } = require('../middleware/labScope');
 const { PERMISSIONS } = require('../config/roles');
 const batchController = require('../controllers/batch/batchController');
 
+// Enforce lab scoping for all batch routes
+router.use(authenticate, requireLabScope);
+
 // Get all batches
-router.get('/', authenticate, authorize(PERMISSIONS.VIEW_CHEMICALS), batchController.getBatches);
+router.get('/', authorize(PERMISSIONS.VIEW_CHEMICALS), batchController.getBatches);
 
 // Get a single batch
-router.get('/:batch_number', authenticate, authorize(PERMISSIONS.VIEW_CHEMICALS), batchController.getBatch);
+router.get('/:batch_number', authorize(PERMISSIONS.VIEW_CHEMICALS), batchController.getBatch);
 
 // Add new batch
-router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), batchController.createBatch);
+router.post('/', authorize(PERMISSIONS.CREATE_CHEMICAL), batchController.createBatch);
 
 // Update batch
-router.put('/:batch_number', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), batchController.updateBatch);
+router.put('/:batch_number', authorize(PERMISSIONS.EDIT_CHEMICAL), batchController.updateBatch);
 
 // Delete batch
-router.delete('/:batch_number', authenticate, authorize(PERMISSIONS.DELETE_CHEMICAL), batchController.deleteBatch);
+router.delete('/:batch_number', authorize(PERMISSIONS.DELETE_CHEMICAL), batchController.deleteBatch);
 
 module.exports = router;
 

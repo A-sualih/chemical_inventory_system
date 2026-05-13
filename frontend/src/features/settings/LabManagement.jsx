@@ -13,6 +13,9 @@ const LabManagement = () => {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newLab, setNewLab] = useState({ name: '', description: '' });
+  
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [labToDelete, setLabToDelete] = useState(null);
 
   useEffect(() => {
     fetchLabs();
@@ -70,6 +73,19 @@ const LabManagement = () => {
     }
   };
 
+  const handleDeleteLab = async () => {
+    try {
+      if (!labToDelete) return;
+      await axios.delete(`/api/labs/${labToDelete._id}`);
+      setIsDeleteModalOpen(false);
+      setLabToDelete(null);
+      fetchLabs();
+      fetchUsers();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete lab');
+    }
+  };
+
   return (
     <Layout>
       <div className="lab-management-container">
@@ -93,9 +109,19 @@ const LabManagement = () => {
               <ul className="lab-list">
                 {labs.map(lab => (
                   <li key={lab._id} className="lab-card">
-                    <span className="lab-name">{lab.name}</span>
-                    <span className="lab-desc">{lab.description || 'No description'}</span>
-                    <span className="lab-status">{lab.status}</span>
+                    <div className="lab-info">
+                      <span className="lab-name">{lab.name}</span>
+                      <span className="lab-desc">{lab.description || 'No description'}</span>
+                      <span className="lab-status">{lab.status}</span>
+                    </div>
+                    {user.role === 'Admin' && (
+                      <button 
+                         className="btn-danger-sm" 
+                         onClick={() => { setLabToDelete(lab); setIsDeleteModalOpen(true); }}
+                      >
+                        Delete Lab
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -176,6 +202,38 @@ const LabManagement = () => {
                   <button type="submit" className="btn-primary">Create</button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {isDeleteModalOpen && (
+          <div className="modal-overlay">
+            <div className="modal-content delete-warning-modal">
+              <h2 style={{ color: 'red' }}>⚠️ CRITICAL WARNING: CASCADING DELETION</h2>
+              <p>
+                You are about to permanently delete <strong>{labToDelete?.name}</strong>.
+              </p>
+              <p>
+                This action will trigger a cascading deletion across the system. 
+                <br /><br />
+                <strong>ALL DATA</strong> strictly assigned to this laboratory, including:
+                <br />
+                - All enrolled Chemicals, Batches, and Containers <br />
+                - Internal Transfer Requests and Disposals <br />
+                - Facility Locations <br />
+                - Audit Trails and Inventory Logs <br />
+                <br />
+                <strong>Will be permanently deleted from the database.</strong> This action CANNOT be undone.
+              </p>
+              <div className="modal-actions" style={{ marginTop: '20px' }}>
+                <button className="btn-secondary" onClick={() => { setIsDeleteModalOpen(false); setLabToDelete(null); }}>
+                  Cancel
+                </button>
+                <button className="btn-danger" onClick={handleDeleteLab}>
+                  Confirm Permanent Deletion
+                </button>
+              </div>
             </div>
           </div>
         )}

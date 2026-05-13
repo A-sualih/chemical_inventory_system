@@ -99,16 +99,7 @@ exports.getChemicals = async (req, res) => {
 
     const baseQuery = { archived: archived === 'true' };
     if (req.activeLabId) {
-      // Show chemicals for this lab OR unassigned chemicals if user is admin
-      if (req.user.role === 'Admin') {
-        baseQuery.$or = [
-          { lab: req.activeLabId },
-          { lab: { $exists: false } },
-          { lab: null }
-        ];
-      } else {
-        baseQuery.lab = req.activeLabId;
-      }
+      baseQuery.lab = req.activeLabId;
     }
 
     const hazardParam = hazard || req.query['hazard[]'];
@@ -215,13 +206,8 @@ exports.getChemical = async (req, res) => {
   try {
     const query = { id: req.params.id };
     
-    // If not Admin, restrict to active lab or unassigned
-    if (req.user.role !== 'Admin' && req.activeLabId) {
-      query.$or = [
-        { lab: req.activeLabId },
-        { lab: { $exists: false } },
-        { lab: null }
-      ];
+    if (req.activeLabId) {
+      query.lab = req.activeLabId;
     }
     
     const chemical = await Chemical.findOne(query);

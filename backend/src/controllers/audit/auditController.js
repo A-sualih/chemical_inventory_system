@@ -5,6 +5,7 @@ exports.getAuditLogs = async (req, res) => {
     const { user, action, targetType, startDate, endDate, limit = 100, page = 1 } = req.query;
 
     const query = {};
+    if (req.activeLabId) query.lab = req.activeLabId;
 
     if (user) {
       query.$or = [
@@ -66,7 +67,9 @@ exports.exportAuditLogsExcel = async (req, res) => {
       { header: 'IP Address', key: 'ip', width: 15 }
     ];
 
-    const logs = await AuditLog.find().sort({ timestamp: -1 });
+    const query = {};
+    if (req.activeLabId) query.lab = req.activeLabId;
+    const logs = await AuditLog.find(query).sort({ timestamp: -1 });
     logs.forEach(log => {
       sheet.addRow({
         timestamp: log.timestamp.toISOString(),
@@ -93,7 +96,9 @@ exports.exportAuditLogsExcel = async (req, res) => {
 exports.exportAuditLogsPdf = async (req, res) => {
   try {
     const doc = new jsPDF({ orientation: 'landscape' });
-    const logs = await AuditLog.find().sort({ timestamp: -1 }).limit(200);
+    const query = {};
+    if (req.activeLabId) query.lab = req.activeLabId;
+    const logs = await AuditLog.find(query).sort({ timestamp: -1 }).limit(200);
 
     doc.setFontSize(20);
     doc.text('Chemical Inventory Audit Trail', 14, 22);

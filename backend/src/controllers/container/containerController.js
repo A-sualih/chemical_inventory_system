@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 exports.getContainers = async (req, res) => {
   try {
     const { chemical_id } = req.query;
-    let query = {};
+    let query = req.activeLabId ? { lab: req.activeLabId } : {};
     if (chemical_id) {
        if (mongoose.Types.ObjectId.isValid(chemical_id)) {
          const chemical = await Chemical.findById(chemical_id);
@@ -23,7 +23,7 @@ exports.getContainers = async (req, res) => {
     const containers = await Container.find(query).lean();
 
     const enrichedContainers = await Promise.all(containers.map(async (container) => {
-      const chemical = await Chemical.findOne({ id: container.chemical_id });
+      const chemical = await Chemical.findOne({ id: container.chemical_id, ...(req.activeLabId && { lab: req.activeLabId }) });
       return { 
         ...container, 
         chemical_name: chemical ? chemical.name : 'Unknown' 
@@ -38,7 +38,8 @@ exports.getContainers = async (req, res) => {
 
 exports.getContainersByChemical = async (req, res) => {
   try {
-    const containers = await Container.find({ chemical_id: req.params.chemical_id });
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const containers = await Container.find({ chemical_id: req.params.chemical_id, ...labQuery });
     res.json(containers);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -47,7 +48,8 @@ exports.getContainersByChemical = async (req, res) => {
 
 exports.getContainer = async (req, res) => {
   try {
-    const container = await Container.findOne({ container_id: req.params.id });
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const container = await Container.findOne({ container_id: req.params.id, ...labQuery });
     if (!container) return res.status(404).json({ error: 'Container not found' });
     res.json(container);
   } catch (err) {
@@ -58,13 +60,15 @@ exports.getContainer = async (req, res) => {
 exports.createContainer = async (req, res) => {
   const data = req.body;
   try {
-    const chemical = await Chemical.findOne({ id: data.chemical_id });
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const chemical = await Chemical.findOne({ id: data.chemical_id, ...labQuery });
     if (!chemical) return res.status(400).json({ error: 'Chemical reference not found' });
 
     const newContainer = new Container({
       ...data,
       created_by: req.user.id,
-      last_updated_by: req.user.id
+      last_updated_by: req.user.id,
+      lab: req.activeLabId
     });
 
     await newContainer.save();
@@ -86,7 +90,8 @@ exports.createContainer = async (req, res) => {
 
 exports.updateContainer = async (req, res) => {
   try {
-    const container = await Container.findOne({ container_id: req.params.id });
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const container = await Container.findOne({ container_id: req.params.id, ...labQuery });
     if (!container) return res.status(404).json({ error: 'Container not found' });
 
     const updates = req.body;
@@ -111,7 +116,8 @@ exports.updateContainer = async (req, res) => {
 
 exports.deleteContainer = async (req, res) => {
   try {
-    const container = await Container.findOneAndDelete({ container_id: req.params.id });
+    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const container = await Container.findOneAndDelete({ container_id: req.params.id, ...labQuery });
     if (!container) return res.status(404).json({ error: 'Container not found' });
 
     await logAudit(req, {

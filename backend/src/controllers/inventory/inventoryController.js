@@ -10,7 +10,7 @@ const { logAudit } = require('../../middleware/authMiddleware');
 
 exports.getChemicals = async (req, res) => {
   try {
-    const chemicals = await Chemical.find();
+    const chemicals = await Chemical.find(req.activeLabId ? { lab: req.activeLabId } : {});
     res.json(chemicals);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch chemicals' });
@@ -23,10 +23,11 @@ exports.createChemical = async (req, res) => {
     const baseUnit = getBaseUnit(chemData.unit);
     const baseQuantity = convertToBase(chemData.quantity, chemData.unit);
     
-    const count = await Chemical.countDocuments();
+    const count = await Chemical.countDocuments(req.activeLabId ? { lab: req.activeLabId } : {});
     const id = `C${String(count + 1).padStart(3, '0')}`;
     
     const chemical = new Chemical({
+      lab: req.activeLabId,
       ...chemData,
       id,
       base_unit: baseUnit,
@@ -64,7 +65,7 @@ exports.createChemical = async (req, res) => {
 exports.updateChemical = async (req, res) => {
   try {
     const chemical = await Chemical.findOneAndUpdate(
-      { id: req.params.id },
+      { id: req.params.id, ...(req.activeLabId && { lab: req.activeLabId }) },
       { $set: req.body },
       { new: true }
     );
@@ -109,7 +110,7 @@ exports.handleTransaction = async (req, res) => {
   const user_name = req.user.name;
 
   try {
-    const chem = await Chemical.findOne({ id: chemical_id });
+    const chem = await Chemical.findOne({ id: chemical_id, ...(req.activeLabId && { lab: req.activeLabId }) });
     if (!chem) return res.status(404).json({ error: "Chemical not found" });
 
     const txUnit = unit || chem.unit;
@@ -382,7 +383,7 @@ exports.handleTransaction = async (req, res) => {
       }
     }
 
-    const log = new InventoryLog({
+    const log = new InventoryLog({ lab: req.activeLabId, 
       chemical_id: targetChem.id,
       chemical_name: chem.name,
       user_id,
@@ -453,7 +454,7 @@ exports.handleTransaction = async (req, res) => {
 
 exports.getLogs = async (req, res) => {
   try {
-    const logs = await InventoryLog.find().sort({ createdAt: -1 });
+    const logs = await InventoryLog.find(req.activeLabId ? { lab: req.activeLabId } : {}).sort({ createdAt: -1 });
     res.json(logs);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch inventory logs' });
@@ -462,7 +463,7 @@ exports.getLogs = async (req, res) => {
 
 exports.getLogsByChemical = async (req, res) => {
   try {
-    const logs = await InventoryLog.find({ chemical_id: req.params.id }).sort({ createdAt: -1 });
+    const logs = await InventoryLog.find({ chemical_id: req.params.id, ...(req.activeLabId && { lab: req.activeLabId }) }).sort({ createdAt: -1 });
     res.json(logs);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch inventory logs for chemical' });
@@ -596,7 +597,7 @@ exports.handleFifoUsage = async (req, res) => {
     const batchIdsList = [...new Set(usedContainersLog.map(c => c.batchId))].join(', ');
     const containerIdsList = usedContainersLog.map(c => c.containerId).join(', ');
 
-    const log = new InventoryLog({
+    const log = new InventoryLog({ lab: req.activeLabId, 
       chemical_id: chem.id,
       chemical_name: chem.name,
       user_id,
@@ -642,7 +643,7 @@ exports.quickScan = async (req, res) => {
   const user_role = req.user.role;
 
   try {
-    const chem = await Chemical.findOne({ id: chemical_id });
+    const chem = await Chemical.findOne({ id: chemical_id, ...(req.activeLabId && { lab: req.activeLabId }) });
     if (!chem) return res.status(404).json({ error: 'Chemical not found' });
 
     const qtyToChange = chem.quantity_per_container || 1;
@@ -665,7 +666,7 @@ exports.quickScan = async (req, res) => {
       
       await chem.save();
 
-      const log = new InventoryLog({
+      const log = new InventoryLog({ lab: req.activeLabId, 
         chemical_id: chem.id,
         chemical_name: chem.name,
         user_id,
@@ -695,7 +696,7 @@ exports.quickScan = async (req, res) => {
       
       await chem.save();
 
-      const log = new InventoryLog({
+      const log = new InventoryLog({ lab: req.activeLabId, 
         chemical_id: chem.id,
         chemical_name: chem.name,
         user_id,

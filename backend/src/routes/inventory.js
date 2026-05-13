@@ -1,32 +1,35 @@
 const express = require('express');
 const router = express.Router();
 const { authenticate, authorize } = require('../middleware/authMiddleware');
+const { requireLabScope } = require('../middleware/labScope');
 const { PERMISSIONS } = require('../config/roles');
 const inventoryController = require('../controllers/inventory/inventoryController');
 
+router.use(authenticate, requireLabScope);
+
 // Get all chemicals
-router.get('/chemicals', authenticate, inventoryController.getChemicals);
+router.get('/chemicals', inventoryController.getChemicals);
 
 // Add new chemical
-router.post('/chemicals', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), inventoryController.createChemical);
+router.post('/chemicals', authorize(PERMISSIONS.CREATE_CHEMICAL), inventoryController.createChemical);
 
 // Update chemical
-router.put('/chemicals/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), inventoryController.updateChemical);
+router.put('/chemicals/:id', authorize(PERMISSIONS.EDIT_CHEMICAL), inventoryController.updateChemical);
 
 // Transaction Logic (IN/OUT/TRANSFER/DISPOSAL)
-router.post('/transaction', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), inventoryController.handleTransaction);
+router.post('/transaction', authorize(PERMISSIONS.UPDATE_STOCK), inventoryController.handleTransaction);
 
 // Get all inventory logs
-router.get('/logs', authenticate, inventoryController.getLogs);
+router.get('/logs', inventoryController.getLogs);
 
 // Get inventory logs for a specific chemical
-router.get('/logs/:id', authenticate, inventoryController.getLogsByChemical);
+router.get('/logs/:id', inventoryController.getLogsByChemical);
 
 // FIFO Auto-Usage Engine Endpoint
-router.post('/fifo-usage', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), inventoryController.handleFifoUsage);
+router.post('/fifo-usage', authorize(PERMISSIONS.UPDATE_STOCK), inventoryController.handleFifoUsage);
 
 // Quick Scan Action (Fast Check-In/Check-Out)
-router.post('/quick-scan', authenticate, authorize(PERMISSIONS.UPDATE_STOCK), inventoryController.quickScan);
+router.post('/quick-scan', authorize(PERMISSIONS.UPDATE_STOCK), inventoryController.quickScan);
 
 module.exports = router;
 
