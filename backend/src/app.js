@@ -22,6 +22,7 @@ const uploadRoutes = require('./routes/upload');
 const securityRoutes = require('./routes/security');
 const labRoutes = require('./routes/labs');
 const transferRoutes = require('./routes/transfers');
+const transactionRoutes = require('./routes/transactionRoutes');
 const app = express();
 
 app.use(cors());
@@ -49,6 +50,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/security', securityRoutes);
 app.use('/api/labs', labRoutes);
 app.use('/api/transfers', transferRoutes);
+app.use('/api/transactions', transactionRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
 });

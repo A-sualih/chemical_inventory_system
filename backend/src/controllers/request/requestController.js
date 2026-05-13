@@ -274,7 +274,7 @@ exports.approveRequest = async (req, res) => {
       chemical_name: chemical.name,
       user_id: request.user_id,
       user_name: requester ? requester.name : 'Unknown',
-      user_role: requester ? requester.role : 'Lab Technician',
+      user_role: requester ? requester.role : 'Laboratory Staff',
       action: 'OUT',
       quantity_change: request.quantity,
       unit: request.unit,

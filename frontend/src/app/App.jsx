@@ -31,6 +31,7 @@ import SystemSettings from "../features/settings/SystemSettings";
 import SecurityDashboard from "../features/security/SecurityDashboard";
 import TransferDashboard from "../features/transfers/TransferDashboard";
 import LabManagement from "../features/settings/LabManagement";
+import TransactionSystem from "../features/transactions/TransactionSystem";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -85,6 +86,7 @@ function App() {
               <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
               <Route path="/transfers" element={<ProtectedRoute><TransferDashboard /></ProtectedRoute>} />
               <Route path="/logs" element={<ProtectedRoute><InventoryLogs /></ProtectedRoute>} />
+              <Route path="/transactions" element={<ProtectedRoute><TransactionSystem /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer / Auditor"]}><Reports /></ProtectedRoute>} />
               
               {/* Specialized Modules */}

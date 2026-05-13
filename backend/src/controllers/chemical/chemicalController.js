@@ -98,7 +98,18 @@ exports.getChemicals = async (req, res) => {
     } = req.query;
 
     const baseQuery = { archived: archived === 'true' };
-    if (req.activeLabId) baseQuery.lab = req.activeLabId;
+    if (req.activeLabId) {
+      // Show chemicals for this lab OR unassigned chemicals if user is admin
+      if (req.user.role === 'Admin') {
+        baseQuery.$or = [
+          { lab: req.activeLabId },
+          { lab: { $exists: false } },
+          { lab: null }
+        ];
+      } else {
+        baseQuery.lab = req.activeLabId;
+      }
+    }
 
     const hazardParam = hazard || req.query['hazard[]'];
     if (hazardParam) {
@@ -123,7 +134,7 @@ exports.getChemicals = async (req, res) => {
     if (expiryStatus) baseQuery.status = expiryStatus;
 
     const p = Math.max(1, parseInt(page) || 1);
-    const l = Math.max(1, Math.min(100, parseInt(limit) || 20));
+    const l = Math.max(1, Math.min(5000, parseInt(limit) || 20));
     const skip = (p - 1) * l;
 
     const validSortFields = ['name', 'createdAt', 'expiry_date', 'quantity', 'status', 'id'];

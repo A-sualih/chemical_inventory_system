@@ -53,13 +53,14 @@ const wasteDisposalSchema = new mongoose.Schema({
       initial_ph: { type: Number },
       final_ph: { type: Number },
       neutralizing_agent: { type: String },
-      safe_range_validated: { type: Boolean }
+      compatible_agents_verified: { type: Boolean, default: false },
+      safe_range_validated: { type: Boolean, default: false }
     },
     
     // Incineration Specific
     incineration: {
       temperature: { type: Number },
-      gas_handling_verified: { type: Boolean },
+      gas_handling_verified: { type: Boolean, default: false },
       certificate_number: { type: String },
       final_report_url: { type: String }
     }

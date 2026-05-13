@@ -1,0 +1,261 @@
+.transactions-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.transactions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+}
+
+.transactions-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.transactions-tabs {
+    display: flex;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.5rem;
+    border-radius: 1rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.transaction-tab-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    border: none;
+    background: transparent;
+    color: var(--secondary-400);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.transaction-tab-btn.active {
+    background: var(--primary-500);
+    color: white;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+/* Fast Track Card */
+.fast-track-card {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(20px);
+    border-radius: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Scanner Simulation Area */
+.scanner-viewport {
+    width: 100%;
+    height: 300px;
+    background: #0f172a;
+    border-radius: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed rgba(255, 255, 255, 0.1);
+    margin-bottom: 2rem;
+}
+
+.scanner-viewport.camera-active {
+    height: 450px;
+    border: 2px solid var(--primary-500);
+    background: black;
+}
+
+#reader {
+    width: 100% !important;
+    border: none !important;
+}
+
+#reader video {
+    border-radius: 1.5rem;
+    object-fit: cover;
+}
+
+#reader__status_span {
+    display: none;
+}
+
+#reader__dashboard_section_csr button {
+    background: var(--primary-500) !important;
+    color: white !important;
+    border-radius: 0.5rem !important;
+    padding: 0.5rem 1rem !important;
+    border: none !important;
+    font-weight: 600 !important;
+}
+
+.scanner-laser {
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: rgba(59, 130, 246, 0.8);
+    box-shadow: 0 0 15px #3b82f6;
+    top: 0;
+    left: 0;
+    animation: scanMove 3s infinite linear;
+}
+
+@keyframes scanMove {
+    0% { top: 0; }
+    50% { top: 100%; }
+    100% { top: 0; }
+}
+
+.scan-overlay-text {
+    color: var(--primary-400);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    z-index: 10;
+}
+
+/* Chemical Detail View */
+.chemical-display-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.detail-section {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1.5rem;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.detail-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--secondary-500);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+}
+
+.detail-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+}
+
+/* Quick Quantity Grid */
+.quantity-suggestion-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.suggestion-chip {
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.suggestion-chip:hover {
+    background: var(--primary-500);
+    transform: translateY(-2px);
+}
+
+/* Safety Verification */
+.safety-verify-box {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    padding: 1.25rem;
+    border-radius: 1rem;
+    margin-top: 2rem;
+}
+
+.safety-check-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+}
+
+.safety-check-item input {
+    width: 1.2rem;
+    height: 1.2rem;
+    accent-color: #ef4444;
+}
+
+/* History List */
+.history-list {
+    margin-top: 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.history-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.25rem;
+    border-radius: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+
+.history-item:hover {
+    transform: scale(1.01);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.history-main {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.type-indicator {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.type-out { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.type-in { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+
+/* Responsive */
+@media (max-width: 992px) {
+    .chemical-display-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -152,9 +152,10 @@ const AdminOnlyPage = ({ title, description }) => {
                                           >
                                              <option value="Admin">System Administrator</option>
                                              <option value="Lab Manager">Operations Manager</option>
-                                             <option value="Lab Technician">Lab Technician</option>
+                                             <option value="Laboratory Staff">Lab Technician / Staff</option>
                                              <option value="Safety Officer">Safety Officer</option>
-                                             <option value="Viewer / Auditor">External Auditor</option>
+                                             <option value="Procurement Officer">Procurement Officer</option>
+                                             <option value="Auditor">External Auditor</option>
                                           </select>
                                           <div className="role-select-icon">
                                              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"/></svg>

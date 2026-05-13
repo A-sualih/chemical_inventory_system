@@ -534,6 +534,91 @@ exports.completeDisposal = async (req, res) => {
 };
 
 /**
+ * Delete a disposal record and optionally restore inventory
+ */
+exports.deleteDisposal = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const disposal = await WasteDisposal.findById(id);
+    if (!disposal) return res.status(404).json({ error: 'Disposal record not found' });
+
+    // Restore inventory if it was subtracted but not yet finalized
+    if (disposal.status === 'Pending Approval' || disposal.status === 'Approved') {
+      const chemical = await Chemical.findById(disposal.chemical_id);
+      if (chemical) {
+        const amountToAddInBase = convertToBase(disposal.quantity, disposal.unit);
+        chemical.base_quantity = (chemical.base_quantity || convertToBase(chemical.quantity, chemical.unit)) + amountToAddInBase;
+        chemical.quantity = convertFromBase(chemical.base_quantity, chemical.unit);
+        
+        // Restore to batch
+        const targetBatch = await Batch.findOne({ chemical_id: chemical.id, batch_number: disposal.batch_number }) || 
+                            await Batch.findOne({ chemical_id: chemical.id }).sort({ expiry_date: 1 });
+        
+        if (targetBatch) {
+          const currentQtyInBase = convertToBase(targetBatch.total_quantity, targetBatch.unit);
+          targetBatch.total_quantity = convertFromBase(currentQtyInBase + amountToAddInBase, targetBatch.unit);
+          
+          const container = await Container.findOne({ batch_number: targetBatch.batch_number }).sort({ created_at: -1 });
+          if (container) {
+            const cQtyInBase = convertToBase(container.quantity, container.unit);
+            container.quantity = convertFromBase(cQtyInBase + amountToAddInBase, container.unit);
+            if (container.status === 'Empty') container.status = 'In Use';
+            await container.save();
+          }
+          await targetBatch.save();
+        }
+        await chemical.save();
+
+        await InventoryLog.create({
+          chemical_id: chemical.id,
+          chemical_name: chemical.name,
+          user_id: req.user.id,
+          user_name: req.user.name,
+          action: 'DISPOSAL_DELETED',
+          quantity_change: disposal.quantity,
+          unit: disposal.unit,
+          reason: `Disposal Record Deleted (${disposal.disposal_id})`
+        });
+      }
+    }
+
+    await logWasteAction(req, 'DELETE', disposal._id, `Deleted disposal record ${disposal.disposal_id}`);
+    await WasteDisposal.findByIdAndDelete(id);
+
+    res.json({ message: 'Disposal record deleted successfully' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+/**
+ * Administrative Purge: Delete all disposal records
+ */
+exports.purgeAllDisposals = async (req, res) => {
+  try {
+    const { restoreInventory } = req.body;
+    
+    // If restoreInventory is true, we would need to loop and restore. 
+    // But for a "Global Wipe", usually we just want to clear the logs.
+    // For now, let's just clear the logs as requested ("delete all disposal in one click")
+    
+    await WasteDisposal.deleteMany({});
+    
+    await AuditLog.create({
+      user: { id: req.user.id, name: req.user.name, role: req.user.role },
+      action: 'DELETE',
+      target: { type: 'waste', name: 'All Disposal Records' },
+      details: 'Executed global purge of all waste disposal history.',
+      metadata: { ip: req.ip, userAgent: req.headers['user-agent'] }
+    });
+
+    res.json({ message: 'All disposal records have been permanently purged.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/**
  * Waste Permits Management
  */
 exports.createPermit = async (req, res) => {
@@ -591,7 +676,7 @@ exports.getDisposals = async (req, res) => {
     if (search) query.chemical_name = { $regex: search, $options: 'i' };
     
     const disposals = await WasteDisposal.find(query)
-      .populate('chemical_id', 'name cas_number hazard_summary')
+      .populate('chemical_id', 'name cas_number hazard_summary emergency_response incompatibility')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(Number(limit));

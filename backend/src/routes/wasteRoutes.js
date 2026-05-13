@@ -14,6 +14,8 @@ router.get('/disposals/:id/fifo-preview', authorize(PERMISSIONS.APPROVE_DISPOSAL
 router.put('/disposals/:id/approve',    authorize(PERMISSIONS.APPROVE_DISPOSAL), ctrl.approveDisposal);
 router.put('/disposals/:id/reject',     authorize(PERMISSIONS.APPROVE_DISPOSAL), ctrl.rejectDisposal);
 router.put('/disposals/:id/complete',   authorize(PERMISSIONS.MANAGE_WASTE), ctrl.completeDisposal);
+router.delete('/disposals/:id',            authorize(PERMISSIONS.MANAGE_WASTE), ctrl.deleteDisposal);
+router.post('/disposals/purge',         authorize(PERMISSIONS.MANAGE_SETTINGS), ctrl.purgeAllDisposals);
 
 // Compliance Logs
 router.get('/compliance',               authorize(PERMISSIONS.VIEW_REPORTS), ctrl.getComplianceLogs);

@@ -532,7 +532,7 @@
 }
 
 .btn-waste-action {
-  padding: 0.625rem 1.25rem;
+  padding: 0.5rem 1rem;
   font-size: 0.75rem;
   font-weight: 800;
   border-radius: 1rem;
@@ -611,6 +611,21 @@
 @keyframes waste-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+.premium-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background-color: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: waste-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
 }
 
 .waste-modal-card {
@@ -784,20 +799,18 @@
 
 /* Premium Form Redesign */
 .premium-form-container {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.85));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 
-    0 10px 30px -10px rgba(99, 102, 241, 0.15),
-    0 4px 6px -4px rgba(0, 0, 0, 0.05),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
-  margin-bottom: 2.5rem;
-  max-width: 1000px;
+  background: white;
+  border-radius: 2.5rem;
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.3);
   overflow: hidden;
-  transition: all 0.3s ease;
   position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  animation: modal-slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modal-slide-up {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .premium-form-container::before {
