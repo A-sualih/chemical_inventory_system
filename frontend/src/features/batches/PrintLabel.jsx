@@ -48,10 +48,10 @@ const PrintLabel = () => {
             <PrinterIcon className="w-5 h-5" />
             Print Label
          </button>
-         <button onClick={() => navigate(-1)} className="print-btn print-btn-secondary">
+         <Link to={`/chemicals/details/${chemical.id}`} className="print-btn print-btn-secondary">
             <ArrowLeftIcon className="w-5 h-5" />
-            Back
-         </button>
+            Back to Asset
+         </Link>
       </div>
 
       <div className="label-container">
