@@ -56,7 +56,7 @@ const syncContainers = async (data) => {
       Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
 
       await Container.findOneAndUpdate(
-        { container_id: containerId },
+        { container_id: containerId, lab: updateData.lab },
         { $set: updateData },
         { upsert: true, new: true }
       );

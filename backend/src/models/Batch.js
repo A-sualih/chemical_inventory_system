@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const batchSchema = new mongoose.Schema({
-  batch_number: { type: String, required: true, unique: true },
+  batch_number: { type: String, required: true },
   chemical_id: { type: String, required: true }, // Links to Chemical.id
   lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
   total_quantity: { type: Number, required: true },
@@ -23,6 +23,8 @@ const batchSchema = new mongoose.Schema({
   last_updated_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   notes: { type: String }
 }, { timestamps: true });
+
+batchSchema.index({ batch_number: 1, lab: 1 }, { unique: true });
 
 module.exports = mongoose.model('Batch', batchSchema);
 

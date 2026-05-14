@@ -10,14 +10,15 @@ const LocationManager = () => {
 
   const [hierarchy, setHierarchy] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState({}); // { [id]: boolean }
+  const [expanded, setExpanded] = useState({});
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const [modalType, setModalType] = useState(null); // 'block' | 'room' | 'cabinet' | 'shelf'
-  const [targetId, setTargetId] = useState(null); // Parent ID for creation
+  const [modalType, setModalType] = useState(null);
+  const [targetId, setTargetId] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [bulkInput, setBulkInput] = useState(""); // For bulk name entry
+  const [bulkInput, setBulkInput] = useState("");
+  const [shelfCapacity, setShelfCapacity] = useState(50); // Default 50
 
   const fetchHierarchy = useCallback(async () => {
     setLoading(true);
@@ -41,36 +42,38 @@ const LocationManager = () => {
     setModalType(type);
     setTargetId(parentId);
     setBulkInput("");
+    setShelfCapacity(50);
     setError("");
   };
 
   const handleBulkCreate = async (e) => {
     e.preventDefault();
     if (!bulkInput.trim()) return setError("Please enter at least one name.");
-    
+
     setSaving(true);
     setError("");
     const names = bulkInput.split(",").map(n => n.trim()).filter(n => n);
-    
+
     try {
       if (modalType === 'block') {
         for (const name of names) {
           await axios.post("/api/locations/blocks", { name });
         }
       } else if (modalType === 'room') {
-        await axios.post("/api/locations/rooms/bulk", { 
-          blockId: targetId, 
-          rooms: names.map(name => ({ name })) 
+        await axios.post("/api/locations/rooms/bulk", {
+          blockId: targetId,
+          rooms: names.map(name => ({ name }))
         });
       } else if (modalType === 'cabinet') {
-        await axios.post("/api/locations/cabinets/bulk", { 
-          roomId: targetId, 
-          cabinets: names.map(name => ({ name })) 
+        await axios.post("/api/locations/cabinets/bulk", {
+          roomId: targetId,
+          cabinets: names.map(name => ({ name }))
         });
       } else if (modalType === 'shelf') {
-        await axios.post("/api/locations/shelves/bulk", { 
-          cabinetId: targetId, 
-          shelves: names.map(name => ({ name })) 
+        const capacity = parseInt(shelfCapacity) || 50;
+        await axios.post("/api/locations/shelves/bulk", {
+          cabinetId: targetId,
+          shelves: names.map(name => ({ name, capacity_limit: capacity }))
         });
       }
       setSuccess(`${modalType.charAt(0).toUpperCase() + modalType.slice(1)}s created successfully.`);
@@ -130,10 +133,10 @@ const LocationManager = () => {
                     <button className="tree-add-btn" onClick={(e) => { e.stopPropagation(); openModal('room', block._id); }}>+ Add Room</button>
                   )}
                 </div>
-                
+
                 {expanded[block._id] && (
                   <div className="tree-children">
-                    {(!block.children || block.children.length === 0) ? <div className="tree-empty">No rooms</div> : 
+                    {(!block.children || block.children.length === 0) ? <div className="tree-empty">No rooms</div> :
                       block.children.map(room => (
                         <div key={room._id} className="tree-room">
                           <div className="tree-item room-item" onClick={() => toggleExpand(room._id)}>
@@ -169,12 +172,18 @@ const LocationManager = () => {
                                               return (
                                                 <div key={shelf._id} className={`shelf-card ${colors}`}>
                                                   <div className="shelf-info">
-                                                    <span className="shelf-name">Shelf {shelf.name}</span>
-                                                    <span className="shelf-load">{shelf.current_load}/{shelf.capacity_limit}</span>
+                                                    <span className="shelf-name">📦 {shelf.name}</span>
+                                                    <span className="shelf-load">
+                                                      {shelf.current_load} / <strong>{shelf.capacity_limit}</strong> max
+                                                    </span>
                                                   </div>
                                                   <div className="shelf-progress">
-                                                    <div className="shelf-fill" style={{ width: `${pct}%`, backgroundColor: 'currentColor' }}></div>
+                                                    <div
+                                                      className="shelf-fill"
+                                                      style={{ width: `${pct}%` }}
+                                                    ></div>
                                                   </div>
+                                                  <div className="shelf-pct-label">{pct}% full</div>
                                                 </div>
                                               );
                                             })}
@@ -202,20 +211,46 @@ const LocationManager = () => {
         <div className="modal-overlay">
           <div className="modal-backdrop" onClick={() => setModalType(null)}></div>
           <div className="modal-content">
-            <h2 className="modal-title">Bulk Add {modalType.charAt(0).toUpperCase() + modalType.slice(1)}s</h2>
-            <p className="modal-desc">Enter names separated by commas (e.g. 101, 102, 103)</p>
+            <h2 className="modal-title">
+              {modalType === 'shelf' ? '📦 Add Shelves' : `Bulk Add ${modalType.charAt(0).toUpperCase() + modalType.slice(1)}s`}
+            </h2>
+            <p className="modal-desc">Enter names separated by commas (e.g. A1, A2, A3)</p>
             <form onSubmit={handleBulkCreate}>
               <div className="form-field">
                 <label className="field-label">Names *</label>
-                <textarea 
-                  value={bulkInput} 
-                  onChange={e => setBulkInput(e.target.value)} 
-                  className="field-input" 
-                  rows="4" 
+                <textarea
+                  value={bulkInput}
+                  onChange={e => setBulkInput(e.target.value)}
+                  className="field-input"
+                  rows="3"
                   placeholder="Alpha, Beta, Gamma..."
                   required
                 />
               </div>
+
+              {/* Capacity limit input — only for shelves */}
+              {modalType === 'shelf' && (
+                <div className="form-field">
+                  <label className="field-label">
+                    Max Capacity per Shelf
+                    <span className="field-hint"> (number of chemical units/containers)</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="9999"
+                    value={shelfCapacity}
+                    onChange={e => setShelfCapacity(e.target.value)}
+                    className="field-input"
+                    placeholder="50"
+                    required
+                  />
+                  <p className="field-note">
+                    💡 All shelves in this batch will share this limit. You can update individual shelves later.
+                  </p>
+                </div>
+              )}
+
               {error && <div className="modal-err">{error}</div>}
               <div className="modal-actions">
                 <button type="button" onClick={() => setModalType(null)} className="btn-cancel">Cancel</button>

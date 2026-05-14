@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const containerSchema = new mongoose.Schema({
-  container_id: { type: String, required: true, unique: true },
+  container_id: { type: String, required: true },
   barcode: { type: String },
   chemical_id: { type: String, required: true }, // Links to Chemical.id or _id
   lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
@@ -26,6 +26,8 @@ const containerSchema = new mongoose.Schema({
   last_updated_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   notes: { type: String }
 }, { timestamps: true });
+
+containerSchema.index({ container_id: 1, lab: 1 }, { unique: true });
 
 module.exports = mongoose.model('Container', containerSchema);
 

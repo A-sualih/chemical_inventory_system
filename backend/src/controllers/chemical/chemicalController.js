@@ -315,13 +315,15 @@ exports.createChemical = async (req, res) => {
     if (newChem.batch_number) {
       await syncBatch({
         ...newChem.toObject(),
-        id: idValue
+        id: idValue,
+        lab: req.activeLabId
       });
     }
 
     await syncContainers({
       ...newChem.toObject(),
-      id: idValue
+      id: idValue,
+      lab: req.activeLabId
     });
 
     await checkChemicalExpiry(newChem, req.user);
@@ -444,13 +446,15 @@ exports.updateChemical = async (req, res) => {
     if (chemical.batch_number) {
       await syncBatch({
         ...chemical.toObject(),
-        id: chemical.id
+        id: chemical.id,
+        lab: chemical.lab || req.activeLabId
       });
     }
 
     await syncContainers({
       ...chemical.toObject(),
-      id: chemical.id
+      id: chemical.id,
+      lab: chemical.lab || req.activeLabId
     });
 
     const expiryToUse = data.expiry_date || data.expiry;

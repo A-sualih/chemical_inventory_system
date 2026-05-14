@@ -48,7 +48,7 @@ const syncBatch = async (data) => {
     Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
 
     await Batch.findOneAndUpdate(
-      { batch_number: batchId },
+      { batch_number: batchId, lab: updateData.lab },
       { $set: updateData },
       { upsert: true, new: true }
     );
@@ -56,7 +56,7 @@ const syncBatch = async (data) => {
     // Sync back to Chemical model so main inventory list shows the batch
     if (chemId) {
       await Chemical.findOneAndUpdate(
-        { id: chemId },
+        { id: chemId, lab: updateData.lab },
         { 
           $set: { 
             batch_number: batchId,

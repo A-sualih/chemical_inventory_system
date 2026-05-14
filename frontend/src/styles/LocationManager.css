@@ -303,3 +303,36 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Capacity field extras */
+.field-hint {
+  font-size: 10px;
+  color: var(--secondary-400);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.field-note {
+  margin-top: 0.5rem;
+  font-size: 11px;
+  color: var(--secondary-400);
+  line-height: 1.6;
+}
+
+.form-field {
+  margin-bottom: 1.25rem;
+}
+
+/* Shelf card enhancements */
+.shelf-pct-label {
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 0.25rem;
+  opacity: 0.75;
+  text-align: right;
+}
+
+.shelf-load strong {
+  font-weight: 800;
+}
