@@ -13,25 +13,47 @@ exports.getChemicalByBarcode = async (req, res) => {
   try {
     const { barcode } = req.params;
     
-    // In this system, we'll assume container_id or a specific barcode field
+    // Normalize function to help with URL-based barcodes (strip protocol and trailing slash)
+    const normalize = (val) => val ? val.toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '') : val;
+    const normalizedBarcode = normalize(barcode);
+
+    // 1. Primary Lookup: Container
+    // We check both exact match and normalized match
     let container = await Container.findOne({ 
-      $or: [{ container_id: barcode }, { barcode: barcode }] 
+      $or: [
+        { container_id: barcode }, 
+        { barcode: barcode },
+        { barcode: normalizedBarcode }
+      ] 
     });
     
     let chemical;
 
     if (!container) {
-      // Fallback: Check if this is a Chemical ID instead of a Container ID
+      // Fallback 1: Check if this is a Chemical system ID or CAS number
       chemical = await Chemical.findOne({ $or: [{ id: barcode }, { cas_number: barcode }] });
+
+      // Fallback 2: Check if this matches a manufacturer barcode (exact or normalized)
+      if (!chemical) {
+        chemical = await Chemical.findOne({ 
+          $or: [
+            { barcode: barcode },
+            { barcode: normalizedBarcode }
+          ]
+        });
+      }
       
       if (chemical) {
         // Find the first available container for this chemical
-        container = await Container.findOne({ chemical_id: { $in: [chemical.id, chemical._id.toString()] }, status: { $ne: 'Empty' } });
+        container = await Container.findOne({ 
+          chemical_id: { $in: [chemical.id, chemical._id.toString()] }, 
+          status: { $ne: 'Empty' } 
+        });
         if (!container) {
             return res.status(404).json({ error: `Chemical found (${chemical.name}), but no active containers are available for check-out.` });
         }
       } else {
-        return res.status(404).json({ error: 'Barcode not recognized as a Container or Chemical ID.' });
+        return res.status(404).json({ error: 'Barcode not recognized as a Container, Chemical ID, or Manufacturer Barcode.' });
       }
     } else {
       // Container found, now get its chemical

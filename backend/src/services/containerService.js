@@ -7,14 +7,22 @@ const Container = require('../models/Container');
 const syncContainers = async (data) => {
   const numContainers = Number(data.num_containers || data.numContainers || 1);
   const qtyPerContainer = Number(data.quantity_per_container || data.qtyPerContainer || 0);
-  const baseId = data.container_id_series || data.containerId || data.id || 'CONT';
   const chemicalId = data.id || data.chemical_id;
+  const mfgBarcode = data.barcode; // Manufacturer's barcode scanned during enrollment
+
+  // If a manufacturer barcode was scanned, use it as the container_id directly.
+  // This way scanning the original bottle barcode at check-in/out finds the container immediately.
+  // For multiple containers, fall back to the series ID with index suffix.
+  const baseId = (mfgBarcode && numContainers === 1)
+    ? mfgBarcode
+    : (data.container_id_series || data.containerId || data.id || 'CONT');
 
   if (!chemicalId) return;
 
   try {
     for (let i = 1; i <= numContainers; i++) {
-      // If numContainers > 1, append index. Otherwise just use baseId.
+      // For single container with mfg barcode: containerId = the barcode itself
+      // For multiple containers: append index
       const containerId = numContainers > 1 ? `${baseId}-${i}` : baseId;
       
       const updateData = {
@@ -28,6 +36,7 @@ const syncContainers = async (data) => {
         shelf: data.shelf,
         manufacturing_date: data.manufacturing_date || data.mfgDate,
         expiry_date: data.expiry_date || data.expiry,
+        barcode: data.barcode,
         container_type: data.container_type || data.containerType || 'Plastic Bottle',
         status: 'Full',
         lab: data.lab

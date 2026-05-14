@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import QRCodeLib from "react-qr-code";
 const QRCode = QRCodeLib.default || QRCodeLib;
 import axios from "axios";
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import { HAZARD_CLASSES, PPE_OPTIONS, NFPA_RATINGS, EXPOSURE_RISKS } from "../../constants/hazards.jsx";
 import "../../styles/ChemicalForm.css";
 
@@ -32,6 +33,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     quantity_per_container: initialData.quantity_per_container || "",
     container_type: initialData.container_type || "Plastic Bottle",
     container_id_series: initialData.container_id_series || "",
+    barcode: initialData.barcode || "",
     remarks: initialData.remarks || "",
     sds_file_name: initialData.sds_file_name || "",
     sds_file_url: initialData.sds_file_url || "",
@@ -76,6 +78,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     quantity_per_container: "",
     container_type: "Plastic Bottle",
     container_id_series: "",
+    barcode: "",
     remarks: "",
     chemical_family: "General",
     spill_instructions: "",
@@ -99,9 +102,42 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
   const [sdsFile, setSdsFile] = useState(null);
   const [qrCodeData, setQrCodeData] = useState("");
   const [incompatibilityWarning, setIncompatibilityWarning] = useState(null);
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  const barcodeScannerRef = useRef(null);
 
   const [locHierarchy, setLocHierarchy] = useState({ buildings: [], rooms: [], cabinets: [], shelves: [] });
   const [locLoading, setLocLoading] = useState(false);
+
+  // Barcode scanner lifecycle
+  useEffect(() => {
+    let scanner = null;
+    if (showBarcodeScanner) {
+      // Small delay to ensure the DOM div is mounted before initializing
+      const timer = setTimeout(() => {
+        try {
+          scanner = new Html5QrcodeScanner("barcode-reader", {
+            fps: 15,
+            qrbox: { width: 350, height: 120 }, // Wide rectangle for 1D barcodes
+            aspectRatio: 3.5,
+            rememberLastUsedCamera: true,
+            supportedScanTypes: [0] // 0 = CAMERA (only), allows both QR and barcodes
+          });
+          scanner.render((decodedText) => {
+            setFormData(prev => ({ ...prev, barcode: decodedText }));
+            setShowBarcodeScanner(false);
+            scanner.clear().catch(() => {});
+          }, () => {});
+          barcodeScannerRef.current = scanner;
+        } catch (e) {
+          console.error('Barcode scanner init error:', e);
+        }
+      }, 100);
+      return () => {
+        clearTimeout(timer);
+        if (barcodeScannerRef.current) barcodeScannerRef.current.clear().catch(() => {});
+      };
+    }
+  }, [showBarcodeScanner]);
 
   useEffect(() => {
     axios.get('/api/locations/hierarchy').then(res => setLocHierarchy(prev => ({ ...prev, buildings: res.data.buildings })));
@@ -422,6 +458,61 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                       <div className="form-group">
                          <label className="form-label">Container ID</label>
                          <input type="text" value={formData.container_id_series} onChange={e => setFormData({...formData, container_id_series: e.target.value})} className="form-input font-mono" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} placeholder="CONT-X" />
+                      </div>
+                    </div>
+                    <div style={{ marginTop: '1rem' }}>
+                      <div className="form-group">
+                        <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          Mfg. Barcode
+                          <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.5rem', background: 'rgba(99,102,241,0.15)', color: '#818cf8', borderRadius: '2rem', fontWeight: 600 }}>OPTIONAL</span>
+                        </label>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            value={formData.barcode}
+                            onChange={e => setFormData({...formData, barcode: e.target.value})}
+                            className="form-input font-mono"
+                            style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem', flex: 1 }}
+                            placeholder="Type or scan manufacturer barcode..."
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowBarcodeScanner(prev => !prev)}
+                            style={{
+                              padding: '0.75rem 1rem',
+                              background: showBarcodeScanner ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)',
+                              border: `1px solid ${showBarcodeScanner ? 'rgba(239,68,68,0.4)' : 'rgba(99,102,241,0.4)'}`,
+                              borderRadius: '0.5rem',
+                              color: showBarcodeScanner ? '#f87171' : '#818cf8',
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap',
+                              fontWeight: 600,
+                              fontSize: '0.8rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.4rem'
+                            }}
+                          >
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8H2a2 2 0 00-2 2v10a2 2 0 002 2h3" />
+                            </svg>
+                            {showBarcodeScanner ? 'Close Camera' : 'Scan Barcode'}
+                          </button>
+                        </div>
+                        {showBarcodeScanner && (
+                          <div style={{ marginTop: '0.75rem', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '0.75rem', overflow: 'hidden', background: '#0f172a' }}>
+                            <div style={{ padding: '0.5rem 1rem', background: 'rgba(99,102,241,0.1)', borderBottom: '1px solid rgba(99,102,241,0.2)', fontSize: '0.75rem', color: '#818cf8', fontWeight: 600 }}>
+                              📷 Point camera at the manufacturer barcode on the bottle
+                            </div>
+                            <div id="barcode-reader" style={{ width: '100%' }} />
+                          </div>
+                        )}
+                        {formData.barcode && (
+                          <div style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: '#34d399', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                            Barcode captured: <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{formData.barcode}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                  </div>

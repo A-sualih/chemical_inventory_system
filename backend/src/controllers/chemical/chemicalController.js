@@ -271,6 +271,7 @@ exports.createChemical = async (req, res) => {
       quantity_per_container: Number(data.quantity_per_container || data.qtyPerContainer),
       container_type: data.container_type || data.containerType,
       container_id_series: data.container_id_series || data.containerId,
+      barcode: data.barcode || undefined,
       building: data.building,
       room: data.room,
       cabinet: data.cabinet,
@@ -407,6 +408,7 @@ exports.updateChemical = async (req, res) => {
     chemical.quantity_per_container = Number(data.quantity_per_container || data.qtyPerContainer);
     chemical.container_type = data.container_type || data.containerType;
     chemical.container_id_series = data.container_id_series || data.containerId;
+    chemical.barcode = data.barcode || chemical.barcode;
     chemical.building = data.building;
     chemical.room = data.room;
     chemical.cabinet = data.cabinet;

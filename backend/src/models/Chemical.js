@@ -24,6 +24,7 @@ const chemicalSchema = new mongoose.Schema({
   quantity_per_container: { type: Number },
   container_type: { type: String },
   container_id_series: { type: String },
+  barcode: { type: String },   // Optional manufacturer/vendor barcode
   building: { type: String },
   room: { type: String },
   cabinet: { type: String },
