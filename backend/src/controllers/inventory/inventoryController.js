@@ -153,6 +153,7 @@ exports.handleTransaction = async (req, res) => {
         }
 
         targetChem = new Chemical({
+          lab: req.activeLabId,
           id: idValue,
           name: chem.name,
           iupac_name: chem.iupac_name,

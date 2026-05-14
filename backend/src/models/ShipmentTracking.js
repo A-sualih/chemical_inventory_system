@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const shipmentTrackingSchema = new mongoose.Schema({
   purchase_order_id: { type: mongoose.Schema.Types.ObjectId, ref: 'PurchaseOrder', required: true },
+  lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
   supplier_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier' },
   tracking_number: { type: String },
   carrier: { type: String },

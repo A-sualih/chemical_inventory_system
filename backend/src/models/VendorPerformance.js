@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const vendorPerformanceSchema = new mongoose.Schema({
   supplier_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier', required: true },
+  lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
   purchase_order_id: { type: mongoose.Schema.Types.ObjectId, ref: 'PurchaseOrder' },
   reviewed_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   reviewed_by_name: { type: String },

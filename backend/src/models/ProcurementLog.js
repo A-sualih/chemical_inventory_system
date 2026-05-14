@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const procurementLogSchema = new mongoose.Schema({
   entity_type: { type: String, enum: ['PurchaseOrder', 'Supplier', 'Shipment', 'VendorReview'], required: true },
+  lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
   entity_id: { type: mongoose.Schema.Types.ObjectId, required: true },
   entity_name: { type: String },
   action: { type: String, required: true }, // e.g. 'CREATED', 'APPROVED', 'SHIPPED', 'RECEIVED'

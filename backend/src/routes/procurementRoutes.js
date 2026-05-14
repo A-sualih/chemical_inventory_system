@@ -2,10 +2,13 @@ const express = require('express');
 const router = express.Router();
 const ctrl = require('../controllers/procurement/procurementController');
 const { authenticate, authorize } = require('../middleware/authMiddleware');
+const { requireLabScope } = require('../middleware/labScope');
 const { PERMISSIONS } = require('../config/roles');
 
 const canEdit = authorize(PERMISSIONS.EDIT_CHEMICAL);
 const adminOnly = authorize(PERMISSIONS.MANAGE_USERS);
+
+router.use(authenticate, requireLabScope);
 
 // ─── Supplier Routes ─────────────────────────────────────────────────────────
 router.get('/suppliers',              authenticate, ctrl.getSuppliers);

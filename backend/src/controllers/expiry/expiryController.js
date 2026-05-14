@@ -10,8 +10,8 @@ exports.getExpirySummary = async (req, res) => {
     const thresholdDays = parseInt(process.env.NEAR_EXPIRY_THRESHOLD) || 30;
     const nearExpiryCutoff = new Date(now.getTime() + thresholdDays * 24 * 60 * 60 * 1000);
 
-    const batches = await Batch.find({}).lean();
-    const containers = await Container.find({}).lean();
+    const batches = await Batch.find({ lab: req.activeLabId }).lean();
+    const containers = await Container.find({ lab: req.activeLabId }).lean();
 
     const batchExpiryList = batches.map(b => {
       const expDate = b.expiry_date ? new Date(b.expiry_date) : null;
@@ -69,6 +69,7 @@ exports.getExpirySummary = async (req, res) => {
     const chemicalIds = [...new Set(combined.map(item => item.chemicalId))];
     const chemicals = await Chemical.find({ 
       id: { $in: chemicalIds },
+      lab: req.activeLabId,
       archived: false 
     }).select('id name').lean();
     
@@ -94,10 +95,11 @@ exports.purgeExpired = async (req, res) => {
     const now = new Date();
 
     const expiredBatches = await Batch.find({
+      lab: req.activeLabId,
       expiry_date: { $lt: now }
     }).lean();
-
     const expiredContainers = await Container.find({
+      lab: req.activeLabId,
       expiry_date: { $lt: now }
     }).lean();
 
@@ -109,24 +111,24 @@ exports.purgeExpired = async (req, res) => {
       ...expiredContainers.map(c => c.chemical_id)
     ])];
 
-    const batchResult     = await Batch.deleteMany({ _id: { $in: expiredBatchIds } });
-    const containerResult = await Container.deleteMany({ _id: { $in: expiredContainerIds } });
+    const batchResult     = await Batch.deleteMany({ _id: { $in: expiredBatchIds }, lab: req.activeLabId });
+    const containerResult = await Container.deleteMany({ _id: { $in: expiredContainerIds }, lab: req.activeLabId });
 
     let deletedChemicalCount = 0;
     const deletedChemicalIds = [];
 
     for (const chemId of affectedChemicalIds) {
-      const remainingBatches    = await Batch.countDocuments({ chemical_id: chemId });
-      const remainingContainers = await Container.countDocuments({ chemical_id: chemId });
+      const remainingBatches    = await Batch.countDocuments({ chemical_id: chemId, lab: req.activeLabId });
+      const remainingContainers = await Container.countDocuments({ chemical_id: chemId, lab: req.activeLabId });
 
       if (remainingBatches === 0 && remainingContainers === 0) {
-        await Chemical.deleteOne({ id: chemId });
+        await Chemical.deleteOne({ id: chemId, lab: req.activeLabId });
         deletedChemicalIds.push(chemId);
         deletedChemicalCount++;
       } else {
-        const remaining = await Container.find({ chemical_id: chemId, quantity: { $gt: 0 } });
+        const remaining = await Container.find({ chemical_id: chemId, lab: req.activeLabId, quantity: { $gt: 0 } });
         const totalQty = remaining.reduce((sum, c) => sum + (c.quantity || 0), 0);
-        await Chemical.updateOne({ id: chemId }, {
+        await Chemical.updateOne({ id: chemId, lab: req.activeLabId }, {
           $set: {
             quantity: totalQty,
             status: totalQty <= 0 ? 'Out of Stock' : totalQty < 5 ? 'Low Stock' : 'In Stock'
@@ -155,6 +157,7 @@ exports.deleteExpiryRecord = async (req, res) => {
 
     if (type === 'batch') {
       const batch = await Batch.findOne({
+        lab: req.activeLabId,
         $or: [
           { _id: mongoose.Types.ObjectId.isValid(id) ? id : undefined },
           { batch_number: id }
@@ -162,9 +165,10 @@ exports.deleteExpiryRecord = async (req, res) => {
       });
       if (!batch) return res.status(404).json({ error: 'Batch not found.' });
       chemicalId = batch.chemical_id;
-      await Batch.deleteOne({ _id: batch._id });
+      await Batch.deleteOne({ _id: batch._id, lab: req.activeLabId });
     } else if (type === 'container') {
       const container = await Container.findOne({
+        lab: req.activeLabId,
         $or: [
           { _id: mongoose.Types.ObjectId.isValid(id) ? id : undefined },
           { container_id: id }
@@ -172,23 +176,23 @@ exports.deleteExpiryRecord = async (req, res) => {
       });
       if (!container) return res.status(404).json({ error: 'Container not found.' });
       chemicalId = container.chemical_id;
-      await Container.deleteOne({ _id: container._id });
+      await Container.deleteOne({ _id: container._id, lab: req.activeLabId });
     } else {
       return res.status(400).json({ error: 'Invalid type. Must be "batch" or "container".' });
     }
 
     let chemicalDeleted = false;
     if (chemicalId) {
-      const remainingBatches    = await Batch.countDocuments({ chemical_id: chemicalId });
-      const remainingContainers = await Container.countDocuments({ chemical_id: chemicalId });
+      const remainingBatches    = await Batch.countDocuments({ chemical_id: chemicalId, lab: req.activeLabId });
+      const remainingContainers = await Container.countDocuments({ chemical_id: chemicalId, lab: req.activeLabId });
 
       if (remainingBatches === 0 && remainingContainers === 0) {
-        await Chemical.deleteOne({ id: chemicalId });
+        await Chemical.deleteOne({ id: chemicalId, lab: req.activeLabId });
         chemicalDeleted = true;
       } else {
-        const remaining = await Container.find({ chemical_id: chemicalId, quantity: { $gt: 0 } });
+        const remaining = await Container.find({ chemical_id: chemicalId, lab: req.activeLabId, quantity: { $gt: 0 } });
         const totalQty = remaining.reduce((sum, c) => sum + (c.quantity || 0), 0);
-        await Chemical.updateOne({ id: chemicalId }, {
+        await Chemical.updateOne({ id: chemicalId, lab: req.activeLabId }, {
           $set: {
             quantity: totalQty,
             status: totalQty <= 0 ? 'Out of Stock' : totalQty < 5 ? 'Low Stock' : 'In Stock'

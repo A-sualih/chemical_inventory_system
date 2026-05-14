@@ -9,6 +9,7 @@ const logAction = async ({ entityType, entityId, entityName, action, req, detail
   try {
     await ProcurementLog.create({
       entity_type: entityType,
+      lab: req.user?.labId,
       entity_id: entityId,
       entity_name: entityName,
       action,
@@ -29,7 +30,7 @@ const logAction = async ({ entityType, entityId, entityName, action, req, detail
 exports.getSuppliers = async (req, res) => {
   try {
     const { search, status, category, page = 1, limit = 20, sort = 'name' } = req.query;
-    const query = { is_deleted: false };
+    const query = { is_deleted: false, lab: req.activeLabId };
 
     if (status) query.status = status;
     if (category) query.category = category;
@@ -64,16 +65,16 @@ exports.getSuppliers = async (req, res) => {
 
 exports.getSupplierById = async (req, res) => {
   try {
-    const supplier = await Supplier.findOne({ _id: req.params.id, is_deleted: false });
+    const supplier = await Supplier.findOne({ _id: req.params.id, lab: req.activeLabId, is_deleted: false });
     if (!supplier) return res.status(404).json({ error: 'Supplier not found' });
 
     // Fetch last 5 orders for this supplier
-    const recentOrders = await PurchaseOrder.find({ supplier_id: req.params.id, is_deleted: false })
+    const recentOrders = await PurchaseOrder.find({ supplier_id: req.params.id, lab: req.activeLabId, is_deleted: false })
       .sort({ createdAt: -1 }).limit(5)
       .populate('requested_by', 'name');
 
     // Fetch last 5 performance reviews
-    const reviews = await VendorPerformance.find({ supplier_id: req.params.id })
+    const reviews = await VendorPerformance.find({ supplier_id: req.params.id, lab: req.activeLabId })
       .sort({ review_date: -1 }).limit(5)
       .populate('reviewed_by', 'name');
 
@@ -85,7 +86,7 @@ exports.getSupplierById = async (req, res) => {
 
 exports.createSupplier = async (req, res) => {
   try {
-    const supplier = new Supplier(req.body);
+    const supplier = new Supplier({ ...req.body, lab: req.activeLabId });
     await supplier.save();
     await logAction({ entityType: 'Supplier', entityId: supplier._id, entityName: supplier.name, action: 'CREATED', req, details: `New supplier "${supplier.name}" added` });
     res.status(201).json(supplier);
@@ -97,7 +98,7 @@ exports.createSupplier = async (req, res) => {
 exports.updateSupplier = async (req, res) => {
   try {
     const supplier = await Supplier.findOneAndUpdate(
-      { _id: req.params.id, is_deleted: false },
+      { _id: req.params.id, lab: req.activeLabId, is_deleted: false },
       req.body,
       { new: true, runValidators: true }
     );
@@ -111,8 +112,8 @@ exports.updateSupplier = async (req, res) => {
 
 exports.deleteSupplier = async (req, res) => {
   try {
-    const supplier = await Supplier.findByIdAndUpdate(
-      req.params.id,
+    const supplier = await Supplier.findOneAndUpdate(
+      { _id: req.params.id, lab: req.activeLabId },
       { is_deleted: true, deleted_at: new Date() },
       { new: true }
     );
@@ -127,8 +128,8 @@ exports.deleteSupplier = async (req, res) => {
 exports.blacklistSupplier = async (req, res) => {
   try {
     const { reason } = req.body;
-    const supplier = await Supplier.findByIdAndUpdate(
-      req.params.id,
+    const supplier = await Supplier.findOneAndUpdate(
+      { _id: req.params.id, lab: req.activeLabId },
       { status: 'Blacklisted', notes: `BLACKLISTED: ${reason}` },
       { new: true }
     );
@@ -142,7 +143,7 @@ exports.blacklistSupplier = async (req, res) => {
 
 exports.getSupplierHistory = async (req, res) => {
   try {
-    const orders = await PurchaseOrder.find({ supplier_id: req.params.id, is_deleted: false })
+    const orders = await PurchaseOrder.find({ supplier_id: req.params.id, lab: req.activeLabId, is_deleted: false })
       .sort({ createdAt: -1 })
       .populate('requested_by', 'name')
       .populate('approved_by', 'name');
@@ -162,7 +163,7 @@ exports.getSupplierHistory = async (req, res) => {
 exports.getPurchaseOrders = async (req, res) => {
   try {
     const { status, supplier_id, priority, page = 1, limit = 20, search, dateFrom, dateTo } = req.query;
-    const query = { is_deleted: false };
+    const query = { is_deleted: false, lab: req.activeLabId };
 
     if (status) query.status = status;
     if (supplier_id) query.supplier_id = supplier_id;
@@ -191,7 +192,7 @@ exports.getPurchaseOrders = async (req, res) => {
 
 exports.getPurchaseOrderById = async (req, res) => {
   try {
-    const po = await PurchaseOrder.findOne({ _id: req.params.id, is_deleted: false })
+    const po = await PurchaseOrder.findOne({ _id: req.params.id, lab: req.activeLabId, is_deleted: false })
       .populate('supplier_id', 'name contact_email contact_phone supplier_id country')
       .populate('requested_by', 'name email')
       .populate('approved_by', 'name')
@@ -199,7 +200,7 @@ exports.getPurchaseOrderById = async (req, res) => {
 
     if (!po) return res.status(404).json({ error: 'Purchase order not found' });
 
-    const shipment = await ShipmentTracking.findOne({ purchase_order_id: req.params.id });
+    const shipment = await ShipmentTracking.findOne({ purchase_order_id: req.params.id, lab: req.activeLabId });
     res.json({ po, shipment });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -208,12 +209,13 @@ exports.getPurchaseOrderById = async (req, res) => {
 
 exports.createPurchaseOrder = async (req, res) => {
   try {
-    const count = await PurchaseOrder.countDocuments();
+    const count = await PurchaseOrder.countDocuments({ lab: req.activeLabId });
     const po_number = `PO-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
 
     const poData = {
       ...req.body,
       po_number,
+      lab: req.activeLabId,
       requested_by: req.user.id,
       ordered_by: req.user.id,
       order_date: new Date(),
@@ -232,6 +234,7 @@ exports.createPurchaseOrder = async (req, res) => {
     // Auto-create shipment tracking record
     await ShipmentTracking.create({
       purchase_order_id: po._id,
+      lab: req.activeLabId,
       supplier_id: po.supplier_id,
       status: 'Pending',
       estimated_arrival: po.expected_delivery,
@@ -247,7 +250,7 @@ exports.createPurchaseOrder = async (req, res) => {
 
 exports.updatePurchaseOrder = async (req, res) => {
   try {
-    const po = await PurchaseOrder.findOne({ _id: req.params.id, status: 'Draft', is_deleted: false });
+    const po = await PurchaseOrder.findOne({ _id: req.params.id, lab: req.activeLabId, status: 'Draft', is_deleted: false });
     if (!po) return res.status(404).json({ error: 'PO not found or not editable (only Draft POs can be edited)' });
 
     Object.assign(po, req.body);
@@ -262,7 +265,7 @@ exports.updatePurchaseOrder = async (req, res) => {
 exports.updatePurchaseOrderStatus = async (req, res) => {
   try {
     const { status, comment, rejection_reason } = req.body;
-    const po = await PurchaseOrder.findOne({ _id: req.params.id, is_deleted: false })
+    const po = await PurchaseOrder.findOne({ _id: req.params.id, lab: req.activeLabId, is_deleted: false })
       .populate('supplier_id');
     if (!po) return res.status(404).json({ error: 'PO not found' });
 
@@ -308,7 +311,7 @@ exports.updatePurchaseOrderStatus = async (req, res) => {
     };
     if (shipmentStatusMap[status]) {
       await ShipmentTracking.findOneAndUpdate(
-        { purchase_order_id: po._id },
+        { purchase_order_id: po._id, lab: req.activeLabId },
         {
           status: shipmentStatusMap[status],
           $push: { timeline: { status: shipmentStatusMap[status], description: `PO status changed to ${status}`, timestamp: new Date(), recorded_by: req.user.name || req.user.email } }
@@ -319,7 +322,7 @@ exports.updatePurchaseOrderStatus = async (req, res) => {
     // Update vendor stats when order is completed
     if (status === 'Completed' && po.supplier_id) {
       const supplierId = po.supplier_id._id || po.supplier_id;
-      const supplier = await Supplier.findById(supplierId);
+      const supplier = await Supplier.findOne({ _id: supplierId, lab: req.activeLabId });
       if (supplier) {
         supplier.total_orders += 1;
         supplier.total_spending += po.total_cost || 0;
@@ -367,7 +370,7 @@ exports.updatePurchaseOrderStatus = async (req, res) => {
 exports.deletePurchaseOrder = async (req, res) => {
   try {
     const po = await PurchaseOrder.findOneAndUpdate(
-      { _id: req.params.id, is_deleted: false },
+      { _id: req.params.id, lab: req.activeLabId, is_deleted: false },
       { is_deleted: true },
       { new: true }
     );
@@ -386,7 +389,7 @@ exports.deletePurchaseOrder = async (req, res) => {
 exports.getShipments = async (req, res) => {
   try {
     const { status, page = 1, limit = 20 } = req.query;
-    const query = status ? { status } : {};
+    const query = status ? { status, lab: req.activeLabId } : { lab: req.activeLabId };
     const total = await ShipmentTracking.countDocuments(query);
     const shipments = await ShipmentTracking.find(query)
       .populate('purchase_order_id', 'po_number total_cost currency')
@@ -405,7 +408,7 @@ exports.updateShipment = async (req, res) => {
   try {
     const { status, tracking_number, carrier, shipped_date, estimated_arrival, location, description, condition, damage_description, quantity_mismatch_details } = req.body;
 
-    const shipment = await ShipmentTracking.findOne({ purchase_order_id: req.params.poId });
+    const shipment = await ShipmentTracking.findOne({ purchase_order_id: req.params.poId, lab: req.activeLabId });
     if (!shipment) return res.status(404).json({ error: 'Shipment not found' });
 
     if (status) shipment.status = status;
@@ -454,7 +457,7 @@ exports.updateShipment = async (req, res) => {
 exports.getVendorReviews = async (req, res) => {
   try {
     const { supplier_id } = req.query;
-    const query = supplier_id ? { supplier_id } : {};
+    const query = supplier_id ? { supplier_id, lab: req.activeLabId } : { lab: req.activeLabId };
     const reviews = await VendorPerformance.find(query)
       .populate('supplier_id', 'name supplier_id')
       .populate('reviewed_by', 'name')
@@ -470,15 +473,16 @@ exports.createVendorReview = async (req, res) => {
   try {
     const review = new VendorPerformance({
       ...req.body,
+      lab: req.activeLabId,
       reviewed_by: req.user.id,
       reviewed_by_name: req.user.name || req.user.email
     });
     await review.save();
 
     // Update supplier rating (running average of overall_rating)
-    const allReviews = await VendorPerformance.find({ supplier_id: review.supplier_id });
+    const allReviews = await VendorPerformance.find({ supplier_id: review.supplier_id, lab: req.activeLabId });
     const avgRating = allReviews.reduce((s, r) => s + (r.overall_rating || 0), 0) / allReviews.length;
-    await Supplier.findByIdAndUpdate(review.supplier_id, {
+    await Supplier.findOneAndUpdate({ _id: review.supplier_id, lab: req.activeLabId }, {
       rating: Math.round(avgRating * 10) / 10,
       quality_score: review.chemical_quality,
       order_accuracy_rate: Math.round(allReviews.filter(r => !r.had_quantity_mismatch).length / allReviews.length * 100),
@@ -513,26 +517,26 @@ exports.getProcurementAnalytics = async (req, res) => {
     ] = await Promise.all([
       // Total spending (completed orders)
       PurchaseOrder.aggregate([
-        { $match: { status: { $in: ['Completed', 'Partially Received'] }, is_deleted: false } },
+        { $match: { lab: new mongoose.Types.ObjectId(req.activeLabId), status: { $in: ['Completed', 'Partially Received'] }, is_deleted: false } },
         { $group: { _id: null, total: { $sum: '$total_cost' } } }
       ]),
 
       // Orders by status
       PurchaseOrder.aggregate([
-        { $match: { is_deleted: false } },
+        { $match: { lab: new mongoose.Types.ObjectId(req.activeLabId), is_deleted: false } },
         { $group: { _id: '$status', count: { $sum: 1 } } }
       ]),
 
       // Monthly spending for selected year
       PurchaseOrder.aggregate([
-        { $match: { status: { $in: ['Completed', 'Partially Received'] }, is_deleted: false, order_date: { $gte: new Date(`${year}-01-01`), $lte: new Date(`${year}-12-31`) } } },
+        { $match: { lab: new mongoose.Types.ObjectId(req.activeLabId), status: { $in: ['Completed', 'Partially Received'] }, is_deleted: false, order_date: { $gte: new Date(`${year}-01-01`), $lte: new Date(`${year}-12-31`) } } },
         { $group: { _id: { month: { $month: '$order_date' } }, total: { $sum: '$total_cost' }, count: { $sum: 1 } } },
         { $sort: { '_id.month': 1 } }
       ]),
 
       // Top suppliers by spending
       PurchaseOrder.aggregate([
-        { $match: { status: { $in: ['Completed', 'Partially Received'] }, is_deleted: false } },
+        { $match: { lab: new mongoose.Types.ObjectId(req.activeLabId), status: { $in: ['Completed', 'Partially Received'] }, is_deleted: false } },
         { $group: { _id: '$supplier_id', totalSpent: { $sum: '$total_cost' }, orderCount: { $sum: 1 } } },
         { $sort: { totalSpent: -1 } },
         { $limit: 5 },
@@ -542,18 +546,18 @@ exports.getProcurementAnalytics = async (req, res) => {
 
       // Top chemicals ordered
       PurchaseOrder.aggregate([
-        { $match: { is_deleted: false } },
+        { $match: { lab: new mongoose.Types.ObjectId(req.activeLabId), is_deleted: false } },
         { $unwind: '$items' },
         { $group: { _id: '$items.chemical_name', totalQty: { $sum: '$items.quantity' }, totalCost: { $sum: '$items.total_price' }, orderCount: { $sum: 1 } } },
         { $sort: { totalCost: -1 } },
         { $limit: 10 }
       ]),
 
-      Supplier.countDocuments({ is_deleted: false }),
-      Supplier.countDocuments({ status: 'Active', is_deleted: false }),
-      PurchaseOrder.countDocuments({ is_deleted: false }),
+      Supplier.countDocuments({ lab: req.activeLabId, is_deleted: false }),
+      Supplier.countDocuments({ lab: req.activeLabId, status: 'Active', is_deleted: false }),
+      PurchaseOrder.countDocuments({ lab: req.activeLabId, is_deleted: false }),
       PurchaseOrder.aggregate([
-        { $match: { is_deleted: false } },
+        { $match: { lab: new mongoose.Types.ObjectId(req.activeLabId), is_deleted: false } },
         { $group: { _id: null, avg: { $avg: '$total_cost' } } }
       ])
     ]);
@@ -585,7 +589,7 @@ exports.getProcurementAnalytics = async (req, res) => {
 exports.getProcurementLogs = async (req, res) => {
   try {
     const { entity_type, page = 1, limit = 50 } = req.query;
-    const query = entity_type ? { entity_type } : {};
+    const query = entity_type ? { entity_type, lab: req.activeLabId } : { lab: req.activeLabId };
     const total = await ProcurementLog.countDocuments(query);
     const logs = await ProcurementLog.find(query)
       .sort({ timestamp: -1 })
@@ -599,7 +603,7 @@ exports.getProcurementLogs = async (req, res) => {
 
 exports.getSupplierRankings = async (req, res) => {
   try {
-    const suppliers = await Supplier.find({ status: 'Active', is_deleted: false })
+    const suppliers = await Supplier.find({ lab: req.activeLabId, status: 'Active', is_deleted: false })
       .select('name supplier_id rating reliability_score on_time_delivery_rate total_orders total_spending delayed_orders rejected_shipments quality_score')
       .sort({ reliability_score: -1 });
     res.json(suppliers);

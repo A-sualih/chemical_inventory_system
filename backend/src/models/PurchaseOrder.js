@@ -23,6 +23,7 @@ const approvalHistorySchema = new mongoose.Schema({
 
 const purchaseOrderSchema = new mongoose.Schema({
   po_number: { type: String, required: true, unique: true },
+  lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
   supplier_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier', required: true },
   requested_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   // Legacy field alias kept for backward compat

@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { authenticate, authorize } = require('../middleware/authMiddleware');
+const { requireLabScope } = require('../middleware/labScope');
 const { PERMISSIONS } = require('../config/roles');
 const expiryController = require('../controllers/expiry/expiryController');
+
+router.use(authenticate, requireLabScope);
 
 /**
  * @route GET /api/expiry/summary

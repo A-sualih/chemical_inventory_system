@@ -604,7 +604,7 @@ exports.purgeAllDisposals = async (req, res) => {
     // But for a "Global Wipe", usually we just want to clear the logs.
     // For now, let's just clear the logs as requested ("delete all disposal in one click")
     
-    await WasteDisposal.deleteMany({});
+    await WasteDisposal.deleteMany({ lab: req.activeLabId });
     
     await AuditLog.create({
       user: { id: req.user.id, name: req.user.name, role: req.user.role },
@@ -625,7 +625,7 @@ exports.purgeAllDisposals = async (req, res) => {
  */
 exports.createPermit = async (req, res) => {
   try {
-    const permit = new WastePermit(req.body);
+    const permit = new WastePermit({ ...req.body, lab: req.activeLabId });
     await permit.save();
     res.status(201).json(permit);
   } catch (err) {
@@ -698,6 +698,7 @@ exports.createComplianceLog = async (req, res) => {
   try {
     const log = new WasteCompliance({
       ...req.body,
+      lab: req.activeLabId,
       recorded_by: req.user.id
     });
     await log.save();
@@ -723,6 +724,7 @@ exports.createSafetyIncident = async (req, res) => {
   try {
     const incident = new WasteSafetyIncident({
       ...req.body,
+      lab: req.activeLabId,
       reported_by: req.user.id,
       reported_by_name: req.user.name
     });
@@ -795,7 +797,7 @@ exports.getSafetyProtocols = async (req, res) => {
 
 exports.createSafetyProtocol = async (req, res) => {
   try {
-    const protocol = new WasteSafetyProtocol(req.body);
+    const protocol = new WasteSafetyProtocol({ ...req.body, lab: req.activeLabId });
     await protocol.save();
     res.status(201).json(protocol);
   } catch (err) {

@@ -3,6 +3,7 @@ const { encrypt, decrypt } = require('../utils/encryption');
 
 const supplierSchema = new mongoose.Schema({
   supplier_id: { type: String, unique: true }, // Auto-generated
+  lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
   name: { type: String, required: true, trim: true },
   contact_person: { type: String, trim: true },
   contact_email: { type: String, trim: true, lowercase: true },
