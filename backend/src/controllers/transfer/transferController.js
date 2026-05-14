@@ -7,32 +7,71 @@ const InventoryLog = require('../../models/InventoryLog');
 const { convertToBase, convertFromBase, getBaseUnit } = require('../../utils/unitConverter');
 const mongoose = require('mongoose');
 
-exports.createTransfer = async (req, res) => {
+/**
+ * Browse chemicals from a specific lab for the purpose of initiating a requisition.
+ * Authenticated users can view another lab's non-archived chemicals.
+ */
+exports.getLabChemicalsForRequisition = async (req, res) => {
   try {
-    const { destination_lab, chemical_id, quantity_moved, unit, batch_number, container_id } = req.body;
-    
-    if (!req.activeLabId) return res.status(400).json({ message: 'No active lab selected' });
-    if (String(req.activeLabId) === String(destination_lab)) {
-      return res.status(400).json({ message: 'Source and destination labs must be different' });
+    const { labId } = req.params;
+    const { search = '', limit = 15 } = req.query;
+
+    if (!labId) return res.status(400).json({ message: 'labId is required' });
+
+    const query = { lab: labId, archived: false };
+
+    if (search.trim()) {
+      const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.$or = [
+        { name: { $regex: escaped, $options: 'i' } },
+        { id: { $regex: escaped, $options: 'i' } },
+        { cas_number: { $regex: escaped, $options: 'i' } },
+        { formula: { $regex: escaped, $options: 'i' } },
+      ];
     }
 
-    const source_lab = req.activeLabId;
+    const chemicals = await Chemical
+      .find(query)
+      .select('_id id name cas_number formula quantity unit status batch_number')
+      .sort({ name: 1 })
+      .limit(Number(limit));
+
+    res.json({ data: chemicals });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.createTransfer = async (req, res) => {
+  try {
+    const { source_lab: requested_from_lab, chemical_id, quantity_moved, unit, batch_number, container_id, reason } = req.body;
     
+    if (!req.activeLabId) return res.status(400).json({ message: 'No active lab selected' });
+    if (String(req.activeLabId) === String(requested_from_lab)) {
+      return res.status(400).json({ message: 'You cannot request a chemical from your own lab' });
+    }
+    if (!requested_from_lab) return res.status(400).json({ message: 'Please select the lab to request from' });
+    if (!chemical_id) return res.status(400).json({ message: 'Please select a chemical' });
+
+    // In requisition model:
+    //   source_lab = the lab that HAS the chemical (will approve)
+    //   destination_lab = the lab making the request (will receive)
     const request = new TransferRequest({
-      source_lab,
-      destination_lab,
+      source_lab: requested_from_lab,
+      destination_lab: req.activeLabId,
       chemical_id,
       quantity_moved,
       unit,
       batch_number,
       container_id,
+      reason,
       requested_by: req.user.id,
       transfer_date: new Date(),
       status: 'Pending'
     });
 
     await request.save();
-    res.status(201).json({ message: 'Transfer request created successfully', request });
+    res.status(201).json({ message: 'Transfer requisition submitted successfully', request });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -69,12 +108,12 @@ exports.approveTransfer = async (req, res) => {
     if (!transfer) throw new Error('Transfer not found');
     if (transfer.status !== 'Pending') throw new Error('Transfer is no longer pending');
     
-    // Only destination lab users (receivers) or global admins should approve
-    if (String(transfer.destination_lab) !== String(req.activeLabId) && req.user.role !== 'Admin') {
-      throw new Error('Only the destination laboratory can approve this transfer');
+    // Source lab (the one that has the chemical) must approve the requisition
+    if (String(transfer.source_lab) !== String(req.activeLabId) && req.user.role !== 'Admin') {
+      throw new Error('Only the source laboratory (chemical provider) can approve this requisition');
     }
 
-    const sourceChemical = await Chemical.findOne({ _id: transfer.chemical_id, lab: transfer.source_lab }).session(session);
+    const sourceChemical = await Chemical.findOne({ _id: transfer.chemical_id }).session(session);
     if (!sourceChemical) throw new Error('Source chemical record not found');
 
     const amountInBase = convertToBase(transfer.quantity_moved, transfer.unit);
@@ -128,22 +167,23 @@ exports.approveTransfer = async (req, res) => {
         const sourceBatchBaseQty = convertToBase(sourceBatch.total_quantity, sourceBatch.unit);
         
         sourceBatch.total_quantity = convertFromBase(sourceBatchBaseQty - batchAmtInBase, sourceBatch.unit);
-        if (sourceBatch.total_quantity <= 0) sourceBatch.status = 'Empty';
+        // Batch 'status' doesn't support 'Empty'. Use 'Active', or delete if it's 0 (optional based on your design, but 'Active' works).
+        if (sourceBatch.total_quantity <= 0) sourceBatch.status = 'Expired'; // closest to empty/invalid, or just leave as is. Leaving as 'Active'.
         await sourceBatch.save({ session });
         
         let destBatch = await Batch.findOne({ batch_number: transfer.batch_number, lab: transfer.destination_lab }).session(session);
         if (destBatch) {
           const destBatchBaseQty = convertToBase(destBatch.total_quantity, destBatch.unit);
           destBatch.total_quantity = convertFromBase(destBatchBaseQty + batchAmtInBase, destBatch.unit);
-          destBatch.status = 'In Stock';
+          destBatch.status = 'Active'; // Valid enum: 'Active'
           await destBatch.save({ session });
         } else {
           const newBatchData = sourceBatch.toObject();
           delete newBatchData._id;
           newBatchData.lab = transfer.destination_lab;
-          newBatchData.chemical_id = destChemical.id; // It links via 'C0XX' string in some models, check Chemical.id
+          newBatchData.chemical_id = destChemical.id; 
           newBatchData.total_quantity = convertFromBase(batchAmtInBase, sourceBatch.unit);
-          newBatchData.status = 'In Stock';
+          newBatchData.status = 'Active'; // Valid enum: 'Active'
           
           await Batch.create([newBatchData], { session });
         }
@@ -209,8 +249,12 @@ exports.approveTransfer = async (req, res) => {
 
 exports.rejectTransfer = async (req, res) => {
   try {
-    const transfer = await TransferRequest.findOne({ _id: req.params.id, destination_lab: req.activeLabId });
-    if (!transfer) return res.status(404).json({ message: 'Transfer not found or unauthorized' });
+    // Source lab or Admin can reject
+    const transfer = await TransferRequest.findById(req.params.id);
+    if (!transfer) return res.status(404).json({ message: 'Transfer not found' });
+    if (String(transfer.source_lab) !== String(req.activeLabId) && req.user.role !== 'Admin') {
+      return res.status(403).json({ message: 'Only the source lab can reject this requisition' });
+    }
     
     if (transfer.status !== 'Pending') return res.status(400).json({ message: 'Transfer is no longer pending' });
 

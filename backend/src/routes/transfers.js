@@ -8,6 +8,7 @@ router.use(authenticate, requireLabScope);
 
 router.post('/', transferController.createTransfer);
 router.get('/', transferController.getTransfers);
+router.get('/lab-chemicals/:labId', transferController.getLabChemicalsForRequisition);
 router.put('/:id/approve', transferController.approveTransfer);
 router.put('/:id/reject', transferController.rejectTransfer);
 

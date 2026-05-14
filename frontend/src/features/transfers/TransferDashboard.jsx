@@ -10,19 +10,20 @@ const TransferDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [availableLabs, setAvailableLabs] = useState([]);
+  const [allLabs, setAllLabs] = useState([]);
 
   // Form state
   const [form, setForm] = useState({
-    destination_lab: '',
-    chemical_id: '',
+    source_lab: '',       // The lab that HAS the chemical (provider)
+    chemical_id: '',      // Mongo _id of the chemical
     batch_number: '',
     container_id: '',
     quantity_moved: '',
     unit: 'ml',
+    reason: '',
   });
 
-  // Chemical search
+  // Chemical search state
   const [chemSearch, setChemSearch] = useState('');
   const [chemResults, setChemResults] = useState([]);
   const [chemLoading, setChemLoading] = useState(false);
@@ -31,7 +32,7 @@ const TransferDashboard = () => {
   const timerRef = useRef(null);
   const wrapRef = useRef(null);
 
-  // Outside click closes dropdown
+  // Close dropdown on outside click
   useEffect(() => {
     const fn = (e) => {
       if (wrapRef.current && !wrapRef.current.contains(e.target)) setDropdownOpen(false);
@@ -40,19 +41,19 @@ const TransferDashboard = () => {
     return () => document.removeEventListener('mousedown', fn);
   }, []);
 
-  // Search chemicals with debounce
+  // Search chemicals belonging to the selected provider lab
   useEffect(() => {
     clearTimeout(timerRef.current);
-    if (!chemSearch.trim() || selectedChem) return;
+    if (!chemSearch.trim() || selectedChem || !form.source_lab) return;
 
     setChemLoading(true);
     timerRef.current = setTimeout(async () => {
       try {
-        const res = await axios.get('/api/chemicals', {
+        // Dedicated endpoint that ignores activeLabId — scoped to provider lab only
+        const res = await axios.get(`/api/transfers/lab-chemicals/${form.source_lab}`, {
           params: { search: chemSearch.trim(), limit: 15 }
         });
-        // API returns { data: [...], total, ... }
-        const list = res.data?.data ?? (Array.isArray(res.data) ? res.data : []);
+        const list = res.data?.data ?? [];
         setChemResults(list);
         setDropdownOpen(true);
       } catch (err) {
@@ -65,7 +66,7 @@ const TransferDashboard = () => {
     }, 350);
 
     return () => clearTimeout(timerRef.current);
-  }, [chemSearch, selectedChem]);
+  }, [chemSearch, selectedChem, form.source_lab]);
 
   const pickChem = (chem) => {
     setSelectedChem(chem);
@@ -74,7 +75,7 @@ const TransferDashboard = () => {
     setChemResults([]);
     setForm(f => ({
       ...f,
-      chemical_id: chem.id,
+      chemical_id: chem._id,  // ← send MongoDB _id, not string id
       unit: chem.unit || f.unit,
       batch_number: chem.batch_number || '',
     }));
@@ -89,7 +90,7 @@ const TransferDashboard = () => {
   };
 
   const resetModal = () => {
-    setForm({ destination_lab: '', chemical_id: '', batch_number: '', container_id: '', quantity_moved: '', unit: 'ml' });
+    setForm({ source_lab: '', chemical_id: '', batch_number: '', container_id: '', quantity_moved: '', unit: 'ml', reason: '' });
     clearChem();
   };
 
@@ -113,7 +114,7 @@ const TransferDashboard = () => {
   const fetchLabs = async () => {
     try {
       const res = await axios.get('/api/labs');
-      setAvailableLabs(res.data.filter(l => l._id !== user.active_lab));
+      setAllLabs(res.data.filter(l => l._id !== user.active_lab));
     } catch {}
   };
 
@@ -121,26 +122,29 @@ const TransferDashboard = () => {
     try {
       await axios.put(`/api/transfers/${id}/approve`);
       fetchTransfers();
-    } catch (err) { alert(err.response?.data?.message || 'Approval failed'); }
+    } catch (err) { alert(err.response?.data?.error || 'Approval failed'); }
   };
 
   const handleReject = async (id) => {
+    const reason = prompt('Reason for rejection (optional):') ?? 'No reason provided';
     try {
-      await axios.put(`/api/transfers/${id}/reject`, { reason: 'Manually rejected' });
+      await axios.put(`/api/transfers/${id}/reject`, { reason });
       fetchTransfers();
-    } catch (err) { alert(err.response?.data?.message || 'Rejection failed'); }
+    } catch (err) { alert(err.response?.data?.error || 'Rejection failed'); }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.chemical_id) { alert('Please select a chemical.'); return; }
+    if (!form.source_lab) { alert('Please select the provider lab.'); return; }
+    if (!form.chemical_id) { alert('Please select a chemical from the search list.'); return; }
+    if (!form.quantity_moved || form.quantity_moved <= 0) { alert('Please enter a valid quantity.'); return; }
     try {
       await axios.post('/api/transfers', form);
       setIsModalOpen(false);
       resetModal();
       fetchTransfers();
     } catch (err) {
-      alert(err.response?.data?.message || 'Transfer request failed');
+      alert(err.response?.data?.message || err.response?.data?.error || 'Transfer request failed');
     }
   };
 
@@ -149,51 +153,80 @@ const TransferDashboard = () => {
     return <span className={`status-badge ${cls}`}>{s}</span>;
   };
 
+  // Whether this user's lab is the source (provider) for a given transfer
+  const isSourceLab = (t) => String(t.source_lab?._id) === String(user.active_lab);
+  const isDestLab = (t) => String(t.destination_lab?._id) === String(user.active_lab);
+
+  const canApprove = (t) =>
+    t.status === 'Pending' && isSourceLab(t) &&
+    (hasPermission('approve_cross_lab_transfer') || hasPermission('approve_request') || user.role === 'Admin' || user.role === 'Lab Manager');
+
   return (
     <Layout>
       <div className="transfer-dashboard">
         <div className="transfer-header">
           <div>
-            <h1>Cross-Lab Transfers</h1>
-            <p>Administer chemical movements and provenance across facilities.</p>
+            <h1>Chemical Requisitions</h1>
+            <p>Request chemicals from other labs. Provider lab approves and sends them.</p>
           </div>
           <button className="btn-primary-glow" onClick={() => { setIsModalOpen(true); resetModal(); }}>
             <svg xmlns="http://www.w3.org/2000/svg" style={{width:'1.25rem',height:'1.25rem',marginRight:'0.5rem'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
             </svg>
-            Initiate Transfer
+            New Requisition
           </button>
+        </div>
+
+        {/* Legend */}
+        <div className="transfer-legend">
+          <span className="legend-item">📤 <strong>Outgoing</strong>: Another lab requested from you (you approve)</span>
+          <span className="legend-item">📥 <strong>Incoming</strong>: You requested from another lab</span>
         </div>
 
         {error && <div className="error-banner">{error}</div>}
 
         <div className="transfer-list">
           {loading ? (
-            <div className="empty-state">Loading transfers...</div>
+            <div className="empty-state">Loading requisitions...</div>
           ) : transfers.length === 0 ? (
-            <div className="empty-state">No active transfers found for this facility.</div>
+            <div className="empty-state">No requisitions found. Click <strong>"New Requisition"</strong> to request a chemical from another lab.</div>
           ) : (
             <table className="transfer-table">
               <thead>
                 <tr>
-                  <th>Date</th><th>Chemical</th><th>Quantity</th>
-                  <th>From</th><th>To</th><th>Status</th><th>Actions</th>
+                  <th>Type</th>
+                  <th>Date</th>
+                  <th>Chemical</th>
+                  <th>Quantity</th>
+                  <th>Provider Lab</th>
+                  <th>Requested By</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {transfers.map(t => (
                   <tr key={t._id}>
-                    <td>{new Date(t.transfer_date).toLocaleDateString()}</td>
-                    <td style={{fontWeight:700}}>{t.chemical_id?.name || 'Unknown'}</td>
+                    <td>
+                      {isSourceLab(t)
+                        ? <span className="dir-badge dir-out">📤 Outgoing</span>
+                        : <span className="dir-badge dir-in">📥 Incoming</span>
+                      }
+                    </td>
+                    <td>{new Date(t.createdAt).toLocaleDateString()}</td>
+                    <td style={{fontWeight:700}}>{t.chemical_id?.name || '—'}</td>
                     <td>{t.quantity_moved} {t.unit}</td>
                     <td>{t.source_lab?.name}</td>
-                    <td>{t.destination_lab?.name}</td>
+                    <td>{t.requested_by?.name || '—'}</td>
+                    <td style={{color:'var(--secondary-500)',fontStyle:'italic',maxWidth:'140px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                      {t.reason || '—'}
+                    </td>
                     <td>{statusBadge(t.status)}</td>
                     <td>
-                      {t.status === 'Pending' && t.source_lab?._id === user.active_lab &&
-                        (hasPermission('approve_cross_lab_transfer') || hasPermission('approve_request')) && (
+                      {canApprove(t) && (
                         <div className="action-buttons">
-                          <button className="btn-success-sm" onClick={() => handleApprove(t._id)}>Authorize</button>
+                          <button className="btn-success-sm" onClick={() => handleApprove(t._id)}>Approve</button>
                           <button className="btn-danger-sm" onClick={() => handleReject(t._id)}>Decline</button>
                         </div>
                       )}
@@ -205,22 +238,28 @@ const TransferDashboard = () => {
           )}
         </div>
 
-        {/* Transfer Modal */}
+        {/* Requisition Modal */}
         {isModalOpen && (
           <div className="modal-overlay">
             <div className="transfer-modal">
               <div className="modal-modal-header">
-                <h2>Initiate Protocol Transfer</h2>
+                <div>
+                  <h2>Request Chemical</h2>
+                  <p style={{color:'var(--secondary-400)',fontSize:'0.8rem',marginTop:'0.25rem'}}>Request a chemical FROM another lab. Their manager will approve.</p>
+                </div>
                 <button className="modal-close-x" onClick={() => { setIsModalOpen(false); resetModal(); }}>✕</button>
               </div>
 
               <form onSubmit={handleSubmit}>
-                {/* Recipient Lab */}
+                {/* Provider Lab */}
                 <div className="form-group">
-                  <label>Recipient Facility *</label>
-                  <select required value={form.destination_lab} onChange={e => setForm(f => ({...f, destination_lab: e.target.value}))}>
-                    <option value="">Select laboratory...</option>
-                    {availableLabs.map(l => <option key={l._id} value={l._id}>{l.name}</option>)}
+                  <label>Provider Lab (has the chemical) *</label>
+                  <select required value={form.source_lab} onChange={e => {
+                    setForm(f => ({...f, source_lab: e.target.value}));
+                    clearChem(); // Clear chemical when lab changes
+                  }}>
+                    <option value="">Select lab to request from...</option>
+                    {allLabs.map(l => <option key={l._id} value={l._id}>{l.name}</option>)}
                   </select>
                 </div>
 
@@ -228,8 +267,11 @@ const TransferDashboard = () => {
                 <div className="form-group" ref={wrapRef} style={{position:'relative'}}>
                   <label>Chemical *</label>
 
-                  {selectedChem ? (
-                    // Show selected card
+                  {!form.source_lab && (
+                    <div className="chem-search-hint">⬆ First select a provider lab above</div>
+                  )}
+
+                  {form.source_lab && (selectedChem ? (
                     <div className="selected-chem-card">
                       <div className="selected-chem-info">
                         <span className="selected-chem-name">{selectedChem.name}</span>
@@ -242,7 +284,6 @@ const TransferDashboard = () => {
                       <button type="button" className="clear-chem-btn" onClick={clearChem} title="Change chemical">✕</button>
                     </div>
                   ) : (
-                    // Show search input
                     <div className="chem-search-wrap">
                       <svg className="chem-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -250,7 +291,7 @@ const TransferDashboard = () => {
                       <input
                         type="text"
                         className="chem-search-input"
-                        placeholder="Type name, CAS, formula or ID..."
+                        placeholder="Search by name, CAS, formula..."
                         value={chemSearch}
                         onChange={e => setChemSearch(e.target.value)}
                         onFocus={() => { if (chemResults.length > 0) setDropdownOpen(true); }}
@@ -258,10 +299,9 @@ const TransferDashboard = () => {
                       />
                       {chemLoading && <div className="chem-search-spinner"/>}
                     </div>
-                  )}
+                  ))}
 
-                  {/* Dropdown */}
-                  {dropdownOpen && !selectedChem && (
+                  {dropdownOpen && !selectedChem && form.source_lab && (
                     <div className="chem-dropdown">
                       {chemResults.length > 0 ? (
                         chemResults.map(chem => (
@@ -281,7 +321,7 @@ const TransferDashboard = () => {
                         ))
                       ) : (
                         <div className="chem-no-results">
-                          {chemLoading ? 'Searching...' : `No chemicals found for "${chemSearch}"`}
+                          {chemLoading ? 'Searching...' : `No chemicals found for "${chemSearch}" in that lab`}
                         </div>
                       )}
                     </div>
@@ -322,10 +362,33 @@ const TransferDashboard = () => {
                   </div>
                 </div>
 
+                {/* Reason */}
+                <div className="form-group">
+                  <label>Reason / Purpose</label>
+                  <textarea
+                    rows="2"
+                    placeholder="e.g. Running low on stock for experiment #34, urgently needed..."
+                    value={form.reason}
+                    onChange={e => setForm(f => ({...f, reason: e.target.value}))}
+                    style={{
+                      width: '100%',
+                      background: 'var(--secondary-50)',
+                      border: '1px solid var(--secondary-100)',
+                      borderRadius: '1rem',
+                      padding: '0.875rem 1.25rem',
+                      fontSize: '0.9375rem',
+                      color: 'var(--secondary-900)',
+                      resize: 'vertical',
+                      outline: 'none',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+
                 <div className="modal-actions">
                   <button type="button" className="btn-secondary" style={{borderRadius:'1rem',padding:'0.875rem 1.5rem'}}
-                    onClick={() => { setIsModalOpen(false); resetModal(); }}>Abort</button>
-                  <button type="submit" className="btn-primary-glow">Authorize Request</button>
+                    onClick={() => { setIsModalOpen(false); resetModal(); }}>Cancel</button>
+                  <button type="submit" className="btn-primary-glow">Submit Requisition</button>
                 </div>
               </form>
             </div>
