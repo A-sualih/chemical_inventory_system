@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const transferController = require('../controllers/transfer/transferController');
-const { authenticate } = require('../middleware/authMiddleware');
+const { authenticate, authorize } = require('../middleware/authMiddleware');
+const { requireLabScope } = require('../middleware/labScope');
 
-router.use(authenticate);
+router.use(authenticate, requireLabScope);
 
 router.post('/', transferController.createTransfer);
 router.get('/', transferController.getTransfers);
