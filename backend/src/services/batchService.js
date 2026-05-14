@@ -22,7 +22,8 @@ const syncBatch = async (data) => {
       cabinet: data.cabinet,
       shelf: data.shelf,
       notes: data.notes || data.remarks,
-      status: 'Active'
+      status: 'Active',
+      lab: data.lab
     };
 
     // Use nullish coalescing to allow 0 quantity

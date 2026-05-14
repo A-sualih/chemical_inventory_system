@@ -313,15 +313,14 @@ exports.createChemical = async (req, res) => {
 
     if (newChem.batch_number) {
       await syncBatch({
-        ...data,
-        id: idValue,
-        quantity: Number(data.quantity)
+        ...newChem.toObject(),
+        id: idValue
       });
     }
 
     await syncContainers({
-      ...data,
-      id: idValue,
+      ...newChem.toObject(),
+      id: idValue
     });
 
     await checkChemicalExpiry(newChem);

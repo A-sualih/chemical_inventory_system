@@ -29,7 +29,8 @@ const syncContainers = async (data) => {
         manufacturing_date: data.manufacturing_date || data.mfgDate,
         expiry_date: data.expiry_date || data.expiry,
         container_type: data.container_type || data.containerType || 'Plastic Bottle',
-        status: 'Full'
+        status: 'Full',
+        lab: data.lab
       };
 
       // Determine status based on expiry
