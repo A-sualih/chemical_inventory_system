@@ -226,6 +226,7 @@ exports.checkIn = async (req, res) => {
     // 1. Validation & Safety
     if (is_contaminated) {
       await Notification.create({
+        lab: req.activeLabId,
         type: 'SYSTEM',
         category: 'safety',
         title: 'Contaminated Return Alert',

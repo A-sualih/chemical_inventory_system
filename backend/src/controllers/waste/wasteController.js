@@ -194,6 +194,7 @@ exports.createDisposalRequest = async (req, res) => {
           title: 'Out of Stock Alert',
           message: `The inventory for ${chemical.name} has been completely depleted (0 ${chemical.unit}). Please restock if necessary.`,
           severity: 'high',
+          lab: req.activeLabId,
           recipients: [{ role: 'admin' }, { role: 'lab_manager' }]
         });
       } else {
@@ -204,7 +205,7 @@ exports.createDisposalRequest = async (req, res) => {
             chemical.status = 'Low Stock';
             await chemical.save();
           }
-          await notificationService.notifyLowStock(chemical, lowStockThreshold);
+          await notificationService.notifyLowStock(chemical, lowStockThreshold, req.activeLabId);
         }
       }
       disposal.fifo_impact = impactedBatches;

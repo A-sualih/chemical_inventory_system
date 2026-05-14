@@ -13,6 +13,7 @@ const createNotification = async (data) => {
       const matchCriteria = {
         type: data.type,
         'related.chemicalId': data.related.chemicalId,
+        ...(data.lab && { lab: data.lab })
       };
       
       if (data.related?.containerId) {
@@ -52,7 +53,13 @@ const createNotification = async (data) => {
       const labManagers = await User.find({ role: 'Lab Manager', status: 'Active' });
       
       let recipientEmails = labManagers.map(mgr => mgr.email);
-      // Fallback to EMAIL_USER if no lab managers exist in the DB
+      
+      // Include the triggering user if they are provided and have an email
+      if (data.metadata?.triggeredByEmail && !recipientEmails.includes(data.metadata.triggeredByEmail)) {
+         recipientEmails.push(data.metadata.triggeredByEmail);
+      }
+
+      // Fallback to EMAIL_USER if no lab managers or triggered user exist
       if (recipientEmails.length === 0) {
          recipientEmails = [process.env.EMAIL_USER];
       }
@@ -102,14 +109,14 @@ const createNotification = async (data) => {
 /**
  * Specifically creates a low stock notification.
  */
-const notifyLowStock = async (chemical, threshold) => {
+const notifyLowStock = async (chemical, threshold, labId) => {
   return await createNotification({
     type: 'LOW_STOCK',
     category: 'inventory',
     title: `Low Stock: ${chemical.name}`,
     message: `Chemical ${chemical.name} has reached low stock level. Current quantity: ${chemical.quantity} ${chemical.unit}.`,
     severity: 'high',
-
+    lab: labId || chemical.lab,
     priority: 3,
     related: {
       chemicalId: chemical.id,
@@ -125,7 +132,7 @@ const notifyLowStock = async (chemical, threshold) => {
 /**
  * Specifically creates an expiry notification.
  */
-const notifyExpiry = async (chemical, container, daysRemaining) => {
+const notifyExpiry = async (chemical, container, daysRemaining, labId, user = null) => {
   const isExpired = daysRemaining <= 0;
   return await createNotification({
     type: 'EXPIRY',
@@ -135,6 +142,7 @@ const notifyExpiry = async (chemical, container, daysRemaining) => {
       ? `Container ${container.container_id} of ${chemical.name} has expired!` 
       : `Container ${container.container_id} of ${chemical.name} will expire in ${daysRemaining} days.`,
     severity: isExpired ? 'critical' : 'high',
+    lab: labId || container.lab || chemical.lab,
     priority: isExpired ? 1 : 2,
     related: {
       chemicalId: chemical.id,
@@ -143,7 +151,9 @@ const notifyExpiry = async (chemical, container, daysRemaining) => {
     },
     metadata: {
       expiryDate: container.expiry_date,
-      daysRemaining: daysRemaining
+      daysRemaining: daysRemaining,
+      triggeredByEmail: user?.email,
+      triggeredByName: user?.name
     }
   });
 };
@@ -170,13 +180,14 @@ const notifyUnauthorizedAccess = async (user, action, ip, device) => {
 /**
  * Specifically creates a hazard warning notification.
  */
-const notifyHazardWarning = async (chemical, action, user) => {
+const notifyHazardWarning = async (chemical, action, user, labId) => {
   return await createNotification({
     type: 'HAZARD',
     category: 'safety',
     title: `Safety Alert: High Hazard Chemical ${action}`,
     message: `${chemical.name} (Hazards: ${chemical.ghs_classes?.join(', ') || 'Unknown'}) was ${action} by ${user?.name || 'a user'}. Verify safety protocols and storage compatibility.`,
     severity: 'critical',
+    lab: labId || chemical.lab,
     priority: 1,
     related: {
       chemicalId: chemical.id,

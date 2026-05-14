@@ -64,7 +64,11 @@ const NotificationSchema = new mongoose.Schema({
     daysRemaining: Number,
     ipAddress: String,
     device: String,
-    attemptedAction: String
+    attemptedAction: String,
+    triggeredByEmail: String,
+    triggeredByName: String,
+    action: String,
+    user: String
   },
   channels: [{
     type: {

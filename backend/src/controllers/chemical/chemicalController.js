@@ -324,7 +324,7 @@ exports.createChemical = async (req, res) => {
       id: idValue
     });
 
-    await checkChemicalExpiry(newChem);
+    await checkChemicalExpiry(newChem, req.user);
     
     await logAudit(req, {
       action: 'CREATE',
@@ -337,7 +337,7 @@ exports.createChemical = async (req, res) => {
     const highHazards = ['Explosive', 'Flammable', 'Toxic', 'Corrosive', 'Oxidizer'];
     if (newChem.ghs_classes?.some(h => highHazards.includes(h))) {
       const { notifyHazardWarning } = require('../../services/notificationService');
-      await notifyHazardWarning(newChem, 'registered', req.user);
+      await notifyHazardWarning(newChem, 'registered', req.user, req.activeLabId);
     }
 
     let safety_warnings = [];
@@ -484,7 +484,7 @@ exports.updateChemical = async (req, res) => {
       }
     }
     
-    await checkChemicalExpiry(chemical);
+    await checkChemicalExpiry(chemical, req.user);
 
     await logAudit(req, {
       action: 'UPDATE',

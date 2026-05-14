@@ -79,7 +79,7 @@ const runExpiryCheck = async (options = { nearExpiryDays: parseInt(process.env.N
         // Trigger Notification
         if (chemical && (newStatus === 'Expired' || newStatus === 'Near Expiry')) {
           const daysRemaining = Math.ceil((new Date(container.expiry_date) - now) / (1000 * 60 * 60 * 24));
-          await notifyExpiry(chemical, container, daysRemaining);
+          await notifyExpiry(chemical, container, daysRemaining, container.lab);
         }
 
         // Log to Audit

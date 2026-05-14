@@ -185,15 +185,15 @@ const Dashboard = () => {
 
       <div className="dashboard-main-grid">
         <div className="dashboard-col-left">
-          <div className="dashboard-section" style={{marginBottom: '2rem'}}>
+          <div className="dashboard-section storage-section">
             <div className="section-header">
                <h2 className="section-title">Storage Capacity</h2>
                <span className="section-badge">Automated Sensing</span>
             </div>
             <div className="storage-units-grid">
                {(dbStats.storageBreakdown || []).length === 0 ? (
-                 <div style={{gridColumn: 'span 2', textAlign: 'center', padding: '2rem 0'}}>
-                   <p className="stat-label" style={{fontSize: '0.875rem'}}>No storage locations assigned yet</p>
+                 <div className="empty-storage-state">
+                   <p className="stat-label">No storage locations assigned yet</p>
                    <p className="stat-subtext">Add locations to chemicals to see storage breakdown.</p>
                  </div>
                ) : (dbStats.storageBreakdown || []).map((unit, i) => {
@@ -220,10 +220,10 @@ const Dashboard = () => {
           </div>
 
           {hasPermission("approve_request") && (
-            <div className="dashboard-section approvals-section" style={{marginBottom: '2rem'}}>
+            <div className="dashboard-section approvals-section">
                <div className="approvals-bg-glow"></div>
                <div className="section-header" style={{position: 'relative', zIndex: 10}}>
-                 <h2 className="section-title" style={{color: 'white'}}>Pending Approvals</h2>
+                <h2 className="section-title text-white">Pending Approvals</h2>
                  <span className="stat-label">
                    {pendingRequests.filter(r => r.status === 'Pending').length} Pending
                  </span>
@@ -365,19 +365,19 @@ const Dashboard = () => {
                      <p className="stat-label" style={{fontSize: '10px'}}>No hazards logged</p>
                    </div>
                  ) : (dbStats.hazardSummary || []).map(h => {
-                   const hazardInfo = HAZARD_CLASSES.find(x => x.id === h.id || x.label === h.id);
-                   if (!hazardInfo) return null;
-                   return (
-                     <div key={h.id} className="hazard-mini-card">
-                        <div className={`hazard-mini-icon ${hazardInfo.color}`}>
-                           {hazardInfo.icon}
-                        </div>
-                        <div className="hazard-mini-info">
-                           <div className="hazard-mini-name">{hazardInfo.label}</div>
-                           <div className="hazard-mini-count">{h.count} Chemicals</div>
-                        </div>
-                     </div>
-                   );
+                    const hazardInfo = HAZARD_CLASSES.find(x => x.id === h.id || x.label === h.id);
+                    if (!hazardInfo) return null;
+                    return (
+                      <div key={h.id} className="hazard-mini-card">
+                         <div className={`hazard-mini-icon ${hazardInfo.color}`}>
+                            {hazardInfo.icon}
+                         </div>
+                         <div className="hazard-mini-info">
+                            <div className="hazard-mini-name">{hazardInfo.label}</div>
+                            <div className="hazard-mini-count">{h.count} Chemicals</div>
+                         </div>
+                      </div>
+                    );
                  })}
               </div>
               <div className="primary-threat-box">
@@ -425,27 +425,27 @@ const Dashboard = () => {
               </div>
               <div className="expiration-list">
                  {(dbStats.expirations || []).length === 0 ? (
-                   <div style={{textAlign: 'center', padding: '1.5rem 0'}}>
-                     <div style={{width: '2.5rem', height: '2.5rem', backgroundColor: '#f0fdf4', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.5rem'}}>
-                       <svg className="icon-sm" style={{ color: '#22c55e' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                     </div>
-                     <p style={{fontSize: '0.875rem', fontWeight: 700, color: 'var(--secondary-500)'}}>All clear</p>
-                     <p className="stat-subtext" style={{marginTop: '0.25rem'}}>No chemicals expiring within 90 days.</p>
-                   </div>
+                    <div style={{textAlign: 'center', padding: '1.5rem 0'}}>
+                      <div style={{width: '2.5rem', height: '2.5rem', backgroundColor: '#f0fdf4', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.5rem'}}>
+                        <svg className="icon-sm" style={{ color: '#22c55e' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                      </div>
+                      <p style={{fontSize: '0.875rem', fontWeight: 700, color: 'var(--secondary-500)'}}>All clear</p>
+                      <p className="stat-subtext" style={{marginTop: '0.25rem'}}>No chemicals expiring within 90 days.</p>
+                    </div>
                  ) : (
-                   (dbStats.expirations || []).map((item, i) => (
-                     <div key={i} className="expiration-item">
-                        <div className="exp-item-info">
-                          <div className="exp-item-name">{item.name}</div>
-                          <div className="exp-item-meta">
-                            {item.location} {item.batch_number && `• Batch: ${item.batch_number}`}
-                          </div>
-                        </div>
-                        <div className={`exp-days-badge ${item.days <= 7 ? 'exp-urgent' : item.days <= 30 ? 'exp-warning' : 'exp-normal'}`}>
-                          {item.days <= 0 ? 'EXPIRED' : `IN ${item.days}D`}
-                        </div>
-                     </div>
-                   ))
+                    (dbStats.expirations || []).map((item, i) => (
+                      <div key={i} className="expiration-item">
+                         <div className="exp-item-info">
+                           <div className="exp-item-name">{item.name}</div>
+                           <div className="exp-item-meta">
+                             {item.location} {item.batch_number && `• Batch: ${item.batch_number}`}
+                           </div>
+                         </div>
+                         <div className={`exp-days-badge ${item.days <= 7 ? 'exp-urgent' : item.days <= 30 ? 'exp-warning' : 'exp-normal'}`}>
+                           {item.days <= 0 ? 'EXPIRED' : `IN ${item.days}D`}
+                         </div>
+                      </div>
+                    ))
                  )}
               </div>
               <Link to="/chemicals" className="manage-expiries-link">Manage All Expiries</Link>

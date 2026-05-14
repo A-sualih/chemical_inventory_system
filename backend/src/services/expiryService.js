@@ -8,8 +8,9 @@ const { notifyExpiry } = require('../services/notificationService');
  * Triggers alerts immediately if the chemical is expired or near expiry.
  * 
  * @param {Object} chemical - The chemical document
+ * @param {Object} user - The user document who triggered the check (optional)
  */
-const checkChemicalExpiry = async (chemical) => {
+const checkChemicalExpiry = async (chemical, user = null) => {
   if (!chemical || !chemical.expiry_date) return chemical;
 
   const now = new Date();
@@ -64,7 +65,7 @@ const checkChemicalExpiry = async (chemical) => {
 
              // Send alert only if the container is currently expired or near expiry
              if (cStatus === 'Expired' || cStatus === 'Near Expiry') {
-                await notifyExpiry(chemical, container, cDaysRemaining);
+                await notifyExpiry(chemical, container, cDaysRemaining, chemical.lab || container.lab, user);
              }
          }
      }
