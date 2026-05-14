@@ -259,3 +259,197 @@
   font-style: italic;
 }
 
+
+/* === Chemical Search Dropdown === */
+.chem-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.chem-search-icon {
+  position: absolute;
+  left: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: var(--secondary-400);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.chem-search-input {
+  background: var(--secondary-50);
+  border: 1px solid var(--secondary-100);
+  border-radius: 1rem;
+  padding: 0.875rem 1.25rem 0.875rem 2.75rem;
+  font-size: 1rem;
+  color: var(--secondary-900);
+  width: 100%;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.chem-search-input:focus {
+  background: white;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.chem-search-spinner {
+  position: absolute;
+  right: 1rem;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #bfdbfe;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: chemSpin 0.7s linear infinite;
+}
+
+@keyframes chemSpin { to { transform: rotate(360deg); } }
+
+.chem-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--secondary-100);
+  border-radius: 1rem;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.chem-dropdown-item {
+  padding: 0.875rem 1.25rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--secondary-50);
+  transition: background 0.15s;
+}
+
+.chem-dropdown-item:hover { background: #eff6ff; }
+.chem-dropdown-item:last-child { border-bottom: none; }
+
+.chem-item-name {
+  font-weight: 700;
+  color: var(--secondary-900);
+  font-size: 0.9375rem;
+  margin-bottom: 0.25rem;
+}
+
+.chem-item-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--secondary-400);
+}
+
+.chem-id-badge {
+  background: #dbeafe;
+  color: #1d4ed8;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.chem-status-dot { font-weight: 700; font-size: 11px; padding: 0.125rem 0.5rem; border-radius: 999px; }
+.dot-green { background: #d1fae5; color: #047857; }
+.dot-amber { background: #fef3c7; color: #b45309; }
+.dot-red   { background: #fee2e2; color: #b91c1c; }
+
+.chem-no-results {
+  padding: 1.25rem;
+  text-align: center;
+  color: var(--secondary-400);
+  font-size: 0.875rem;
+}
+
+.selected-chem-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 1rem;
+}
+
+.selected-chem-info { display: flex; flex-direction: column; gap: 0.125rem; }
+.selected-chem-name { font-weight: 800; color: #1e40af; font-size: 0.9375rem; }
+.selected-chem-id { font-size: 0.75rem; color: #3b82f6; font-weight: 500; }
+
+.clear-chem-btn {
+  background: none;
+  border: none;
+  color: #93c5fd;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 50%;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.clear-chem-btn:hover { color: #1d4ed8; }
+
+/* === Modal close button === */
+.modal-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+}
+
+.modal-modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--secondary-900);
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+
+.modal-close-x {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--secondary-400);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.modal-close-x:hover {
+  background: var(--secondary-100);
+  color: var(--secondary-900);
+}
+
+/* Two column form row */
+.transfer-modal .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.transfer-modal .form-group {
+  margin-bottom: 1.25rem;
+}
+
+/* Error banner */
+.error-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
