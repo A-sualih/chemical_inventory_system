@@ -24,10 +24,8 @@ const LabSwitcher = () => {
 
   if (!user || (!user.labs?.length && user.role !== 'Admin')) return null;
 
-  // Admins can see all labs; regular users see only their assigned labs
-  const accessibleLabs = user.role === 'Admin' 
-    ? labs 
-    : labs.filter(lab => user.labs?.includes(lab._id));
+  // The backend /api/labs now handles the filtering based on user permissions
+  const accessibleLabs = labs;
 
   // Find active lab object
   const activeLabObj = labs.find(l => l._id === user.active_lab);

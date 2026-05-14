@@ -24,7 +24,7 @@ const LabManagement = () => {
 
   const fetchLabs = async () => {
     try {
-      const res = await axios.get('/api/labs');
+      const res = await axios.get('/api/labs?all=true');
       setLabs(res.data);
     } catch (err) {
       console.error(err);

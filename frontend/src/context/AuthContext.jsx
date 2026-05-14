@@ -74,6 +74,12 @@ export const AuthProvider = ({ children }) => {
           setSessionExpired(true);
           logout();
         }
+        if (error.response && error.response.status === 403 && error.response.data?.code === 'NO_LABS_ASSIGNED') {
+          // Entirely restricted from system access
+          console.error('System access revoked: No labs assigned');
+          logout();
+          setSessionExpired(true);
+        }
         return Promise.reject(error);
       }
     );

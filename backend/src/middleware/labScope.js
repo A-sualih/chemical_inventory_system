@@ -36,6 +36,30 @@ const requireLabScope = async (req, res, next) => {
       return next();
     }
 
+    // Auto-Rescue Logic: If user is in an unauthorized lab, move them to one they HAVE access to
+    if (activeLab) {
+      const allowedLabs = (dbUser.labs || []).map(id => id.toString());
+      if (!allowedLabs.includes(activeLab.toString())) {
+        if (allowedLabs.length > 0) {
+          // Auto-switch to the first authorized lab
+          const rescueLab = allowedLabs[0];
+          await User.findByIdAndUpdate(dbUser._id, { active_lab: rescueLab });
+          
+          console.warn(`User ${dbUser._id} auto-rescued from restricted lab to: ${rescueLab}`);
+          
+          req.activeLabId = rescueLab;
+          req.labScope = { lab: rescueLab };
+          return next();
+        } else {
+          // Truly no access to any lab
+          return res.status(403).json({ 
+            message: 'Access Denied: You are not assigned to any laboratories. Please contact your administrator.',
+            code: 'NO_LABS_ASSIGNED'
+          });
+        }
+      }
+    }
+
     req.labScope = { lab: activeLab };
     req.activeLabId = activeLab;
     next();

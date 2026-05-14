@@ -12,6 +12,7 @@ const InventoryLog = require('../../models/InventoryLog');
 const Notification = require('../../models/Notification');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../../middleware/authMiddleware');
+const { PERMISSIONS, ROLE_PERMISSIONS } = require('../../config/roles');
 
 exports.createLab = async (req, res) => {
   try {
@@ -25,7 +26,23 @@ exports.createLab = async (req, res) => {
 
 exports.getLabs = async (req, res) => {
   try {
-    const labs = await Lab.find();
+    const userPermissions = ROLE_PERMISSIONS[req.user.role] || [];
+    const canManageLabs = userPermissions.includes(PERMISSIONS.MANAGE_LABS);
+    const { all } = req.query;
+    let labs;
+
+    if (all === 'true' && canManageLabs) {
+      // Admins/Managers specifically requesting full list (e.g. for Management UI)
+      labs = await Lab.find().sort({ name: 1 });
+    } else {
+      // Standard view: Only show labs the user is assigned to
+      // Fetch user to get latest assignments
+      const user = await User.findById(req.user.id).select('labs role');
+      if (!user) return res.status(404).json({ message: 'User not found' });
+      
+      const query = { _id: { $in: user.labs || [] } };
+      labs = await Lab.find(query).sort({ name: 1 });
+    }
     res.status(200).json(labs);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -92,7 +109,10 @@ exports.assignUser = async (req, res) => {
     const targetUser = await User.findById(userId);
     if (!targetUser) return res.status(404).json({ message: 'User not found' });
     targetUser.labs = labs;
-    if (labs && labs.length > 0 && !labs.includes(targetUser.active_lab)) {
+    const activeLabStr = String(targetUser.active_lab || '');
+    const labIdsStr = (labs || []).map(String);
+
+    if (labs && labs.length > 0 && !labIdsStr.includes(activeLabStr)) {
       targetUser.active_lab = labs[0];
     } else if (!labs || labs.length === 0) {
       targetUser.active_lab = null;
