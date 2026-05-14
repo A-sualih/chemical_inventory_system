@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import Layout from '../../layout/Layout';
+import { UploadCloud, DownloadCloud, X } from 'lucide-react';
 import './TransferDashboard.css';
 
 const TransferDashboard = () => {
@@ -179,8 +180,8 @@ const TransferDashboard = () => {
 
         {/* Legend */}
         <div className="transfer-legend">
-          <span className="legend-item">📤 <strong>Outgoing</strong>: Another lab requested from you (you approve)</span>
-          <span className="legend-item">📥 <strong>Incoming</strong>: You requested from another lab</span>
+          <span className="legend-item"><UploadCloud className="w-4 h-4 inline-block mr-1" /> <strong>Outgoing</strong>: Another lab requested from you (you approve)</span>
+          <span className="legend-item"><DownloadCloud className="w-4 h-4 inline-block mr-1" /> <strong>Incoming</strong>: You requested from another lab</span>
         </div>
 
         {error && <div className="error-banner">{error}</div>}
@@ -210,8 +211,8 @@ const TransferDashboard = () => {
                   <tr key={t._id}>
                     <td>
                       {isSourceLab(t)
-                        ? <span className="dir-badge dir-out">📤 Outgoing</span>
-                        : <span className="dir-badge dir-in">📥 Incoming</span>
+                        ? <span className="dir-badge dir-out"><UploadCloud className="w-4 h-4 inline-block mr-1" /> Outgoing</span>
+                        : <span className="dir-badge dir-in"><DownloadCloud className="w-4 h-4 inline-block mr-1" /> Incoming</span>
                       }
                     </td>
                     <td>{new Date(t.createdAt).toLocaleDateString()}</td>
@@ -247,7 +248,7 @@ const TransferDashboard = () => {
                   <h2>Request Chemical</h2>
                   <p style={{color:'var(--secondary-400)',fontSize:'0.8rem',marginTop:'0.25rem'}}>Request a chemical FROM another lab. Their manager will approve.</p>
                 </div>
-                <button className="modal-close-x" onClick={() => { setIsModalOpen(false); resetModal(); }}>✕</button>
+                <button className="modal-close-x" onClick={() => { setIsModalOpen(false); resetModal(); }}><X className="w-4 h-4" /></button>
               </div>
 
               <form onSubmit={handleSubmit}>
@@ -281,7 +282,7 @@ const TransferDashboard = () => {
                           {` · ${selectedChem.quantity ?? '?'} ${selectedChem.unit ?? ''}`}
                         </span>
                       </div>
-                      <button type="button" className="clear-chem-btn" onClick={clearChem} title="Change chemical">✕</button>
+                      <button type="button" className="clear-chem-btn" onClick={clearChem} title="Change chemical"><X className="w-4 h-4 inline-block" /></button>
                     </div>
                   ) : (
                     <div className="chem-search-wrap">

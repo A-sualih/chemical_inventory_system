@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { IconStar, IconAward, IconPlus, IconCheckCircle, IconWarning, IconXCircle } from './ProcurementIcons';
+import { X, Check, Star, AlertTriangle } from 'lucide-react';
+import '../../styles/Procurement.css';
 
 const Stars = ({ value, onClick }) => (
   <div className="stars-group">
@@ -95,7 +97,7 @@ export default function VendorPerformanceTab() {
     <div style={{ position: 'relative' }}>
       {toast && (
         <div className={`procurement-toast ${toast.type === 'error' ? 'toast-error' : 'toast-success'}`}>
-          {toast.type === 'error' ? '✕' : '✓'} {toast.msg}
+          <span className="mr-2">{toast.type === 'error' ? <X className="w-4 h-4 inline-block" /> : <Check className="w-4 h-4 inline-block" />}</span> {toast.msg}
         </div>
       )}
 
@@ -145,7 +147,7 @@ export default function VendorPerformanceTab() {
                     </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <span style={{ color: '#f59e0b' }}>★</span>
+                        <span style={{ color: '#f59e0b' }}><Star className="w-3 h-3 inline-block" fill="currentColor"/></span>
                         <span style={{ fontWeight: 900, color: 'var(--secondary-900)' }}>{s.rating?.toFixed(1)||'—'}</span>
                       </div>
                     </td>
@@ -279,7 +281,7 @@ export default function VendorPerformanceTab() {
                     <div className="overall-row">
                       <span className="overall-label">Overall Rating</span>
                       <div className="overall-val">
-                        <span style={{ color: '#f59e0b' }}>★</span>
+                        <span style={{ color: '#f59e0b' }}><Star className="w-4 h-4 inline-block mr-1" fill="currentColor"/></span>
                         <span>{avgScore()}</span>
                       </div>
                     </div>
@@ -289,10 +291,10 @@ export default function VendorPerformanceTab() {
                 <div style={{ gridColumn: 'span 2' }}>
                   <div className="checkbox-grid">
                     {[
-                      { field:'was_on_time',            label:'✓ Delivered On Time' },
-                      { field:'had_damaged_goods',      label:'⚠ Damaged Goods' },
-                      { field:'had_quantity_mismatch',  label:'⚠ Qty Mismatch' },
-                      { field:'shipment_rejected',      label:'✕ Rejected' }
+                      { field:'was_on_time',            label: <><Check className="w-4 h-4 inline-block mr-1"/> Delivered On Time</> },
+                      { field:'had_damaged_goods',      label: <><AlertTriangle className="w-4 h-4 inline-block mr-1"/> Damaged Goods</> },
+                      { field:'had_quantity_mismatch',  label: <><AlertTriangle className="w-4 h-4 inline-block mr-1"/> Qty Mismatch</> },
+                      { field:'shipment_rejected',      label: <><X className="w-4 h-4 inline-block mr-1"/> Rejected</> }
                     ].map(f=>(
                       <label key={f.field} className="checkbox-pill">
                         <input type="checkbox" checked={form[f.field]} onChange={e=>setForm(p=>({...p,[f.field]:e.target.checked}))} className="checkbox-input" />

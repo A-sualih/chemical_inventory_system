@@ -2,8 +2,8 @@ import React from 'react';
 import { useNotifications } from '../../context/NotificationContext';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
+import { Box, AlertTriangle, Lock, Shield, Info, Sparkles } from 'lucide-react';
 import '../../styles/NotificationPanel.css';
-
 const NotificationPanel = ({ onClose }) => {
   const { notifications, loading, markAsRead, dismissNotification } = useNotifications();
   const getSeverityStyles = (severity) => {
@@ -16,11 +16,11 @@ const NotificationPanel = ({ onClose }) => {
   };
   const getIcon = (type) => {
     switch (type) {
-      case 'LOW_STOCK': return <img src="/icons/box.svg" className="notif-empty-icon" style={{width: '1.25rem', height: '1.25rem', margin: 0}} draggable="false" alt="Box" />;
-      case 'EXPIRY': return <img src="/icons/warning-red.svg" className="notif-empty-icon" style={{width: '1.25rem', height: '1.25rem', margin: 0}} draggable="false" alt="Warning" />;
-      case 'UNAUTHORIZED_ACCESS': return <img src="/icons/lock.svg" className="notif-empty-icon" style={{width: '1.25rem', height: '1.25rem', margin: 0}} draggable="false" alt="Lock" />;
-      case 'SECURITY': return <img src="/icons/shield.svg" className="notif-empty-icon" style={{width: '1.25rem', height: '1.25rem', margin: 0}} draggable="false" alt="Security" />;
-      default: return <img src="/icons/info.svg" className="notif-empty-icon" style={{width: '1.25rem', height: '1.25rem', margin: 0}} draggable="false" alt="Info" />;
+      case 'LOW_STOCK': return <Box className="notif-empty-icon" style={{width: '1.25rem', height: '1.25rem', margin: 0, color: 'var(--amber-500)'}} />;
+      case 'EXPIRY': return <AlertTriangle className="notif-empty-icon" style={{width: '1.25rem', height: '1.25rem', margin: 0, color: 'var(--red-500)'}} />;
+      case 'UNAUTHORIZED_ACCESS': return <Lock className="notif-empty-icon" style={{width: '1.25rem', height: '1.25rem', margin: 0, color: 'var(--red-500)'}} />;
+      case 'SECURITY': return <Shield className="notif-empty-icon" style={{width: '1.25rem', height: '1.25rem', margin: 0, color: 'var(--indigo-500)'}} />;
+      default: return <Info className="notif-empty-icon" style={{width: '1.25rem', height: '1.25rem', margin: 0, color: 'var(--primary-500)'}} />;
     }
   };
 
@@ -47,7 +47,7 @@ const NotificationPanel = ({ onClose }) => {
           </div>
         ) : notifications.length === 0 ? (
           <div className="notif-panel-state">
-            <div className="notif-empty-icon"><img src="/icons/sparkles.svg" alt="Sparkles" draggable="false" /></div>
+            <div className="notif-empty-icon"><Sparkles /></div>
             <p className="notif-empty-title">No notifications yet</p>
             <p className="notif-empty-sub">You're all caught up!</p>
           </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../../layout/Layout';
 import { useNotifications } from '../../context/NotificationContext';
+import { Inbox, Box, AlertTriangle, Lock, Info } from 'lucide-react';
 import axios from 'axios';
 import '../../styles/Notifications.css';
 
@@ -152,7 +153,7 @@ const Notifications = () => {
               if (filteredNotifications.length === 0) {
                 return (
                   <div className="empty-state">
-                    <div className="empty-icon"><img src="/icons/inbox.svg" alt="Empty Inbox" draggable="false" /></div>
+                    <div className="empty-icon"><Inbox /></div>
                     <p className="empty-title">Inbox is Empty</p>
                     <p className="empty-desc">No alerts matching your criteria.</p>
                   </div>
@@ -164,7 +165,7 @@ const Notifications = () => {
                   {filteredNotifications.map((notif) => (
                   <div key={notif._id} className={`notif-item ${notif.status === 'unread' ? 'unread' : ''}`}>
                     <div className="icon-box">
-                      {notif.type === 'LOW_STOCK' ? <img src="/icons/box.svg" draggable="false" alt="Box" /> : notif.type === 'EXPIRY' ? <img src="/icons/warning-red.svg" draggable="false" alt="Warning" /> : notif.type === 'UNAUTHORIZED_ACCESS' ? <img src="/icons/lock.svg" draggable="false" alt="Lock" /> : <img src="/icons/info.svg" draggable="false" alt="Info" />}
+                      {notif.type === 'LOW_STOCK' ? <Box color="var(--amber-500)" /> : notif.type === 'EXPIRY' ? <AlertTriangle color="var(--red-500)" /> : notif.type === 'UNAUTHORIZED_ACCESS' ? <Lock color="var(--red-500)" /> : <Info color="var(--primary-500)" />}
                     </div>
                     
                     <div className="notif-content">
