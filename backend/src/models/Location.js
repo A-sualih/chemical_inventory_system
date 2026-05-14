@@ -20,8 +20,8 @@ locationSchema.virtual('label').get(function () {
   return `${this.building} / ${this.room} / ${this.cabinet} / Shelf ${this.shelf}`;
 });
 
-// Compound unique index: one slot per building+room+cabinet+shelf combination
-locationSchema.index({ building: 1, room: 1, cabinet: 1, shelf: 1 }, { unique: true });
+// Compound unique index: one slot per building+room+cabinet+shelf combination PER LAB
+locationSchema.index({ lab: 1, building: 1, room: 1, cabinet: 1, shelf: 1 }, { unique: true });
 
 module.exports = mongoose.model('Location', locationSchema);
 

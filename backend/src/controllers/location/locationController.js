@@ -189,3 +189,91 @@ exports.deleteLocation = async (req, res) => {
     res.status(500).json({ error: 'Failed to delete location' });
   }
 };
+
+/**
+ * Bulk Create Locations Hierarchicallly
+ * payload: { building, roomPrefix, roomStart, roomEnd, cabinetPrefix, cabinetStart, cabinetEnd, shelfPrefix, shelfStart, shelfEnd }
+ */
+exports.bulkCreateLocations = async (req, res) => {
+  try {
+    const { 
+      building, 
+      rooms, // Array of room names OR { prefix, start, end }
+      cabinets, // Array of names OR { prefix, start, end, count }
+      shelvesPerCabinet // count
+    } = req.body;
+
+    if (!building || !rooms || !cabinets || !shelvesPerCabinet) {
+      return res.status(400).json({ error: 'Building, rooms, cabinets and shelves are required.' });
+    }
+
+    const labId = req.activeLabId;
+    const createdLocations = [];
+    const errors = [];
+
+    // 1. Resolve Room list
+    let roomList = [];
+    if (Array.isArray(rooms)) {
+      roomList = rooms;
+    } else if (rooms.prefix && rooms.start !== undefined && rooms.end !== undefined) {
+      for (let i = rooms.start; i <= rooms.end; i++) {
+        roomList.push(`${rooms.prefix}${i}`);
+      }
+    }
+
+    // 2. Resolve Cabinet list (per room)
+    let cabList = [];
+    if (Array.isArray(cabinets)) {
+      cabList = cabinets;
+    } else if (cabinets.prefix && cabinets.start !== undefined && cabinets.end !== undefined) {
+      for (let i = cabinets.start; i <= cabinets.end; i++) {
+        cabList.push(`${cabinets.prefix}${i}`);
+      }
+    } else if (typeof cabinets === 'number' || cabinets.count) {
+      const count = typeof cabinets === 'number' ? cabinets : cabinets.count;
+      for (let i = 1; i <= count; i++) {
+        cabList.push(`Cabinet ${i}`);
+      }
+    }
+
+    // 3. Nested Creation
+    for (const roomName of roomList) {
+      for (const cabinetName of cabList) {
+        for (let s = 1; s <= shelvesPerCabinet; s++) {
+          const shelfName = `${s}`;
+          try {
+            const loc = await Location.create({
+              lab: labId,
+              building,
+              room: roomName,
+              cabinet: cabinetName,
+              shelf: shelfName,
+              capacity: 50,
+              isActive: true
+            });
+            createdLocations.push(loc._id);
+          } catch (err) {
+            errors.push({ loc: `${building}/${roomName}/${cabinetName}/Shelf ${shelfName}`, error: err.message });
+          }
+        }
+      }
+    }
+
+    await logAudit(req, {
+      action: 'CREATE',
+      targetType: 'location',
+      targetId: building,
+      targetName: building,
+      details: `Bulk created ${createdLocations.length} locations in Building: ${building}`
+    });
+
+    res.status(201).json({ 
+      message: `Bulk creation complete. Created ${createdLocations.length} slots.`,
+      createdCount: createdLocations.length,
+      errors: errors.length > 0 ? errors : undefined
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

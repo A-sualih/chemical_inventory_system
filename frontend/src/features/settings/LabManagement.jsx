@@ -193,31 +193,52 @@ const LabManagement = () => {
         {/* Create Modal */}
         {isCreateModalOpen && (
           <div className="modal-overlay">
-            <div className="modal-content">
-              <h2>Register New Lab</h2>
-              <form onSubmit={handleCreateLab}>
-                <div className="form-group">
-                  <label>Department / Lab Name</label>
-                  <input 
-                    required 
-                    type="text" 
-                    placeholder="e.g. Chemistry Lab"
-                    value={newLab.name}
-                    onChange={e => setNewLab({...newLab, name: e.target.value})}
-                  />
+            <div className="modal-backdrop" onClick={() => setIsCreateModalOpen(false)}></div>
+            <div className="modal-content lab-registration-modal">
+              <div className="modal-header-visual">
+                <div className="modal-icon-glow">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
                 </div>
-                <div className="form-group">
-                  <label>Description</label>
-                  <input 
-                    type="text" 
-                    placeholder="Optional details"
-                    value={newLab.description}
-                    onChange={e => setNewLab({...newLab, description: e.target.value})}
-                  />
+                <h2 className="modal-title">Register New Lab</h2>
+                <p className="modal-subtitle">Provision a new operational facility into the repository.</p>
+              </div>
+
+              <form onSubmit={handleCreateLab} className="modal-form">
+                <div className="form-group-glow">
+                  <label className="field-label">Department / Lab Name</label>
+                  <div className="input-wrapper">
+                    <input 
+                      required 
+                      type="text" 
+                      placeholder="e.g. Molecular Synthesis Lab"
+                      value={newLab.name}
+                      onChange={e => setNewLab({...newLab, name: e.target.value})}
+                      className="field-input-premium"
+                    />
+                  </div>
                 </div>
-                <div className="modal-actions">
-                  <button type="button" className="btn-secondary" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
-                  <button type="submit" className="btn-primary">Create</button>
+                
+                <div className="form-group-glow">
+                  <label className="field-label">Description & Scope</label>
+                  <div className="input-wrapper">
+                    <textarea 
+                      placeholder="Define operational parameters or facility scope..."
+                      value={newLab.description}
+                      onChange={e => setNewLab({...newLab, description: e.target.value})}
+                      className="field-input-premium field-textarea"
+                    />
+                  </div>
+                </div>
+
+                <div className="modal-footer-actions">
+                  <button type="button" className="btn-cancel-premium" onClick={() => setIsCreateModalOpen(false)}>
+                    Discard
+                  </button>
+                  <button type="submit" className="btn-submit-premium">
+                    Authorize Provisioning
+                  </button>
                 </div>
               </form>
             </div>
