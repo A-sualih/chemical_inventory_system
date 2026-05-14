@@ -324,7 +324,7 @@ const Containers = () => {
                     <tbody>
                       {filteredContainers.map((container) => (
                         <tr key={container._id}>
-                          <td>
+                          <td data-label="ID">
                             <div className="container-id-cell">
                               <div className="container-icon-box">
                                 <ArchiveBoxIcon className="icon-lg text-secondary-400" />
@@ -338,7 +338,7 @@ const Containers = () => {
                               </div>
                             </div>
                           </td>
-                          <td>
+                          <td data-label="Chemical">
                             <div className="chemical-name-text">{container.chemical_name}</div>
                             <div className="batch-tags">
                               {container.batch_number && (
@@ -355,7 +355,7 @@ const Containers = () => {
                               )}
                             </div>
                           </td>
-                          <td>
+                          <td data-label="Location">
                             <div className="location-cell">
                               <div className="location-main">
                                 <MapPinIcon className="icon-xs text-primary-500" />
@@ -366,7 +366,7 @@ const Containers = () => {
                               </div>
                             </div>
                           </td>
-                          <td>
+                          <td data-label="Status">
                             <div className="status-cell">
                               <span className={`status-badge-inline ${getStatusColor(container.status)}`}>
                                 {container.status}
@@ -376,7 +376,7 @@ const Containers = () => {
                               </div>
                             </div>
                           </td>
-                          <td>
+                          <td data-label="Actions">
                             <div className="action-btns" style={{ justifyContent: 'flex-end' }}>
                               {hasPermission("update_stock") && (
                                 <button onClick={() => handleOpenModal(container)} className="btn-icon-action btn-edit">
@@ -412,7 +412,7 @@ const Containers = () => {
                   <form onSubmit={handleSubmit} className="containers-form">
                     <div className="form-row">
                       <div className="form-group">
-                        <label className="form-label-top">Container ID (Unique)</label>
+                        <label className="form-label-top"><TagIcon className="icon-xs inline mr-1" /> Container ID (Unique)</label>
                         <input 
                           type="text" 
                           value={formData.container_id} 
@@ -423,7 +423,7 @@ const Containers = () => {
                         />
                       </div>
                       <div className="form-group">
-                        <label className="form-label-top">Barcode / QR (Optional)</label>
+                        <label className="form-label-top"><QrCodeIcon className="icon-xs inline mr-1" /> Barcode / QR (Optional)</label>
                         <input 
                           type="text" 
                           value={formData.barcode} 
@@ -435,7 +435,7 @@ const Containers = () => {
                     </div>
 
                     <div className="form-group full-width mb-6">
-                      <label className="form-label-top">Chemical Reference</label>
+                      <label className="form-label-top"><BeakerIcon className="icon-xs inline mr-1" /> Chemical Reference</label>
                       <select 
                         value={formData.chemical_id} 
                         onChange={e => setFormData({...formData, chemical_id: e.target.value})}
@@ -451,7 +451,7 @@ const Containers = () => {
 
                     <div className="form-row">
                       <div className="form-group">
-                        <label className="form-label-top">Quantity per unit</label>
+                        <label className="form-label-top"><PlusIcon className="icon-xs inline mr-1" /> Quantity per unit</label>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                            <input 
                             type="number" 
@@ -470,7 +470,7 @@ const Containers = () => {
                         </div>
                       </div>
                       <div className="form-group">
-                        <label className="form-label-top">Vessel Type</label>
+                        <label className="form-label-top"><ArchiveBoxIcon className="icon-xs inline mr-1" /> Vessel Type</label>
                         <select 
                           value={formData.container_type} 
                           onChange={e => setFormData({...formData, container_type: e.target.value})}
@@ -499,11 +499,11 @@ const Containers = () => {
 
                     <div className="form-row">
                       <div className="form-group">
-                        <label className="form-label-top">Batch Reference</label>
+                        <label className="form-label-top"><TagIcon className="icon-xs inline mr-1" /> Batch Reference</label>
                         <input type="text" value={formData.batch_number} onChange={e => setFormData({...formData, batch_number: e.target.value})} className="form-input-standard font-bold" placeholder="Lot / Batch #"/>
                       </div>
                       <div className="form-group">
-                        <label className="form-label-top">Current Status</label>
+                        <label className="form-label-top"><ExclamationCircleIcon className="icon-xs inline mr-1" /> Current Status</label>
                         <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="form-input-standard font-bold">
                           <option value="Full">Full</option><option value="In Use">In Use</option><option value="Empty">Empty</option><option value="Expired">Expired</option><option value="Near Expiry">Near Expiry</option><option value="Damaged">Damaged</option>
                         </select>
@@ -513,7 +513,7 @@ const Containers = () => {
                     <div className="date-grid">
                       {[{ label: 'MFG Date', key: 'manufacturing_date' }, { label: 'EXP Date', key: 'expiry_date' }, { label: 'Opened on', key: 'opened_date' }].map(d => (
                         <div key={d.key} className="form-group">
-                          <label className="form-label-top" style={{ fontSize: '10px' }}>{d.label}</label>
+                          <label className="form-label-top"><CalendarIcon className="icon-xs inline mr-1" /> {d.label}</label>
                           <div className="date-input-wrap">
                             <CalendarIcon className="date-icon-inline" />
                             <input type="date" value={formData[d.key]} onChange={e => setFormData({...formData, [d.key]: d.key === 'opened_date' ? (e.target.value || "") : e.target.value})} className="form-input-standard date-field font-bold"/>

@@ -16,35 +16,36 @@ const Dashboard = () => {
   const [wasteStats, setWasteStats] = useState({ pendingDisposals: 0, recentIncidents: 0 });
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchAllDashboardData = async () => {
       try {
-        const { data } = await axios.get('/api/chemicals/stats');
-        setDbStats(prev => ({ ...prev, ...data }));
+        // Fetch stats
+        const { data: statsData } = await axios.get('/api/chemicals/stats');
+        setDbStats(prev => ({ ...prev, ...statsData }));
+
+        // Fetch waste
+        const { data: wasteData } = await axios.get('/api/waste/analytics');
+        const pending = (wasteData.statusStats || []).find(s => s._id === 'Pending Approval')?.count || 0;
+        setWasteStats({ pendingDisposals: pending, recentIncidents: wasteData.incidentStats?.length || 0 });
+
+        // Conditional fetches
+        if (hasPermission("approve_request")) fetchRequests();
+        if (hasPermission("view_audit_logs")) fetchAuditLogs();
       } catch (err) {
-        console.error("Failed to fetch dashboard stats", err);
-      }
-    };
-    const fetchWasteStats = async () => {
-      try {
-        const { data } = await axios.get('/api/waste/analytics');
-        const pending = (data.statusStats || []).find(s => s._id === 'Pending Approval')?.count || 0;
-        setWasteStats({ pendingDisposals: pending, recentIncidents: data.incidentStats?.length || 0 });
-      } catch (err) {
-        console.error("Failed to fetch waste stats", err);
+        console.error("Sync failed", err);
       }
     };
 
-    fetchStats();
-    fetchWasteStats();
-  }, []);
+    fetchAllDashboardData();
+    const interval = setInterval(fetchAllDashboardData, 5000);
 
-  useEffect(() => {
-    if (hasPermission("approve_request")) {
-      fetchRequests();
-    } else {
-      setRequestsLoading(false);
-    }
-  }, []);
+    const handleFocus = () => fetchAllDashboardData();
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [hasPermission]);
 
   const fetchRequests = async () => {
     try {
@@ -79,14 +80,6 @@ const Dashboard = () => {
     if (diffDays < 30) return `${diffDays}d ago`;
     return date.toLocaleDateString();
   };
-
-  useEffect(() => {
-    if (hasPermission("view_audit_logs")) {
-      fetchAuditLogs();
-    } else {
-      setAuditLoading(false);
-    }
-  }, []);
 
   const fetchAuditLogs = async () => {
     try {

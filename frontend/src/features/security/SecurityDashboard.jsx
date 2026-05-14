@@ -169,13 +169,13 @@ const SecurityDashboard = () => {
                 <tbody>
                   {backups.map((b) => (
                     <tr key={b.fileName} className="table-row">
-                      <td className="backup-name-cell">{b.fileName}</td>
-                      <td className="timestamp-cell">
+                      <td data-label="Backup" className="backup-name-cell">{b.fileName}</td>
+                      <td data-label="Created" className="timestamp-cell">
                         <ClockIcon style={{ width: '1rem' }} />
                         {new Date(b.createdAt).toLocaleString()}
                       </td>
-                      <td style={{ color: 'var(--secondary-400)' }}>{(b.size / 1024 / 1024).toFixed(2)} MB</td>
-                      <td style={{ textAlign: 'right' }}>
+                      <td data-label="Size" style={{ color: 'var(--secondary-400)' }}>{(b.size / 1024 / 1024).toFixed(2)} MB</td>
+                      <td data-label="Actions" style={{ textAlign: 'right' }}>
                         <button 
                           onClick={() => handleRestore(b.fileName)}
                           disabled={restoring}
@@ -199,7 +199,7 @@ const SecurityDashboard = () => {
           </section>
 
           {/* Side Panels */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <div className="security-side-panels">
             {/* Audit Logs Preview */}
             <div className="dashboard-section" style={{ paddingBottom: '1.5rem' }}>
               <div className="section-header">
@@ -218,7 +218,7 @@ const SecurityDashboard = () => {
                   </div>
                 ))}
               </div>
-              <button style={{ margin: '0 1.5rem', width: 'calc(100% - 3rem)', padding: '0.75rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.05)', border: 'none', color: 'white', fontWeight: '700', fontSize: '0.75rem', cursor: 'pointer' }}>
+              <button className="view-all-logs-btn">
                 View All Activity Logs
               </button>
             </div>

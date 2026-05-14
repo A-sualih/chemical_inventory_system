@@ -23,7 +23,10 @@ import {
     ChevronLeft,
     Activity,
     Info,
-    CheckCircle2
+    CheckCircle2,
+    Calendar,
+    Tag,
+    Link2
 } from 'lucide-react';
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/ChemicalDetails.css";
@@ -39,18 +42,40 @@ const ChemicalDetails = () => {
 
   const canDelete = hasPermission("delete_chemical");
 
+  const [batches, setBatches] = useState([]);
+  const [containers, setContainers] = useState([]);
+
   useEffect(() => {
-    const fetchChemical = async () => {
+    const fetchFullData = async () => {
       try {
-        const { data } = await axios.get(`/api/chemicals/${id}`);
-        setChemical(data);
+        const [chemRes, batchRes, contRes] = await Promise.all([
+          axios.get(`/api/chemicals/${id}`),
+          axios.get(`/api/batches?chemical_id=${id}`),
+          axios.get(`/api/containers?chemical_id=${id}`)
+        ]);
+        setChemical(chemRes.data);
+        setBatches(batchRes.data);
+        setContainers(contRes.data);
       } catch (err) {
-        setError(err.response?.data?.error || "Asset lookup failed.");
+        if (!chemical) setError(err.response?.data?.error || "Asset lookup failed.");
       } finally {
         setLoading(false);
       }
     };
-    fetchChemical();
+
+    fetchFullData();
+    
+    // Real-time synchronization: Poll every 5 seconds
+    const interval = setInterval(fetchFullData, 5000);
+
+    // Immediate refetch when user returns to tab
+    const handleFocus = () => fetchFullData();
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [id]);
 
   const handleExportSDS = async () => {
@@ -245,42 +270,105 @@ const ChemicalDetails = () => {
                   </div>
                </div>
 
-               {/* Risk Matrix */}
+               {/* Operational Batches */}
                <div className="premium-card">
-                  <h3 className="panel-title"><Activity size={14} /> Risk Assessment Matrix</h3>
-                  <table className="matrix-premium-table">
-                     <tbody>
-                        <tr className="matrix-premium-row">
-                           <td>Operational Risk</td>
-                           <td>
-                              <span className={`px-3 py-1 rounded-full text-[0.65rem] font-black uppercase ${
-                                 chemical.exposure_details?.risk_level === 'Extreme' ? 'bg-red-500 text-white' : 'bg-indigo-100 text-indigo-700'
-                              }`}>
-                                 {chemical.exposure_details?.risk_level || 'Low'}
-                              </span>
-                           </td>
-                        </tr>
-                        <tr className="matrix-premium-row">
-                           <td>Infrastructure Requirements</td>
-                           <td>{chemical.exposure_details?.fume_hood_required ? 'Fume Hood Mandatory' : 'Standard Ventilation'}</td>
-                        </tr>
-                        <tr className="matrix-premium-row">
-                           <td>Storage Conditions</td>
-                           <td>
-                              <div className="flex gap-4 justify-end">
-                                 <span className="flex items-center gap-1 text-xs font-bold text-slate-600">
-                                    <Thermometer size={12} /> {chemical.storage_temp || '20'}°C
-                                 </span>
-                                 <span className="flex items-center gap-1 text-xs font-bold text-slate-600">
-                                    <Droplets size={12} /> {chemical.storage_humidity || '45'}%
-                                 </span>
-                              </div>
-                           </td>
-                        </tr>
-                     </tbody>
-                  </table>
+                  <div className="flex justify-between items-center mb-6">
+                     <h3 className="panel-title"><Tag size={14} /> Operational Batches</h3>
+                     <span className="text-[0.65rem] font-black text-indigo-400 bg-indigo-50 px-2 py-1 rounded-md uppercase">{batches.length} LOTS FOUND</span>
+                  </div>
+                  
+                  <div className="ledger-scroll-area">
+                    <table className="ledger-premium-table">
+                       <thead>
+                          <tr>
+                             <th>Lot Number</th>
+                             <th>MFG Date</th>
+                             <th>Expiry Date</th>
+                             <th>Status</th>
+                          </tr>
+                       </thead>
+                       <tbody>
+                          {batches.map(batch => (
+                             <tr key={batch.batch_number} className="ledger-premium-row">
+                                <td className="font-bold text-slate-900">{batch.batch_number}</td>
+                                <td className="text-slate-500">{batch.manufacturing_date ? new Date(batch.manufacturing_date).toLocaleDateString() : 'N/A'}</td>
+                                <td className={`font-bold ${new Date(batch.expiry_date) < new Date() ? 'text-red-500' : 'text-slate-900'}`}>
+                                   {batch.expiry_date ? new Date(batch.expiry_date).toLocaleDateString() : 'N/A'}
+                                </td>
+                                <td>
+                                   <span className={`status-pill ${
+                                      batch.status === 'Active' ? 'bg-emerald-100 text-emerald-700' :
+                                      batch.status === 'Expired' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+                                   }`}>
+                                      {batch.status}
+                                   </span>
+                                </td>
+                             </tr>
+                          ))}
+                          {batches.length === 0 && (
+                             <tr>
+                                <td colSpan="4" className="text-center py-8 text-slate-400 italic">No batch history recorded.</td>
+                             </tr>
+                          )}
+                       </tbody>
+                    </table>
+                  </div>
                </div>
 
+               {/* Asset Tracking (Containers) */}
+               <div className="premium-card">
+                  <div className="flex justify-between items-center mb-6">
+                     <h3 className="panel-title"><Layers size={14} /> Asset Vessel Tracking</h3>
+                     <span className="text-[0.65rem] font-black text-cyan-400 bg-cyan-50 px-2 py-1 rounded-md uppercase">{containers.length} VESSELS ACTIVE</span>
+                  </div>
+                  
+                  <div className="ledger-scroll-area">
+                    <table className="ledger-premium-table">
+                       <thead>
+                          <tr>
+                             <th>Vessel ID</th>
+                             <th>Location</th>
+                             <th>Qty/Status</th>
+                             <th>Action</th>
+                          </tr>
+                       </thead>
+                       <tbody>
+                          {containers.map(container => (
+                             <tr key={container.container_id} className="ledger-premium-row">
+                                <td>
+                                   <div className="flex flex-col">
+                                      <span className="font-bold text-slate-900">{container.container_id}</span>
+                                      <span className="text-[10px] text-slate-400 uppercase font-bold">{container.barcode || 'NO BARCODE'}</span>
+                                   </div>
+                                </td>
+                                <td className="text-slate-600 text-xs">
+                                   {container.building}-{container.room} (C:{container.cabinet}, S:{container.shelf})
+                                </td>
+                                <td>
+                                   <div className="flex flex-col items-end">
+                                      <span className="font-black text-slate-800">{container.quantity} {container.unit}</span>
+                                      <span className={`text-[9px] font-black uppercase ${
+                                         container.status === 'Full' ? 'text-emerald-500' :
+                                         container.status === 'Empty' ? 'text-slate-400' : 'text-orange-500'
+                                      }`}>{container.status}</span>
+                                   </div>
+                                </td>
+                                <td className="text-right">
+                                   <button onClick={() => navigate('/containers')} className="text-indigo-400 hover:text-indigo-600 transition-colors">
+                                      <Link2 size={16} />
+                                   </button>
+                                </td>
+                             </tr>
+                          ))}
+                          {containers.length === 0 && (
+                             <tr>
+                                <td colSpan="4" className="text-center py-8 text-slate-400 italic">No active vessels found in registry.</td>
+                             </tr>
+                          )}
+                       </tbody>
+                    </table>
+                  </div>
+               </div>
             </div>
 
             {/* COLUMN 3: Logistics & Actions */}

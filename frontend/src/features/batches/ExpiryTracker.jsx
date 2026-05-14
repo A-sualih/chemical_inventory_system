@@ -197,7 +197,7 @@ const ExpiryTracker = () => {
 
                                         return (
                                             <tr key={item.id} className={isExpired ? 'expired-row' : ''}>
-                                                <td>
+                                                <td data-label="Asset">
                                                     <div className="substance-identity">
                                                         <div className={`substance-avatar ${isExpired ? 'bg-expired-avatar' : 'bg-normal-avatar'}`}>
                                                             {item.chemicalId.slice(-3).toUpperCase()}
@@ -208,7 +208,7 @@ const ExpiryTracker = () => {
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td>
+                                                <td data-label="Origin">
                                                     <div className="origin-info">
                                                         <div className="origin-pills">
                                                             <span className={`type-pill ${item.type === 'Batch' ? 'pill-batch' : 'pill-container'}`}>
@@ -219,7 +219,7 @@ const ExpiryTracker = () => {
                                                         <p className="location-text">{item.location}</p>
                                                     </div>
                                                 </td>
-                                                <td>
+                                                <td data-label="Expiry">
                                                     <div className="calendar-info">
                                                         <span className={`calendar-date ${isExpired ? 'text-red-date' : 'text-normal-date'}`}>
                                                             {format(new Date(item.expiryDate), "dd MMM yyyy")}
@@ -227,12 +227,12 @@ const ExpiryTracker = () => {
                                                         <span className="calendar-iso">ISO: {item.expiryDate.split('T')[0]}</span>
                                                     </div>
                                                 </td>
-                                                <td>
+                                                <td data-label="Status">
                                                     <div className={`status-badge-wrap ${getStatusBadgeClass(item.status)}`}>
                                                         {item.status.replace(/_/g, ' ')}
                                                     </div>
                                                 </td>
-                                                <td>
+                                                <td data-label="Longevity">
                                                     <div className="action-cell-content">
                                                         <div className="longevity-info">
                                                             <p className={`longevity-val ${isExpired ? 'text-red-val' : daysLeft < 30 ? 'text-orange-val' : 'text-green-val'}`}>

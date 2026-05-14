@@ -46,9 +46,30 @@ const TransactionSystem = () => {
     const scannerRef = useRef(null);
 
     useEffect(() => {
-        fetchHistory();
-        if (barcodeInputRef.current) barcodeInputRef.current.focus();
-    }, [activeTab]);
+        const syncTransactions = async () => {
+            fetchHistory();
+            if (scannedData && scannedData.container && scannedData.container.container_id) {
+                // Silently refresh scanned data to update quantities
+                try {
+                    const res = await axios.get(`/api/transactions/scan/${encodeURIComponent(barcode)}`);
+                    setScannedData(res.data);
+                } catch (e) { /* ignore silent refresh errors */ }
+            }
+        };
+
+        syncTransactions();
+        const interval = setInterval(syncTransactions, 5000);
+
+        const handleFocus = () => syncTransactions();
+        window.addEventListener('focus', handleFocus);
+
+        if (barcodeInputRef.current && activeTab !== 'history') barcodeInputRef.current.focus();
+
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('focus', handleFocus);
+        };
+    }, [activeTab, scannedData ? scannedData.container?.container_id : null]);
 
     useEffect(() => {
         let scanner = null;

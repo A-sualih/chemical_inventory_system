@@ -1,4 +1,4 @@
-/* Batches.css */
+/* Batches.css - Responsive Mastery */
 
 .batches-container {
   padding-bottom: 5rem;
@@ -10,11 +10,11 @@
   position: sticky;
   top: 0;
   z-index: 30;
-  padding: 1.5rem;
+  padding: clamp(0.75rem, 3vw, 1.5rem);
 }
 
 .batches-header-content {
-  max-width: 80rem;
+  max-width: 85rem;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -22,7 +22,7 @@
   gap: 1rem;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1200px) {
   .batches-header-content {
     flex-direction: row;
     align-items: center;
@@ -36,9 +36,9 @@
 }
 
 .batches-icon-box {
-  width: 3rem;
-  height: 3rem;
-  background: linear-gradient(to bottom right, #4f46e5, #4338ca);
+  width: clamp(2.5rem, 5vw, 3rem);
+  height: clamp(2.5rem, 5vw, 3rem);
+  background: linear-gradient(135deg, #4f46e5, #4338ca);
   border-radius: 1rem;
   display: flex;
   align-items: center;
@@ -48,14 +48,15 @@
 }
 
 .batches-title {
-  font-size: 1.5rem;
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
   font-weight: 900;
   color: var(--secondary-900);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .batches-subtitle {
-  font-size: 0.875rem;
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
   color: var(--secondary-500);
   font-weight: 500;
   margin: 0;
@@ -65,18 +66,13 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .batches-search-wrapper {
   position: relative;
   flex: 1;
-}
-
-@media (min-width: 768px) {
-  .batches-search-wrapper {
-    width: 24rem;
-    flex: none;
-  }
+  min-width: clamp(200px, 100%, 320px);
 }
 
 .batches-search-icon {
@@ -112,13 +108,24 @@
   color: white;
   padding: 0.75rem 1.5rem;
   border-radius: 1rem;
-  font-weight: 700;
+  font-weight: 800;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   transition: all 0.2s;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .btn-new-batch {
+    width: 100%;
+  }
 }
 
 .btn-new-batch:hover {
@@ -127,55 +134,42 @@
   box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
 }
 
+/* Stats */
 .batches-stats {
-  max-width: 80rem;
+  max-width: 85rem;
   margin: 2rem auto;
   padding: 0 1.5rem;
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 1.5rem;
-}
-
-@media (min-width: 768px) {
-  .batches-stats {
-    grid-template-columns: repeat(4, 1fr);
-  }
+  grid-template-columns: repeat(auto-fit, minmax(clamp(150px, 45%, 300px), 1fr));
+  gap: clamp(1rem, 3vw, 1.5rem);
 }
 
 .batch-stat-card {
   background-color: white;
   padding: 1.5rem;
-  border-radius: 1.5rem;
+  border-radius: 1.75rem;
   border: 1px solid var(--secondary-100);
   display: flex;
   align-items: center;
   gap: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.batch-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08);
 }
 
 .batch-stat-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 0.75rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.875rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
-
-.bg-indigo-light { background-color: #eef2ff; color: #4f46e5; }
-.bg-rose-light { background-color: #fff1f2; color: #e11d48; }
-.bg-amber-light { background-color: #fffbeb; color: #d97706; }
-.bg-emerald-light { background-color: #ecfdf5; color: #059669; }
-
-/* Icon Utilities */
-.icon-lg { width: 1.5rem; height: 1.5rem; }
-.icon-md { width: 1.25rem; height: 1.25rem; }
-.icon-sm { width: 1rem; height: 1rem; }
-.icon-xs { width: 0.75rem; height: 0.75rem; }
-
-/* Layout Utilities */
-.flex-row-gap-2 { display: flex; align-items: center; gap: 0.5rem; }
-.w-unit-select { width: 6rem; }
-.h-notes-area { height: 6rem; resize: none; }
 
 .batch-stat-info {
   display: flex;
@@ -183,21 +177,23 @@
 }
 
 .batch-stat-label {
-  font-size: 11px;
-  font-weight: 900;
-  color: var(--secondary-400);
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--secondary-500);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
 
 .batch-stat-value {
-  font-size: 1.25rem;
+  font-size: clamp(1.25rem, 5vw, 1.5rem);
   font-weight: 900;
   color: var(--secondary-900);
+  line-height: 1.2;
 }
 
+/* Table */
 .batches-table-wrap {
-  max-width: 80rem;
+  max-width: 85rem;
   margin: 0 auto;
   padding: 0 1.5rem;
 }
@@ -207,7 +203,7 @@
   border-radius: 2rem;
   border: 1px solid var(--secondary-200);
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
 }
 
 .batches-table {
@@ -219,7 +215,7 @@
   padding: 1.25rem 1.5rem;
   background-color: var(--secondary-50);
   text-align: left;
-  font-size: 11px;
+  font-size: 0.7rem;
   font-weight: 900;
   color: var(--secondary-500);
   text-transform: uppercase;
@@ -227,12 +223,12 @@
 }
 
 .batches-table tr {
-  border-bottom: 1px solid var(--secondary-100);
+  border-bottom: 1px solid var(--secondary-50);
   transition: background-color 0.2s;
 }
 
 .batches-table tr:hover {
-  background-color: var(--secondary-50);
+  background-color: #fafafa;
 }
 
 .batches-table td {
@@ -246,68 +242,81 @@
 }
 
 .batch-id-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 0.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.875rem;
   background-color: white;
-  border: 1px solid var(--secondary-200);
+  border: 1px solid var(--secondary-100);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--secondary-400);
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+tr:hover .batch-id-icon {
+  border-color: var(--primary-200);
+  background-color: var(--primary-50);
+  color: var(--primary-600);
 }
 
 .batch-id-text {
   font-weight: 900;
   color: var(--secondary-900);
   font-size: 0.875rem;
+  letter-spacing: -0.01em;
 }
 
 .batch-chem-text {
-  font-size: 0.75rem;
-  color: var(--secondary-500);
-  font-weight: 500;
+  font-size: 11px;
+  color: var(--secondary-400);
+  font-weight: 700;
 }
 
 .chem-main-text {
-  font-weight: 700;
+  font-weight: 800;
   color: var(--secondary-800);
   font-size: 0.875rem;
+  line-height: 1.3;
 }
 
 .chem-id-text {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--secondary-400);
-  font-family: monospace;
+  font-family: var(--font-mono);
+  font-weight: 600;
 }
 
 .date-cell {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.375rem;
 }
 
 .date-label {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 9px;
+  font-weight: 900;
   color: var(--secondary-400);
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .date-value {
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 800;
   color: var(--secondary-700);
 }
 
 .status-indicator {
-  padding: 0.25rem 0.625rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 0.5rem;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   display: inline-block;
+  margin-top: 0.5rem;
 }
 
 .status-active { background-color: #d1fae5; color: #065f46; }
@@ -320,11 +329,12 @@
 }
 
 .action-icon-btn {
-  padding: 0.5rem;
+  width: 2.25rem;
+  height: 2.25rem;
   border-radius: 0.75rem;
-  background-color: var(--secondary-50);
+  background-color: white;
+  border: 1px solid var(--secondary-200);
   color: var(--secondary-500);
-  border: 1px solid transparent;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -334,10 +344,9 @@
 
 .action-edit:hover { 
   color: #4f46e5; 
-  background-color: white; 
-  border-color: #c7d2fe;
-  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1), 0 2px 4px -1px rgba(79, 70, 229, 0.06);
-  transform: translateY(-2px);
+  background-color: var(--primary-50); 
+  border-color: var(--primary-200);
+  transform: scale(1.1);
 }
 
 .action-delete {
@@ -347,240 +356,19 @@
 
 .action-delete:hover { 
   color: #b91c1c; 
-  background-color: white; 
+  background-color: #fee2e2; 
   border-color: #fca5a5;
-  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.15), 0 2px 4px -1px rgba(239, 68, 68, 0.1);
-  transform: translateY(-2px);
+  transform: scale(1.1);
 }
 
-/* Modal */
-.batch-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-  padding: 1.5rem;
-}
-
-.batch-modal-card {
-  background-color: white;
-  width: 100%;
-  max-width: 40rem;
-  border-radius: 2rem;
-  overflow: hidden;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  display: flex;
-  flex-direction: column;
-  max-height: 90vh;
-}
-
-.batch-modal-header {
-  padding: 2rem;
-  border-bottom: 1px solid var(--secondary-100);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.batch-modal-title {
-  font-size: 1.5rem;
-  font-weight: 900;
-  color: var(--secondary-900);
-  margin: 0;
-}
-
-.btn-close-batch {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: var(--secondary-400);
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.btn-close-batch:hover { color: var(--secondary-600); }
-
-.batch-form {
-  padding: 2rem;
-  overflow-y: auto;
-}
-
-.form-field-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-field-label {
-  font-size: 11px;
-  font-weight: 900;
-  color: var(--secondary-500);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 0.5rem;
-  display: block;
-}
-
-.form-field-input {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  background-color: var(--secondary-50);
-  border: 1px solid var(--secondary-200);
-  border-radius: 1rem;
-  font-size: 0.875rem;
-  outline: none;
-  transition: all 0.2s;
-}
-
-.form-field-input:focus {
-  background-color: white;
-  border-color: #818cf8;
-  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.1);
-}
-
-.form-grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-}
-
-.batch-form-footer {
-  padding: 1.5rem 2rem;
-  border-top: 1px solid var(--secondary-100);
-  display: flex;
-  gap: 1rem;
-}
-
-.btn-batch-cancel {
-  flex: 1;
-  padding: 0.875rem;
-  border-radius: 1rem;
-  background-color: var(--secondary-50);
-  border: none;
-  color: var(--secondary-600);
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.btn-batch-cancel:hover { background-color: var(--secondary-100); }
-
-.btn-batch-submit {
-  flex: 2;
-  padding: 0.875rem;
-  border-radius: 1rem;
-  background-color: #4f46e5;
-  border: none;
-  color: white;
-  font-weight: 900;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-batch-submit:hover {
-  background-color: #4338ca;
-  box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
-}
-
-/* ── Icon size utilities for BatchMaster ── */
-.icon-lg { width: 1.25rem; height: 1.25rem; }
-.icon-md { width: 1rem; height: 1rem; }
-.icon-sm { width: 0.875rem; height: 0.875rem; }
-
-/* ── Stat card icon colours ── */
-.stat-icon-indigo {
-  background-color: #eef2ff;
-  color: #4f46e5;
-}
-.stat-icon-rose {
-  background-color: #fff1f2;
-  color: #e11d48;
-}
-.stat-icon-amber {
-  background-color: #fffbeb;
-  color: #d97706;
-}
-.stat-icon-emerald {
-  background-color: #ecfdf5;
-  color: #059669;
-}
-
-/* -- Quantity progress cell -- */
-.qty-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-  min-width: 8rem;
-}
-
-.qty-line {
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--secondary-900);
-  margin: 0;
-  white-space: nowrap;
-}
-
-.qty-bar-track {
-  height: 0.375rem;
-  background-color: var(--secondary-100);
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-.qty-bar-fill {
-  height: 100%;
-  border-radius: 9999px;
-  transition: width 0.5s ease;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   BATCHES PAGE — MOBILE-FIRST RESPONSIVE
-   ═══════════════════════════════════════════════════════════════ */
-
-/* iOS zoom fix */
-.batches-search-input,
-.form-field-input {
-  font-size: 16px !important;
-}
-
-@media (max-width: 767px) {
-  /* Stats: 4-col → 2-col on tablets */
-  .batches-stats {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 0 1rem;
-    gap: 1rem;
+/* Responsive Table */
+@media (max-width: 1200px) {
+  .batches-table-card {
+    background: transparent;
+    border: none;
+    box-shadow: none;
   }
 
-  .batches-table-wrap {
-    padding: 0 1rem;
-  }
-
-  .batches-header-bar {
-    padding: 1rem;
-  }
-
-  .batches-action-group {
-    flex-wrap: wrap;
-    width: 100%;
-  }
-
-  .btn-new-batch {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-@media (max-width: 640px) {
-  /* Stats: 2→1 col */
-  .batches-stats {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  /* Table → stacked cards */
   .batches-table thead { display: none; }
 
   .batches-table,
@@ -592,70 +380,265 @@
   }
 
   .batches-table tr {
-    margin-bottom: 1rem;
     background: white;
-    border-radius: 1.25rem;
+    margin-bottom: 1.5rem;
+    border-radius: 1.75rem;
     border: 1px solid var(--secondary-100);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+    padding: 1rem;
   }
 
   .batches-table td {
-    padding: 0.75rem 1.25rem;
-    border: none;
-    border-bottom: 1px solid var(--secondary-50);
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+    align-items: center;
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px dotted var(--secondary-50);
     text-align: right;
+    gap: 1.5rem;
   }
 
-  .batches-table td:last-child { border-bottom: none; }
+  .batches-table td:last-child {
+    border-bottom: none;
+    padding-top: 1.25rem;
+  }
 
   .batches-table td::before {
     content: attr(data-label);
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-weight: 900;
-    text-transform: uppercase;
     color: var(--secondary-400);
-    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
     flex-shrink: 0;
     text-align: left;
   }
-
+  
+  .batch-id-cell {
+    justify-content: flex-end;
+  }
+  
   .batch-actions {
     justify-content: flex-end;
     width: 100%;
   }
-
-  /* Form grid stack */
-  .form-grid-2 {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .batch-form { padding: 1.25rem; }
-  .batch-modal-header { padding: 1.25rem; }
-  .batch-form-footer { padding: 1rem 1.25rem; }
 }
 
-@media (max-width: 375px) {
-  .batches-stats {
+/* Modal */
+/* Modal Premium Mastery Overhaul */
+.batch-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 5vw, 4rem);
+  background: rgba(8, 10, 24, 0.85);
+  backdrop-filter: blur(16px) saturate(180%);
+}
+
+.batch-modal-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 50rem;
+  border-radius: 32px;
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.4), 
+              0 0 0 1px rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  animation: batchModalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes batchModalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.batch-modal-header {
+  padding: 2rem 2.5rem;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.batch-modal-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+.btn-close-batch {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-close-batch:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.batch-form {
+  padding: 2.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  scrollbar-width: thin;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.form-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.form-field-label {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding-left: 0.25rem;
+}
+
+.form-field-input {
+  background: #f8fafc;
+  border: 2px solid #f1f5f9;
+  padding: 0.875rem 1.25rem;
+  border-radius: 16px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1e293b;
+  transition: all 0.3s;
+  outline: none;
+}
+
+.form-field-input:focus {
+  background: #ffffff;
+  border-color: #6366f1;
+  box-shadow: 0 10px 25px -10px rgba(99, 102, 241, 0.2);
+  transform: translateY(-1px);
+}
+
+select.form-field-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1.25rem;
+}
+
+.flex-row-gap-2 {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.w-unit-select {
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.h-notes-area {
+  height: 120px;
+  resize: none;
+  line-height: 1.6;
+}
+
+.batch-form-footer {
+  padding: 1.5rem 2.5rem 2.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1.25rem;
+  background: white;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn-batch-cancel {
+  padding: 0.875rem 2rem;
+  border-radius: 16px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-batch-submit {
+  padding: 0.875rem 2.5rem;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  color: white;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+}
+
+.btn-batch-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 30px -5px rgba(99, 102, 241, 0.5);
+}
+
+@media (max-width: 768px) {
+  .form-grid-2 {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
-
-  .batches-title {
-    font-size: 1.25rem;
+  
+  .batch-form {
+    padding: 1.5rem;
   }
-
+  
   .batch-form-footer {
     flex-direction: column;
+    padding: 1.5rem;
   }
-
-  .btn-batch-cancel,
-  .btn-batch-submit {
-    flex: none;
+  
+  .btn-batch-cancel, .btn-batch-submit {
     width: 100%;
   }
+}
+
+/* Stat Colors */
+.stat-icon-indigo { background-color: #eef2ff; color: #4f46e5; }
+.stat-icon-rose { background-color: #fff1f2; color: #e11d48; }
+.stat-icon-amber { background-color: #fffbeb; color: #d97706; }
+.stat-icon-emerald { background-color: #ecfdf5; color: #059669; }
+
+.loader-spinner {
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 4px solid var(--secondary-100);
+  border-top-color: var(--primary-600);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

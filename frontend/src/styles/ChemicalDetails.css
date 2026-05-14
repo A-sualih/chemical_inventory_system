@@ -411,6 +411,54 @@
 .hazard-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; }
 .hazard-warning { background: #fffbeb; color: #d97706; border: 1px solid #fef3c7; }
 
+/* Ledger Tables Premium */
+.ledger-scroll-area {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 1rem;
+    padding-bottom: 0.5rem;
+}
+
+.ledger-premium-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.ledger-premium-table th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-size: 0.65rem;
+    font-weight: 900;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.ledger-premium-row {
+    transition: background 0.2s;
+}
+
+.ledger-premium-row:hover {
+    background: #f8fafc;
+}
+
+.ledger-premium-row td {
+    padding: 1.25rem 1rem;
+    font-size: 0.8125rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.status-pill {
+    padding: 0.25rem 0.625rem;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
 /* Global Animations */
 @keyframes slideUp {
     from { opacity: 0; transform: translateY(30px); }

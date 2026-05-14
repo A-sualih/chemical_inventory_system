@@ -274,7 +274,7 @@ const Batches = () => {
                       {filteredBatches.map(b => (
                         <tr key={b._id}>
                           {/* Batch Identity */}
-                          <td>
+                          <td data-label="Batch">
                             <div className="batch-id-cell">
                               <div className="batch-id-icon">
                                 <TagIcon className="icon-md" />
@@ -291,19 +291,19 @@ const Batches = () => {
                           </td>
 
                           {/* Chemical Reference */}
-                          <td>
+                          <td data-label="Chemical">
                             <div className="chem-main-text">{b.chemical_name || '—'}</div>
                             <div className="chem-id-text">{b._id ? `ID: ${b._id.slice(-8).toUpperCase()}` : '—'}</div>
                           </td>
 
                           {/* Supplier */}
-                          <td>
+                          <td data-label="Supplier">
                             <div className="chem-main-text">{b.supplier_name || '—'}</div>
                             <div className="batch-chem-text">{b.notes ? b.notes.slice(0, 40) : 'No notes'}</div>
                           </td>
 
                           {/* Quantity */}
-                          <td>
+                          <td data-label="Quantity">
                             <div className="qty-cell">
                               <p className="qty-line">
                                 {b.total_quantity != null
@@ -317,7 +317,7 @@ const Batches = () => {
                           </td>
 
                           {/* Timeline */}
-                          <td>
+                          <td data-label="Timeline">
                             <div className="date-cell">
                               <span className="date-label">Expires</span>
                               <span className="date-value">{b.expiry_date ? new Date(b.expiry_date).toLocaleDateString() : '—'}</span>
@@ -325,7 +325,7 @@ const Batches = () => {
                           </td>
 
                           {/* Actions */}
-                          <td>
+                          <td data-label="Actions">
                             <div className="batch-actions">
                               <button onClick={() => handleOpenModal(b)} className="action-icon-btn action-edit"><PencilIcon className="icon-sm" /></button>
                               <button onClick={() => handleDelete(b._id)} className="action-icon-btn action-delete"><TrashIcon className="icon-sm" /></button>
@@ -350,7 +350,7 @@ const Batches = () => {
                   <form onSubmit={handleSubmit} className="batch-form">
                     <div className="form-grid-2">
                       <div className="form-field-group">
-                        <label className="form-field-label">Batch / Lot Number</label>
+                        <label className="form-field-label"><TagIcon className="icon-xs inline mr-1" /> Batch / Lot Number</label>
                         <input 
                           type="text" 
                           value={formData.batch_number} 
@@ -360,7 +360,7 @@ const Batches = () => {
                         />
                       </div>
                       <div className="form-field-group">
-                        <label className="form-field-label">Parent Chemical</label>
+                        <label className="form-field-label"><PlusIcon className="icon-xs inline mr-1" /> Parent Chemical</label>
                         <select 
                           value={formData.chemical_id} 
                           onChange={e => setFormData({...formData, chemical_id: e.target.value})}
@@ -375,7 +375,7 @@ const Batches = () => {
 
                     <div className="form-grid-2">
                       <div className="form-field-group">
-                        <label className="form-field-label">Total Batch Quantity</label>
+                        <label className="form-field-label"><TagIcon className="icon-xs inline mr-1" /> Total Batch Quantity</label>
                         <div className="flex-row-gap-2">
                           <input 
                             type="number" 
@@ -394,7 +394,7 @@ const Batches = () => {
                         </div>
                       </div>
                       <div className="form-field-group">
-                        <label className="form-field-label">Supplier Name</label>
+                        <label className="form-field-label"><TruckIcon className="icon-xs inline mr-1" /> Supplier Name</label>
                         <input 
                           type="text" 
                           value={formData.supplier_name} 
@@ -407,7 +407,7 @@ const Batches = () => {
 
                     <div className="form-grid-2">
                       <div className="form-field-group">
-                        <label className="form-field-label">Manufactured On</label>
+                        <label className="form-field-label"><CalendarDaysIcon className="icon-xs inline mr-1" /> Manufactured On</label>
                         <input 
                           type="date" 
                           value={formData.manufacturing_date} 
@@ -416,7 +416,7 @@ const Batches = () => {
                         />
                       </div>
                       <div className="form-field-group">
-                        <label className="form-field-label">Expiry Date</label>
+                        <label className="form-field-label"><CalendarDaysIcon className="icon-xs inline mr-1" /> Expiry Date</label>
                         <input 
                           type="date" 
                           value={formData.expiry_date} 
