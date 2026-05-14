@@ -216,6 +216,48 @@ const TransactionSystem = () => {
         }
     };
 
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+
+    const handleSearch = async (query) => {
+        setSearchQuery(query);
+        if (query.length < 2) {
+            setSearchResults([]);
+            return;
+        }
+        setIsSearching(true);
+        try {
+            // Search for active containers by chemical name
+            const res = await axios.get(`/api/chemicals`, { params: { search: query, limit: 10 } });
+            setSearchResults(res.data.data || []);
+        } catch (err) {
+            console.error('Search failed');
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const selectChemical = async (chem) => {
+        setLoading(true);
+        try {
+            // Find the first available container for this chemical
+            const res = await axios.get(`/api/containers`, { params: { chemical_id: chem._id, limit: 1 } });
+            if (res.data.data && res.data.data.length > 0) {
+                const containerId = res.data.data[0].container_id;
+                autoScan(containerId);
+            } else {
+                alert('No active containers found for this chemical.');
+            }
+        } catch (err) {
+            alert('Error fetching container details.');
+        } finally {
+            setLoading(false);
+            setSearchQuery('');
+            setSearchResults([]);
+        }
+    };
+
     const renderScannerView = () => (
         <div className="fast-track-card">
             <div className={`scanner-viewport ${showCamera ? 'camera-active' : ''}`} style={{ display: (showCamera || scannedData) ? 'flex' : 'none' }}>
@@ -231,7 +273,7 @@ const TransactionSystem = () => {
 
             {!scannedData ? (
                 <div style={{ textAlign: 'center' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '3rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '3rem', flexWrap: 'wrap' }}>
                         <button 
                             onClick={() => { setShowCamera(!showCamera); setScanError(null); }}
                             className={`transaction-tab-btn ${showCamera ? 'active' : ''}`}
@@ -244,6 +286,48 @@ const TransactionSystem = () => {
                             <QrCodeIcon style={{ width: '1.25rem' }} />
                             {showCamera ? 'Stop Scanner' : 'Launch Camera'}
                         </button>
+                        <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
+                             <div className="search-input-wrapper" style={{ position: 'relative' }}>
+                                <BeakerIcon style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: '1.25rem', color: 'var(--secondary-400)' }} />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => handleSearch(e.target.value)}
+                                    placeholder="Search by Chemical Name..."
+                                    className="input-neon"
+                                    style={{ paddingLeft: '3rem', margin: 0 }}
+                                />
+                             </div>
+                             {searchResults.length > 0 && (
+                                 <div className="search-results-dropdown" style={{
+                                     position: 'absolute', top: '100%', left: 0, right: 0, 
+                                     background: 'white', zIndex: 100, borderRadius: '1rem',
+                                     marginTop: '0.5rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
+                                     border: '1px solid var(--secondary-100)', overflow: 'hidden'
+                                 }}>
+                                     {searchResults.map(chem => (
+                                         <div 
+                                            key={chem._id} 
+                                            className="search-result-item"
+                                            onClick={() => selectChemical(chem)}
+                                            style={{ 
+                                                padding: '1rem 1.5rem', cursor: 'pointer', 
+                                                display: 'flex', justifyContent: 'space-between',
+                                                alignItems: 'center', borderBottom: '1px solid var(--secondary-50)'
+                                            }}
+                                         >
+                                             <div>
+                                                 <div style={{ fontWeight: 800, color: 'var(--secondary-900)' }}>{chem.name}</div>
+                                                 <div style={{ fontSize: '0.75rem', color: 'var(--secondary-500)' }}>CAS: {chem.cas_number || 'N/A'}</div>
+                                             </div>
+                                             <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary-600)' }}>
+                                                 {chem.quantity} {chem.unit}
+                                             </div>
+                                         </div>
+                                     ))}
+                                 </div>
+                             )}
+                        </div>
                     </div>
 
                     {scanError && (
@@ -293,7 +377,7 @@ const TransactionSystem = () => {
                     )}
 
                     <form onSubmit={handleScan} className="manual-scan-form">
-                        <label className="detail-label" style={{ marginBottom: '1rem', display: 'block' }}>Manual Container Entry</label>
+                        <label className="detail-label" style={{ marginBottom: '1rem', display: 'block' }}>Direct ID Entry</label>
                         <div style={{ maxWidth: '500px', margin: '0 auto' }}>
                             <input
                                 ref={barcodeInputRef}

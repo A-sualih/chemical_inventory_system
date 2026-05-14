@@ -242,46 +242,61 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
             <form onSubmit={handleSubmit} style={{ padding: '0 2rem 1.5rem' }}>
               <div className="premium-form-grid" style={{ gap: '1rem', padding: '1.5rem 0' }}>
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                    <div style={{ width: '4px', height: '16px', background: 'var(--waste-primary)', borderRadius: '2px' }}></div>
-                    <label className="premium-form-label" style={{ marginBottom: 0 }}>Chemical Selection</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                    <div style={{ width: '4px', height: '18px', background: 'var(--waste-primary)', borderRadius: '2px' }}></div>
+                    <label className="premium-form-label" style={{ marginBottom: 0 }}>Select Material for Disposal</label>
                   </div>
-                  <select
-                    required
-                    value={form.chemical_id}
-                    onChange={async (e) => {
-                      const chemId = e.target.value;
-                      const chem = chemicals.find(c => c._id === chemId);
-                      setForm({
-                        ...form,
-                        chemical_id: chemId,
-                        batch_id: '',
-                        batch_number: '',
-                        unit: chem ? chem.unit : ''
-                      });
+                  
+                  <div className="modern-search-wrapper" style={{ marginBottom: '1.5rem', position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-400)' }}>
+                      <IconPlus size={18} style={{ transform: 'rotate(45deg)' }} />
+                    </div>
+                    <input 
+                      type="text" 
+                      placeholder="Search chemical by name or CAS..." 
+                      className="premium-form-input"
+                      style={{ paddingLeft: '3.5rem', borderRadius: '1.25rem', border: '1px solid var(--secondary-200)', background: '#f8fafc' }}
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </div>
 
-                      if (chemId && chem) {
-                        try {
-                          const res = await axios.get('/api/batches', { params: { chemical_id: chem.id } });
-                          setBatches(res.data.data || res.data || []);
-                        } catch (err) {
-                          console.error('Fetch Batches Error:', err);
-                        }
-                      } else {
-                        setBatches([]);
-                      }
-                    }}
-                    className="premium-form-input"
-                    style={{ height: '60px', fontSize: '1.05rem' }}
-                  >
-                    <option value="">{chemicals.length > 0 ? 'Search for a chemical...' : 'No chemicals available in current lab scope'}</option>
-                    {chemicals.map(c => (
-                        <option key={c._id} value={c._id}>
-                          {c.name} ({c.cas_number}) — {c.quantity > 0 ? `In Stock: ${c.quantity} ${c.unit}` : 'Out of Stock'}
-                        </option>
-                      ))}
-                  </select>
+                  <div className="chemical-selection-grid" style={{ 
+                    maxHeight: '280px', overflowY: 'auto', display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', 
+                    gap: '1rem', padding: '0.5rem', background: '#f1f5f9', 
+                    borderRadius: '1.5rem', border: '1px solid var(--secondary-100)'
+                  }}>
+                    {chemicals.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.cas_number?.includes(search)).map(c => (
+                      <div 
+                        key={c._id} 
+                        className={`chem-select-card ${form.chemical_id === c._id ? 'selected' : ''}`}
+                        onClick={async () => {
+                          setForm({ ...form, chemical_id: c._id, batch_id: '', batch_number: '', unit: c.unit });
+                          try {
+                            const res = await axios.get('/api/batches', { params: { chemical_id: c.id } });
+                            setBatches(res.data.data || res.data || []);
+                          } catch (err) { console.error(err); }
+                        }}
+                        style={{
+                          background: form.chemical_id === c._id ? 'var(--waste-primary)' : 'white',
+                          color: form.chemical_id === c._id ? 'white' : 'inherit',
+                          padding: '1.25rem', borderRadius: '1.25rem', cursor: 'pointer',
+                          transition: 'all 0.2s', border: '1px solid var(--secondary-100)',
+                          boxShadow: form.chemical_id === c._id ? '0 10px 15px -3px rgba(99, 102, 241, 0.3)' : 'none'
+                        }}
+                      >
+                        <div style={{ fontWeight: 800, fontSize: '0.95rem', marginBottom: '0.25rem' }}>{c.name}</div>
+                        <div style={{ fontSize: '0.75rem', opacity: 0.7, fontWeight: 600 }}>CAS: {c.cas_number || 'N/A'}</div>
+                        <div style={{ marginTop: '0.75rem', fontSize: '0.8rem', fontWeight: 800, display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Stock:</span>
+                          <span>{c.quantity} {c.unit}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+
 
                 <div style={{ gridColumn: 'span 1' }}>
                   <label className="premium-form-label">Specific Batch</label>

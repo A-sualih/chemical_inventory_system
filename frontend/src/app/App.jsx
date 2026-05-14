@@ -32,6 +32,7 @@ import SecurityDashboard from "../features/security/SecurityDashboard";
 import TransferDashboard from "../features/transfers/TransferDashboard";
 import LabManagement from "../features/settings/LabManagement";
 import TransactionSystem from "../features/transactions/TransactionSystem";
+import IntegrationHub from "../features/connectivity/IntegrationHub";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -100,6 +101,7 @@ function App() {
               <Route path="/lab-management" element={<ProtectedRoute allowedRoles={["Admin"]}><LabManagement /></ProtectedRoute>} />
               <Route path="/audit" element={<ProtectedRoute allowedRoles={["Admin"]}><AdminOnly title="Master Audit Logs" description="Review all security events." /></ProtectedRoute>} />
               <Route path="/roles" element={<ProtectedRoute allowedRoles={["Admin"]}><AdminOnly title="Role Management" description="Configure permissions." /></ProtectedRoute>} />
+              <Route path="/integrations" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager"]}><IntegrationHub /></ProtectedRoute>} />
 
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />

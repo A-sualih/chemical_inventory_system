@@ -19,6 +19,10 @@ const InventoryLogs = () => {
   const [selectedChemical, setSelectedChemical] = useState(null);
   const [initialAction, setInitialAction] = useState("OUT");
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeFilter, setActiveFilter] = useState("ALL");
+  const [modalSearchTerm, setModalSearchTerm] = useState("");
+
   const fetchLogs = async () => {
     try {
       const { data } = await axios.get('/api/inventory/logs');
@@ -46,17 +50,22 @@ const InventoryLogs = () => {
 
   const startTransaction = (actionType) => {
     setInitialAction(actionType);
+    setModalSearchTerm(""); // Reset search on start
     setIsPickerOpen(true);
   };
 
-  const handleChemicalSelect = (e) => {
-    const chem = chemicals.find(c => c.id === e.target.value);
-    if (chem) {
-      setSelectedChemical(chem);
-      setIsPickerOpen(false);
-      setIsActionModalOpen(true);
-    }
-  };
+  const filteredLogs = logs.filter(log => {
+    const matchesSearch = 
+      (log.chemical_name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (log.chemical_id || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (log.user_name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (log.batch_number || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (log.reason || "").toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesAction = activeFilter === "ALL" || log.action === activeFilter;
+    
+    return matchesSearch && matchesAction;
+  });
 
   return (
     <Layout>
@@ -93,17 +102,52 @@ const InventoryLogs = () => {
       </div>
 
       <div className="ledger-card">
-        {/* Header */}
-        <div className="ledger-header">
-          <h2 className="ledger-title">Audit History</h2>
-          <div className="ledger-controls">
-            <span className="tag-badge">Real-time Feed</span>
-            <button 
-              onClick={() => { setLoading(true); fetchLogs(); }} 
-              className={`refresh-btn ${loading ? 'loading' : ''}`}
-            >
-              <svg className="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-            </button>
+        {/* Header with Advanced Search & Filter */}
+        <div className="ledger-header" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 className="ledger-title">Audit History</h2>
+            <div className="ledger-controls">
+              <span className="tag-badge">Real-time Feed</span>
+              <button 
+                onClick={() => { setLoading(true); fetchLogs(); }} 
+                className={`refresh-btn ${loading ? 'loading' : ''}`}
+              >
+                <svg className="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+              </button>
+            </div>
+          </div>
+
+          <div className="ledger-search-bar" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <div className="search-input-container" style={{ flex: 1, minWidth: '300px', position: 'relative' }}>
+               <svg style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)', width: '1.25rem', color: 'var(--secondary-400)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+               <input 
+                  type="text" 
+                  placeholder="Search by Chemical, LOT, ID or Personnel..." 
+                  className="ledger-input"
+                  style={{ width: '100%', padding: '1rem 1rem 1rem 3.5rem', borderRadius: '1.25rem', border: '1px solid var(--secondary-100)', background: '#f8fafc', fontWeight: 600, fontSize: '0.9rem' }}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+               />
+            </div>
+            
+            <div className="action-filter-pills" style={{ display: 'flex', gap: '0.5rem', background: '#f1f5f9', padding: '0.4rem', borderRadius: '1rem' }}>
+              {['ALL', 'IN', 'OUT', 'TRANSFER', 'DISPOSAL'].map(type => (
+                <button
+                  key={type}
+                  onClick={() => setActiveFilter(type)}
+                  style={{ 
+                    padding: '0.5rem 1rem', borderRadius: '0.75rem', border: 'none', 
+                    fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer',
+                    background: activeFilter === type ? 'white' : 'transparent',
+                    color: activeFilter === type ? 'var(--primary-600)' : 'var(--secondary-500)',
+                    boxShadow: activeFilter === type ? '0 4px 6px -1px rgba(0,0,0,0.05)' : 'none',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -126,7 +170,7 @@ const InventoryLogs = () => {
                 </tr>
               </thead>
               <tbody>
-                {logs.length === 0 && (
+                {filteredLogs.length === 0 && (
                   <tr>
                     <td colSpan="6" className="empty-history">
                       <div className="empty-history-content">
@@ -235,32 +279,67 @@ const InventoryLogs = () => {
             
             <div className="picker-form">
               <div className="form-group-large">
-                <label className="picker-label">Global Chemical Search</label>
-                <div className="select-container-large">
-                  <select 
+                <label className="picker-label">Chemical Selection Hub</label>
+                <div className="search-box-premium" style={{ position: 'relative' }}>
+                  <svg style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)', width: '1.25rem', color: 'var(--secondary-400)', pointerEvents: 'none' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  </svg>
+                  <input 
+                    type="text" 
+                    placeholder="Type name, CAS or ID to search..." 
                     className="picker-select"
-                    value={selectedChemical?.id || ""}
-                    onChange={handleChemicalSelect}
-                  >
-                    <option value="">Choose chemical system...</option>
-                    {chemicals.map(c => (
-                      <option key={c.id} value={c.id}>{c.name} — LOT: {c.batch_number || 'N/A'} ({c.id})</option>
-                    ))}
-                  </select>
-                  <div className="select-icon-absolute">
-                    <svg className="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"/></svg>
-                  </div>
+                    style={{ paddingLeft: '3.5rem', appearance: 'auto' }}
+                    value={modalSearchTerm}
+                    onChange={(e) => setModalSearchTerm(e.target.value)}
+                  />
                 </div>
               </div>
 
-              <div className="waiting-card">
-                <div className="waiting-content">
-                   <div className="waiting-icon-box">
-                      <svg className="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                   </div>
-                   <p className="waiting-text">Awaiting system selection</p>
-                </div>
+              <div className="system-results-scroller" style={{ 
+                maxHeight: '220px', overflowY: 'auto', background: '#f8fafc', 
+                borderRadius: '1.5rem', border: '1px solid var(--secondary-100)',
+                padding: '0.5rem'
+              }}>
+                {chemicals.filter(c => 
+                  c.name.toLowerCase().includes(modalSearchTerm.toLowerCase()) || 
+                  c.id.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
+                  (c.batch_number && c.batch_number.toLowerCase().includes(modalSearchTerm.toLowerCase()))
+                ).map(c => (
+                  <div 
+                    key={c.id} 
+                    className={`system-item-card ${selectedChemical?.id === c.id ? 'selected' : ''}`}
+                    onClick={() => {
+                      setSelectedChemical(c);
+                      setModalSearchTerm(c.name);
+                    }}
+                    style={{
+                      padding: '1rem', borderRadius: '1rem', cursor: 'pointer',
+                      marginBottom: '0.5rem', transition: 'all 0.2s',
+                      background: selectedChemical?.id === c.id ? 'var(--primary-600)' : 'white',
+                      color: selectedChemical?.id === c.id ? 'white' : 'inherit',
+                      border: '1px solid var(--secondary-50)',
+                      boxShadow: selectedChemical?.id === c.id ? '0 10px 15px -3px rgba(99, 102, 241, 0.2)' : 'none'
+                    }}
+                  >
+                    <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>{c.name}</div>
+                    <div style={{ fontSize: '0.7rem', opacity: selectedChemical?.id === c.id ? 0.8 : 0.5, fontWeight: 700, marginTop: '0.2rem' }}>
+                      LOT: {c.batch_number || 'N/A'} • ID: {c.id}
+                    </div>
+                  </div>
+                ))}
+                {chemicals.length === 0 && <p style={{ textAlign: 'center', padding: '1rem', fontSize: '0.8rem', color: 'var(--secondary-400)' }}>No chemical systems active</p>}
               </div>
+
+              {!selectedChemical && (
+                <div className="waiting-card" style={{ padding: '1.5rem' }}>
+                  <div className="waiting-content">
+                    <div className="waiting-icon-box" style={{ width: '2rem', height: '2rem' }}>
+                        <svg className="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <p className="waiting-text" style={{ fontSize: '0.65rem' }}>Select a target system to proceed</p>
+                  </div>
+                </div>
+              )}
 
               <div className="picker-actions">
                 <button 
@@ -270,10 +349,21 @@ const InventoryLogs = () => {
                   Global Discard
                 </button>
                 <button 
-                  disabled={true}
+                  disabled={!selectedChemical}
+                  onClick={() => {
+                    setIsPickerOpen(false);
+                    setIsActionModalOpen(true);
+                  }}
                   className="btn-primary-picker"
+                  style={{
+                    background: selectedChemical ? 'var(--primary-600)' : 'var(--secondary-200)',
+                    color: 'white',
+                    cursor: selectedChemical ? 'pointer' : 'not-allowed',
+                    border: 'none',
+                    transition: 'all 0.3s'
+                  }}
                 >
-                  Select to Proceed
+                  Confirm & Proceed
                 </button>
               </div>
             </div>

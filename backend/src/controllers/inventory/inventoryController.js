@@ -2,6 +2,7 @@ const Chemical = require('../../models/Chemical');
 const InventoryLog = require('../../models/InventoryLog');
 const Batch = require('../../models/Batch');
 const Container = require('../../models/Container');
+const WasteDisposal = require('../../models/WasteDisposal');
 const { syncBatch } = require('../../services/batchService');
 const { syncContainers, updateContainerStatus } = require('../../services/containerService');
 const { convertToBase, getBaseUnit, convertFromBase } = require('../../utils/unitConverter');
@@ -416,6 +417,44 @@ exports.handleTransaction = async (req, res) => {
       new_location: action === 'TRANSFER' ? (to_building ? `${to_building} / ${to_room}` : new_location) : (action === 'IN' ? targetChem.location : undefined)
     });
     await log.save();
+
+    // --- SYNC TO WASTE MANAGEMENT MODULE ---
+    if (action === 'DISPOSAL') {
+      try {
+        // Map reason to enum
+        const validReasons = ['Expired', 'Contaminated', 'Damaged', 'Excess stock', 'Experimental waste', 'Other'];
+        const mappedReason = validReasons.find(r => r.toLowerCase() === (reason || "").toLowerCase()) || 'Other';
+
+        // Map method to enum
+        const validMethods = ['Neutralization', 'Incineration', 'Chemical treatment', 'Recycling', 'Waste contractor pickup', 'Secure hazardous storage'];
+        const mappedMethod = validMethods.find(m => m.toLowerCase() === (disposal_method || "").toLowerCase()) || 'Chemical treatment';
+
+        const wasteEntry = new WasteDisposal({
+          lab: req.activeLabId,
+          chemical_id: chem._id, // Use Mongoose ID
+          chemical_name: chem.name,
+          batch_number: batch || chem.batch_number,
+          container_id: containerId,
+          quantity: quantity_change || (Number(numContainers) * Number(qtyPerContainer)),
+          unit: txUnit,
+          reason: mappedReason,
+          method: mappedMethod,
+          hazard_classification: targetChem.ghs_classes && targetChem.ghs_classes.length > 0 ? targetChem.ghs_classes[0] : 'Other',
+          responsible_person: req.user.id,
+          responsible_person_name: req.user.name,
+          status: 'Disposed', // Immediate disposal from inventory ledger is considered complete
+          notes: compliance_notes || remarks || reason,
+          method_details: {
+            completion_date: new Date(),
+            operator_name: req.user.name
+          }
+        });
+        await wasteEntry.save();
+      } catch (wasteErr) {
+        console.error("Failed to sync disposal to Waste module:", wasteErr);
+      }
+    }
+    // ----------------------------------------
 
     const auditAction = `STOCK_${action}`;
     let auditDetails = "";

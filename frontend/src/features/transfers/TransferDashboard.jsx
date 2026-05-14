@@ -1,5 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { 
+  ArrowUpDown, 
+  Calendar, 
+  Beaker, 
+  Package, 
+  MapPin, 
+  User, 
+  MessageSquare, 
+  CheckCircle, 
+  XCircle, 
+  Plus, 
+  Info,
+  Clock,
+  ArrowRightLeft
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Layout from '../../layout/Layout';
 import './TransferDashboard.css';
@@ -194,40 +209,68 @@ const TransferDashboard = () => {
             <table className="transfer-table">
               <thead>
                 <tr>
-                  <th>Type</th>
-                  <th>Date</th>
-                  <th>Chemical</th>
-                  <th>Quantity</th>
-                  <th>Provider Lab</th>
-                  <th>Requested By</th>
-                  <th>Reason</th>
-                  <th>Status</th>
+                  <th><div className="th-flex"><ArrowRightLeft size={14}/> Type</div></th>
+                  <th><div className="th-flex"><Calendar size={14}/> Date</div></th>
+                  <th><div className="th-flex"><Beaker size={14}/> Chemical</div></th>
+                  <th><div className="th-flex"><Package size={14}/> Quantity</div></th>
+                  <th><div className="th-flex"><MapPin size={14}/> Provider</div></th>
+                  <th><div className="th-flex"><User size={14}/> Requester</div></th>
+                  <th><div className="th-flex"><MessageSquare size={14}/> Reason</div></th>
+                  <th><div className="th-flex"><Info size={14}/> Status</div></th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {transfers.map(t => (
-                  <tr key={t._id}>
-                    <td>
+                {transfers.map((t, idx) => (
+                  <tr key={t._id} style={{ '--index': idx }}>
+                    <td data-label="Type">
                       {isSourceLab(t)
-                        ? <span className="dir-badge dir-out">📤 Outgoing</span>
-                        : <span className="dir-badge dir-in">📥 Incoming</span>
+                        ? <span className="dir-badge dir-out"><ArrowUpDown size={12}/> Outgoing</span>
+                        : <span className="dir-badge dir-in"><ArrowUpDown size={12}/> Incoming</span>
                       }
                     </td>
-                    <td>{new Date(t.createdAt).toLocaleDateString()}</td>
-                    <td style={{fontWeight:700}}>{t.chemical_id?.name || '—'}</td>
-                    <td>{t.quantity_moved} {t.unit}</td>
-                    <td>{t.source_lab?.name}</td>
-                    <td>{t.requested_by?.name || '—'}</td>
-                    <td style={{color:'var(--secondary-500)',fontStyle:'italic',maxWidth:'140px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                    <td data-label="Date">
+                      <div className="td-with-icon">
+                        <Clock size={14} className="td-icon-muted"/>
+                        {new Date(t.createdAt).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td data-label="Chemical">
+                       <div className="chem-identity-cell">
+                         <span className="chem-main-name">{t.chemical_id?.name || '—'}</span>
+                         <span className="chem-sub-id">{t.chemical_id?.id}</span>
+                       </div>
+                    </td>
+                    <td data-label="Quantity">
+                      <span className="qty-tag">{t.quantity_moved} <small>{t.unit}</small></span>
+                    </td>
+                    <td data-label="Provider Lab">
+                      <div className="td-with-icon">
+                        <MapPin size={14} className="td-icon-muted"/>
+                        {t.source_lab?.name}
+                      </div>
+                    </td>
+                    <td data-label="Requested By">
+                      <div className="td-with-icon">
+                        <User size={14} className="td-icon-muted"/>
+                        {t.requested_by?.name || '—'}
+                      </div>
+                    </td>
+                    <td data-label="Reason" className="reason-cell">
                       {t.reason || '—'}
                     </td>
-                    <td>{statusBadge(t.status)}</td>
-                    <td>
+                    <td data-label="Status">{statusBadge(t.status)}</td>
+                    <td data-label="Actions">
                       {canApprove(t) && (
                         <div className="action-buttons">
-                          <button className="btn-success-sm" onClick={() => handleApprove(t._id)}>Approve</button>
-                          <button className="btn-danger-sm" onClick={() => handleReject(t._id)}>Decline</button>
+                          <button className="btn-success-sm" onClick={() => handleApprove(t._id)}>
+                            <CheckCircle size={14}/>
+                            <span>Approve</span>
+                          </button>
+                          <button className="btn-danger-sm" onClick={() => handleReject(t._id)}>
+                            <XCircle size={14}/>
+                            <span>Decline</span>
+                          </button>
                         </div>
                       )}
                     </td>

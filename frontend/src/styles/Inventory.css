@@ -183,6 +183,30 @@
   gap: 0.75rem;
 }
 
+.ledger-search-bar {
+  animation: fade-in 0.5s ease-out;
+}
+
+.ledger-input {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+}
+
+.ledger-input:focus {
+  outline: none;
+  background: white !important;
+  border-color: var(--primary-400) !important;
+  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.1), 0 4px 6px -2px rgba(99, 102, 241, 0.05) !important;
+}
+
+.action-filter-pills {
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+}
+
+.action-filter-pills button:hover {
+  color: var(--primary-500) !important;
+}
+
 .tag-badge {
   font-size: 10px;
   font-weight: 900;

@@ -268,7 +268,6 @@
       minmax(120px, 1.5fr) 
       minmax(90px, 1fr);
   }
-  /* Actions drop to new row, full width */
   .waste-actions-cell {
     grid-column: 1 / -1;
     border-top: 1px dashed var(--secondary-200);
@@ -279,6 +278,14 @@
 }
 
 @media (max-width: 1200px) {
+  .waste-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .compliance-summary-card {
+    min-width: 0 !important;
+    width: 100%;
+  }
   .waste-header-row, .waste-tr {
     grid-template-columns: 
       minmax(110px, 1fr) 
@@ -287,10 +294,7 @@
       minmax(140px, auto) 
       minmax(120px, 1.5fr);
   }
-  /* Hide Date and Method on smaller tablet, rely on View Details */
-  .waste-hide-1200 {
-    display: none !important;
-  }
+  .waste-hide-1200 { display: none !important; }
 }
 
 @media (max-width: 992px) {
@@ -300,24 +304,55 @@
       minmax(140px, 2fr) 
       minmax(140px, auto);
   }
-  .waste-hide-992 {
-    display: none !important;
-  }
+  .waste-hide-992 { display: none !important; }
 }
 
 @media (max-width: 768px) {
-  .waste-header-row {
-    display: none;
-  }
+  .waste-header-row { display: none; }
   .waste-tr {
     grid-template-columns: 1fr;
     padding: 1.5rem !important;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    border-radius: 1.25rem;
   }
-  .waste-hide-1200, .waste-hide-992 {
-    /* Reveal fields again in mobile stacked view */
-    display: flex !important;
+  .waste-td {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.5rem 0;
+    width: 100%;
+    border-bottom: 1px solid var(--secondary-50);
   }
+  .waste-td::before {
+    content: attr(data-label);
+    font-size: 0.65rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--secondary-400);
+    margin-right: 1rem;
+    flex-shrink: 0;
+  }
+  .waste-actions-cell {
+    grid-column: auto;
+    border-top: 1px solid var(--secondary-100);
+    padding-top: 1rem !important;
+    margin-top: 0.5rem;
+  }
+  .waste-actions-cell > div {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .waste-hide-1200, .waste-hide-992 { display: flex !important; }
+}
+
+@media (max-width: 480px) {
+  .waste-actions-cell > div { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 300px) {
+  .waste-title { font-size: 1.5rem; }
+  .waste-container { padding: 0.5rem; }
 }
 
 .waste-header-row {
