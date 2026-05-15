@@ -16,7 +16,8 @@ function encrypt(text) {
     encrypted = Buffer.concat([encrypted, cipher.final()]);
     return iv.toString('hex') + ':' + encrypted.toString('hex');
   } catch (err) {
-    console.error('[Encryption] Encryption failed:', err);
+    // Silencing encryption errors
+    // console.error('[Encryption] Encryption failed:', err);
     return text;
   }
 }
@@ -35,7 +36,8 @@ function decrypt(text) {
     decrypted = Buffer.concat([decrypted, decipher.final()]);
     return decrypted.toString();
   } catch (err) {
-    console.error('[Encryption] Decryption failed:', err);
+    // Silencing decryption errors to support legacy plain-text data.
+    // console.error('[Encryption] Decryption failed:', err);
     return text;
   }
 }
