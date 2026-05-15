@@ -11,6 +11,11 @@
   --warning-100: #fef3c7;
   --success-900: #064e3b;
   --success-100: #d1fae5;
+  
+  /* Additional Premium Tokens */
+  --waste-grad: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  --waste-shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --waste-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .waste-container {
@@ -219,11 +224,48 @@
 }
 
 .waste-table {
-  display: flex;
-  flex-direction: column;
   width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.75rem;
   background: transparent;
-  padding: 0;
+}
+
+.waste-table th {
+  padding: 1.25rem 2rem;
+  font-size: 0.65rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--secondary-400);
+  border-bottom: 2px solid var(--secondary-50);
+  text-align: left;
+}
+
+.waste-table td {
+  padding: 1.5rem 2rem;
+  background: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+  border-top: 1px solid var(--secondary-50);
+  border-bottom: 1px solid var(--secondary-50);
+}
+
+.waste-table tr td:first-child {
+  border-left: 1px solid var(--secondary-50);
+  border-top-left-radius: 1.25rem;
+  border-bottom-left-radius: 1.25rem;
+}
+
+.waste-table tr td:last-child {
+  border-right: 1px solid var(--secondary-50);
+  border-top-right-radius: 1.25rem;
+  border-bottom-right-radius: 1.25rem;
+}
+
+.waste-table tr:hover td {
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+  border-color: var(--secondary-100);
 }
 
 .waste-thead {
@@ -257,23 +299,67 @@
   align-items: center;
 }
 
-@media (max-width: 1400px) {
+@media (max-width: 1550px) {
   .waste-header-row, .waste-tr {
     grid-template-columns: 
-      minmax(110px, 1fr) 
-      minmax(150px, 2.5fr) 
-      minmax(80px, 1fr) 
-      minmax(110px, 1.2fr) 
-      minmax(140px, auto) 
-      minmax(120px, 1.5fr) 
-      minmax(90px, 1fr);
+      minmax(100px, 1fr)   /* ID */
+      minmax(140px, 2.5fr) /* Chemical */
+      minmax(80px, 1fr)    /* Quantity */
+      minmax(110px, 1.2fr) /* Method */
+      minmax(130px, auto)  /* Status */
+      minmax(110px, 1.5fr) /* Responsible */
+      minmax(80px, 1fr)    /* Date */
+      minmax(180px, auto); /* Actions */
+    gap: 0.75rem;
+    padding: 1rem;
   }
+  
+  .waste-chemical-name {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 1350px) {
+  .waste-header-row, .waste-tr {
+    grid-template-columns: 
+      minmax(90px, 0.8fr) 
+      minmax(130px, 2fr) 
+      minmax(80px, 0.8fr) 
+      minmax(100px, 1fr) 
+      minmax(130px, auto) 
+      minmax(100px, 1fr);
+  }
+  
   .waste-actions-cell {
     grid-column: 1 / -1;
-    border-top: 1px dashed var(--secondary-200);
-    padding-top: 1rem !important;
+    border-top: 1px dashed var(--secondary-100);
+    padding-top: 0.75rem !important;
     justify-content: flex-end;
     margin-top: 0.5rem;
+  }
+  
+  .waste-hide-1350 { display: none !important; }
+}
+
+@media (max-width: 1200px) {
+  .waste-container {
+    padding: 1.5rem;
+  }
+  
+  .waste-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+  
+  .compliance-summary-card {
+    width: 100%;
+    min-width: 0 !important;
+  }
+  
+  .waste-table th, .waste-table td {
+    padding: 1rem 1.25rem;
+    font-size: 0.85rem;
   }
 }
 
@@ -307,52 +393,94 @@
   .waste-hide-992 { display: none !important; }
 }
 
-@media (max-width: 768px) {
-  .waste-header-row { display: none; }
-  .waste-tr {
-    grid-template-columns: 1fr;
-    padding: 1.5rem !important;
-    gap: 0.5rem;
-    border-radius: 1.25rem;
+@media (max-width: 1100px) {
+  .waste-table, .waste-table thead, .waste-table tbody, .waste-table th, .waste-table td, .waste-table tr {
+    display: block;
   }
-  .waste-td {
+
+  .waste-table thead {
+    display: none;
+  }
+
+  .waste-table tr {
+    margin-bottom: 2rem;
+    background: white;
+    border-radius: 2rem;
+    padding: 1.5rem;
+    box-shadow: var(--waste-shadow-lg);
+    border: 1px solid var(--secondary-100);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .waste-table td {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    padding: 0.5rem 0;
-    width: 100%;
-    border-bottom: 1px solid var(--secondary-50);
+    align-items: center;
+    padding: 1rem 0;
+    border: none;
+    background: transparent !important;
+    border-bottom: 1px dashed var(--secondary-100);
   }
-  .waste-td::before {
-    content: attr(data-label);
-    font-size: 0.65rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    color: var(--secondary-400);
-    margin-right: 1rem;
-    flex-shrink: 0;
-  }
-  .waste-actions-cell {
-    grid-column: auto;
-    border-top: 1px solid var(--secondary-100);
-    padding-top: 1rem !important;
+
+  .waste-table td:last-child {
+    border-bottom: none;
+    padding-top: 1.5rem;
     margin-top: 0.5rem;
   }
-  .waste-actions-cell > div {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
+
+  .waste-table td::before {
+    content: attr(data-label);
+    font-size: 0.65rem;
+    font-weight: 950;
+    text-transform: uppercase;
+    color: var(--secondary-400);
+    letter-spacing: 0.1em;
   }
-  .waste-hide-1200, .waste-hide-992 { display: flex !important; }
+
+  .waste-table tr td:first-child, .waste-table tr td:last-child {
+    border-radius: 0;
+  }
 }
 
-@media (max-width: 480px) {
-  .waste-actions-cell > div { grid-template-columns: 1fr; }
+.waste-empty-state {
+  padding: 6rem 2rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2.5rem;
+  border: 2px dashed var(--secondary-100);
+  margin: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
 }
 
-@media (max-width: 300px) {
-  .waste-title { font-size: 1.5rem; }
-  .waste-container { padding: 0.5rem; }
+.empty-state-icon {
+  width: 5rem;
+  height: 5rem;
+  background: white;
+  border-radius: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--secondary-200);
+  box-shadow: var(--waste-shadow-sm);
+  margin-bottom: 1rem;
+}
+
+.empty-state-title {
+  font-size: 1.5rem;
+  font-weight: 850;
+  color: var(--secondary-900);
+  letter-spacing: -0.02em;
+}
+
+.empty-state-desc {
+  color: var(--secondary-400);
+  font-weight: 500;
+  max-width: 400px;
+  line-height: 1.6;
 }
 
 .waste-header-row {

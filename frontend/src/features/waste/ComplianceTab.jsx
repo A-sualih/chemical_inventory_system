@@ -67,18 +67,18 @@ export default function ComplianceTab() {
       setShowPermitModal(false);
       fetchData();
     } catch (err) {
-      alert('Failed to save permit');
+      alert(err.response?.data?.error || 'Failed to save permit');
     }
   };
 
   return (
     <div className="compliance-tab">
-      <div className="waste-card-header" style={{ padding: '0 0 2rem 0', borderBottom: 'none' }}>
+      <div className="waste-card-header">
         <div>
           <p className="waste-subtitle">Regulatory Compliance Monitoring</p>
           <h2 className="waste-title" style={{ fontSize: '2.5rem' }}>Compliance & Permits</h2>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           {hasPermission('manage_waste') && (
             <button className="btn-waste-action" onClick={() => setShowPermitModal(true)}>
               <IconFileText size={18} /> Manage Permits
@@ -133,22 +133,34 @@ export default function ComplianceTab() {
             {loading ? (
               <tr><td colSpan="8" style={{ textAlign: 'center', padding: '3rem' }}>Loading logs...</td></tr>
             ) : logs.length === 0 ? (
-              <tr><td colSpan="8" style={{ textAlign: 'center', padding: '3rem' }}>No compliance logs found.</td></tr>
+              <tr>
+                <td colSpan="8">
+                  <div className="waste-empty-state">
+                    <div className="empty-state-icon">
+                      <IconFileText size={32} />
+                    </div>
+                    <h3 className="empty-state-title">No Compliance Logs Found</h3>
+                    <p className="empty-state-desc">
+                      Start tracking your regulatory activities by adding your first compliance log entry using the button above.
+                    </p>
+                  </div>
+                </td>
+              </tr>
             ) : logs.map(log => (
               <tr key={log._id}>
-                <td><span style={{ fontWeight: 800 }}>{log.log_id}</span></td>
-                <td><span className="waste-badge" style={{ background: 'var(--secondary-100)', color: 'var(--secondary-700)' }}>{log.type}</span></td>
-                <td>
+                <td data-label="ID"><span style={{ fontWeight: 800 }}>{log.log_id}</span></td>
+                <td data-label="Type"><span className="waste-badge" style={{ background: 'var(--secondary-100)', color: 'var(--secondary-700)' }}>{log.type}</span></td>
+                <td data-label="Document Title">
                   <div style={{ fontWeight: 800, color: 'var(--secondary-900)' }}>{log.title}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--secondary-500)', fontWeight: 500, marginTop: '0.25rem' }}>{log.description?.substring(0, 50)}...</div>
                 </td>
-                <td style={{ fontWeight: 700, color: 'var(--secondary-700)' }}>{log.regulatory_body || '—'}</td>
-                <td>
+                <td data-label="Regulatory Body" style={{ fontWeight: 700, color: 'var(--secondary-700)' }}>{log.regulatory_body || '—'}</td>
+                <td data-label="Status">
                   <span className={`waste-badge badge-${log.status.toLowerCase().replace(' ', '-')}`}>
                     {log.status}
                   </span>
                 </td>
-                <td>
+                <td data-label="Signature">
                   {log.digital_signature?.name ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#10b981', fontWeight: 700, fontSize: '0.75rem' }}>
                       <IconCheckCircle size={14} /> Signed by {log.digital_signature.name}
@@ -157,8 +169,8 @@ export default function ComplianceTab() {
                     <span style={{ color: 'var(--secondary-400)', fontSize: '0.75rem' }}>Unsigned</span>
                   )}
                 </td>
-                <td>{new Date(log.event_date).toLocaleDateString()}</td>
-                <td>
+                <td data-label="Date">{new Date(log.event_date).toLocaleDateString()}</td>
+                <td data-label="Actions">
                   {!log.digital_signature?.name && hasPermission('approve_disposal') && (
                     <button onClick={() => handleSign(log._id)} className="btn-waste-action action-approve">
                       Sign & Verify
@@ -188,20 +200,34 @@ export default function ComplianceTab() {
             </tr>
           </thead>
           <tbody>
-            {permits.map(permit => (
+            {permits.length === 0 ? (
+              <tr>
+                <td colSpan="7">
+                  <div className="waste-empty-state">
+                    <div className="empty-state-icon">
+                      <IconFileText size={32} />
+                    </div>
+                    <h3 className="empty-state-title">No Permits Found</h3>
+                    <p className="empty-state-desc">
+                      Manage your regulatory permits and legal storage limits in one place.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            ) : permits.map(permit => (
               permit.limits.map((limit, idx) => (
                 <tr key={`${permit._id}-${idx}`}>
                   {idx === 0 && (
-                    <td rowSpan={permit.limits.length} style={{ fontWeight: 800 }}>{permit.permit_number}</td>
+                    <td data-label="Permit #" rowSpan={permit.limits.length} style={{ fontWeight: 800 }}>{permit.permit_number}</td>
                   )}
                   {idx === 0 && (
-                    <td rowSpan={permit.limits.length}>{permit.regulatory_body}</td>
+                    <td data-label="Authority" rowSpan={permit.limits.length}>{permit.regulatory_body}</td>
                   )}
                   {idx === 0 && (
-                    <td rowSpan={permit.limits.length}>{permit.type}</td>
+                    <td data-label="Type" rowSpan={permit.limits.length}>{permit.type}</td>
                   )}
-                  <td style={{ fontWeight: 700 }}>{limit.hazard_class}</td>
-                  <td>
+                  <td data-label="Hazard Class" style={{ fontWeight: 700 }}>{limit.hazard_class}</td>
+                  <td data-label="Capacity Usage">
                     <div style={{ width: '100px', height: '6px', background: '#e2e8f0', borderRadius: '3px', marginBottom: '0.25rem' }}>
                       <div style={{ 
                         width: `${Math.min(100, (limit.current_quantity / limit.max_quantity) * 100)}%`, 
@@ -215,12 +241,12 @@ export default function ComplianceTab() {
                     </span>
                   </td>
                   {idx === 0 && (
-                    <td rowSpan={permit.limits.length} style={{ color: new Date(permit.expiry_date) < new Date() ? '#ef4444' : 'inherit' }}>
+                    <td data-label="Expiry" rowSpan={permit.limits.length} style={{ color: new Date(permit.expiry_date) < new Date() ? '#ef4444' : 'inherit' }}>
                       {new Date(permit.expiry_date).toLocaleDateString()}
                     </td>
                   )}
                   {idx === 0 && (
-                    <td rowSpan={permit.limits.length}>
+                    <td data-label="Status" rowSpan={permit.limits.length}>
                       <span className={`waste-badge badge-${permit.status.toLowerCase()}`}>
                         {permit.status}
                       </span>
@@ -302,12 +328,20 @@ export default function ComplianceTab() {
                   <input required value={permitForm.regulatory_body} onChange={e => setPermitForm({...permitForm, regulatory_body: e.target.value})} className="procurement-input" />
                 </div>
                 <div>
-                  <label className="form-label-small">Issue Date</label>
-                  <input type="date" value={permitForm.issue_date} onChange={e => setPermitForm({...permitForm, issue_date: e.target.value})} className="procurement-input" />
+                  <label className="form-label-small">Permit Type *</label>
+                  <select value={permitForm.type} onChange={e => setPermitForm({...permitForm, type: e.target.value})} className="procurement-input">
+                    {['Hazardous Waste Generation', 'Transportation', 'On-site Treatment', 'Storage'].map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
-                  <label className="form-label-small">Expiry Date</label>
-                  <input type="date" value={permitForm.expiry_date} onChange={e => setPermitForm({...permitForm, expiry_date: e.target.value})} className="procurement-input" />
+                  <label className="form-label-small">Issue Date *</label>
+                  <input required type="date" value={permitForm.issue_date} onChange={e => setPermitForm({...permitForm, issue_date: e.target.value})} className="procurement-input" />
+                </div>
+                <div>
+                  <label className="form-label-small">Expiry Date *</label>
+                  <input required type="date" value={permitForm.expiry_date} onChange={e => setPermitForm({...permitForm, expiry_date: e.target.value})} className="procurement-input" />
                 </div>
                 <div style={{ gridColumn: 'span 2' }}>
                   <label className="form-label-small">Permit Limits (Format: HazardClass:Qty:Unit, e.g. Flammable:500:kg)</label>

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const wastePermitSchema = new mongoose.Schema({
   permit_number: { type: String, required: true, unique: true },
+  lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab', required: true },
   regulatory_body: { type: String, required: true }, // e.g. EPA, Municipal Authority
   type: { type: String, enum: ['Hazardous Waste Generation', 'Transportation', 'On-site Treatment', 'Storage'], required: true },
   

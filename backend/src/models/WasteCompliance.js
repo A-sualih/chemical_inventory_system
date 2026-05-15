@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const wasteComplianceSchema = new mongoose.Schema({
   log_id: { type: String, required: true, unique: true },
+  lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab', required: true },
   disposal_id: { type: mongoose.Schema.Types.ObjectId, ref: 'WasteDisposal' },
   
   type: { 

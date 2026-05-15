@@ -465,10 +465,10 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
               <div className="waste-th">ID</div>
               <div className="waste-th">Chemical</div>
               <div className="waste-th">Quantity</div>
-              <div className="waste-th waste-hide-1200">Method</div>
+              <div className="waste-th waste-hide-1350">Method</div>
               <div className="waste-th">Status</div>
               <div className="waste-th waste-hide-992">Responsible</div>
-              <div className="waste-th waste-hide-1200">Date</div>
+              <div className="waste-th waste-hide-1350">Date</div>
               <div className="waste-th">Actions</div>
             </div>
           </div>
@@ -488,20 +488,22 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
               return (
                 <div className="waste-tr" key={d._id} style={{ borderLeftColor: getBorderColor(d.status), borderLeftWidth: '4px' }}>
                   <div className="waste-td" data-label="ID"><span className="waste-id-cell">{d.disposal_id}</span></div>
-                  <div className="waste-td" data-label="Chemical" style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
-                    <div className="waste-chemical-name">{d.chemical_name}</div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--secondary-400)', fontWeight: '700', marginTop: '0.2rem' }}>{d.hazard_classification}</div>
+                  <div className="waste-td" data-label="Chemical">
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                      <div className="waste-chemical-name">{d.chemical_name}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--secondary-400)', fontWeight: '700', marginTop: '0.2rem' }}>{d.hazard_classification}</div>
+                    </div>
                   </div>
                   <div className="waste-td" data-label="Quantity"><span className="waste-quantity-cell">{d.quantity} {unitLabel(d.unit)}</span></div>
-                  <div className="waste-td waste-hide-1200" data-label="Method" style={{ fontWeight: '600' }}>{d.method}</div>
+                  <div className="waste-td waste-hide-1350" data-label="Method" style={{ fontWeight: '600' }}>{d.method}</div>
                   <div className="waste-td" data-label="Status">
                     <span className={`waste-badge badge-${d.status.toLowerCase().replace(' ', '-')}`}>
                       {d.status}
                     </span>
                   </div>
                   <div className="waste-td waste-hide-992" data-label="Responsible"><span className="waste-responsible-cell">{d.responsible_person_name}</span></div>
-                  <div className="waste-td waste-hide-1200" data-label="Date" style={{ fontWeight: '700', color: 'var(--secondary-500)' }}>{new Date(d.disposal_date).toLocaleDateString()}</div>
-                  <div className="waste-td waste-actions-cell">
+                  <div className="waste-td waste-hide-1350" data-label="Date" style={{ fontWeight: '700', color: 'var(--secondary-500)' }}>{new Date(d.disposal_date || d.createdAt).toLocaleDateString()}</div>
+                  <div className="waste-td" data-label="Actions">
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                       {d.status === 'Pending Approval' && hasPermission('approve_disposal') && (
                         <>
