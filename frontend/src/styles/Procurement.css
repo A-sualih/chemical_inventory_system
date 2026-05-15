@@ -560,6 +560,58 @@
   box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
 }
 
+/* --- MODAL FOOTER & BUTTONS --- */
+.procurement-modal-footer {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--secondary-100);
+  background: rgba(248, 250, 252, 0.5);
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  border-bottom-left-radius: 2.5rem;
+  border-bottom-right-radius: 2.5rem;
+}
+
+.btn-modal-secondary {
+  padding: 0.75rem 1.5rem;
+  background: white;
+  border: 1px solid var(--secondary-200);
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--secondary-700);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-modal-secondary:hover {
+  background: var(--secondary-50);
+  color: var(--secondary-900);
+}
+
+.btn-modal-primary {
+  padding: 0.75rem 2rem;
+  background: linear-gradient(135deg, var(--proc-primary) 0%, var(--proc-primary-hover) 100%);
+  border: none;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.btn-modal-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(124, 58, 237, 0.4);
+}
+
+.btn-modal-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 /* --- SUPPLIER CARDS --- */
 .supplier-grid {
   display: grid;
