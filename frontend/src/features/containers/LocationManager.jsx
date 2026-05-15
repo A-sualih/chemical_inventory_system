@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Building2, DoorOpen, Archive, Package, Lightbulb } from 'lucide-react';
 import Layout from "../../layout/Layout";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
@@ -127,7 +128,7 @@ const LocationManager = () => {
               <div key={block._id} className="tree-block">
                 <div className="tree-item block-item" onClick={() => toggleExpand(block._id)}>
                   <span className={`expand-icon ${expanded[block._id] ? 'expanded' : ''}`}>▶</span>
-                  <span className="item-icon">🏢</span>
+                  <span className="item-icon"><Building2 className="w-4 h-4 inline-block mr-1" /></span>
                   <span className="item-name">{block.name}</span>
                   {isAdmin && (
                     <button className="tree-add-btn" onClick={(e) => { e.stopPropagation(); openModal('room', block._id); }}>+ Add Room</button>
@@ -141,7 +142,7 @@ const LocationManager = () => {
                         <div key={room._id} className="tree-room">
                           <div className="tree-item room-item" onClick={() => toggleExpand(room._id)}>
                             <span className={`expand-icon ${expanded[room._id] ? 'expanded' : ''}`}>▶</span>
-                            <span className="item-icon">🚪</span>
+                            <span className="item-icon"><DoorOpen className="w-4 h-4 inline-block mr-1" /></span>
                             <span className="item-name">{room.name}</span>
                             {isAdmin && (
                               <button className="tree-add-btn" onClick={(e) => { e.stopPropagation(); openModal('cabinet', room._id); }}>+ Add Cabinet</button>
@@ -155,7 +156,7 @@ const LocationManager = () => {
                                   <div key={cabinet._id} className="tree-cabinet">
                                     <div className="tree-item cabinet-item" onClick={() => toggleExpand(cabinet._id)}>
                                       <span className={`expand-icon ${expanded[cabinet._id] ? 'expanded' : ''}`}>▶</span>
-                                      <span className="item-icon">🗄️</span>
+                                      <span className="item-icon"><Archive className="w-4 h-4 inline-block mr-1" /></span>
                                       <span className="item-name">{cabinet.name}</span>
                                       {isAdmin && (
                                         <button className="tree-add-btn" onClick={(e) => { e.stopPropagation(); openModal('shelf', cabinet._id); }}>+ Add Shelf</button>
@@ -172,7 +173,7 @@ const LocationManager = () => {
                                               return (
                                                 <div key={shelf._id} className={`shelf-card ${colors}`}>
                                                   <div className="shelf-info">
-                                                    <span className="shelf-name">📦 {shelf.name}</span>
+                                                    <span className="shelf-name"><Package className="w-4 h-4 inline-block mr-1" /> {shelf.name}</span>
                                                     <span className="shelf-load">
                                                       {shelf.current_load} / <strong>{shelf.capacity_limit}</strong> max
                                                     </span>
@@ -212,7 +213,7 @@ const LocationManager = () => {
           <div className="modal-backdrop" onClick={() => setModalType(null)}></div>
           <div className="modal-content">
             <h2 className="modal-title">
-              {modalType === 'shelf' ? '📦 Add Shelves' : `Bulk Add ${modalType.charAt(0).toUpperCase() + modalType.slice(1)}s`}
+              {modalType === 'shelf' ? <><Package className="w-5 h-5 inline-block mr-2" /> Add Shelves</> : `Bulk Add ${modalType.charAt(0).toUpperCase() + modalType.slice(1)}s`}
             </h2>
             <p className="modal-desc">Enter names separated by commas (e.g. A1, A2, A3)</p>
             <form onSubmit={handleBulkCreate}>
@@ -246,7 +247,7 @@ const LocationManager = () => {
                     required
                   />
                   <p className="field-note">
-                    💡 All shelves in this batch will share this limit. You can update individual shelves later.
+                    <Lightbulb className="w-4 h-4 inline-block mr-1" /> All shelves in this batch will share this limit. You can update individual shelves later.
                   </p>
                 </div>
               )}

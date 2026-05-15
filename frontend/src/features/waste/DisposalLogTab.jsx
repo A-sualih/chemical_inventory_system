@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 // Disposal Tracking Tab with Quick Log feature
 import axios from 'axios';
+import { Flame } from 'lucide-react';
+import '../../styles/DisposalLogTab.css';
 import { useAuth } from '../../context/AuthContext';
 import useUnits from '../../hooks/useUnits';
 import { IconTrash, IconClock, IconPlus, IconX, IconCheckCircle, IconAlertTriangle, IconFileText } from './WasteIcons';
@@ -315,7 +317,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                     <option value="">Default (FIFO - Auto Selection)</option>
                     {batches.map(b => (
                         <option key={b._id} value={b._id}>
-                          {b.batch_number} — {b.total_quantity} {b.unit} {b.status === 'Expired' ? '(🔥 EXPIRED)' : ''}
+                          {b.batch_number} — {b.total_quantity} {b.unit} {b.status === 'Expired' ? <><Flame className="w-4 h-4 inline-block text-red-500 mx-1" /> (EXPIRED)</> : ''}
                         </option>
                       ))}
                   </select>

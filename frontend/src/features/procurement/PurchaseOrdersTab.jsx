@@ -153,7 +153,7 @@ export default function PurchaseOrdersTab() {
     <div style={{ position: 'relative' }}>
       {toast && (
         <div className={`procurement-toast ${toast.type === 'error' ? 'toast-error' : 'toast-success'}`}>
-          {toast.type === 'error' ? '✕' : '✓'} {toast.msg}
+          <span className="mr-2">{toast.type === 'error' ? <X className="w-4 h-4 inline-block" /> : <Check className="w-4 h-4 inline-block" />}</span> {toast.msg}
         </div>
       )}
 
@@ -191,7 +191,7 @@ export default function PurchaseOrdersTab() {
                 ))
               ) : orders.length === 0 ? (
                 <tr><td colSpan={8} className="empty-table-cell">
-                  <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📋</div>
+                  <div style={{ marginBottom: '0.75rem' }}><ClipboardList className="w-10 h-10 inline-block text-secondary-500" /></div>
                   <p style={{ fontWeight: 900 }}>No purchase orders found</p>
                 </td></tr>
               ) : orders.map(o => {
@@ -222,7 +222,7 @@ export default function PurchaseOrdersTab() {
                           </button>
                         )}
                         {!['Cancelled', 'Completed'].includes(o.status) && (
-                          <button onClick={() => changeStatus(o._id, 'Cancelled', 'Cancelled by user')} className="btn-table-cancel">✕</button>
+                          <button onClick={() => changeStatus(o._id, 'Cancelled', 'Cancelled by user')} className="btn-table-cancel"><X className="w-4 h-4 mx-auto" /></button>
                         )}
                       </div>
                     </td>
@@ -315,7 +315,7 @@ export default function PurchaseOrdersTab() {
                             <div className="po-item-total">{parseFloat(item.total_price || 0).toFixed(2)}</div>
                           </div>
                           {form.items.length > 1 && (
-                            <button type="button" onClick={() => removeItem(idx)} className="btn-remove-item">✕</button>
+                            <button type="button" onClick={() => removeItem(idx)} className="btn-remove-item"><X className="w-4 h-4" /></button>
                           )}
                         </div>
                       </div>
@@ -364,7 +364,7 @@ export default function PurchaseOrdersTab() {
                   <span className={`priority-tag ${PRIORITY_COLORS[detailPO.priority]}`}>● {detailPO.priority}</span>
                 </div>
               </div>
-              <button onClick={() => { setDetailPO(null); setDetailData(null); }} className="btn-close-modal">✕</button>
+              <button onClick={() => { setDetailPO(null); setDetailData(null); }} className="btn-close-modal"><X className="w-4 h-4" /></button>
             </div>
 
             <div className="procurement-modal-body">

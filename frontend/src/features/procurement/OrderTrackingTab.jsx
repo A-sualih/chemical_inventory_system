@@ -4,6 +4,8 @@ import {
   IconClock, IconCog, IconPackage, IconTruck, IconCheckCircle,
   IconWarning, IconXCircle, IconReturn, IconPlus, IconFilter
 } from './ProcurementIcons';
+import { X, Check, AlertTriangle } from 'lucide-react';
+import '../../styles/Procurement.css';
 
 const STATUS_CONFIG = {
   Pending:           { className:'badge-draft',     Icon: IconClock     },
@@ -77,7 +79,7 @@ export default function OrderTrackingTab() {
     <div style={{ position: 'relative' }}>
       {toast && (
         <div className={`procurement-toast ${toast.type === 'error' ? 'toast-error' : 'toast-success'}`}>
-          {toast.type === 'error' ? '✕' : '✓'} {toast.msg}
+          <span className="mr-2">{toast.type === 'error' ? <X className="w-4 h-4 inline-block" /> : <Check className="w-4 h-4 inline-block" />}</span> {toast.msg}
         </div>
       )}
 
@@ -113,7 +115,7 @@ export default function OrderTrackingTab() {
             const delayed = isDelayed(s);
             return (
               <div key={s._id} className={`tracking-card ${delayed ? 'delayed' : ''}`}>
-                {delayed && <div className="delayed-banner">⚠️ Shipment Delayed</div>}
+                {delayed && <div className="delayed-banner"><AlertTriangle className="w-4 h-4 inline-block mr-2" /> Shipment Delayed</div>}
                 <div className="tracking-card-body">
                   <div className="tracking-card-header">
                     <div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Layout from "../../layout/Layout";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
+import { Calendar as CalendarIcon, Clock, Package as PackageIcon, CheckCircle2, ChevronRight, Hash, FlaskConical, CircleDot, AlertTriangle, Ban } from 'lucide-react';
 import "../../styles/Requests.css";
 
 const Requests = () => {
@@ -227,7 +228,7 @@ const Requests = () => {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem', padding: '0 0.25rem' }}>
                     <label className="form-label" style={{ padding: 0 }}>Select Container</label>
                     {fifoContainer && (
-                      <span className="fifo-badge">🔵 FIFO auto-selected</span>
+                      <span className="fifo-badge"><CircleDot className="w-4 h-4 inline-block mr-1 text-blue-500" /> FIFO auto-selected</span>
                     )}
                   </div>
                   <select
@@ -241,7 +242,7 @@ const Requests = () => {
                       const isFifo = fifoContainer && c._id === fifoContainer.fifo_container_id;
                       return (
                         <option key={c._id} value={c._id}>
-                          {isFifo ? '🔵 [FIFO] ' : ''}{c.container_id} — {c.available_quantity} {c.unit} available{c.location ? ` · ${c.location}` : ''}
+                          {isFifo ? <><CircleDot className="w-4 h-4 inline-block mr-1 text-blue-500" /> [FIFO] </> : ''}{c.container_id} — {c.available_quantity} {c.unit} available{c.location ? ` · ${c.location}` : ''}
                         </option>
                       );
                     })}
@@ -250,7 +251,7 @@ const Requests = () => {
                   {/* FIFO deviation warning */}
                   {fifoContainer && selectedContainer && selectedContainer !== fifoContainer.fifo_container_id && (
                     <div className="fifo-warning">
-                      <span style={{ color: '#f59e0b', fontSize: '1.125rem', lineHeight: 1 }}>⚠️</span>
+                      <span style={{ color: '#f59e0b', fontSize: '1.125rem', lineHeight: 1 }}><AlertTriangle className="w-5 h-5 inline-block" /></span>
                       <div style={{ flex: 1 }}>
                         <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b45309' }}>FIFO Order Warning</p>
                         <p style={{ fontSize: '11px', color: '#d97706', marginTop: '0.125rem' }}>
@@ -270,7 +271,7 @@ const Requests = () => {
                   {/* FIFO info panel when correct container is selected */}
                   {fifoContainer && selectedContainer === fifoContainer.fifo_container_id && (
                     <div className="fifo-info">
-                      <span style={{ color: '#3b82f6' }}>🔵</span>
+                      <span style={{ color: '#3b82f6' }}><CircleDot className="w-5 h-5 inline-block" /></span>
                       <p style={{ fontSize: '11px', color: '#1d4ed8', fontWeight: 600 }}>
                         FIFO compliant — this is the correct container to use next ({fifoContainer.available_quantity} {fifoContainer.unit} available).
                       </p>
@@ -279,7 +280,7 @@ const Requests = () => {
 
                   {selectedChem && containers.length === 0 && (
                     <p style={{ fontSize: '10px', color: '#ef4444', fontWeight: 700, marginTop: '0.25rem', padding: '0 0.25rem' }}>
-                      ⚠️ No active containers found for this chemical. It may be out of stock.
+                      <AlertTriangle className="w-4 h-4 inline-block mr-1 text-amber-500" /> No active containers found for this chemical. It may be out of stock.
                     </p>
                   )}
                 </div>
@@ -342,7 +343,7 @@ const Requests = () => {
               {submitError && (
                 <div className="submit-error-box">
                   <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b91c1c', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                    <span>🚫</span> {submitError.error}
+                    <span><Ban className="w-4 h-4 inline-block text-red-500 mr-2" /></span> {submitError.error}
                   </p>
                   {submitError.fifo_container_id && (
                     <button

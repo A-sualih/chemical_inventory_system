@@ -192,10 +192,16 @@ exports.approveTransfer = async (req, res) => {
 
     // 4. Move Container logic
     if (transfer.container_id) {
-       const container = await Container.findOne({ 
-         $or: [{ _id: transfer.container_id }, { container_id: transfer.container_id }],
-         lab: transfer.source_lab 
-       }).session(session);
+       const isObjectId = mongoose.Types.ObjectId.isValid(transfer.container_id);
+       const query = { lab: transfer.source_lab };
+       
+       if (isObjectId) {
+         query.$or = [{ _id: transfer.container_id }, { container_id: transfer.container_id }];
+       } else {
+         query.container_id = transfer.container_id;
+       }
+
+       const container = await Container.findOne(query).session(session);
        
        if (container) {
          container.lab = transfer.destination_lab;

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Layout from '../../layout/Layout';
 import './LabManagement.css';
@@ -249,7 +250,7 @@ const LabManagement = () => {
         {isDeleteModalOpen && (
           <div className="modal-overlay">
             <div className="modal-content delete-warning-modal">
-              <h2 style={{ color: 'red' }}>⚠️ CRITICAL WARNING: CASCADING DELETION</h2>
+              <h2 style={{ color: 'red' }}><AlertTriangle className="w-6 h-6 inline-block mr-2" /> CRITICAL WARNING: CASCADING DELETION</h2>
               <p>
                 You are about to permanently delete <strong>{labToDelete?.name}</strong>.
               </p>

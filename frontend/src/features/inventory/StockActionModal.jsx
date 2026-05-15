@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Box, Flame, MapPin, Tag, Calendar, FlaskConical, AlertTriangle } from 'lucide-react';
 import axios from "axios";
 import useUnits from "../../hooks/useUnits";
 import "../../styles/Inventory.css";
@@ -342,9 +343,9 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
 
                 {action === 'IN' && (
                   <div className="form-sub-section slide-in-top">
-                    <h3 className="section-indicator-title border-green"><img src="/icons/box.svg" alt="Batch" className="input-icon-mini" /> Batch & Container Initialization</h3>
+                    <h3 className="section-indicator-title border-green"><Box className="input-icon-mini" /> Batch & Container Initialization</h3>
                     <div className="group">
-                      <label className="input-field-label-alt">Batch / Lot Number <img src="/icons/flame.svg" alt="Flame" className="input-icon-mini text-primary-accent" /></label>
+                      <label className="input-field-label-alt">Batch / Lot Number <Flame className="input-icon-mini text-primary-accent" /></label>
                       <input type="text" value={batch} onChange={e => setBatch(e.target.value)} className="stock-input font-mono-bold text-primary-accent" placeholder="LOT-2026-A" required />
                     </div>
                     <div className="input-row-group">
@@ -374,7 +375,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
 
                 {action === 'TRANSFER' && (
                   <div className="form-sub-section slide-in-top">
-                    <h3 className="section-indicator-title border-blue"><img src="/icons/location.svg" alt="Location" className="input-icon-mini" /> Destination Location (TO)</h3>
+                    <h3 className="section-indicator-title border-blue"><MapPin className="input-icon-mini" /> Destination Location (TO)</h3>
                     <div className="form-sub-section">
                       {/* TO Building */}
                       <div className="input-row-group">
@@ -455,13 +456,13 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                             <div className="bar-bg-mini">
                               <div className={`bar-fill-mini ${pct >= 90 ? 'fill-red' : pct >= 70 ? 'fill-amber' : 'fill-green'}`} style={{ width: `${pct}%` }}></div>
                             </div>
-                            {sel.safety_warnings && <p className="warning-text-mini">⚠ {sel.safety_warnings}</p>}
+                            {sel.safety_warnings && <p className="warning-text-mini"><AlertTriangle className="w-4 h-4 inline-block mr-1 text-yellow-500" /> {sel.safety_warnings}</p>}
                           </div>
                         );
                       })()}
                     </div>
 
-                    <h3 className="section-indicator-title border-blue"><img src="/icons/box.svg" alt="Container" className="input-icon-mini" /> Container & Approval</h3>
+                    <h3 className="section-indicator-title border-blue"><Box className="input-icon-mini" /> Container & Approval</h3>
                     <div className="input-row-group">
                       <div className="group">
                         <label className="input-field-label">Container ID</label>
@@ -502,7 +503,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
               <div className="form-sub-section">
                 {(action === 'OUT' || action === 'IN' || action === 'TRANSFER' || action === 'DISPOSAL') && (
                   <>
-                    <h3 className={`section-indicator-title ${action === 'DISPOSAL' ? 'border-red' : 'border-primary'}`}><img src="/icons/tag.svg" alt="Tag" className="input-icon-mini" /> Identification & Location</h3>
+                    <h3 className={`section-indicator-title ${action === 'DISPOSAL' ? 'border-red' : 'border-primary'}`}><Tag className="input-icon-mini" /> Identification & Location</h3>
                     
                     <div className="group">
                       <label className="input-field-label">Target Container {action !== 'IN' ? ' (Select for Auto-Status)' : ''}</label>
@@ -571,7 +572,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
 
                     {action === 'IN' && (
                       <div className="special-info-panel bg-green-alt slide-in-top">
-                        <label className="panel-header-mini text-green-alt"><img src="/icons/calendar.svg" alt="Timeline" className="input-icon-mini" /> Batch Timeline</label>
+                        <label className="panel-header-mini text-green-alt"><Calendar className="input-icon-mini" /> Batch Timeline</label>
                         <div className="form-sub-section">
                           <div className="group">
                             <label className="input-field-label-alt">Expiry Date</label>
@@ -597,7 +598,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
 
                     {action === 'OUT' && (
                       <div className="form-sub-section slide-in-top">
-                        <h3 className="section-indicator-title border-primary"><img src="/icons/flask.svg" alt="Usage" className="input-icon-mini" /> Usage Context</h3>
+                        <h3 className="section-indicator-title border-primary"><FlaskConical className="input-icon-mini" /> Usage Context</h3>
                         <div className="group">
                           <label className="input-field-label">Experiment Name</label>
                           <input type="text" value={experimentName} onChange={e => setExperimentName(e.target.value)} className="stock-input stock-input-white" placeholder="e.g. Titration Analysis" />
@@ -611,7 +612,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
 
                     {action === 'DISPOSAL' && (
                       <div className="form-sub-section slide-in-top">
-                        <h3 className="section-indicator-title border-red"><img src="/icons/warning-red.svg" alt="Disposal" className="input-icon-mini" /> Disposal Protocol</h3>
+                        <h3 className="section-indicator-title border-red"><AlertTriangle className="input-icon-mini" /> Disposal Protocol</h3>
                         <div className="group">
                           <label className="input-field-label">Disposal Method</label>
                           <input type="text" value={disposalMethod} onChange={e => setDisposalMethod(e.target.value)} className="stock-input bg-red-alt text-red-accent font-mono-bold" placeholder="e.g. Incineration" required={action === 'DISPOSAL'} />

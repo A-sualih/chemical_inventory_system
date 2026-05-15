@@ -4,6 +4,7 @@ import {
   IconSearch, IconPlus, IconEdit, IconTrash, IconEye, IconBan,
   IconStar, IconMail, IconPhone, IconGlobe, IconUser, IconFactory, IconMapPin, IconReceipt
 } from './ProcurementIcons';
+import { Star, X, Check } from 'lucide-react';
 import '../../styles/Procurement.css';
 
 const CATEGORIES = ['Chemical Manufacturer','Distributor','Wholesaler','Laboratory Supplier','Specialty Chemical','Raw Materials','Other'];
@@ -18,7 +19,7 @@ const StatusBadge = ({ status }) => {
 const Stars = ({ rating }) => (
   <div style={{ display: 'flex', gap: '0.125rem', alignItems: 'center' }}>
     {[1,2,3,4,5].map(s => (
-      <span key={s} style={{ fontSize: '0.875rem', color: s <= Math.round(rating) ? '#fbbf24' : 'var(--secondary-200)' }}>★</span>
+      <span key={s} style={{ color: s <= Math.round(rating) ? '#fbbf24' : 'var(--secondary-200)' }}><Star className="w-4 h-4 inline-block" fill={s <= Math.round(rating) ? '#fbbf24' : 'none'} /></span>
     ))}
     <span style={{ fontSize: '0.75rem', color: 'var(--secondary-400)', marginLeft: '0.25rem', fontWeight: 500 }}>{rating?.toFixed(1) || '—'}</span>
   </div>
@@ -153,7 +154,7 @@ export default function SuppliersTab() {
       {/* Toast */}
       {toast && (
         <div className={`procurement-toast ${toast.type === 'error' ? 'toast-error' : 'toast-success'}`}>
-          <span>{toast.type === 'error' ? '✕' : '✓'}</span> {toast.msg}
+          <span>{toast.type === 'error' ? <X className="w-4 h-4 inline-block" /> : <Check className="w-4 h-4 inline-block" />}</span> {toast.msg}
         </div>
       )}
 
@@ -359,7 +360,7 @@ export default function SuppliersTab() {
                 </div>
                 <p className="modal-subtitle">{detailSupplier.supplier_id} · {detailSupplier.category}</p>
               </div>
-              <button onClick={()=>{setDetailSupplier(null);setDetailData(null);}} className="modal-close">✕</button>
+              <button onClick={()=>{setDetailSupplier(null);setDetailData(null);}} className="modal-close"><X className="w-4 h-4" /></button>
             </div>
 
             <div className="modal-body">
