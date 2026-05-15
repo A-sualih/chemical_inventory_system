@@ -676,43 +676,47 @@ const Requests = () => {
       {/* --- Modals --- */}
       
       {showNewChemModal && (
-        <div className="premium-modal-overlay">
-          <div className="premium-modal-card" style={{ maxWidth: '500px' }}>
+        <div className="premium-modal-overlay" onClick={() => setShowNewChemModal(false)}>
+          <div className="premium-modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '95%' }}>
             <div className="modal-header">
               <h2 className="modal-title">Request New Chemical</h2>
-              <button onClick={() => setShowNewChemModal(false)} className="close-btn">&times;</button>
+              <button onClick={() => setShowNewChemModal(false)} className="close-btn">
+                <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
             </div>
-            <form onSubmit={handleSubmitInventoryRequest} className="p-6 space-y-4">
-              <div>
-                <label className="form-label">Chemical Name *</label>
-                <input required value={newChemForm.chemical_name} onChange={e => setNewChemForm({...newChemForm, chemical_name: e.target.value})} className="form-input" />
-              </div>
-              <div>
-                <label className="form-label">CAS Number</label>
-                <input value={newChemForm.cas_number} onChange={e => setNewChemForm({...newChemForm, cas_number: e.target.value})} className="form-input" />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <form onSubmit={handleSubmitInventoryRequest} style={{ display: 'flex', flexDirection: 'column' }}>
+              <div className="form-layout" style={{ padding: '2rem' }}>
                 <div>
-                  <label className="form-label">Quantity *</label>
-                  <input required type="number" value={newChemForm.quantity} onChange={e => setNewChemForm({...newChemForm, quantity: e.target.value})} className="form-input" />
+                  <label className="form-label">Chemical Name *</label>
+                  <input required value={newChemForm.chemical_name} onChange={e => setNewChemForm({...newChemForm, chemical_name: e.target.value})} className="form-input" />
                 </div>
                 <div>
-                  <label className="form-label">Unit *</label>
-                  <select value={newChemForm.unit} onChange={e => setNewChemForm({...newChemForm, unit: e.target.value})} className="form-input">
-                    <option value="kg">kg</option>
-                    <option value="g">g</option>
-                    <option value="L">L</option>
-                    <option value="ml">ml</option>
-                  </select>
+                  <label className="form-label">CAS Number</label>
+                  <input value={newChemForm.cas_number} onChange={e => setNewChemForm({...newChemForm, cas_number: e.target.value})} className="form-input" />
                 </div>
-              </div>
-              <div>
-                <label className="form-label">Reason *</label>
-                <textarea required value={newChemForm.reason} onChange={e => setNewChemForm({...newChemForm, reason: e.target.value})} className="form-input" rows="3" />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label className="form-label">Quantity *</label>
+                    <input required type="number" step="0.01" value={newChemForm.quantity} onChange={e => setNewChemForm({...newChemForm, quantity: e.target.value})} className="form-input" />
+                  </div>
+                  <div>
+                    <label className="form-label">Unit *</label>
+                    <select value={newChemForm.unit} onChange={e => setNewChemForm({...newChemForm, unit: e.target.value})} className="form-input">
+                      <option value="kg">kg</option>
+                      <option value="g">g</option>
+                      <option value="L">L</option>
+                      <option value="ml">ml</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="form-label">Reason *</label>
+                  <textarea required value={newChemForm.reason} onChange={e => setNewChemForm({...newChemForm, reason: e.target.value})} className="form-input" rows="3" />
+                </div>
               </div>
               <div className="modal-footer">
                 <button type="button" onClick={() => setShowNewChemModal(false)} className="btn-secondary">Cancel</button>
-                <button type="submit" className="btn-primary">Submit Request</button>
+                <button type="submit" disabled={submitting} className="btn-primary" style={{ width: 'auto' }}>Submit Request</button>
               </div>
             </form>
           </div>
@@ -720,18 +724,24 @@ const Requests = () => {
       )}
 
       {showRejectModal && (
-        <div className="premium-modal-overlay">
-          <div className="premium-modal-card" style={{ maxWidth: '400px' }}>
+        <div className="premium-modal-overlay" onClick={() => setShowRejectModal(false)}>
+          <div className="premium-modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', width: '95%' }}>
             <div className="modal-header">
               <h2 className="modal-title">Reject Request</h2>
-              <button onClick={() => setShowRejectModal(false)} className="close-btn">&times;</button>
+              <button onClick={() => setShowRejectModal(false)} className="close-btn">
+                <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
             </div>
-            <div className="p-6">
-              <label className="form-label">Rejection Reason *</label>
-              <textarea required value={rejectNotes} onChange={e => setRejectNotes(e.target.value)} className="form-input" rows="3" placeholder="Explain why this chemical is not required..." />
-              <div className="modal-footer mt-4">
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div className="form-layout" style={{ padding: '2rem' }}>
+                <div>
+                  <label className="form-label">Rejection Reason *</label>
+                  <textarea required value={rejectNotes} onChange={e => setRejectNotes(e.target.value)} className="form-input" rows="3" placeholder="Explain why this request is denied..." />
+                </div>
+              </div>
+              <div className="modal-footer">
                 <button onClick={() => setShowRejectModal(false)} className="btn-secondary">Cancel</button>
-                <button onClick={handleInventoryReject} className="btn-reject" style={{ background: '#ef4444', color: 'white' }}>Reject & Notify</button>
+                <button onClick={handleInventoryReject} className="btn-primary" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)', width: 'auto' }}>Reject & Notify</button>
               </div>
             </div>
           </div>
@@ -739,32 +749,36 @@ const Requests = () => {
       )}
 
       {showTransferModal && (
-        <div className="premium-modal-overlay">
-          <div className="premium-modal-card" style={{ maxWidth: '500px' }}>
+        <div className="premium-modal-overlay" onClick={() => setShowTransferModal(false)}>
+          <div className="premium-modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', width: '95%' }}>
             <div className="modal-header">
               <h2 className="modal-title">Request Transfer from Another Lab</h2>
-              <button onClick={() => setShowTransferModal(false)} className="close-btn">&times;</button>
+              <button onClick={() => setShowTransferModal(false)} className="close-btn">
+                <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
             </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="form-label">Select Target Lab</label>
-                <select value={selectedTargetLab} onChange={e => setSelectedTargetLab(e.target.value)} className="form-input">
-                  <option value="">-- Choose Lab --</option>
-                  {otherLabs.map(l => <option key={l._id} value={l._id}>{l.name}</option>)}
-                </select>
-              </div>
-              {selectedTargetLab && (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div className="form-layout" style={{ padding: '2rem' }}>
                 <div>
-                  <label className="form-label">Available Chemicals in {otherLabs.find(l => l._id === selectedTargetLab)?.name}</label>
-                  <select value={selectedTransferChem} onChange={e => setSelectedTransferChem(e.target.value)} className="form-input">
-                    <option value="">-- Choose Chemical --</option>
-                    {otherLabChemicals.map(c => <option key={c._id} value={c._id}>{c.name} ({c.quantity} {c.unit})</option>)}
+                  <label className="form-label">Select Target Lab</label>
+                  <select value={selectedTargetLab} onChange={e => setSelectedTargetLab(e.target.value)} className="form-input">
+                    <option value="">-- Choose Lab --</option>
+                    {otherLabs.map(l => <option key={l._id} value={l._id}>{l.name}</option>)}
                   </select>
                 </div>
-              )}
+                {selectedTargetLab && (
+                  <div>
+                    <label className="form-label">Available Chemicals in {otherLabs.find(l => l._id === selectedTargetLab)?.name}</label>
+                    <select value={selectedTransferChem} onChange={e => setSelectedTransferChem(e.target.value)} className="form-input">
+                      <option value="">-- Choose Chemical --</option>
+                      {otherLabChemicals.map(c => <option key={c._id} value={c._id}>{c.name} ({c.quantity} {c.unit})</option>)}
+                    </select>
+                  </div>
+                )}
+              </div>
               <div className="modal-footer">
                 <button onClick={() => setShowTransferModal(false)} className="btn-secondary">Cancel</button>
-                <button onClick={handleInventoryTransfer} className="btn-primary">Send Transfer Request</button>
+                <button onClick={handleInventoryTransfer} className="btn-primary" style={{ width: 'auto' }}>Send Transfer Request</button>
               </div>
             </div>
           </div>

@@ -126,18 +126,21 @@
 
 .form-input {
   width: 100%;
-  background-color: var(--secondary-50);
+  background-color: rgba(255, 255, 255, 0.8);
   border: 1px solid var(--secondary-200);
-  border-radius: 0.75rem;
-  padding: 0.75rem;
-  margin-top: 0.25rem;
+  border-radius: 1rem;
+  padding: 0.875rem 1rem;
+  margin-top: 0.375rem;
   outline: none;
-  transition: box-shadow 0.2s;
-  font-size: 16px; /* Prevents iOS auto-zoom */
+  transition: all 0.3s;
+  font-size: 0.95rem; /* Prevents iOS auto-zoom */
+  color: var(--secondary-900);
 }
 
 .form-input:focus {
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); /* primary-500/20 */
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  background-color: #ffffff;
 }
 
 .fifo-badge {
@@ -203,23 +206,26 @@
 
 .btn-primary {
   width: 100%;
-  background-color: #2563eb; /* primary-600 */
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
   color: white;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  font-weight: 800;
   border: none;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
-.btn-primary:hover:not(:disabled) { background-color: #3b82f6; } /* primary-500 */
-.btn-primary:disabled { background-color: var(--secondary-300); cursor: not-allowed; }
+.btn-primary:hover:not(:disabled) { 
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.4);
+} 
+.btn-primary:disabled { background: var(--secondary-300); box-shadow: none; transform: none; cursor: not-allowed; }
 
 .total-badge {
   background-color: var(--secondary-50);
@@ -430,6 +436,95 @@
 }
 
 .btn-reject:hover { background-color: #ef4444; } /* red-500 */
+/* --- PREMIUM MODALS --- */
+.premium-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.premium-modal-card {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+  border-radius: 2rem;
+  animation: modalEnterPremium 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@keyframes modalEnterPremium {
+  0% { opacity: 0; transform: scale(0.95) translateY(20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--secondary-100);
+  background: rgba(255, 255, 255, 0.5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--secondary-900);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--secondary-400);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  background-color: var(--secondary-100);
+  color: var(--secondary-700);
+}
+
+.modal-footer {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--secondary-100);
+  background: rgba(248, 250, 252, 0.5);
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+/* Base Modal (Legacy mapping for Submit Request) */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -437,7 +532,8 @@
   right: 0;
   bottom: 0;
   background-color: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -446,8 +542,14 @@
 }
 
 .modal-content {
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  animation: modalEnter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  border-radius: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  animation: modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 2rem !important;
 }
 
 @keyframes modalEnter {
@@ -477,11 +579,11 @@
   background-color: white;
   border: 1px solid var(--secondary-200);
   color: var(--secondary-700);
-  padding: 0.5rem 1rem;
-  border-radius: 0.75rem;
-  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  font-weight: 800;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -489,5 +591,6 @@
 
 .btn-secondary:hover {
   background-color: var(--secondary-50);
-  border-color: var(--secondary-300);
+  color: var(--secondary-900);
 }
+
