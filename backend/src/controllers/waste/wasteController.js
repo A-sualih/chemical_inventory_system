@@ -679,7 +679,7 @@ exports.getDisposals = async (req, res) => {
     if (search) query.chemical_name = { $regex: search, $options: 'i' };
     
     const disposals = await WasteDisposal.find({ ...query, ...(req.activeLabId && { lab: req.activeLabId }) })
-      .populate('chemical_id', 'name cas_number hazard_summary emergency_response incompatibility')
+      .populate('chemical_id', 'name cas_number hazard_summary emergency_response incompatibility sds_file_url sds_file_name disposal_file_url disposal_file_name')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(Number(limit));

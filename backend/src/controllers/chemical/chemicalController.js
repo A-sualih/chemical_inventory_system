@@ -248,11 +248,11 @@ exports.createChemical = async (req, res) => {
 
     const hasSdsFile = !!sdsFile;
     const sdsFileName = hasSdsFile ? sdsFile.originalname : undefined;
-    const sdsFileUrl = hasSdsFile ? `/uploads/${sdsFile.filename}` : undefined;
+    const sdsFileUrl = hasSdsFile ? `/api/uploads/${sdsFile.filename}` : undefined;
     
     const hasDisposalFile = !!disposalFile;
     const disposalFileName = hasDisposalFile ? disposalFile.originalname : undefined;
-    const disposalFileUrl = hasDisposalFile ? `/uploads/${disposalFile.filename}` : undefined;
+    const disposalFileUrl = hasDisposalFile ? `/api/uploads/${disposalFile.filename}` : undefined;
     
     const newChem = new Chemical({
       id: idValue,
@@ -448,14 +448,14 @@ exports.updateChemical = async (req, res) => {
     if (sdsFile) {
       chemical.sds_attached = true;
       chemical.sds_file_name = sdsFile.originalname;
-      chemical.sds_file_url = `/uploads/${sdsFile.filename}`;
+      chemical.sds_file_url = `/api/uploads/${sdsFile.filename}`;
     } else {
       chemical.sds_attached = data.sds_attached === 'true' || chemical.sds_attached;
     }
 
     if (disposalFile) {
       chemical.disposal_file_name = disposalFile.originalname;
-      chemical.disposal_file_url = `/uploads/${disposalFile.filename}`;
+      chemical.disposal_file_url = `/api/uploads/${disposalFile.filename}`;
     }
 
     await chemical.save();
