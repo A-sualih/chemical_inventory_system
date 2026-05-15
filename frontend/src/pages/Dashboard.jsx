@@ -23,12 +23,18 @@ const Dashboard = () => {
         setDbStats(prev => ({ ...prev, ...statsData }));
 
         // Fetch waste
-        const { data: wasteData } = await axios.get('/api/waste/analytics');
-        const pending = (wasteData.statusStats || []).find(s => s._id === 'Pending Approval')?.count || 0;
-        setWasteStats({ pendingDisposals: pending, recentIncidents: wasteData.incidentStats?.length || 0 });
+        if (hasPermission("view_reports")) {
+          try {
+            const { data: wasteData } = await axios.get('/api/waste/analytics');
+            const pending = (wasteData.statusStats || []).find(s => s._id === 'Pending Approval')?.count || 0;
+            setWasteStats({ pendingDisposals: pending, recentIncidents: wasteData.incidentStats?.length || 0 });
+          } catch (wasteErr) {
+            console.error("Waste analytics sync failed", wasteErr);
+          }
+        }
 
         // Conditional fetches
-        if (hasPermission("approve_request")) fetchRequests();
+        if (hasPermission("approve_request") || hasPermission("submit_request")) fetchRequests();
         if (hasPermission("view_audit_logs")) fetchAuditLogs();
       } catch (err) {
         console.error("Sync failed", err);
@@ -94,21 +100,21 @@ const Dashboard = () => {
   };
 
   const stats = [
-    { label: "Total Chemicals", value: dbStats.total.toString().padStart(3, '0'), sub: "Active Listings", color: "primary", icon: (
+    { label: "Total Chemicals", value: dbStats.total.toString().padStart(3, '0'), sub: "Active Listings", color: "primary", path: "/chemicals", icon: (
       <svg className="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" /></svg>
     )},
-    { label: "Flammables", value: dbStats.flammables.toString().padStart(3, '0'), sub: "Class 3 Assets", color: "orange", icon: (
+    { label: "Flammables", value: dbStats.flammables.toString().padStart(3, '0'), sub: "Class 3 Assets", color: "orange", path: "/chemicals?hazard=Flammable", icon: (
       <div className="icon-md">
         {HAZARD_CLASSES.find(h => h.id === 'Flammable')?.icon}
       </div>
     )},
-    { label: "Critical Stock", value: dbStats.lowStock.toString().padStart(2, '0'), sub: "Reorder Required", color: "red", icon: (
+    { label: "Critical Stock", value: dbStats.lowStock.toString().padStart(2, '0'), sub: "Reorder Required", color: "red", path: "/chemicals?expiryStatus=low", icon: (
       <svg className="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
     )},
-     { label: "Safety Audit", value: dbStats.auditScore, sub: "Passing Score", color: "green", icon: (
+     { label: "Safety Audit", value: dbStats.auditScore, sub: "Passing Score", color: "green", path: "/logs", icon: (
        <svg className="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
      )},
-     { label: "Pending Disposal", value: wasteStats.pendingDisposals.toString().padStart(2, '0'), sub: "Awaiting Action", color: "indigo", icon: (
+     { label: "Pending Disposal", value: wasteStats.pendingDisposals.toString().padStart(2, '0'), sub: "Awaiting Action", color: "indigo", path: "/waste", hidden: !hasPermission("manage_waste"), icon: (
        <svg className="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
      )},
    ];
@@ -152,8 +158,8 @@ const Dashboard = () => {
       </div>
 
       <div className="stats-grid">
-        {stats.map((stat, i) => (
-          <div key={i} className="stat-card">
+        {stats.filter(s => !s.hidden).map((stat, i) => (
+          <Link key={i} to={stat.path || "#"} className="stat-card" style={{ textDecoration: 'none' }}>
             <div className={`stat-card-bg-icon ${
               stat.color === 'red' ? 'bg-red-500' : 
               stat.color === 'orange' ? 'bg-orange-500' :
@@ -172,7 +178,7 @@ const Dashboard = () => {
             <div className="stat-label">{stat.label}</div>
             <div className="stat-value">{stat.value}</div>
             <div className="stat-subtext">{stat.sub}</div>
-          </div>
+          </Link>
         ))}
       </div>
 
@@ -212,7 +218,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {hasPermission("approve_request") && (
+          {hasPermission("approve_request") ? (
             <div className="dashboard-section approvals-section">
                <div className="approvals-bg-glow"></div>
                <div className="section-header" style={{position: 'relative', zIndex: 10}}>
@@ -270,7 +276,7 @@ const Dashboard = () => {
                                  onClick={() => handleRequestAction(req._id, 'Rejected')}
                                  className="action-btn-circle reject-btn"
                                  title="Reject"
-                               >
+                                >
                                  <svg className="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                                </button>
                              </>
@@ -286,6 +292,57 @@ const Dashboard = () => {
                <Link to="/requests" className="request-center-btn">
                   Go to Request Center
                </Link>
+            </div>
+          ) : hasPermission("submit_request") && (
+            <div className="dashboard-section activity-card" style={{ background: 'var(--primary-600)', overflow: 'hidden' }}>
+              <div className="approvals-bg-glow" style={{ background: 'radial-gradient(circle at top right, rgba(255,255,255,0.2), transparent)' }}></div>
+              <div className="section-header" style={{position: 'relative', zIndex: 10}}>
+                <h2 className="section-title text-white">My Requests</h2>
+                <span className="stat-label" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                  {pendingRequests.filter(r => r.status === 'Pending').length} Active
+                </span>
+              </div>
+              <div className="approval-list">
+                {requestsLoading ? (
+                  <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2.5rem 0'}}>
+                    <div className="spinner-mini" style={{width: '2rem', height: '2rem', borderTopColor: 'white'}}></div>
+                  </div>
+                ) : pendingRequests.length === 0 ? (
+                  <div style={{textAlign: 'center', padding: '2rem 0'}}>
+                    <p style={{fontSize: '0.875rem', fontWeight: 600, color: 'rgba(255,255,255,0.7)'}}>No active requests</p>
+                  </div>
+                ) : (
+                  pendingRequests.slice(0, 5).map((req) => (
+                    <div key={req._id} className="approval-card" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div className="approval-info">
+                         <div className="approval-avatar" style={{ background: 'white', color: 'var(--primary-600)' }}>
+                            {(req.chemical_name || req.chemical_id?.name || '?')[0].toUpperCase()}
+                         </div>
+                         <div className="approval-details">
+                            <div className="approval-item-name" style={{ color: 'white' }}>{req.chemical_name || req.chemical_id?.name || req.chemical_id}</div>
+                            <div className="approval-meta" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                              {timeAgo(req.created_at)} • QTY: {req.quantity} {req.unit}
+                            </div>
+                         </div>
+                      </div>
+                      <div className="approval-actions">
+                         <span className={`status-tag status-${req.status.toLowerCase()}`} style={{ 
+                           background: req.status === 'Pending' ? 'rgba(255,255,255,0.1)' : '',
+                           color: req.status === 'Pending' ? 'white' : ''
+                         }}>
+                            {req.status}
+                         </span>
+                         <Link to="/requests" className="view-more-arrow" style={{ color: 'white' }}>
+                            <svg className="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                         </Link>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <Link to="/requests" className="request-center-btn" style={{ background: 'white', color: 'var(--primary-600)' }}>
+                Create New Request
+              </Link>
             </div>
           )}
 

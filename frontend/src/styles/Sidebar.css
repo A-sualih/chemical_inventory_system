@@ -37,7 +37,8 @@
   left: 0;
   z-index: 50;
   height: 100vh;
-  width: 18rem; /* 72 */
+  width: 18rem;
+  /* 72 */
   background-color: var(--secondary-950);
   color: white;
   display: flex;
@@ -277,11 +278,35 @@
   border: 1px solid transparent;
 }
 
-.role-admin { color: #f87171; background-color: rgba(248, 113, 113, 0.1); border-color: rgba(239, 68, 68, 0.2); }
-.role-manager { color: var(--primary-400); background-color: rgba(96, 165, 250, 0.1); border-color: rgba(59, 130, 246, 0.2); }
-.role-safety { color: #fb923c; background-color: rgba(251, 146, 60, 0.1); border-color: rgba(249, 115, 22, 0.2); }
-.role-technician { color: #4ade80; background-color: rgba(74, 222, 128, 0.1); border-color: rgba(34, 197, 94, 0.2); }
-.role-default { color: var(--secondary-400); background-color: rgba(148, 163, 184, 0.1); border-color: rgba(100, 116, 139, 0.2); }
+.role-admin {
+  color: #f87171;
+  background-color: rgba(248, 113, 113, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.role-manager {
+  color: var(--primary-400);
+  background-color: rgba(96, 165, 250, 0.1);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.role-safety {
+  color: #fb923c;
+  background-color: rgba(251, 146, 60, 0.1);
+  border-color: rgba(249, 115, 22, 0.2);
+}
+
+.role-technician {
+  color: #4ade80;
+  background-color: rgba(74, 222, 128, 0.1);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.role-default {
+  color: var(--secondary-400);
+  background-color: rgba(148, 163, 184, 0.1);
+  border-color: rgba(100, 116, 139, 0.2);
+}
 
 .logout-icon-button {
   width: 2rem;

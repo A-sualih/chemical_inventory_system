@@ -36,7 +36,8 @@
   align-items: flex-start;
   gap: 1.5rem;
   margin-bottom: clamp(2rem, 5vw, 3.5rem);
-  padding: clamp(1.25rem, 3vw, 2rem); /* Reduced padding for better space utilization */
+  padding: clamp(1.25rem, 3vw, 2rem);
+  /* Reduced padding for better space utilization */
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
   border-radius: 2rem;
@@ -104,6 +105,7 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0 0.5rem;
+  min-width: 1100px;
 }
 
 .transfer-table thead th {
@@ -146,7 +148,8 @@
 .transfer-table td:last-child {
   border-right: 1px solid var(--secondary-50);
   border-radius: 0 1.25rem 1.25rem 0;
-  min-width: 210px; /* Ensure enough space for action buttons in desktop */
+  min-width: 210px;
+  /* Ensure enough space for action buttons in desktop */
 }
 
 /* Typography & Content Cells */
@@ -237,7 +240,7 @@
     font-size: 0.8125rem;
     gap: 0.5rem;
   }
-  
+
   .transfer-header {
     flex-wrap: wrap;
     align-items: center;
@@ -284,7 +287,8 @@
 }
 
 .btn-success-sm {
-  background: #dcfce7; /* Slightly darker background for better visibility */
+  background: #dcfce7;
+  /* Slightly darker background for better visibility */
   color: #14532d;
   border-color: #bbf7d0;
 }
@@ -323,6 +327,7 @@
   .transfer-table td {
     display: block;
     width: 100%;
+    min-width: unset;
   }
 
   .transfer-table tr {
@@ -372,7 +377,8 @@
     text-align: left;
   }
 
-  .td-with-icon, .chem-identity-cell {
+  .td-with-icon,
+  .chem-identity-cell {
     justify-content: flex-end;
     align-items: flex-end;
     text-align: right;
@@ -440,35 +446,286 @@
   }
 }
 
-/* Modal Responsiveness */
+/* Modal Mastery Overhaul */
 .modal-overlay {
-  padding: 1rem;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: clamp(1rem, 5vw, 4rem);
+  background: rgba(8, 10, 24, 0.8);
+  backdrop-filter: blur(12px) saturate(180%);
 }
 
 .transfer-modal {
+  background: #ffffff;
   width: 100%;
-  max-width: 650px;
+  max-width: 50rem;
+  border-radius: 32px;
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
   max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  animation: modalScaleUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalScaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-modal-header {
+  padding: 2.5rem 2.5rem 2rem;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+  min-height: 120px;
+}
+
+.modal-modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 950;
+  margin: 0;
+  letter-spacing: -0.04em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.modal-modal-header p {
+  font-size: 0.75rem;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+  margin-top: 0.25rem;
+}
+
+.modal-close-x {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.modal-close-x:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.transfer-form {
+  padding: clamp(1.5rem, 5vw, 2.5rem);
   overflow-y: auto;
-  padding: clamp(1.5rem, 5vw, 3rem);
-  border-radius: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 4vw, 2rem);
+  scrollbar-width: thin;
+  scrollbar-color: #e2e8f0 transparent;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.form-group label {
+  font-size: 0.65rem;
+  font-weight: 950;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding-left: 0.25rem;
+}
+
+.transfer-modal input,
+.transfer-modal select,
+.transfer-modal textarea {
+  background: #f8fafc;
+  border: 2px solid #f1f5f9;
+  padding: 0.875rem 1.25rem;
+  border-radius: 16px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1e293b;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+
+.transfer-modal input:focus,
+.transfer-modal select:focus,
+.transfer-modal textarea:focus {
+  background: #ffffff;
+  border-color: #4f46e5;
+  box-shadow: 0 10px 25px -10px rgba(79, 70, 229, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Chemical Search Dropdown Refined */
+.chem-search-wrap {
+  position: relative;
+}
+
+.selected-chem-card {
+  background: #eff6ff;
+  border: 2px solid #dbeafe;
+  border-radius: 1.25rem;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.selected-chem-name {
+  display: block;
+  font-weight: 900;
+  color: #1e40af;
+  font-size: 1rem;
+}
+
+.selected-chem-id {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+.clear-chem-btn {
+  background: white;
+  border: 1px solid #dbeafe;
+  color: #3b82f6;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.clear-chem-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.chem-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 1.5rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  border: 1px solid #f1f5f9;
+  z-index: 50;
+  max-height: 350px;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.chem-dropdown-item {
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.chem-dropdown-item:hover {
+  background: #f1f5f9;
+}
+
+.chem-item-name {
+  font-weight: 900;
+  color: var(--secondary-900);
+  font-size: 0.9375rem;
+}
+
+.chem-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.375rem;
+}
+
+.chem-id-badge {
+  background: #eef2ff;
+  color: #4f46e5;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 950;
+}
+
+/* Actions Footer */
+.modal-actions {
+  padding: 1.5rem 2.5rem 2.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1.25rem;
+  background: white;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn-form-secondary {
+  padding: 0.875rem 2rem;
+  border-radius: 16px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-weight: 800;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-form-secondary:hover {
+  background: #e2e8f0;
+  color: #475569;
 }
 
 @media (max-width: 640px) {
-  .transfer-modal .form-row {
+  .form-row {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
 
-  .transfer-modal .modal-actions {
+  .transfer-form {
+    padding: 1.5rem;
+  }
+
+  .modal-actions {
     flex-direction: column;
-    gap: 1rem;
-  }
-
-  .transfer-modal .modal-actions button {
-    width: 100%;
+    padding: 1.5rem;
   }
 }
 

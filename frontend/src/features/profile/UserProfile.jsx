@@ -19,6 +19,7 @@ const UserProfile = () => {
     const [alert, setAlert] = useState({ type: "", message: "" });
     const [formData, setFormData] = useState({
         name: "",
+        email: "",
         phone: "",
         profile_photo: "",
         mfa_enabled: false,
@@ -45,6 +46,7 @@ const UserProfile = () => {
                 const data = res.data;
                 setFormData({
                     name: data.name || "",
+                    email: data.email || "",
                     phone: data.phone || "",
                     profile_photo: data.profile_photo || "",
                     mfa_enabled: data.mfa_enabled || false,
@@ -193,6 +195,21 @@ const UserProfile = () => {
                                     value={formData.name} 
                                     onChange={handleChange} 
                                     placeholder="Enter your full name"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="profile-group">
+                            <label>Email Address</label>
+                            <div className="profile-input-wrapper">
+                                <EnvelopeIcon className="profile-input-icon" style={{width: '1.25rem'}} />
+                                <input 
+                                    type="email" 
+                                    name="email" 
+                                    className="profile-input"
+                                    value={formData.email} 
+                                    onChange={handleChange} 
+                                    placeholder="Enter your email"
                                 />
                             </div>
                         </div>

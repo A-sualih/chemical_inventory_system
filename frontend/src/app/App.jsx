@@ -68,12 +68,12 @@ function App() {
 
               {/* Chemical & Inventory Management */}
               <Route path="/chemicals" element={
-                <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}>
+                <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Laboratory Staff", "Safety Officer", "Auditor"]}>
                   <Chemicals />
                 </ProtectedRoute>
               } />
-              <Route path="/chemicals/new" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician"]}><ChemicalForm /></ProtectedRoute>} />
-              <Route path="/chemicals/edit/:id" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician"]}><ChemicalForm /></ProtectedRoute>} />
+              <Route path="/chemicals/new" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Laboratory Staff"]}><ChemicalForm /></ProtectedRoute>} />
+              <Route path="/chemicals/edit/:id" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Laboratory Staff"]}><ChemicalForm /></ProtectedRoute>} />
               <Route path="/chemicals/details/:id" element={<ProtectedRoute><ChemicalDetails /></ProtectedRoute>} />
               <Route path="/print/:id" element={<ProtectedRoute><PrintLabel /></ProtectedRoute>} />
               
@@ -88,7 +88,7 @@ function App() {
               <Route path="/transfers" element={<ProtectedRoute><TransferDashboard /></ProtectedRoute>} />
               <Route path="/logs" element={<ProtectedRoute><InventoryLogs /></ProtectedRoute>} />
               <Route path="/transactions" element={<ProtectedRoute><TransactionSystem /></ProtectedRoute>} />
-              <Route path="/reports" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer / Auditor"]}><Reports /></ProtectedRoute>} />
+              <Route path="/reports" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Auditor"]}><Reports /></ProtectedRoute>} />
               
               {/* Specialized Modules */}
               <Route path="/safety" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer"]}><SafetyDashboard /></ProtectedRoute>} />

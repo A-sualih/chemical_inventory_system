@@ -10,29 +10,32 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
 
-  // Role-Permission mapping based on the NEW RBAC system
+  // Role-Permission mapping synchronized with backend roles.js
   const rolePermissions = {
     "Admin": [
       "create_chemical", "edit_chemical", "delete_chemical", "approve_request",
       "view_reports", "view_audit_logs", "assign_roles", "view_chemicals",
       "submit_request", "update_stock", "view_safety_info", "manage_settings",
-      "manage_waste", "approve_disposal"
+      "manage_waste", "approve_disposal", "perform_backup", "perform_restore",
+      "manage_security", "view_financials", "MANAGE_LABS", "approve_cross_lab_transfer"
     ],
     "Lab Manager": [
-      "create_chemical", "edit_chemical", "delete_chemical", "approve_request",
-      "view_reports", "view_audit_logs", "view_chemicals",
-      "submit_request", "update_stock", "view_safety_info",
-      "manage_waste", "approve_disposal"
+      "create_chemical", "edit_chemical", "approve_request", "view_reports",
+      "view_audit_logs", "view_chemicals", "submit_request", "update_stock",
+      "view_safety_info", "manage_waste", "approve_disposal", "approve_cross_lab_transfer"
     ],
-    "Lab Technician": [
-      "view_chemicals", "update_stock", "submit_request", "manage_waste"
+    "Laboratory Staff": [
+      "view_chemicals", "update_stock", "submit_request"
     ],
     "Safety Officer": [
       "view_chemicals", "view_safety_info", "view_reports", "view_audit_logs",
       "manage_waste", "approve_disposal"
     ],
-    "Viewer / Auditor": [
-      "view_chemicals", "view_reports", "view_audit_logs"
+    "Procurement Officer": [
+      "view_chemicals", "view_reports", "view_financials", "submit_request"
+    ],
+    "Auditor": [
+      "view_chemicals", "view_reports", "view_audit_logs", "view_safety_info"
     ]
   };
 

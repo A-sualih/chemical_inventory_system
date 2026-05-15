@@ -433,7 +433,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                 style={{ padding: '0.4rem 0.75rem', fontSize: '0.7rem', height: 'auto', gap: '0.4rem' }}
               >
                 {externalShowModal ? <IconX size={12} /> : <IconPlus size={12} />}
-                {externalShowModal ? 'Close' : 'New Disposal'}
+                {externalShowModal ? 'Close Modal' : 'Log New Disposal'}
               </button>
               {user.role === 'Admin' && (
                 <button
@@ -498,6 +498,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   <div className="waste-td waste-hide-1350" data-label="Method" style={{ fontWeight: '600' }}>{d.method}</div>
                   <div className="waste-td" data-label="Status">
                     <span className={`waste-badge badge-${d.status.toLowerCase().replace(' ', '-')}`}>
+                      <span className="dot"></span>
                       {d.status}
                     </span>
                   </div>
@@ -583,9 +584,10 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   <div style={{ fontWeight: 700 }}>{viewingDisposal.quantity} {unitLabel(viewingDisposal.unit)}</div>
                 </div>
                 <div>
-                  <label className="form-label-small">Status</label>
+                  <label className="form-label-small">Current Status</label>
                   <div>
                     <span className={`waste-badge badge-${viewingDisposal.status.toLowerCase().replace(' ', '-')}`}>
+                      <span className="dot"></span>
                       {viewingDisposal.status}
                     </span>
                   </div>

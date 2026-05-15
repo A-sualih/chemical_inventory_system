@@ -16,7 +16,7 @@ exports.getProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, phone, profile_photo, email_preferences, mfa_enabled } = req.body;
+    const { name, email, phone, profile_photo, email_preferences, mfa_enabled } = req.body;
     
     // Find the current user
     const user = await User.findById(req.user.id);
@@ -27,6 +27,12 @@ exports.updateProfile = async (req, res) => {
     const trackedChanges = {};
 
     // Update allowable fields
+    if (email !== undefined && email !== user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) return res.status(400).json({ message: 'Email already in use' });
+      trackedChanges.email = { old: user.email, new: email };
+      user.email = email;
+    }
     if (name !== undefined) {
       if (user.name !== name) trackedChanges.name = { old: user.name, new: name };
       user.name = name;

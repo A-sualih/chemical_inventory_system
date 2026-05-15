@@ -279,6 +279,16 @@ const Chemicals = () => {
                             >
                                <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                             </button>
+                            {hasPermission("submit_request") && (
+                              <Link
+                                to={`/requests?chemical_id=${item._id}`}
+                                className="icon-action-button request-btn"
+                                title="Request Usage"
+                                style={{ color: '#8b5cf6' }}
+                              >
+                                <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                              </Link>
+                            )}
                             <button
                               onClick={() => { setEditingChemical(item); setShowForm(true); }}
                               className="icon-action-button edit-button"
