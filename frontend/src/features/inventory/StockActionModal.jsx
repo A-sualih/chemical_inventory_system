@@ -675,7 +675,6 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                             </div>
                           </div>
                         </div>
-<<<<<<< HEAD
 
                         <div className="group">
                           <label className="input-field-label">Compliance / Technical Notes</label>
@@ -685,7 +684,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                             className="stock-textarea stock-input-white" 
                             placeholder="Detailed disposal info for the waste module..."
                           />
-=======
+                        </div>
                         
                         <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.05)', border: '1px dashed rgba(239, 68, 68, 0.3)', borderRadius: '0.5rem' }}>
                           <h4 style={{ fontWeight: 800, color: '#dc2626', marginBottom: '0.75rem', fontSize: '0.875rem' }}>MANDATORY DISPOSAL CHECKLIST</h4>
@@ -704,7 +703,6 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                             <input type="checkbox" checked={disposalChecklist[1]} onChange={e => setDisposalChecklist([disposalChecklist[0], e.target.checked])} className="compliance-checkbox"/>
                             <span className="compliance-confirm-text" style={{ color: '#7f1d1d' }}>Waste container is verified compatible</span>
                           </label>
->>>>>>> 95ec2f82428f530b35432c6ae7243559c738c776
                         </div>
                       </div>
                     )}

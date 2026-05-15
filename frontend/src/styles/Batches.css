@@ -1,17 +1,26 @@
-/* Batches.css - Responsive Mastery */
+/* Batches.css - Responsive Mastery Overhaul */
+
+:root {
+  --batch-primary: #6366f1;
+  --batch-primary-hover: #4f46e5;
+  --batch-glass-bg: rgba(255, 255, 255, 0.7);
+  --batch-glass-border: rgba(255, 255, 255, 0.5);
+  --batch-shadow-subtle: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+  --batch-shadow-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
+}
 
 .batches-container {
   padding-bottom: 5rem;
 }
 
 .batches-header-bar {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--batch-glass-bg);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid var(--batch-glass-border);
   position: sticky;
   top: 0;
   z-index: 30;
-  padding: clamp(1rem, 3vw, 1.75rem);
+  padding: clamp(1rem, 3vw, 1.75rem) clamp(1rem, 4vw, 1.5rem);
 }
 
 .batches-header-content {
@@ -139,10 +148,10 @@
   box-shadow: 0 20px 30px -5px rgba(99, 102, 241, 0.5);
 }
 
-/* Stats Mastery */
+/* Stats Section */
 .batches-stats {
   max-width: 85rem;
-  margin: 2.5rem auto;
+  margin: 3rem auto;
   padding: 0 1.5rem;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(clamp(200px, 45%, 300px), 1fr));
@@ -150,21 +159,21 @@
 }
 
 .batch-stat-card {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--batch-glass-bg);
   backdrop-filter: blur(10px);
   padding: 1.75rem;
   border-radius: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--batch-glass-border);
   display: flex;
   align-items: center;
   gap: 1.25rem;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  box-shadow: var(--batch-shadow-subtle);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .batch-stat-card:hover {
   transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--batch-shadow-hover);
   background: white;
 }
 
@@ -230,6 +239,7 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
+  min-width: 1000px;
 }
 
 .batches-table th {
@@ -402,7 +412,7 @@ tr:hover .batch-id-icon {
 }
 
 /* Responsive Table Mastery */
-@media (max-width: 1200px) {
+@media (max-width: 1300px) {
   .batches-table-card {
     background: transparent;
     border: none;
@@ -417,6 +427,7 @@ tr:hover .batch-id-icon {
   .batches-table td {
     display: block;
     width: 100%;
+    min-width: unset;
   }
 
   .batches-table tr {

@@ -197,7 +197,7 @@ export default function SuppliersTab() {
         </div>
       ) : suppliers.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon"><IconFactory size={56} /></div>
+          <div className="empty-icon"><Factory size={56} /></div>
           <p className="empty-title">No suppliers found</p>
           <p className="empty-desc">Add your first supplier to get started.</p>
         </div>
@@ -355,7 +355,7 @@ export default function SuppliersTab() {
             <div className="modal-header">
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                  {detailSupplier.is_preferred && <span className="pref-star"><IconStar size={16}/></span>}
+                  {detailSupplier.is_preferred && <span className="pref-star"><Star size={16}/></span>}
                   <h2 className="modal-title">{detailSupplier.name}</h2>
                 </div>
                 <p className="modal-subtitle">{detailSupplier.supplier_id} · {detailSupplier.category}</p>
@@ -385,11 +385,11 @@ export default function SuppliersTab() {
               <div className="detail-section">
                 <h4 className="detail-section-title">Contact Information</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <p className="detail-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><IconUser size={14}/> {detailSupplier.contact_person || '—'}</p>
-                  <p className="detail-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><IconMail size={14}/> {detailSupplier.contact_email || '—'}</p>
-                  <p className="detail-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><IconPhone size={14}/> {detailSupplier.contact_phone || '—'}</p>
-                  <p className="detail-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><IconMapPin size={14}/> {detailSupplier.address || '—'}, {detailSupplier.country}</p>
-                  {detailSupplier.tax_vat_number && <p className="detail-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><IconReceipt size={14}/> VAT: {detailSupplier.tax_vat_number}</p>}
+                  <p className="detail-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><User size={14}/> {detailSupplier.contact_person || '—'}</p>
+                  <p className="detail-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Mail size={14}/> {detailSupplier.contact_email || '—'}</p>
+                  <p className="detail-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Phone size={14}/> {detailSupplier.contact_phone || '—'}</p>
+                  <p className="detail-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><MapPin size={14}/> {detailSupplier.address || '—'}, {detailSupplier.country}</p>
+                  {detailSupplier.tax_vat_number && <p className="detail-text" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Receipt size={14}/> VAT: {detailSupplier.tax_vat_number}</p>}
                 </div>
               </div>
 

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { IconStar, IconAward, IconPlus, IconCheckCircle, IconWarning, IconXCircle } from './ProcurementIcons';
-import { X, Check, Star, AlertTriangle } from 'lucide-react';
+import { 
+  Star, Award, Plus, CheckCircle, AlertTriangle, XCircle, 
+  Check, X, Search 
+} from 'lucide-react';
 import '../../styles/Procurement.css';
 
 const Stars = ({ value, onClick }) => (
@@ -136,32 +138,32 @@ export default function VendorPerformanceTab() {
                   </td></tr>
                 ) : rankings.map((s,i) => (
                   <tr key={s._id}>
-                    <td>
+                    <td data-label="Rank">
                       <div className={`rank-badge rank-${i < 3 ? i + 1 : 'other'}`}>
-                        {i < 3 ? <IconAward size={16}/> : i + 1}
+                        {i < 3 ? <Award size={16}/> : i + 1}
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Supplier">
                       <p className="item-name">{s.name}</p>
                       <p className="po-date">{s.supplier_id}</p>
                     </td>
-                    <td>
+                    <td data-label="Rating">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                         <span style={{ color: '#f59e0b' }}><Star className="w-3 h-3 inline-block" fill="currentColor"/></span>
                         <span style={{ fontWeight: 900, color: 'var(--secondary-900)' }}>{s.rating?.toFixed(1)||'—'}</span>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="On-Time">
                       <span style={{ fontWeight: 900, color: s.on_time_delivery_rate>=90?'#059669':s.on_time_delivery_rate>=70?'#d97706':'#dc2626' }}>{s.on_time_delivery_rate}%</span>
                     </td>
-                    <td>
+                    <td data-label="Reliability">
                       <span className={`reliability-pill ${reliabilityClass(s.reliability_score)}`}>{s.reliability_score}</span>
                     </td>
-                    <td style={{ fontWeight: 900, color: 'var(--secondary-700)' }}>{s.total_orders}</td>
-                    <td>
+                    <td data-label="Orders" style={{ fontWeight: 900, color: 'var(--secondary-700)' }}>{s.total_orders}</td>
+                    <td data-label="Delayed">
                       <span style={{ fontWeight: 900, color: s.delayed_orders>0?'#d97706':'var(--secondary-400)' }}>{s.delayed_orders}</span>
                     </td>
-                    <td>
+                    <td data-label="Rejected">
                       <span style={{ fontWeight: 900, color: s.rejected_shipments>0?'#dc2626':'var(--secondary-400)' }}>{s.rejected_shipments}</span>
                     </td>
                   </tr>
@@ -182,7 +184,7 @@ export default function VendorPerformanceTab() {
               </select>
             </div>
             <button onClick={()=>setShowModal(true)} className="btn-add">
-              <IconPlus size={16}/> Submit Review
+              <Plus size={18}/> Submit Review
             </button>
           </div>
 
@@ -207,7 +209,7 @@ export default function VendorPerformanceTab() {
                     </div>
                     <div className="rating-group">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: 'flex-end' }}>
-                        <IconStar size={18} className="star-filled" />
+                        <Star size={18} className="star-filled" fill="currentColor" />
                         <span className="rating-val">{r.overall_rating?.toFixed(1)}</span>
                       </div>
                       <p className="rating-max">/ 5.0</p>
@@ -230,11 +232,11 @@ export default function VendorPerformanceTab() {
                   </div>
 
                   <div className="flag-group">
-                    {r.was_on_time && <span className="flag-pill flag-success"><IconCheckCircle size={10}/>On Time</span>}
-                    {!r.was_on_time && <span className="flag-pill flag-danger"><IconWarning size={10}/>Late</span>}
-                    {r.had_damaged_goods && <span className="flag-pill flag-warning"><IconWarning size={10}/>Damaged</span>}
-                    {r.had_quantity_mismatch && <span className="flag-pill flag-warning"><IconWarning size={10}/>Qty Mismatch</span>}
-                    {r.shipment_rejected && <span className="flag-pill flag-danger"><IconXCircle size={10}/>Rejected</span>}
+                    {r.was_on_time && <span className="flag-pill flag-success"><CheckCircle size={10}/>On Time</span>}
+                    {!r.was_on_time && <span className="flag-pill flag-danger"><AlertTriangle size={10}/>Late</span>}
+                    {r.had_damaged_goods && <span className="flag-pill flag-warning"><AlertTriangle size={10}/>Damaged</span>}
+                    {r.had_quantity_mismatch && <span className="flag-pill flag-warning"><AlertTriangle size={10}/>Qty Mismatch</span>}
+                    {r.shipment_rejected && <span className="flag-pill flag-danger"><XCircle size={10}/>Rejected</span>}
                   </div>
 
                   {r.comments && <p className="review-comment">" {r.comments} "</p>}

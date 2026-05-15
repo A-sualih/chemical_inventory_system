@@ -90,7 +90,7 @@ export default function OrderTrackingTab() {
             {ALL_STATUSES.map(s=><option key={s}>{s}</option>)}
           </select>
           <button onClick={()=>setFilterStatus('Delayed')} className="btn-filter-delayed">
-            <IconWarning size={15}/> Show Delayed
+            <AlertTriangle size={15}/> Show Delayed
           </button>
         </div>
         <p className="result-count">{total} shipment{total!==1?'s':''}</p>
@@ -103,7 +103,7 @@ export default function OrderTrackingTab() {
         </div>
       ) : shipments.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon"><IconTruck size={56}/></div>
+          <div className="empty-icon"><Truck size={56}/></div>
           <p className="empty-title">No shipments found</p>
         </div>
       ) : (
