@@ -37,6 +37,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
   const [disposalMethod, setDisposalMethod] = useState("");
   const [disposalApprovedBy, setDisposalApprovedBy] = useState("");
   const [disposalApprovedRole, setDisposalApprovedRole] = useState("safety_officer");
+  const [disposalChecklist, setDisposalChecklist] = useState([false, false]);
   const [complianceNotes, setComplianceNotes] = useState("");
 
   // Transfer specific
@@ -633,6 +634,25 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                             </div>
                           </div>
                         </div>
+                        
+                        <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.05)', border: '1px dashed rgba(239, 68, 68, 0.3)', borderRadius: '0.5rem' }}>
+                          <h4 style={{ fontWeight: 800, color: '#dc2626', marginBottom: '0.75rem', fontSize: '0.875rem' }}>MANDATORY DISPOSAL CHECKLIST</h4>
+                          {chemical.disposal_file_url && (
+                            <div style={{ marginBottom: '1rem' }}>
+                              <a href={process.env.NODE_ENV === 'production' ? chemical.disposal_file_url : `http://localhost:5001${chemical.disposal_file_url}`} target="_blank" rel="noreferrer" style={{ display: 'inline-block', backgroundColor: '#ef4444', color: 'white', padding: '0.375rem 0.75rem', borderRadius: '0.375rem', textDecoration: 'none', fontSize: '0.75rem', fontWeight: 600 }}>
+                                ⬇ Download / Read Disposal Protocol PDF
+                              </a>
+                            </div>
+                          )}
+                          <label className="compliance-checkbox-label" style={{ marginBottom: '0.5rem' }}>
+                            <input type="checkbox" checked={disposalChecklist[0]} onChange={e => setDisposalChecklist([e.target.checked, disposalChecklist[1]])} className="compliance-checkbox"/>
+                            <span className="compliance-confirm-text" style={{ color: '#7f1d1d' }}>I have read the designated Protocol</span>
+                          </label>
+                          <label className="compliance-checkbox-label">
+                            <input type="checkbox" checked={disposalChecklist[1]} onChange={e => setDisposalChecklist([disposalChecklist[0], e.target.checked])} className="compliance-checkbox"/>
+                            <span className="compliance-confirm-text" style={{ color: '#7f1d1d' }}>Waste container is verified compatible</span>
+                          </label>
+                        </div>
                       </div>
                     )}
                   </>
@@ -699,7 +719,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
             <button 
               form="stock-action-form"
               type="submit" 
-              disabled={loading}
+              disabled={loading || (action === 'DISPOSAL' && (!disposalChecklist[0] || !disposalChecklist[1]))}
               className={`btn-confirm-op ${
                 action === 'IN' ? 'bg-in' : 
                 action === 'DISPOSAL' ? 'bg-disposal' : 

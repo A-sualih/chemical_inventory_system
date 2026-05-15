@@ -100,6 +100,8 @@ const chemicalSchema = new mongoose.Schema({
   sds_attached: { type: Boolean },
   sds_file_name: { type: String },
   sds_file_url: { type: String },
+  disposal_file_name: { type: String },
+  disposal_file_url: { type: String },
   location: { type: String },
   status: { type: String },
   threshold: { type: Number, default: 5 },

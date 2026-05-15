@@ -243,9 +243,16 @@ exports.createChemical = async (req, res) => {
       else attempt++;
     }
     
-    const hasSdsFile = !!req.file;
-    const sdsFileName = hasSdsFile ? req.file.originalname : undefined;
-    const sdsFileUrl = hasSdsFile ? `/uploads/${req.file.filename}` : undefined;
+    const sdsFile = req.files && req.files['sds_file'] ? req.files['sds_file'][0] : null;
+    const disposalFile = req.files && req.files['disposal_file'] ? req.files['disposal_file'][0] : null;
+
+    const hasSdsFile = !!sdsFile;
+    const sdsFileName = hasSdsFile ? sdsFile.originalname : undefined;
+    const sdsFileUrl = hasSdsFile ? `/uploads/${sdsFile.filename}` : undefined;
+    
+    const hasDisposalFile = !!disposalFile;
+    const disposalFileName = hasDisposalFile ? disposalFile.originalname : undefined;
+    const disposalFileUrl = hasDisposalFile ? `/uploads/${disposalFile.filename}` : undefined;
     
     const newChem = new Chemical({
       id: idValue,
@@ -296,6 +303,8 @@ exports.createChemical = async (req, res) => {
       sds_attached: hasSdsFile || data.sdsAttached === 'true',
       sds_file_name: sdsFileName,
       sds_file_url: sdsFileUrl,
+      disposal_file_name: disposalFileName,
+      disposal_file_url: disposalFileUrl,
       lab: req.activeLabId, // Stamp it with currently active lab
       location: data.building ? `${data.building}-${data.room || ''}-${data.cabinet || ''}-${data.shelf || ''}`.replace(/-+$/, '') : (data.location || 'Pending Assignment'),
       status: (() => {
@@ -433,12 +442,20 @@ exports.updateChemical = async (req, res) => {
     if (data.restricted_access !== undefined) chemical.restricted_access = data.restricted_access === 'true' || data.restricted_access === true;
     if (data.training_required !== undefined) chemical.training_required = data.training_required === 'true' || data.training_required === true;
     
-    if (req.file) {
+    const sdsFile = req.files && req.files['sds_file'] ? req.files['sds_file'][0] : null;
+    const disposalFile = req.files && req.files['disposal_file'] ? req.files['disposal_file'][0] : null;
+
+    if (sdsFile) {
       chemical.sds_attached = true;
-      chemical.sds_file_name = req.file.originalname;
-      chemical.sds_file_url = `/uploads/${req.file.filename}`;
+      chemical.sds_file_name = sdsFile.originalname;
+      chemical.sds_file_url = `/uploads/${sdsFile.filename}`;
     } else {
       chemical.sds_attached = data.sds_attached === 'true' || chemical.sds_attached;
+    }
+
+    if (disposalFile) {
+      chemical.disposal_file_name = disposalFile.originalname;
+      chemical.disposal_file_url = `/uploads/${disposalFile.filename}`;
     }
 
     await chemical.save();
