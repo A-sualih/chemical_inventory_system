@@ -1,22 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import {
-  IconClock, IconCog, IconPackage, IconTruck, IconCheckCircle,
-  IconWarning, IconXCircle, IconReturn, IconPlus, IconFilter
-} from './ProcurementIcons';
-import { X, Check, AlertTriangle } from 'lucide-react';
+import { 
+  Clock, Settings, Package, Truck, CheckCircle, AlertTriangle, 
+  XCircle, RotateCcw, Plus, Filter, X, Check, Eye 
+} from 'lucide-react';
 import '../../styles/Procurement.css';
 
 const STATUS_CONFIG = {
-  Pending:           { className:'badge-draft',     Icon: IconClock     },
-  Processing:        { className:'badge-submitted', Icon: IconCog       },
-  Shipped:           { className:'badge-ordered',   Icon: IconPackage   },
-  'In Transit':      { className:'badge-partial',   Icon: IconTruck     },
-  'Out for Delivery':{ className:'badge-partial',   Icon: IconTruck     },
-  Delivered:         { className:'badge-completed', Icon: IconCheckCircle },
-  Delayed:           { className:'badge-rejected',  Icon: IconWarning   },
-  Cancelled:         { className:'badge-cancelled', Icon: IconXCircle   },
-  Returned:          { className:'badge-rejected',  Icon: IconReturn    },
+  Pending:           { className:'badge-draft',     icon: Clock        },
+  Processing:        { className:'badge-submitted', icon: Settings     },
+  Shipped:           { className:'badge-ordered',   icon: Package      },
+  'In Transit':      { className:'badge-partial',   icon: Truck        },
+  'Out for Delivery':{ className:'badge-partial',   icon: Truck        },
+  Delivered:         { className:'badge-completed', icon: CheckCircle  },
+  Delayed:           { className:'badge-rejected',  icon: AlertTriangle },
+  Cancelled:         { className:'badge-cancelled', icon: XCircle      },
+  Returned:          { className:'badge-rejected',  icon: RotateCcw    },
 };
 
 const ALL_STATUSES = Object.keys(STATUS_CONFIG);
@@ -111,11 +110,11 @@ export default function OrderTrackingTab() {
         <div className="tracking-grid">
           {shipments.map(s => {
             const cfg = STATUS_CONFIG[s.status] || STATUS_CONFIG.Pending;
-            const { Icon: StatusIcon } = cfg;
+            const StatusIcon = cfg.icon;
             const delayed = isDelayed(s);
             return (
               <div key={s._id} className={`tracking-card ${delayed ? 'delayed' : ''}`}>
-                {delayed && <div className="delayed-banner"><AlertTriangle className="w-4 h-4 inline-block mr-2" /> Shipment Delayed</div>}
+                {delayed && <div className="delayed-banner"><AlertTriangle size={14} className="mr-2" /> Shipment Delayed</div>}
                 <div className="tracking-card-body">
                   <div className="tracking-card-header">
                     <div>
@@ -123,7 +122,7 @@ export default function OrderTrackingTab() {
                       <p className="tracking-supplier">{s.supplier_id?.name||'—'}</p>
                     </div>
                     <span className={`status-badge-tracking procurement-badge ${cfg.className}`}>
-                      <StatusIcon size={11}/> {s.status}
+                      <StatusIcon size={12} className="mr-1" /> {s.status}
                     </span>
                   </div>
 

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { IconMoney, IconClipboard, IconTrending, IconFactory } from './ProcurementIcons';
+import { 
+  Wallet, ClipboardList, TrendingUp, Factory, BarChart3, 
+  PieChart, Activity, Package 
+} from 'lucide-react';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -93,10 +96,10 @@ export default function AnalyticsTab() {
 
       {/* KPI Cards */}
       <div className="analytics-grid">
-        <MetricCard label="Total Spending"   value={fmt(summary?.totalSpending)} sub="Completed orders" className="metric-violet" Icon={IconMoney} />
-        <MetricCard label="Total Orders"     value={summary?.totalOrders||0}    sub="All time"        className="metric-blue"     Icon={IconClipboard} />
-        <MetricCard label="Avg Order Value"  value={fmt(summary?.avgOrderValue)} sub="Per PO"         className="metric-emerald" Icon={IconTrending} />
-        <MetricCard label="Active Suppliers" value={summary?.activeSuppliers||0} sub={`of ${summary?.totalSuppliers||0} total`} className="metric-amber" Icon={IconFactory} />
+        <MetricCard label="Total Spending"   value={fmt(summary?.totalSpending)} sub="Completed orders" className="metric-violet" Icon={Wallet} />
+        <MetricCard label="Total Orders"     value={summary?.totalOrders||0}    sub="All time"        className="metric-blue"     Icon={ClipboardList} />
+        <MetricCard label="Avg Order Value"  value={fmt(summary?.avgOrderValue)} sub="Per PO"         className="metric-emerald" Icon={TrendingUp} />
+        <MetricCard label="Active Suppliers" value={summary?.activeSuppliers||0} sub={`of ${summary?.totalSuppliers||0} total`} className="metric-amber" Icon={Factory} />
       </div>
 
       {/* Monthly Spending Chart */}

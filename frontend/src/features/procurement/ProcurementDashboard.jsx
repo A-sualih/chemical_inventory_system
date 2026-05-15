@@ -5,20 +5,12 @@ import PurchaseOrdersTab from './PurchaseOrdersTab';
 import OrderTrackingTab from './OrderTrackingTab';
 import AnalyticsTab from './AnalyticsTab';
 import VendorPerformanceTab from './VendorPerformanceTab';
-import {
-  IconCart, IconMoney, IconClipboard, IconTrending,
-  IconFactory, IconCheckCircle, IconTruck, IconBarChart, IconStar
-} from './ProcurementIcons';
+import { 
+  ShoppingBag, ClipboardList, Truck, PieChart, Star, Factory, 
+  TrendingUp, Wallet, CheckCircle2 
+} from 'lucide-react';
 import axios from 'axios';
 import '../../styles/Procurement.css';
-
-const TABS = [
-  { id: 'orders',    label: 'Purchase Orders',    Icon: IconClipboard },
-  { id: 'suppliers', label: 'Suppliers',           Icon: IconFactory   },
-  { id: 'tracking',  label: 'Order Tracking',      Icon: IconTruck     },
-  { id: 'analytics', label: 'Analytics',           Icon: IconBarChart  },
-  { id: 'vendors',   label: 'Vendor Performance',  Icon: IconStar      },
-];
 
 const StatCard = ({ label, value, sub, variant, Icon: IcoCmp }) => (
   <div className="procurement-stat-card">
@@ -50,53 +42,67 @@ const ProcurementDashboard = () => {
     return `$${n.toFixed(0)}`;
   };
 
+  const tabs = [
+    { id: 'orders',    label: 'Purchase Orders',    icon: ClipboardList, color: 'indigo' },
+    { id: 'suppliers', label: 'Suppliers',           icon: Factory,       color: 'blue'   },
+    { id: 'tracking',  label: 'Order Tracking',      icon: Truck,         color: 'amber'  },
+    { id: 'analytics', label: 'Analytics',           icon: PieChart,      color: 'emerald' },
+    { id: 'vendors',   label: 'Vendor Performance',  icon: Star,          color: 'rose'   },
+  ];
+
   return (
     <Layout>
-      {/* Header */}
-      <div className="procurement-header">
-        <div className="procurement-title-group">
-          <div className="procurement-icon-badge">
-            <IconCart size={22} />
-          </div>
-          <div>
-            <h1 className="procurement-main-title">Procurement & Suppliers</h1>
-            <p className="procurement-main-desc">Manage vendors, purchase orders, shipments, and spending analytics.</p>
+      <div className="procurement-container">
+        {/* Superior Header Bar */}
+        <div className="procurement-header-bar">
+          <div className="procurement-header-content">
+            <div className="procurement-title-section">
+              <div className="procurement-icon-box">
+                <ShoppingBag size={28} />
+              </div>
+              <div>
+                <h1 className="procurement-title">Procurement Hub</h1>
+                <p className="procurement-subtitle">Modern supply chain & inventory acquisition</p>
+              </div>
+            </div>
+
+            <div className="procurement-tabs-nav">
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`proc-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+                >
+                  <tab.icon size={18} className={`tab-icon-${tab.color}`} />
+                  <span>{tab.label}</span>
+                  {activeTab === tab.id && <div className="tab-indicator" />}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Summary Cards */}
-      {summary && (
-        <div className="procurement-summary-grid">
-          <StatCard label="Total Spending"   value={fmt(summary.totalSpending)}  sub="All completed POs"  variant="variant-violet"  Icon={IconMoney} />
-          <StatCard label="Total Orders"     value={summary.totalOrders || 0}    sub="All time"           variant="variant-blue"    Icon={IconClipboard} />
-          <StatCard label="Avg Order Value"  value={fmt(summary.avgOrderValue)}  sub="Per PO"             variant="variant-emerald" Icon={IconTrending} />
-          <StatCard label="Total Suppliers"  value={summary.totalSuppliers || 0} sub={`${summary.activeSuppliers || 0} active`} variant="variant-amber" Icon={IconFactory} />
-          <StatCard label="Active Suppliers" value={summary.activeSuppliers || 0} sub="Ready to order"   variant="variant-rose"    Icon={IconCheckCircle} />
+        <div className="procurement-main-view">
+          {/* Summary Cards - Only shown on some tabs or as an overview? 
+              The original implementation had them above the tabs. 
+              Let's keep them accessible or integrated into an 'Overview' but for now following original flow. */}
+          {activeTab === 'analytics' && summary && (
+            <div className="procurement-summary-grid">
+              <StatCard label="Total Spending"   value={fmt(summary.totalSpending)}  sub="All completed POs"  variant="variant-violet"  Icon={Wallet} />
+              <StatCard label="Total Orders"     value={summary.totalOrders || 0}    sub="All time"           variant="variant-blue"    Icon={ClipboardList} />
+              <StatCard label="Avg Order Value"  value={fmt(summary.avgOrderValue)}  sub="Per PO"             variant="variant-emerald" Icon={TrendingUp} />
+              <StatCard label="Active Suppliers" value={summary.activeSuppliers || 0} sub="Ready to order"   variant="variant-amber"   Icon={CheckCircle2} />
+            </div>
+          )}
+
+          <div className="proc-tab-content">
+            {activeTab === 'orders'    && <PurchaseOrdersTab />}
+            {activeTab === 'suppliers' && <SuppliersTab />}
+            {activeTab === 'tracking'  && <OrderTrackingTab />}
+            {activeTab === 'analytics' && <AnalyticsTab />}
+            {activeTab === 'vendors'   && <VendorPerformanceTab />}
+          </div>
         </div>
-      )}
-
-      {/* Tab Navigation */}
-      <div className="procurement-tabs">
-        {TABS.map(({ id, label, Icon: IcoCmp }) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            className={`procurement-tab ${activeTab === id ? 'active' : ''}`}
-          >
-            <IcoCmp size={16} />
-            <span className="tab-label">{label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
-      <div>
-        {activeTab === 'orders'    && <PurchaseOrdersTab />}
-        {activeTab === 'suppliers' && <SuppliersTab />}
-        {activeTab === 'tracking'  && <OrderTrackingTab />}
-        {activeTab === 'analytics' && <AnalyticsTab />}
-        {activeTab === 'vendors'   && <VendorPerformanceTab />}
       </div>
     </Layout>
   );

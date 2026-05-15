@@ -24,8 +24,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
 
   const [form, setForm] = useState({
     chemical_id: '', batch_id: '', batch_number: '', quantity: '', unit: '', reason: 'Expired',
-    method: 'Neutralization', hazard_classification: '', notes: '',
-    checklist: [false, false]
+    method: 'Neutralization', hazard_classification: '', notes: ''
   });
   const [batches, setBatches] = useState([]);
   const [viewingDisposal, setViewingDisposal] = useState(null);
@@ -74,7 +73,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
         .then(res => {
           const data = res.data.data || res.data || [];
           setChemicals(data);
-          
+
           // If still empty and user is admin, try fetching without lab scope if possible 
           // (Backend change already handles this via $or for admins)
         })
@@ -219,16 +218,16 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   Submit a new hazardous waste management record
                 </p>
               </div>
-              <button 
-                onClick={onCloseModal} 
-                style={{ 
-                  padding: 0, 
-                  width: '32px', 
-                  height: '32px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  borderRadius: '0.75rem', 
+              <button
+                onClick={onCloseModal}
+                style={{
+                  padding: 0,
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '0.75rem',
                   border: 'none',
                   background: 'var(--secondary-100)',
                   color: 'var(--secondary-600)',
@@ -241,30 +240,14 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                 <IconX size={18} />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} style={{ padding: '0 2rem 1.5rem' }}>
               <div className="premium-form-grid" style={{ gap: '1rem', padding: '1.5rem 0' }}>
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
-                    <div style={{ width: '4px', height: '18px', background: 'var(--waste-primary)', borderRadius: '2px' }}></div>
-                    <label className="premium-form-label" style={{ marginBottom: 0 }}>Select Material for Disposal</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                    <div style={{ width: '4px', height: '16px', background: 'var(--waste-primary)', borderRadius: '2px' }}></div>
+                    <label className="premium-form-label" style={{ marginBottom: 0 }}>Chemical Selection</label>
                   </div>
-                  
-                  <div className="modern-search-wrapper" style={{ marginBottom: '1.5rem', position: 'relative' }}>
-                    <div style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-400)' }}>
-                      <IconPlus size={18} style={{ transform: 'rotate(45deg)' }} />
-                    </div>
-                    <input 
-                      type="text" 
-                      placeholder="Search chemical by name or CAS..." 
-                      className="premium-form-input"
-                      style={{ paddingLeft: '3.5rem', borderRadius: '1.25rem', border: '1px solid var(--secondary-200)', background: '#f8fafc' }}
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                    />
-                  </div>
-<<<<<<< HEAD
-=======
                   <select
                     required
                     value={form.chemical_id}
@@ -276,49 +259,32 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                         chemical_id: chemId,
                         batch_id: '',
                         batch_number: '',
-                        unit: chem ? chem.unit : '',
-                        checklist: [false, false]
+                        unit: chem ? chem.unit : ''
                       });
->>>>>>> dbda08d5 (feat: integrate mandatory safety checklist and SDS/protocol document links into waste disposal workflow)
 
-                  <div className="chemical-selection-grid" style={{ 
-                    maxHeight: '280px', overflowY: 'auto', display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', 
-                    gap: '1rem', padding: '0.5rem', background: '#f1f5f9', 
-                    borderRadius: '1.5rem', border: '1px solid var(--secondary-100)'
-                  }}>
-                    {chemicals.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.cas_number?.includes(search)).map(c => (
-                      <div 
-                        key={c._id} 
-                        className={`chem-select-card ${form.chemical_id === c._id ? 'selected' : ''}`}
-                        onClick={async () => {
-                          setForm({ ...form, chemical_id: c._id, batch_id: '', batch_number: '', unit: c.unit });
-                          try {
-                            const res = await axios.get('/api/batches', { params: { chemical_id: c.id } });
-                            setBatches(res.data.data || res.data || []);
-                          } catch (err) { console.error(err); }
-                        }}
-                        style={{
-                          background: form.chemical_id === c._id ? 'var(--waste-primary)' : 'white',
-                          color: form.chemical_id === c._id ? 'white' : 'inherit',
-                          padding: '1.25rem', borderRadius: '1.25rem', cursor: 'pointer',
-                          transition: 'all 0.2s', border: '1px solid var(--secondary-100)',
-                          boxShadow: form.chemical_id === c._id ? '0 10px 15px -3px rgba(99, 102, 241, 0.3)' : 'none'
-                        }}
-                      >
-                        <div style={{ fontWeight: 800, fontSize: '0.95rem', marginBottom: '0.25rem' }}>{c.name}</div>
-                        <div style={{ fontSize: '0.75rem', opacity: 0.7, fontWeight: 600 }}>CAS: {c.cas_number || 'N/A'}</div>
-                        <div style={{ marginTop: '0.75rem', fontSize: '0.8rem', fontWeight: 800, display: 'flex', justifyContent: 'space-between' }}>
-                          <span>Stock:</span>
-                          <span>{c.quantity} {c.unit}</span>
-                        </div>
-                      </div>
+                      if (chemId && chem) {
+                        try {
+                          const res = await axios.get('/api/batches', { params: { chemical_id: chem.id } });
+                          setBatches(res.data.data || res.data || []);
+                        } catch (err) {
+                          console.error('Fetch Batches Error:', err);
+                        }
+                      } else {
+                        setBatches([]);
+                      }
+                    }}
+                    className="premium-form-input"
+                    style={{ height: '60px', fontSize: '1.05rem' }}
+                  >
+                    <option value="">{chemicals.length > 0 ? 'Search for a chemical...' : 'No chemicals available in current lab scope'}</option>
+                    {chemicals.map(c => (
+                      <option key={c._id} value={c._id}>
+                        {c.name} ({c.cas_number}) — {c.quantity > 0 ? `In Stock: ${c.quantity} ${c.unit}` : 'Out of Stock'}
+                      </option>
                     ))}
-                  </div>
+                  </select>
                 </div>
 
-<<<<<<< HEAD
-=======
                 {form.chemical_id && chemicals.find(c => c._id === form.chemical_id)?.disposal_file_url && (
                   <div style={{ gridColumn: '1 / -1', marginTop: '-0.5rem', marginBottom: '0.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'rgba(239, 68, 68, 0.08)', borderRadius: '0.75rem', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
@@ -327,9 +293,9 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                         <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#991b1b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Required Safety Protocol Attached</div>
                         <div style={{ fontSize: '0.85rem', color: 'var(--secondary-600)', fontWeight: 600 }}>{chemicals.find(c => c._id === form.chemical_id).disposal_file_name || 'Protocol PDF'}</div>
                       </div>
-                      <a 
+                      <a
                         href={`http://localhost:5001${chemicals.find(c => c._id === form.chemical_id).disposal_file_url}`}
-                        target="_blank" 
+                        target="_blank"
                         rel="noopener noreferrer"
                         style={{ padding: '0.4rem 0.8rem', background: '#ef4444', color: 'white', borderRadius: '0.5rem', fontSize: '0.7rem', fontWeight: 800, textDecoration: 'none' }}
                       >
@@ -347,9 +313,9 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                         <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--indigo-900)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Chemical SDS Available</div>
                         <div style={{ fontSize: '0.85rem', color: 'var(--secondary-600)', fontWeight: 600 }}>{chemicals.find(c => c._id === form.chemical_id).sds_file_name || 'SDS PDF'}</div>
                       </div>
-                      <a 
+                      <a
                         href={`http://localhost:5001${chemicals.find(c => c._id === form.chemical_id).sds_file_url}`}
-                        target="_blank" 
+                        target="_blank"
                         rel="noopener noreferrer"
                         style={{ padding: '0.4rem 0.8rem', background: 'var(--indigo-600)', color: 'white', borderRadius: '0.5rem', fontSize: '0.7rem', fontWeight: 800, textDecoration: 'none' }}
                       >
@@ -358,42 +324,6 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                     </div>
                   </div>
                 )}
-
-                {form.chemical_id && (
-                  <div style={{ gridColumn: '1 / -1', marginTop: '1rem', padding: '1.25rem', backgroundColor: 'rgba(239, 68, 68, 0.05)', border: '1px dashed rgba(239, 68, 68, 0.3)', borderRadius: '1rem' }}>
-                    <h4 style={{ fontWeight: 800, color: '#dc2626', marginBottom: '1rem', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mandatory Safety Checklist</h4>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-                        <input 
-                          type="checkbox" 
-                          checked={form.checklist[0]} 
-                          onChange={e => {
-                            const newChecklist = [...form.checklist];
-                            newChecklist[0] = e.target.checked;
-                            setForm({ ...form, checklist: newChecklist });
-                          }}
-                          style={{ width: '1.2rem', height: '1.2rem', accentColor: '#ef4444' }}
-                        />
-                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#7f1d1d' }}>I have reviewed the designated Safety Protocol / SDS</span>
-                      </label>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-                        <input 
-                          type="checkbox" 
-                          checked={form.checklist[1]} 
-                          onChange={e => {
-                            const newChecklist = [...form.checklist];
-                            newChecklist[1] = e.target.checked;
-                            setForm({ ...form, checklist: newChecklist });
-                          }}
-                          style={{ width: '1.2rem', height: '1.2rem', accentColor: '#ef4444' }}
-                        />
-                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#7f1d1d' }}>Disposal container and PPE verified for this hazard class</span>
-                      </label>
-                    </div>
-                  </div>
-                )}
->>>>>>> dbda08d5 (feat: integrate mandatory safety checklist and SDS/protocol document links into waste disposal workflow)
 
                 <div style={{ gridColumn: 'span 1' }}>
                   <label className="premium-form-label">Specific Batch</label>
@@ -411,10 +341,10 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   >
                     <option value="">Default (FIFO - Auto Selection)</option>
                     {batches.map(b => (
-                        <option key={b._id} value={b._id}>
-                          {b.batch_number} — {b.total_quantity} {b.unit} {b.status === 'Expired' ? <><Flame className="w-4 h-4 inline-block text-red-500 mx-1" /> (EXPIRED)</> : ''}
-                        </option>
-                      ))}
+                      <option key={b._id} value={b._id}>
+                        {b.batch_number} — {b.total_quantity} {b.unit} {b.status === 'Expired' ? <><Flame className="w-4 h-4 inline-block text-red-500 mx-1" /> (EXPIRED)</> : ''}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -473,7 +403,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   <button type="button" onClick={onCloseModal} className="btn-modal-secondary" style={{ height: '2.5rem', padding: '0 1.5rem', fontSize: '0.75rem' }}>
                     Cancel
                   </button>
-                  <button type="submit" disabled={submitting || (form.chemical_id && (!form.checklist[0] || !form.checklist[1]))} className="btn-premium-submit" style={{ width: 'auto', minWidth: '140px', height: '2.5rem', fontSize: '0.75rem', opacity: (form.chemical_id && (!form.checklist[0] || !form.checklist[1])) ? 0.6 : 1 }}>
+                  <button type="submit" disabled={submitting} className="btn-premium-submit" style={{ width: 'auto', minWidth: '140px', height: '2.5rem', fontSize: '0.75rem' }}>
                     {submitting ? 'Processing...' : 'Submit Request'}
                   </button>
                 </div>
@@ -497,8 +427,8 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
           </div>
           {hasPermission('manage_waste') && (
             <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <button 
-                className="btn-waste-primary" 
+              <button
+                className="btn-waste-primary"
                 onClick={externalShowModal ? onCloseModal : onOpenModal}
                 style={{ padding: '0.4rem 0.75rem', fontSize: '0.7rem', height: 'auto', gap: '0.4rem' }}
               >
@@ -506,8 +436,8 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                 {externalShowModal ? 'Close' : 'New Disposal'}
               </button>
               {user.role === 'Admin' && (
-                <button 
-                  className="btn-waste-action action-reject" 
+                <button
+                  className="btn-waste-action action-reject"
                   onClick={async () => {
                     if (window.confirm("FATAL ACTION: This will permanently delete ALL disposal records from the system. This action cannot be undone. Proceed?")) {
                       try {
@@ -548,78 +478,79 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
             ) : disposals.map(d => {
               // Determine border color based on status
               const getBorderColor = (status) => {
-                if(status === 'Approved') return '#10b981'; // Success Green
-                if(status === 'Pending Approval') return '#f59e0b'; // Amber
-                if(status === 'Rejected') return '#ef4444'; // Red
-                if(status === 'Disposed') return '#0ea5e9'; // Blue
+                if (status === 'Approved') return '#10b981'; // Success Green
+                if (status === 'Pending Approval') return '#f59e0b'; // Amber
+                if (status === 'Rejected') return '#ef4444'; // Red
+                if (status === 'Disposed') return '#0ea5e9'; // Blue
                 return 'transparent';
               };
-              
+
               return (
-              <div className="waste-tr" key={d._id} style={{ borderLeftColor: getBorderColor(d.status), borderLeftWidth: '4px' }}>
-                <div className="waste-td" data-label="ID"><span className="waste-id-cell">{d.disposal_id}</span></div>
-                <div className="waste-td" data-label="Chemical" style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
-                  <div className="waste-chemical-name">{d.chemical_name}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--secondary-400)', fontWeight: '700', marginTop: '0.2rem' }}>{d.hazard_classification}</div>
-                </div>
-                <div className="waste-td" data-label="Quantity"><span className="waste-quantity-cell">{d.quantity} {unitLabel(d.unit)}</span></div>
-                <div className="waste-td waste-hide-1200" data-label="Method" style={{ fontWeight: '600' }}>{d.method}</div>
-                <div className="waste-td" data-label="Status">
-                  <span className={`waste-badge badge-${d.status.toLowerCase().replace(' ', '-')}`}>
-                    {d.status}
-                  </span>
-                </div>
-                <div className="waste-td waste-hide-992" data-label="Responsible"><span className="waste-responsible-cell">{d.responsible_person_name}</span></div>
-                <div className="waste-td waste-hide-1200" data-label="Date" style={{ fontWeight: '700', color: 'var(--secondary-500)' }}>{new Date(d.disposal_date).toLocaleDateString()}</div>
-                <div className="waste-td waste-actions-cell">
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    {d.status === 'Pending Approval' && hasPermission('approve_disposal') && (
-                      <>
-                        <button onClick={() => handleApproveClick(d)} className="btn-waste-action action-approve">
-                          <IconCheckCircle size={14} style={{ marginRight: '4px' }}/> Approve
+                <div className="waste-tr" key={d._id} style={{ borderLeftColor: getBorderColor(d.status), borderLeftWidth: '4px' }}>
+                  <div className="waste-td" data-label="ID"><span className="waste-id-cell">{d.disposal_id}</span></div>
+                  <div className="waste-td" data-label="Chemical" style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
+                    <div className="waste-chemical-name">{d.chemical_name}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--secondary-400)', fontWeight: '700', marginTop: '0.2rem' }}>{d.hazard_classification}</div>
+                  </div>
+                  <div className="waste-td" data-label="Quantity"><span className="waste-quantity-cell">{d.quantity} {unitLabel(d.unit)}</span></div>
+                  <div className="waste-td waste-hide-1200" data-label="Method" style={{ fontWeight: '600' }}>{d.method}</div>
+                  <div className="waste-td" data-label="Status">
+                    <span className={`waste-badge badge-${d.status.toLowerCase().replace(' ', '-')}`}>
+                      {d.status}
+                    </span>
+                  </div>
+                  <div className="waste-td waste-hide-992" data-label="Responsible"><span className="waste-responsible-cell">{d.responsible_person_name}</span></div>
+                  <div className="waste-td waste-hide-1200" data-label="Date" style={{ fontWeight: '700', color: 'var(--secondary-500)' }}>{new Date(d.disposal_date).toLocaleDateString()}</div>
+                  <div className="waste-td waste-actions-cell">
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                      {d.status === 'Pending Approval' && hasPermission('approve_disposal') && (
+                        <>
+                          <button onClick={() => handleApproveClick(d)} className="btn-waste-action action-approve">
+                            <IconCheckCircle size={14} style={{ marginRight: '4px' }} /> Approve
+                          </button>
+                          <button onClick={() => setRejectingId(d._id)} className="btn-waste-action action-reject">
+                            <IconX size={14} style={{ marginRight: '4px' }} /> Reject
+                          </button>
+                        </>
+                      )}
+                      {d.status === 'Approved' && hasPermission('manage_waste') && (
+                        <button onClick={() => {
+                          setCompletingDisposal(d);
+                          setCompletionForm({
+                            method_details: {
+                              safety_procedure_followed: true,
+                              operator_name: user.name,
+                              facility_name: '',
+                              treatment_details: '',
+                              verification_outcome: '',
+                              neutralization: { initial_ph: 7, final_ph: 7, neutralizing_agent: '', compatible_agents_verified: false, safe_range_validated: false },
+                              incineration: { temperature: 1200, certificate_number: '', gas_handling_verified: true, final_report_url: '' }
+                            }
+                          });
+                        }} className="btn-waste-action action-complete">
+                          <IconCheckCircle size={14} style={{ marginRight: '4px' }} /> Complete
                         </button>
-                        <button onClick={() => setRejectingId(d._id)} className="btn-waste-action action-reject">
-                          <IconX size={14} style={{ marginRight: '4px' }}/> Reject
-                        </button>
-                      </>
-                    )}
-                    {d.status === 'Approved' && hasPermission('manage_waste') && (
-                      <button onClick={() => {
-                        setCompletingDisposal(d);
-                        setCompletionForm({
-                          method_details: {
-                            safety_procedure_followed: true,
-                            operator_name: user.name,
-                            facility_name: '',
-                            treatment_details: '',
-                            verification_outcome: '',
-                            neutralization: { initial_ph: 7, final_ph: 7, neutralizing_agent: '', compatible_agents_verified: false, safe_range_validated: false },
-                            incineration: { temperature: 1200, certificate_number: '', gas_handling_verified: true, final_report_url: '' }
-                          }
-                        });
-                      }} className="btn-waste-action action-complete">
-                        <IconCheckCircle size={14} style={{ marginRight: '4px' }} /> Complete
-                      </button>
-                    )}
-                    <button
-                      onClick={() => setViewingDisposal(d)}
-                      className="btn-waste-action action-view"
-                    >
-                      <IconFileText size={14} style={{ marginRight: '4px' }} /> View Details
-                    </button>
-                    {hasPermission('manage_waste') && (
+                      )}
                       <button
-                        onClick={() => handleDelete(d._id)}
-                        className="btn-waste-action action-reject"
-                        style={{ color: '#ef4444', borderColor: '#fecaca' }}
+                        onClick={() => setViewingDisposal(d)}
+                        className="btn-waste-action action-view"
                       >
-                        <IconTrash size={14} style={{ marginRight: '4px' }} /> Delete
+                        <IconFileText size={14} style={{ marginRight: '4px' }} /> View Details
                       </button>
-                    )}
+                      {hasPermission('manage_waste') && (
+                        <button
+                          onClick={() => handleDelete(d._id)}
+                          className="btn-waste-action action-reject"
+                          style={{ color: '#ef4444', borderColor: '#fecaca' }}
+                        >
+                          <IconTrash size={14} style={{ marginRight: '4px' }} /> Delete
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )})}
+              )
+            })}
           </div>
         </div>
       </div>
@@ -685,9 +616,9 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   <label className="form-label-small" style={{ color: '#ef4444' }}>Mandatory Safety Protocol</label>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--secondary-600)' }}>{viewingDisposal.chemical_id.disposal_file_name || 'Protocol PDF Document'}</span>
-                    <a 
+                    <a
                       href={`http://localhost:5001${viewingDisposal.chemical_id.disposal_file_url}`}
-                      target="_blank" 
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="btn-waste-action"
                       style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.5rem 1rem', gap: '0.5rem' }}
@@ -702,9 +633,9 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   <label className="form-label-small" style={{ color: 'var(--indigo-600)' }}>Chemical Safety Data Sheet (SDS)</label>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--secondary-600)' }}>{viewingDisposal.chemical_id.sds_file_name || 'SDS PDF Document'}</span>
-                    <a 
+                    <a
                       href={`http://localhost:5001${viewingDisposal.chemical_id.sds_file_url}`}
-                      target="_blank" 
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="btn-waste-action"
                       style={{ background: 'var(--indigo-600)', color: 'white', border: 'none', padding: '0.5rem 1rem', gap: '0.5rem' }}
@@ -739,9 +670,9 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   <input
                     required
                     value={completionForm.method_details.operator_name}
-                    onChange={e => setCompletionForm({ 
-                      ...completionForm, 
-                      method_details: { ...completionForm.method_details, operator_name: e.target.value } 
+                    onChange={e => setCompletionForm({
+                      ...completionForm,
+                      method_details: { ...completionForm.method_details, operator_name: e.target.value }
                     })}
                     className="procurement-input"
                   />
@@ -752,9 +683,9 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   <input
                     required
                     value={completionForm.method_details.facility_name}
-                    onChange={e => setCompletionForm({ 
-                      ...completionForm, 
-                      method_details: { ...completionForm.method_details, facility_name: e.target.value } 
+                    onChange={e => setCompletionForm({
+                      ...completionForm,
+                      method_details: { ...completionForm.method_details, facility_name: e.target.value }
                     })}
                     className="procurement-input"
                     placeholder="e.g. Lab B-12 or External Facility"
@@ -784,7 +715,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                       <div style={{ fontSize: '0.8rem', color: '#7c2d12', lineHeight: '1.5' }}>
                         {completingDisposal.chemical_id?.emergency_response?.neutralization ? (
                           <div style={{ background: 'rgba(255,255,255,0.5)', padding: '0.75rem', borderRadius: '0.75rem', marginBottom: '0.75rem', border: '1px solid rgba(251, 146, 60, 0.2)' }}>
-                            <strong style={{ display: 'block', marginBottom: '0.25rem', color: '#9a3412' }}>SDS Procedure:</strong> 
+                            <strong style={{ display: 'block', marginBottom: '0.25rem', color: '#9a3412' }}>SDS Procedure:</strong>
                             {completingDisposal.chemical_id.emergency_response.neutralization}
                           </div>
                         ) : (
@@ -792,30 +723,30 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                             No specific SDS neutralization protocol found. Use standard lab protocols for this hazard class.
                           </div>
                         )}
-                        
+
                         {completingDisposal.chemical_id?.incompatibility?.length > 0 && (
                           <div style={{ background: '#fef2f2', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #fecaca' }}>
                             <strong style={{ color: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                               <IconX size={14} /> CRITICAL INCOMPATIBILITY:
-                            </strong> 
+                            </strong>
                             <span style={{ color: '#991b1b', fontWeight: 600 }}>Avoid {completingDisposal.chemical_id.incompatibility.join(', ')}.</span>
                           </div>
                         )}
-                        
+
                         {completingDisposal.chemical_id?.disposal_file_url && (
                           <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(239,68,68,0.1)', borderRadius: '0.75rem', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <IconFileText size={16} style={{ color: '#ef4444' }} />
-                                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#991b1b' }}>Official Disposal Protocol Attached</span>
-                             </div>
-                             <a 
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <IconFileText size={16} style={{ color: '#ef4444' }} />
+                              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#991b1b' }}>Official Disposal Protocol Attached</span>
+                            </div>
+                            <a
                               href={`http://localhost:5001${completingDisposal.chemical_id.disposal_file_url}`}
-                              target="_blank" 
-                              rel="noopener noreferrer" 
+                              target="_blank"
+                              rel="noopener noreferrer"
                               style={{ fontSize: '0.7rem', fontWeight: 800, color: '#ef4444', textDecoration: 'underline', textTransform: 'uppercase' }}
-                             >
-                               Open PDF
-                             </a>
+                            >
+                              Open PDF
+                            </a>
                           </div>
                         )}
                       </div>
@@ -973,8 +904,8 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                 )}
 
                 <div style={{ gridColumn: 'span 2' }}>
-                   <label className="form-label-small">Waste Treatment Details</label>
-                   <textarea
+                  <label className="form-label-small">Waste Treatment Details</label>
+                  <textarea
                     value={completionForm.method_details.treatment_details}
                     onChange={e => setCompletionForm({
                       ...completionForm,
@@ -987,8 +918,8 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                 </div>
 
                 <div style={{ gridColumn: 'span 2' }}>
-                   <label className="form-label-small">Final Outcome Verification</label>
-                   <input
+                  <label className="form-label-small">Final Outcome Verification</label>
+                  <input
                     value={completionForm.method_details.verification_outcome}
                     onChange={e => setCompletionForm({
                       ...completionForm,

@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
 import {
-  IconSearch, IconPlus, IconEdit, IconTrash, IconEye, IconBan,
-  IconStar, IconMail, IconPhone, IconGlobe, IconUser, IconFactory, IconMapPin, IconReceipt
-} from './ProcurementIcons';
-import { Star, X, Check } from 'lucide-react';
+  Search, Plus, Edit2, Trash2, Eye, Ban, Star, Mail, Phone, Globe, 
+  User, Factory, MapPin, Receipt, Check, X, ShieldCheck
+} from 'lucide-react';
+import axios from 'axios';
 import '../../styles/Procurement.css';
 
 const CATEGORIES = ['Chemical Manufacturer','Distributor','Wholesaler','Laboratory Supplier','Specialty Chemical','Raw Materials','Other'];
@@ -162,7 +161,7 @@ export default function SuppliersTab() {
       <div className="procurement-toolbar">
         <div className="toolbar-filters">
           <div className="search-wrapper">
-            <span className="search-icon"><IconSearch size={15} /></span>
+            <Search size={18} className="search-icon" />
             <input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Search suppliers…" className="search-input" />
           </div>
           <select value={filterStatus} onChange={e=>{setFilterStatus(e.target.value);setPage(1);}} className="filter-select">
@@ -182,7 +181,8 @@ export default function SuppliersTab() {
           </select>
         </div>
         <button onClick={openAdd} className="btn-add">
-          <IconPlus size={16} /> Add Supplier
+          <Plus size={18} />
+          <span>Add Supplier</span>
         </button>
       </div>
 
@@ -209,7 +209,7 @@ export default function SuppliersTab() {
                 <div className="card-header-row">
                   <div className="card-title-group">
                     <div className="card-title-flex">
-                      {s.is_preferred && <span className="pref-star" title="Preferred Supplier"><IconStar size={14} /></span>}
+                      {s.is_preferred && <span className="pref-star" title="Preferred Supplier"><ShieldCheck size={14} /></span>}
                       <h3 className="card-title">{s.name}</h3>
                     </div>
                     <p className="card-id">{s.supplier_id}</p>
@@ -222,10 +222,10 @@ export default function SuppliersTab() {
                 </div>
 
                 <div className="card-details">
-                  <p className="detail-line"><IconMail size={12} className="detail-icon" /> {s.contact_email || '—'}</p>
-                  <p className="detail-line"><IconPhone size={12} className="detail-icon" /> {s.contact_phone || '—'}</p>
-                  <p className="detail-line"><IconGlobe size={12} className="detail-icon" /> {s.country} · {s.category}</p>
-                  {s.contact_person && <p className="detail-line"><IconUser size={12} className="detail-icon" /> {s.contact_person}</p>}
+                  <p className="detail-line"><Mail size={12} className="detail-icon" /> {s.contact_email || '—'}</p>
+                  <p className="detail-line"><Phone size={12} className="detail-icon" /> {s.contact_phone || '—'}</p>
+                  <p className="detail-line"><Globe size={12} className="detail-icon" /> {s.country} · {s.category}</p>
+                  {s.contact_person && <p className="detail-line"><User size={12} className="detail-icon" /> {s.contact_person}</p>}
                 </div>
 
                 <div className="card-stats-grid">
@@ -245,10 +245,10 @@ export default function SuppliersTab() {
               </div>
 
               <div className="card-actions">
-                <button onClick={()=>openDetail(s)} className="action-btn action-view"><IconEye size={13}/>View</button>
-                <button onClick={()=>openEdit(s)} className="action-btn action-edit"><IconEdit size={13}/>Edit</button>
-                {s.status !== 'Blacklisted' && <button onClick={()=>handleBlacklist(s._id)} className="action-btn action-danger"><IconBan size={13}/>Blacklist</button>}
-                <button onClick={()=>handleDelete(s._id)} className="action-btn action-danger"><IconTrash size={13}/>Delete</button>
+                <button onClick={()=>openDetail(s)} className="action-btn action-view"><Eye size={13}/>View</button>
+                <button onClick={()=>openEdit(s)} className="action-btn action-edit"><Edit2 size={13}/>Edit</button>
+                {s.status !== 'Blacklisted' && <button onClick={()=>handleBlacklist(s._id)} className="action-btn action-danger"><Ban size={13}/>Blacklist</button>}
+                <button onClick={()=>handleDelete(s._id)} className="action-btn action-danger"><Trash2 size={13}/>Delete</button>
               </div>
             </div>
           ))}

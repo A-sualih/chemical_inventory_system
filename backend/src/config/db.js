@@ -16,11 +16,7 @@ async function initDb() {
   try {
     console.log('Connecting to MongoDB Atlas...');
     await mongoose.connect(uri, {
-<<<<<<< HEAD
-      serverSelectionTimeoutMS: 400000 // Timeout after 5s instead of default 30s
-=======
-      serverSelectionTimeoutMS: 10000 // Timeout after 5s instead of default 30s
->>>>>>> dbda08d5 (feat: integrate mandatory safety checklist and SDS/protocol document links into waste disposal workflow)
+      serverSelectionTimeoutMS: 10000 // Timeout after 10s instead of default 30s
     });
     console.log('Successfully connected to MongoDB Cluster.');
 
