@@ -4,49 +4,10 @@ import { useAuth } from '../../context/AuthContext';
 import Layout from '../../layout/Layout';
 import '../../styles/Batches.css';
 
-// Inline SVG components
-const TagIcon = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66a2.25 2.25 0 0 0-1.591-.659Z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6Z" />
-  </svg>
-);
-
-const CalendarDaysIcon = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
-  </svg>
-);
-
-const TruckIcon = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.806H14.25M16.5 18.75h-2.25m0-11.25v11.25m0-11.25H8.25m0 11.25H6.75m3.375-11.25V4.125c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V7.5m-6.75 0h6.75m-10.5 6h10.5" />
-  </svg>
-);
-
-const SearchIcon = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-  </svg>
-);
-
-const PlusIcon = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-  </svg>
-);
-
-const TrashIcon = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.247 2.118H8.122a2.25 2.25 0 0 1-2.247-2.118L6.24 5.614m1.13 0c.342-.052.682-.107 1.022-.166m2.321 4.303A1.125 1.125 0 0 1 9.5 12.067H9.26a1.125 1.125 0 0 1-1.125-1.125V9.747c0-.621.504-1.125 1.125-1.125h.24a1.125 1.125 0 0 1 1.125 1.125V10.707Z" />
-  </svg>
-);
-
-const PencilIcon = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-  </svg>
-);
+import { 
+  Tag, Calendar, Truck, Search, Plus, Trash2, Edit3, CheckCircle2, 
+  AlertCircle, Clock, Package, X 
+} from 'lucide-react';
 
 const Batches = () => {
   const { user, hasPermission } = useAuth();
@@ -166,7 +127,7 @@ const Batches = () => {
           <div className="batches-header-content">
             <div className="batches-title-section">
               <div className="batches-icon-box">
-                <TagIcon className="icon-lg" />
+                <Tag size={28} />
               </div>
               <div>
                 <h1 className="batches-title">Batch Master</h1>
@@ -176,7 +137,7 @@ const Batches = () => {
 
             <div className="batches-action-group">
               <div className="batches-search-wrapper">
-                <SearchIcon className="batches-search-icon" />
+                <Search className="batches-search-icon" />
                 <input 
                   type="text" 
                   placeholder="Search batch #, chemical, supplier..." 
@@ -187,7 +148,7 @@ const Batches = () => {
               </div>
               {hasPermission("create_chemical") && (
                 <button onClick={() => handleOpenModal()} className="btn-new-batch">
-                  <PlusIcon className="icon-md" />
+                  <Plus size={18} />
                   New Batch
                 </button>
               )}
@@ -207,46 +168,30 @@ const Batches = () => {
                   label: 'Active Batches',
                   value: batches.filter(b => b.status === 'Active').length,
                   iconClass: 'stat-icon-indigo',
-                  svg: (
-                    <svg className="icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  )
+                  icon: CheckCircle2
                 },
                 {
                   label: 'Expired',
                   value: batches.filter(b => b.status === 'Expired').length,
                   iconClass: 'stat-icon-rose',
-                  svg: (
-                    <svg className="icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  )
+                  icon: AlertCircle
                 },
                 {
                   label: 'Near Expiry',
                   value: batches.filter(b => b.status === 'Near Expiry').length,
                   iconClass: 'stat-icon-amber',
-                  svg: (
-                    <svg className="icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  )
+                  icon: Clock
                 },
                 {
                   label: 'Total Batches',
                   value: batches.length,
                   iconClass: 'stat-icon-emerald',
-                  svg: (
-                    <svg className="icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 0012 10.172V5L11 4z" />
-                    </svg>
-                  )
+                  icon: Package
                 },
               ].map((s, i) => (
                 <div key={i} className="batch-stat-card">
                   <div className={`batch-stat-icon ${s.iconClass}`}>
-                    {s.svg}
+                    <s.icon size={24} />
                   </div>
                   <div className="batch-stat-info">
                     <span className="batch-stat-label">{s.label}</span>
@@ -277,7 +222,7 @@ const Batches = () => {
                           <td data-label="Batch">
                             <div className="batch-id-cell">
                               <div className="batch-id-icon">
-                                <TagIcon className="icon-md" />
+                                <Tag size={20} />
                               </div>
                               <div>
                                 <div className="batch-id-text">{b.batch_number}</div>
@@ -327,8 +272,8 @@ const Batches = () => {
                           {/* Actions */}
                           <td data-label="Actions">
                             <div className="batch-actions">
-                              <button onClick={() => handleOpenModal(b)} className="action-icon-btn action-edit"><PencilIcon className="icon-sm" /></button>
-                              <button onClick={() => handleDelete(b._id)} className="action-icon-btn action-delete"><TrashIcon className="icon-sm" /></button>
+                              <button onClick={() => handleOpenModal(b)} className="action-icon-btn action-edit"><Edit3 size={16} /></button>
+                              <button onClick={() => handleDelete(b._id)} className="action-icon-btn action-delete"><Trash2 size={16} /></button>
                             </div>
                           </td>
                         </tr>
@@ -344,13 +289,15 @@ const Batches = () => {
                 <div className="batch-modal-card">
                   <div className="batch-modal-header">
                     <h2 className="batch-modal-title">{isEditing ? 'Master Batch Sync' : 'Initialize New Batch'}</h2>
-                    <button onClick={handleCloseModal} className="btn-close-batch">&times;</button>
+                    <button onClick={handleCloseModal} className="btn-close-batch">
+                      <X size={20} />
+                    </button>
                   </div>
 
                   <form onSubmit={handleSubmit} className="batch-form">
                     <div className="form-grid-2">
                       <div className="form-field-group">
-                        <label className="form-field-label"><TagIcon className="icon-xs inline mr-1" /> Batch / Lot Number</label>
+                        <label className="form-field-label"><Tag size={12} className="inline mr-1" /> Batch / Lot Number</label>
                         <input 
                           type="text" 
                           value={formData.batch_number} 
@@ -360,7 +307,7 @@ const Batches = () => {
                         />
                       </div>
                       <div className="form-field-group">
-                        <label className="form-field-label"><PlusIcon className="icon-xs inline mr-1" /> Parent Chemical</label>
+                        <label className="form-field-label"><Plus size={12} className="inline mr-1" /> Parent Chemical</label>
                         <select 
                           value={formData.chemical_id} 
                           onChange={e => setFormData({...formData, chemical_id: e.target.value})}
@@ -375,7 +322,7 @@ const Batches = () => {
 
                     <div className="form-grid-2">
                       <div className="form-field-group">
-                        <label className="form-field-label"><TagIcon className="icon-xs inline mr-1" /> Total Batch Quantity</label>
+                        <label className="form-field-label"><Tag size={12} className="inline mr-1" /> Total Batch Quantity</label>
                         <div className="flex-row-gap-2">
                           <input 
                             type="number" 
@@ -394,7 +341,7 @@ const Batches = () => {
                         </div>
                       </div>
                       <div className="form-field-group">
-                        <label className="form-field-label"><TruckIcon className="icon-xs inline mr-1" /> Supplier Name</label>
+                        <label className="form-field-label"><Truck size={12} className="inline mr-1" /> Supplier Name</label>
                         <input 
                           type="text" 
                           value={formData.supplier_name} 
@@ -407,7 +354,7 @@ const Batches = () => {
 
                     <div className="form-grid-2">
                       <div className="form-field-group">
-                        <label className="form-field-label"><CalendarDaysIcon className="icon-xs inline mr-1" /> Manufactured On</label>
+                        <label className="form-field-label"><Calendar size={12} className="inline mr-1" /> Manufactured On</label>
                         <input 
                           type="date" 
                           value={formData.manufacturing_date} 
@@ -416,7 +363,7 @@ const Batches = () => {
                         />
                       </div>
                       <div className="form-field-group">
-                        <label className="form-field-label"><CalendarDaysIcon className="icon-xs inline mr-1" /> Expiry Date</label>
+                        <label className="form-field-label"><Calendar size={12} className="inline mr-1" /> Expiry Date</label>
                         <input 
                           type="date" 
                           value={formData.expiry_date} 

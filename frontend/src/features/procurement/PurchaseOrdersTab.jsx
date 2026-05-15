@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-
+import { 
+  ClipboardList, Search, Plus, Filter, X, Check, Eye, Trash2, 
+  ChevronLeft, ChevronRight, AlertCircle, FileText, Calendar, 
+  DollarSign, MoreHorizontal 
+} from 'lucide-react';
 const STATUS_MAP = {
   Draft: 'badge-draft',
   Submitted: 'badge-submitted',
@@ -160,17 +164,31 @@ export default function PurchaseOrdersTab() {
       {/* Toolbar */}
       <div className="procurement-toolbar">
         <div className="toolbar-filters">
-          <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search PO number…" className="search-input" />
-          <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1); }} className="filter-select">
-            <option value="">All Statuses</option>
-            {Object.keys(STATUS_MAP).map(s => <option key={s}>{s}</option>)}
-          </select>
+          <div className="search-wrapper">
+            <Search size={18} className="search-icon" />
+            <input 
+              value={search} 
+              onChange={e => { setSearch(e.target.value); setPage(1); }} 
+              placeholder="Search PO number…" 
+              className="search-input" 
+            />
+          </div>
+          <div className="filter-wrapper">
+            <Filter size={14} className="filter-icon-inline" />
+            <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1); }} className="filter-select">
+              <option value="">All Statuses</option>
+              {Object.keys(STATUS_MAP).map(s => <option key={s}>{s}</option>)}
+            </select>
+          </div>
           <select value={filterPriority} onChange={e => { setFilterPriority(e.target.value); setPage(1); }} className="filter-select">
             <option value="">All Priorities</option>
             {['Low', 'Normal', 'High', 'Urgent'].map(p => <option key={p}>{p}</option>)}
           </select>
         </div>
-        <button onClick={() => setShowModal(true)} className="btn-add">+ Create PO</button>
+        <button onClick={() => setShowModal(true)} className="btn-add">
+          <Plus size={18} />
+          <span>Create PO</span>
+        </button>
       </div>
 
       {/* Table */}
@@ -237,11 +255,17 @@ export default function PurchaseOrdersTab() {
       {/* Pagination */}
       {pages > 1 && (
         <div className="procurement-pagination">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="page-btn-arrow">← Prev</button>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="page-btn-arrow">
+            <ChevronLeft size={16} />
+            <span>Prev</span>
+          </button>
           {[...Array(Math.min(pages, 5))].map((_, i) => (
             <button key={i} onClick={() => setPage(i + 1)} className={`page-btn-num ${page === i + 1 ? 'active' : ''}`}>{i + 1}</button>
           ))}
-          <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages} className="page-btn-arrow">Next →</button>
+          <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages} className="page-btn-arrow">
+            <span>Next</span>
+            <ChevronRight size={16} />
+          </button>
         </div>
       )}
 
