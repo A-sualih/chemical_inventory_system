@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { 
-  ArrowUpDown, 
-  Calendar, 
-  Beaker, 
-  Package, 
-  MapPin, 
-  User, 
-  MessageSquare, 
-  CheckCircle, 
-  XCircle, 
-  Plus, 
+import {
+  ArrowUpDown,
+  Calendar,
+  Beaker,
+  Package,
+  MapPin,
+  User,
+  MessageSquare,
+  CheckCircle,
+  XCircle,
+  Plus,
   Info,
   Clock,
   ArrowRightLeft
@@ -131,7 +131,7 @@ const TransferDashboard = () => {
     try {
       const res = await axios.get('/api/labs');
       setAllLabs(res.data.filter(l => l._id !== user.active_lab));
-    } catch {}
+    } catch { }
   };
 
   const handleApprove = async (id) => {
@@ -186,7 +186,7 @@ const TransferDashboard = () => {
             <p>Request chemicals from other labs. Provider lab approves and sends them.</p>
           </div>
           <button className="btn-primary-glow" onClick={() => { setIsModalOpen(true); resetModal(); }}>
-            <svg xmlns="http://www.w3.org/2000/svg" style={{width:'1.25rem',height:'1.25rem',marginRight:'0.5rem'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
             </svg>
             New Requisition
@@ -210,14 +210,14 @@ const TransferDashboard = () => {
             <table className="transfer-table">
               <thead>
                 <tr>
-                  <th><div className="th-flex"><ArrowRightLeft size={14}/> Type</div></th>
-                  <th><div className="th-flex"><Calendar size={14}/> Date</div></th>
-                  <th><div className="th-flex"><Beaker size={14}/> Chemical</div></th>
-                  <th><div className="th-flex"><Package size={14}/> Quantity</div></th>
-                  <th><div className="th-flex"><MapPin size={14}/> Provider</div></th>
-                  <th><div className="th-flex"><User size={14}/> Requester</div></th>
-                  <th><div className="th-flex"><MessageSquare size={14}/> Reason</div></th>
-                  <th><div className="th-flex"><Info size={14}/> Status</div></th>
+                  <th><div className="th-flex"><ArrowRightLeft size={14} /> Type</div></th>
+                  <th><div className="th-flex"><Calendar size={14} /> Date</div></th>
+                  <th><div className="th-flex"><Beaker size={14} /> Chemical</div></th>
+                  <th><div className="th-flex"><Package size={14} /> Quantity</div></th>
+                  <th><div className="th-flex"><MapPin size={14} /> Provider</div></th>
+                  <th><div className="th-flex"><User size={14} /> Requester</div></th>
+                  <th><div className="th-flex"><MessageSquare size={14} /> Reason</div></th>
+                  <th><div className="th-flex"><Info size={14} /> Status</div></th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -226,34 +226,34 @@ const TransferDashboard = () => {
                   <tr key={t._id} style={{ '--index': idx }}>
                     <td data-label="Type">
                       {isSourceLab(t)
-                        ? <span className="dir-badge dir-out"><UploadCloud size={12}/> Outgoing</span>
-                        : <span className="dir-badge dir-in"><DownloadCloud size={12}/> Incoming</span>
+                        ? <span className="dir-badge dir-out"><UploadCloud size={12} /> Outgoing</span>
+                        : <span className="dir-badge dir-in"><DownloadCloud size={12} /> Incoming</span>
                       }
                     </td>
                     <td data-label="Date">
                       <div className="td-with-icon">
-                        <Clock size={14} className="td-icon-muted"/>
+                        <Clock size={14} className="td-icon-muted" />
                         {new Date(t.createdAt).toLocaleDateString()}
                       </div>
                     </td>
                     <td data-label="Chemical">
-                       <div className="chem-identity-cell">
-                         <span className="chem-main-name">{t.chemical_id?.name || '—'}</span>
-                         <span className="chem-sub-id">{t.chemical_id?.id}</span>
-                       </div>
+                      <div className="chem-identity-cell">
+                        <span className="chem-main-name">{t.chemical_id?.name || '—'}</span>
+                        <span className="chem-sub-id">{t.chemical_id?.id}</span>
+                      </div>
                     </td>
                     <td data-label="Quantity">
                       <span className="qty-tag">{t.quantity_moved} <small>{t.unit}</small></span>
                     </td>
                     <td data-label="Provider Lab">
                       <div className="td-with-icon">
-                        <MapPin size={14} className="td-icon-muted"/>
+                        <MapPin size={14} className="td-icon-muted" />
                         {t.source_lab?.name}
                       </div>
                     </td>
                     <td data-label="Requested By">
                       <div className="td-with-icon">
-                        <User size={14} className="td-icon-muted"/>
+                        <User size={14} className="td-icon-muted" />
                         {t.requested_by?.name || '—'}
                       </div>
                     </td>
@@ -265,11 +265,11 @@ const TransferDashboard = () => {
                       {canApprove(t) && (
                         <div className="action-buttons">
                           <button className="btn-success-sm" onClick={() => handleApprove(t._id)}>
-                            <CheckCircle size={14}/>
+                            <CheckCircle size={14} />
                             <span>Approve</span>
                           </button>
                           <button className="btn-danger-sm" onClick={() => handleReject(t._id)}>
-                            <XCircle size={14}/>
+                            <XCircle size={14} />
                             <span>Decline</span>
                           </button>
                         </div>
@@ -289,17 +289,19 @@ const TransferDashboard = () => {
               <div className="modal-modal-header">
                 <div>
                   <h2>Request Chemical</h2>
-                  <p style={{color:'var(--secondary-400)',fontSize:'0.8rem',marginTop:'0.25rem'}}>Request a chemical FROM another lab. Their manager will approve.</p>
+                  <p>Request a chemical FROM another lab. Their manager will approve.</p>
                 </div>
-                <button className="modal-close-x" onClick={() => { setIsModalOpen(false); resetModal(); }}><X className="w-4 h-4" /></button>
+                <button className="modal-close-x" onClick={() => { setIsModalOpen(false); resetModal(); }}>
+                  <X size={20} />
+                </button>
               </div>
 
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} className="transfer-form">
                 {/* Provider Lab */}
                 <div className="form-group">
                   <label>Provider Lab (has the chemical) *</label>
                   <select required value={form.source_lab} onChange={e => {
-                    setForm(f => ({...f, source_lab: e.target.value}));
+                    setForm(f => ({ ...f, source_lab: e.target.value }));
                     clearChem(); // Clear chemical when lab changes
                   }}>
                     <option value="">Select lab to request from...</option>
@@ -308,7 +310,7 @@ const TransferDashboard = () => {
                 </div>
 
                 {/* Chemical Search */}
-                <div className="form-group" ref={wrapRef} style={{position:'relative'}}>
+                <div className="form-group" ref={wrapRef} style={{ position: 'relative' }}>
                   <label>Chemical *</label>
 
                   {!form.source_lab && (
@@ -330,7 +332,7 @@ const TransferDashboard = () => {
                   ) : (
                     <div className="chem-search-wrap">
                       <svg className="chem-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
                       <input
                         type="text"
@@ -341,7 +343,7 @@ const TransferDashboard = () => {
                         onFocus={() => { if (chemResults.length > 0) setDropdownOpen(true); }}
                         autoComplete="off"
                       />
-                      {chemLoading && <div className="chem-search-spinner"/>}
+                      {chemLoading && <div className="chem-search-spinner" />}
                     </div>
                   ))}
 
@@ -356,10 +358,9 @@ const TransferDashboard = () => {
                               {chem.cas_number && <span>CAS: {chem.cas_number}</span>}
                               {chem.formula && <span>{chem.formula}</span>}
                               <span>{chem.quantity ?? '?'} {chem.unit}</span>
-                              <span className={`chem-status-dot ${
-                                chem.status === 'In Stock' ? 'dot-green' :
+                              <span className={`chem-status-dot ${chem.status === 'In Stock' ? 'dot-green' :
                                 chem.status === 'Low Stock' || chem.status === 'Near Expiry' ? 'dot-amber' : 'dot-red'
-                              }`}>{chem.status}</span>
+                                }`}>{chem.status}</span>
                             </div>
                           </div>
                         ))
@@ -377,12 +378,12 @@ const TransferDashboard = () => {
                   <div className="form-group">
                     <label>Batch Number</label>
                     <input type="text" placeholder="Optional" value={form.batch_number}
-                      onChange={e => setForm(f => ({...f, batch_number: e.target.value}))} />
+                      onChange={e => setForm(f => ({ ...f, batch_number: e.target.value }))} />
                   </div>
                   <div className="form-group">
                     <label>Container ID</label>
                     <input type="text" placeholder="Optional" value={form.container_id}
-                      onChange={e => setForm(f => ({...f, container_id: e.target.value}))} />
+                      onChange={e => setForm(f => ({ ...f, container_id: e.target.value }))} />
                   </div>
                 </div>
 
@@ -391,11 +392,11 @@ const TransferDashboard = () => {
                   <div className="form-group">
                     <label>Quantity *</label>
                     <input type="number" required min="0.001" step="any" placeholder="Amount"
-                      value={form.quantity_moved} onChange={e => setForm(f => ({...f, quantity_moved: e.target.value}))} />
+                      value={form.quantity_moved} onChange={e => setForm(f => ({ ...f, quantity_moved: e.target.value }))} />
                   </div>
                   <div className="form-group">
                     <label>Unit *</label>
-                    <select value={form.unit} onChange={e => setForm(f => ({...f, unit: e.target.value}))}>
+                    <select value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}>
                       <option value="ml">ml</option>
                       <option value="L">L</option>
                       <option value="g">g</option>
@@ -413,7 +414,7 @@ const TransferDashboard = () => {
                     rows="2"
                     placeholder="e.g. Running low on stock for experiment #34, urgently needed..."
                     value={form.reason}
-                    onChange={e => setForm(f => ({...f, reason: e.target.value}))}
+                    onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
                     style={{
                       width: '100%',
                       background: 'var(--secondary-50)',
@@ -430,9 +431,17 @@ const TransferDashboard = () => {
                 </div>
 
                 <div className="modal-actions">
-                  <button type="button" className="btn-secondary" style={{borderRadius:'1rem',padding:'0.875rem 1.5rem'}}
-                    onClick={() => { setIsModalOpen(false); resetModal(); }}>Cancel</button>
-                  <button type="submit" className="btn-primary-glow">Submit Requisition</button>
+                  <button
+                    type="button"
+                    className="btn-form-secondary"
+                    onClick={() => { setIsModalOpen(false); resetModal(); }}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-primary-glow">
+                    <ArrowUpDown size={18} />
+                    Submit Requisition
+                  </button>
                 </div>
               </form>
             </div>
