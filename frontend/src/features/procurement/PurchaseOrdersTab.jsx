@@ -154,10 +154,11 @@ export default function PurchaseOrdersTab() {
   const pages = Math.ceil(total / 15);
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="modern-procurement-tab-container">
       {toast && (
-        <div className={`procurement-toast ${toast.type === 'error' ? 'toast-error' : 'toast-success'}`}>
-          <span className="mr-2">{toast.type === 'error' ? <X className="w-4 h-4 inline-block" /> : <Check className="w-4 h-4 inline-block" />}</span> {toast.msg}
+        <div className={`procurement-toast ${toast.type === 'error' ? 'toast-error' : 'toast-success'}`} style={{ animation: 'slideDown 0.4s ease-out' }}>
+          <span className="mr-2">{toast.type === 'error' ? <AlertCircle className="w-5 h-5" /> : <Check className="w-5 h-5" />}</span> 
+          <span>{toast.msg}</span>
         </div>
       )}
 
@@ -232,7 +233,7 @@ export default function PurchaseOrdersTab() {
                     </td>
                     <td data-label="Total" style={{ fontWeight: 900, color: 'var(--secondary-900)', whiteSpace: 'nowrap' }}>{o.currency} {o.total_cost?.toLocaleString()}</td>
                     <td data-label="Expected" style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--secondary-500)', whiteSpace: 'nowrap' }}>{o.expected_delivery ? new Date(o.expected_delivery).toLocaleDateString() : '—'}</td>
-                    <td data-label="Actions">
+                    <td data-label="Actions" className="procurement-actions-cell">
                       <div className="procurement-actions-wrapper">
                         {action && (
                           <button onClick={() => changeStatus(o._id, action.status)} className={`btn-table-action ${action.className}`}>
@@ -240,7 +241,13 @@ export default function PurchaseOrdersTab() {
                           </button>
                         )}
                         {!['Cancelled', 'Completed'].includes(o.status) && (
-                          <button onClick={() => changeStatus(o._id, 'Cancelled', 'Cancelled by user')} className="btn-table-cancel"><X className="w-4 h-4 mx-auto" /></button>
+                          <button 
+                            onClick={() => changeStatus(o._id, 'Cancelled', 'Cancelled by user')} 
+                            className="btn-table-cancel"
+                            title="Cancel Order"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
                         )}
                       </div>
                     </td>
@@ -297,13 +304,16 @@ export default function PurchaseOrdersTab() {
                     {CURRENCIES.map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
-                <div className="procurement-form-field">
+                <div className="procurement-form-field" style={{ gridColumn: 'span 2' }}>
                   <label className="form-label-small">Expected Delivery *</label>
-                  <input required type="date" value={form.expected_delivery} onChange={e => setForm(f => ({ ...f, expected_delivery: e.target.value }))} className="procurement-input" />
+                  <div style={{ position: 'relative' }}>
+                    <Calendar size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-400)' }} />
+                    <input required type="date" value={form.expected_delivery} onChange={e => setForm(f => ({ ...f, expected_delivery: e.target.value }))} className="procurement-input" style={{ paddingLeft: '2.75rem' }} />
+                  </div>
                 </div>
-                <div className="procurement-form-field">
+                <div className="procurement-form-field" style={{ gridColumn: 'span 2' }}>
                   <label className="form-label-small">Department</label>
-                  <input value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} className="procurement-input" />
+                  <input value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} className="procurement-input" placeholder="e.g. Research Lab A" />
                 </div>
               </div>
 
@@ -351,12 +361,17 @@ export default function PurchaseOrdersTab() {
               {/* Totals */}
               <div className="po-totals-card">
                 <div className="po-totals-row">
-                  <label className="form-label-small">Shipping Fee</label>
-                  <input type="number" step="0.01" min="0" value={form.shipping_fee} onChange={e => setForm(f => ({ ...f, shipping_fee: e.target.value }))} className="procurement-input" style={{ width: '7rem', backgroundColor: 'white', textAlign: 'right' }} />
+                  <label className="form-label-small" style={{ marginBottom: 0 }}>Shipping Fee ({form.currency})</label>
+                  <div style={{ position: 'relative' }}>
+                    <DollarSign size={14} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-400)' }} />
+                    <input type="number" step="0.01" min="0" value={form.shipping_fee} onChange={e => setForm(f => ({ ...f, shipping_fee: e.target.value }))} className="procurement-input" style={{ width: '8rem', backgroundColor: 'white', textAlign: 'right', paddingLeft: '2rem' }} />
+                  </div>
                 </div>
-                <div className="po-totals-row" style={{ paddingTop: '0.5rem', borderTop: '1px solid #ddd6fe' }}>
+                <div className="po-totals-row" style={{ paddingTop: '1.25rem', borderTop: '2px dashed #ddd6fe', marginTop: '0.5rem' }}>
                   <span className="grand-total-label">Grand Total ({form.currency})</span>
-                  <span className="grand-total-value">{grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <span className="grand-total-value">
+                    {form.currency === 'USD' ? '$' : ''}{grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
                 </div>
               </div>
 

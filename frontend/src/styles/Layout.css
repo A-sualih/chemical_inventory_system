@@ -1,4 +1,8 @@
 /* Layout.css */
+:root {
+  --top-header-height: 4.5rem;
+}
+
 
 .app-wrapper {
   display: flex;

@@ -66,12 +66,12 @@ const ProcurementDashboard = () => {
               </div>
             </div>
 
-            <div className="procurement-tabs-nav">
+            <div className="procurement-tabs">
               {tabs.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`proc-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+                  className={`procurement-tab ${activeTab === tab.id ? 'active' : ''}`}
                 >
                   <tab.icon size={18} className={`tab-icon-${tab.color}`} />
                   <span>{tab.label}</span>
