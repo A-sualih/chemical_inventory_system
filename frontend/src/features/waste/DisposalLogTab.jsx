@@ -24,7 +24,8 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
 
   const [form, setForm] = useState({
     chemical_id: '', batch_id: '', batch_number: '', quantity: '', unit: '', reason: 'Expired',
-    method: 'Neutralization', hazard_classification: '', notes: ''
+    method: 'Neutralization', hazard_classification: '', notes: '',
+    checklist: [false, false]
   });
   const [batches, setBatches] = useState([]);
   const [viewingDisposal, setViewingDisposal] = useState(null);
@@ -262,6 +263,23 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                       onChange={(e) => setSearch(e.target.value)}
                     />
                   </div>
+<<<<<<< HEAD
+=======
+                  <select
+                    required
+                    value={form.chemical_id}
+                    onChange={async (e) => {
+                      const chemId = e.target.value;
+                      const chem = chemicals.find(c => c._id === chemId);
+                      setForm({
+                        ...form,
+                        chemical_id: chemId,
+                        batch_id: '',
+                        batch_number: '',
+                        unit: chem ? chem.unit : '',
+                        checklist: [false, false]
+                      });
+>>>>>>> dbda08d5 (feat: integrate mandatory safety checklist and SDS/protocol document links into waste disposal workflow)
 
                   <div className="chemical-selection-grid" style={{ 
                     maxHeight: '280px', overflowY: 'auto', display: 'grid', 
@@ -299,6 +317,83 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   </div>
                 </div>
 
+<<<<<<< HEAD
+=======
+                {form.chemical_id && chemicals.find(c => c._id === form.chemical_id)?.disposal_file_url && (
+                  <div style={{ gridColumn: '1 / -1', marginTop: '-0.5rem', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'rgba(239, 68, 68, 0.08)', borderRadius: '0.75rem', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
+                      <IconFileText size={18} style={{ color: '#ef4444' }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#991b1b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Required Safety Protocol Attached</div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--secondary-600)', fontWeight: 600 }}>{chemicals.find(c => c._id === form.chemical_id).disposal_file_name || 'Protocol PDF'}</div>
+                      </div>
+                      <a 
+                        href={`http://localhost:5001${chemicals.find(c => c._id === form.chemical_id).disposal_file_url}`}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{ padding: '0.4rem 0.8rem', background: '#ef4444', color: 'white', borderRadius: '0.5rem', fontSize: '0.7rem', fontWeight: 800, textDecoration: 'none' }}
+                      >
+                        OPEN PDF
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {form.chemical_id && chemicals.find(c => c._id === form.chemical_id)?.sds_file_url && (
+                  <div style={{ gridColumn: '1 / -1', marginTop: '-0.5rem', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'rgba(99, 102, 241, 0.08)', borderRadius: '0.75rem', border: '1px solid rgba(99, 102, 241, 0.15)' }}>
+                      <IconFileText size={18} style={{ color: 'var(--indigo-600)' }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--indigo-900)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Chemical SDS Available</div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--secondary-600)', fontWeight: 600 }}>{chemicals.find(c => c._id === form.chemical_id).sds_file_name || 'SDS PDF'}</div>
+                      </div>
+                      <a 
+                        href={`http://localhost:5001${chemicals.find(c => c._id === form.chemical_id).sds_file_url}`}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{ padding: '0.4rem 0.8rem', background: 'var(--indigo-600)', color: 'white', borderRadius: '0.5rem', fontSize: '0.7rem', fontWeight: 800, textDecoration: 'none' }}
+                      >
+                        OPEN SDS
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {form.chemical_id && (
+                  <div style={{ gridColumn: '1 / -1', marginTop: '1rem', padding: '1.25rem', backgroundColor: 'rgba(239, 68, 68, 0.05)', border: '1px dashed rgba(239, 68, 68, 0.3)', borderRadius: '1rem' }}>
+                    <h4 style={{ fontWeight: 800, color: '#dc2626', marginBottom: '1rem', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mandatory Safety Checklist</h4>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={form.checklist[0]} 
+                          onChange={e => {
+                            const newChecklist = [...form.checklist];
+                            newChecklist[0] = e.target.checked;
+                            setForm({ ...form, checklist: newChecklist });
+                          }}
+                          style={{ width: '1.2rem', height: '1.2rem', accentColor: '#ef4444' }}
+                        />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#7f1d1d' }}>I have reviewed the designated Safety Protocol / SDS</span>
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={form.checklist[1]} 
+                          onChange={e => {
+                            const newChecklist = [...form.checklist];
+                            newChecklist[1] = e.target.checked;
+                            setForm({ ...form, checklist: newChecklist });
+                          }}
+                          style={{ width: '1.2rem', height: '1.2rem', accentColor: '#ef4444' }}
+                        />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#7f1d1d' }}>Disposal container and PPE verified for this hazard class</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+>>>>>>> dbda08d5 (feat: integrate mandatory safety checklist and SDS/protocol document links into waste disposal workflow)
 
                 <div style={{ gridColumn: 'span 1' }}>
                   <label className="premium-form-label">Specific Batch</label>
@@ -378,7 +473,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   <button type="button" onClick={onCloseModal} className="btn-modal-secondary" style={{ height: '2.5rem', padding: '0 1.5rem', fontSize: '0.75rem' }}>
                     Cancel
                   </button>
-                  <button type="submit" disabled={submitting} className="btn-premium-submit" style={{ width: 'auto', minWidth: '140px', height: '2.5rem', fontSize: '0.75rem' }}>
+                  <button type="submit" disabled={submitting || (form.chemical_id && (!form.checklist[0] || !form.checklist[1]))} className="btn-premium-submit" style={{ width: 'auto', minWidth: '140px', height: '2.5rem', fontSize: '0.75rem', opacity: (form.chemical_id && (!form.checklist[0] || !form.checklist[1])) ? 0.6 : 1 }}>
                     {submitting ? 'Processing...' : 'Submit Request'}
                   </button>
                 </div>
@@ -585,6 +680,40 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   </p>
                 </div>
               )}
+              {viewingDisposal.chemical_id?.disposal_file_url && (
+                <div style={{ marginTop: '1.5rem', padding: '1.25rem', background: 'rgba(239, 68, 68, 0.05)', borderRadius: '1.25rem', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
+                  <label className="form-label-small" style={{ color: '#ef4444' }}>Mandatory Safety Protocol</label>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--secondary-600)' }}>{viewingDisposal.chemical_id.disposal_file_name || 'Protocol PDF Document'}</span>
+                    <a 
+                      href={`http://localhost:5001${viewingDisposal.chemical_id.disposal_file_url}`}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="btn-waste-action"
+                      style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.5rem 1rem', gap: '0.5rem' }}
+                    >
+                      <IconFileText size={16} /> View Protocol
+                    </a>
+                  </div>
+                </div>
+              )}
+              {viewingDisposal.chemical_id?.sds_file_url && (
+                <div style={{ marginTop: '0.75rem', padding: '1.25rem', background: 'rgba(99, 102, 241, 0.05)', borderRadius: '1.25rem', border: '1px solid rgba(99, 102, 241, 0.1)' }}>
+                  <label className="form-label-small" style={{ color: 'var(--indigo-600)' }}>Chemical Safety Data Sheet (SDS)</label>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--secondary-600)' }}>{viewingDisposal.chemical_id.sds_file_name || 'SDS PDF Document'}</span>
+                    <a 
+                      href={`http://localhost:5001${viewingDisposal.chemical_id.sds_file_url}`}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="btn-waste-action"
+                      style={{ background: 'var(--indigo-600)', color: 'white', border: 'none', padding: '0.5rem 1rem', gap: '0.5rem' }}
+                    >
+                      <IconFileText size={16} /> View SDS
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="waste-modal-footer" style={{ padding: '1.5rem 2rem', borderTop: '1px solid var(--secondary-100)', display: 'flex', justifyContent: 'flex-end' }}>
               <button onClick={() => setViewingDisposal(null)} className="btn-waste-primary" style={{ padding: '0.5rem 1.5rem', fontSize: '0.875rem' }}>
@@ -670,6 +799,23 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                               <IconX size={14} /> CRITICAL INCOMPATIBILITY:
                             </strong> 
                             <span style={{ color: '#991b1b', fontWeight: 600 }}>Avoid {completingDisposal.chemical_id.incompatibility.join(', ')}.</span>
+                          </div>
+                        )}
+                        
+                        {completingDisposal.chemical_id?.disposal_file_url && (
+                          <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(239,68,68,0.1)', borderRadius: '0.75rem', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <IconFileText size={16} style={{ color: '#ef4444' }} />
+                                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#991b1b' }}>Official Disposal Protocol Attached</span>
+                             </div>
+                             <a 
+                              href={`http://localhost:5001${completingDisposal.chemical_id.disposal_file_url}`}
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              style={{ fontSize: '0.7rem', fontWeight: 800, color: '#ef4444', textDecoration: 'underline', textTransform: 'uppercase' }}
+                             >
+                               Open PDF
+                             </a>
                           </div>
                         )}
                       </div>

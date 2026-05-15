@@ -99,8 +99,10 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     training_required: false
   });
 
-  const [errors, setErrors] = useState({});
-  const [sdsFile, setSdsFile] = useState(null);
+    const [locError, setLocError] = useState("");
+    const [sdsFile, setSdsFile] = useState(null);
+    const [disposalFile, setDisposalFile] = useState(null);
+    const [errors, setErrors] = useState({});
   const [qrCodeData, setQrCodeData] = useState("");
   const [incompatibilityWarning, setIncompatibilityWarning] = useState(null);
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
@@ -336,6 +338,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
               }
             });
             if (sdsFile) payload.append('sds_file', sdsFile);
+            if (disposalFile) payload.append('disposal_file', disposalFile);
             onSave(payload);
           }}
             className="form-main"
@@ -822,14 +825,26 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                 </span>
                 <input id="sds-upload" type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => setSdsFile(e.target.files[0])} />
               </div>
+              
+              <div
+                className={`sds-upload-box ${disposalFile || formData.disposal_file_name ? 'active' : ''}`}
+                onClick={() => document.getElementById('disposal-upload').click()}
+                style={{ marginLeft: '1rem', background: disposalFile || formData.disposal_file_name ? 'rgba(239, 68, 68, 0.1)' : 'var(--secondary-50)', color: disposalFile || formData.disposal_file_name ? '#ef4444' : 'var(--secondary-900)' }}
+              >
+                <svg className="sds-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                <span className="sds-text" title={disposalFile ? disposalFile.name : formData.disposal_file_name}>
+                  {disposalFile ? disposalFile.name : (formData.disposal_file_name ? `Protocol: ${formData.disposal_file_name}` : "Disposal Protocol (.pdf)")}
+                </span>
+                <input id="disposal-upload" type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => setDisposalFile(e.target.files[0])} />
+              </div>
 
-              {formData.sds_file_url && !sdsFile && (
-                <a href={process.env.NODE_ENV === 'production' ? formData.sds_file_url : `http://localhost:5001${formData.sds_file_url}`} target="_blank" rel="noopener noreferrer" className="sds-view-button" title="View Current SDS">
+              {formData.disposal_file_url && !disposalFile && (
+                <a href={process.env.NODE_ENV === 'production' ? formData.disposal_file_url : `http://localhost:5001${formData.disposal_file_url}`} target="_blank" rel="noopener noreferrer" className="sds-view-button" style={{ color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)' }} title="View Original Protocol">
                   <svg className="sds-view-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                 </a>
               )}
 
-              <button type="submit" className="submit-button">
+              <button type="submit" className="submit-button" style={{ marginLeft: 'auto' }}>
                 {initialData ? "Apply Lifecycle Update" : "Authorize System Entry"}
               </button>
             </div>
