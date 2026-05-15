@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 // Disposal Tracking Tab with Quick Log feature
 import axios from 'axios';
 import { Flame } from 'lucide-react';
-import '../../styles/DisposalLogTab.css';
+import './Waste.css';
 import { useAuth } from '../../context/AuthContext';
 import useUnits from '../../hooks/useUnits';
 import { IconTrash, IconClock, IconPlus, IconX, IconCheckCircle, IconAlertTriangle, IconFileText } from './WasteIcons';

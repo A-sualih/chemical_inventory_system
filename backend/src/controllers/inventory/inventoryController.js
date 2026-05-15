@@ -421,17 +421,15 @@ exports.handleTransaction = async (req, res) => {
     // --- SYNC TO WASTE MANAGEMENT MODULE ---
     if (action === 'DISPOSAL') {
       try {
-        // Map reason to enum
         const validReasons = ['Expired', 'Contaminated', 'Damaged', 'Excess stock', 'Experimental waste', 'Other'];
-        const mappedReason = validReasons.find(r => r.toLowerCase() === (reason || "").toLowerCase()) || 'Other';
+        const mappedReason = validReasons.includes(reason) ? reason : 'Other';
 
-        // Map method to enum
         const validMethods = ['Neutralization', 'Incineration', 'Chemical treatment', 'Recycling', 'Waste contractor pickup', 'Secure hazardous storage'];
-        const mappedMethod = validMethods.find(m => m.toLowerCase() === (disposal_method || "").toLowerCase()) || 'Chemical treatment';
+        const mappedMethod = validMethods.includes(disposal_method) ? disposal_method : 'Chemical treatment';
 
         const wasteEntry = new WasteDisposal({
           lab: req.activeLabId,
-          chemical_id: chem._id, // Use Mongoose ID
+          chemical_id: chem._id,
           chemical_name: chem.name,
           batch_number: batch || chem.batch_number,
           container_id: containerId,
@@ -442,11 +440,14 @@ exports.handleTransaction = async (req, res) => {
           hazard_classification: targetChem.ghs_classes && targetChem.ghs_classes.length > 0 ? targetChem.ghs_classes[0] : 'Other',
           responsible_person: req.user.id,
           responsible_person_name: req.user.name,
-          status: 'Disposed', // Immediate disposal from inventory ledger is considered complete
-          notes: compliance_notes || remarks || reason,
+          status: 'Disposed', 
+          notes: compliance_notes || remarks || reason || 'Disposed from Inventory Ledger',
+          approval_notes: `Authorized by ${disposal_approved_by} (${disposal_approved_role || 'Manager'})`,
           method_details: {
             completion_date: new Date(),
-            operator_name: req.user.name
+            operator_name: req.user.name,
+            facility_name: building ? `Site: ${building}` : 'Main Laboratory',
+            treatment_details: compliance_notes || 'Processed via Inventory Ledger automation.'
           }
         });
         await wasteEntry.save();

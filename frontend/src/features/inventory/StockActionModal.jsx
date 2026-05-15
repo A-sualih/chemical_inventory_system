@@ -487,16 +487,18 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                   </div>
                 )}
 
-                <div className="group">
-                   <label className="input-field-label">Reason / Purpose (Required)</label>
-                   <textarea 
-                     value={reason}
-                     onChange={e => setReason(e.target.value)}
-                     className="stock-textarea"
-                     placeholder={action === 'OUT' ? "e.g. pH Analysis experiment" : "Additional details..."}
-                     required
-                   />
-                </div>
+                {action !== 'DISPOSAL' && (
+                  <div className="group">
+                    <label className="input-field-label">Reason / Purpose (Required)</label>
+                    <textarea 
+                      value={reason}
+                      onChange={e => setReason(e.target.value)}
+                      className="stock-textarea"
+                      placeholder={action === 'OUT' ? "e.g. pH Analysis experiment" : "Additional details..."}
+                      required
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Right Column: Detailed Tracking (Context Specific) */}
@@ -613,10 +615,49 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                     {action === 'DISPOSAL' && (
                       <div className="form-sub-section slide-in-top">
                         <h3 className="section-indicator-title border-red"><AlertTriangle className="input-icon-mini" /> Disposal Protocol</h3>
+                        
+                        <div className="group">
+                          <label className="input-field-label">Disposal Reason (Required)</label>
+                          <div className="relative-select-wrapper">
+                            <select 
+                              value={reason} 
+                              onChange={e => setReason(e.target.value)} 
+                              className="stock-select bg-red-alt text-red-accent"
+                              required={action === 'DISPOSAL'}
+                            >
+                              <option value="">-- Select Reason --</option>
+                              <option value="Expired">Expired</option>
+                              <option value="Contaminated">Contaminated</option>
+                              <option value="Damaged">Damaged</option>
+                              <option value="Excess stock">Excess stock</option>
+                              <option value="Experimental waste">Experimental waste</option>
+                              <option value="Other">Other</option>
+                            </select>
+                            <svg className="select-arrow-mini" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                          </div>
+                        </div>
+
                         <div className="group">
                           <label className="input-field-label">Disposal Method</label>
-                          <input type="text" value={disposalMethod} onChange={e => setDisposalMethod(e.target.value)} className="stock-input bg-red-alt text-red-accent font-mono-bold" placeholder="e.g. Incineration" required={action === 'DISPOSAL'} />
+                          <div className="relative-select-wrapper">
+                            <select 
+                              value={disposalMethod} 
+                              onChange={e => setDisposalMethod(e.target.value)} 
+                              className="stock-select bg-red-alt text-red-accent"
+                              required={action === 'DISPOSAL'}
+                            >
+                              <option value="">-- Select Method --</option>
+                              <option value="Neutralization">Neutralization</option>
+                              <option value="Incineration">Incineration</option>
+                              <option value="Chemical treatment">Chemical treatment</option>
+                              <option value="Recycling">Recycling</option>
+                              <option value="Waste contractor pickup">Waste contractor pickup</option>
+                              <option value="Secure hazardous storage">Secure hazardous storage</option>
+                            </select>
+                            <svg className="select-arrow-mini" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                          </div>
                         </div>
+
                         <div className="input-row-group">
                           <div className="group">
                             <label className="input-field-label">Approved By</label>
@@ -632,6 +673,16 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                               <svg className="select-arrow-mini" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
                             </div>
                           </div>
+                        </div>
+
+                        <div className="group">
+                          <label className="input-field-label">Compliance / Technical Notes</label>
+                          <textarea 
+                            value={complianceNotes} 
+                            onChange={e => setComplianceNotes(e.target.value)} 
+                            className="stock-textarea stock-input-white" 
+                            placeholder="Detailed disposal info for the waste module..."
+                          />
                         </div>
                       </div>
                     )}

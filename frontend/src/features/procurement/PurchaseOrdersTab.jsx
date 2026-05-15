@@ -198,24 +198,24 @@ export default function PurchaseOrdersTab() {
                 const action = nextAction(o);
                 return (
                   <tr key={o._id}>
-                    <td>
+                    <td data-label="PO Number">
                       <button onClick={() => openDetail(o._id)} className="po-number-link">{o.po_number}</button>
                       <p className="po-date">{new Date(o.createdAt).toLocaleDateString()}</p>
                     </td>
-                    <td style={{ fontWeight: 700, color: 'var(--secondary-600)' }}>{o.supplier_id?.name || '—'}</td>
-                    <td>
+                    <td data-label="Supplier" style={{ fontWeight: 700, color: 'var(--secondary-600)' }}>{o.supplier_id?.name || '—'}</td>
+                    <td data-label="Priority">
                       <span className={`priority-tag ${PRIORITY_COLORS[o.priority] || ''}`}>● {o.priority}</span>
                     </td>
-                    <td>
+                    <td data-label="Status">
                       <Badge label={o.status} />
                     </td>
-                    <td style={{ color: 'var(--secondary-600)' }}>
+                    <td data-label="Items" style={{ color: 'var(--secondary-600)' }}>
                       <span style={{ fontWeight: 900 }}>{o.items?.length || 0}</span> item{o.items?.length !== 1 ? 's' : ''}
                     </td>
-                    <td style={{ fontWeight: 900, color: 'var(--secondary-900)', whiteSpace: 'nowrap' }}>{o.currency} {o.total_cost?.toLocaleString()}</td>
-                    <td style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--secondary-500)', whiteSpace: 'nowrap' }}>{o.expected_delivery ? new Date(o.expected_delivery).toLocaleDateString() : '—'}</td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <td data-label="Total" style={{ fontWeight: 900, color: 'var(--secondary-900)', whiteSpace: 'nowrap' }}>{o.currency} {o.total_cost?.toLocaleString()}</td>
+                    <td data-label="Expected" style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--secondary-500)', whiteSpace: 'nowrap' }}>{o.expected_delivery ? new Date(o.expected_delivery).toLocaleDateString() : '—'}</td>
+                    <td data-label="Actions">
+                      <div className="procurement-actions-wrapper">
                         {action && (
                           <button onClick={() => changeStatus(o._id, action.status)} className={`btn-table-action ${action.className}`}>
                             {action.label}

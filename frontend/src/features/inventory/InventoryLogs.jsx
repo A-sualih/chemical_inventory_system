@@ -103,8 +103,8 @@ const InventoryLogs = () => {
 
       <div className="ledger-card">
         {/* Header with Advanced Search & Filter */}
-        <div className="ledger-header" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="ledger-header-dynamic">
+          <div className="ledger-title-row">
             <h2 className="ledger-title">Audit History</h2>
             <div className="ledger-controls">
               <span className="tag-badge">Real-time Feed</span>
@@ -117,32 +117,24 @@ const InventoryLogs = () => {
             </div>
           </div>
 
-          <div className="ledger-search-bar" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <div className="search-input-container" style={{ flex: 1, minWidth: '300px', position: 'relative' }}>
-               <svg style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)', width: '1.25rem', color: 'var(--secondary-400)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <div className="ledger-search-bar-row">
+            <div className="search-input-container">
+               <svg className="search-icon-inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                <input 
                   type="text" 
                   placeholder="Search by Chemical, LOT, ID or Personnel..." 
-                  className="ledger-input"
-                  style={{ width: '100%', padding: '1rem 1rem 1rem 3.5rem', borderRadius: '1.25rem', border: '1px solid var(--secondary-100)', background: '#f8fafc', fontWeight: 600, fontSize: '0.9rem' }}
+                  className="ledger-input-premium"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                />
             </div>
             
-            <div className="action-filter-pills" style={{ display: 'flex', gap: '0.5rem', background: '#f1f5f9', padding: '0.4rem', borderRadius: '1rem' }}>
+            <div className="action-filter-pills-container">
               {['ALL', 'IN', 'OUT', 'TRANSFER', 'DISPOSAL'].map(type => (
                 <button
                   key={type}
                   onClick={() => setActiveFilter(type)}
-                  style={{ 
-                    padding: '0.5rem 1rem', borderRadius: '0.75rem', border: 'none', 
-                    fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer',
-                    background: activeFilter === type ? 'white' : 'transparent',
-                    color: activeFilter === type ? 'var(--primary-600)' : 'var(--secondary-500)',
-                    boxShadow: activeFilter === type ? '0 4px 6px -1px rgba(0,0,0,0.05)' : 'none',
-                    transition: 'all 0.2s'
-                  }}
+                  className={`filter-pill-btn ${activeFilter === type ? 'active' : ''}`}
                 >
                   {type}
                 </button>
@@ -185,7 +177,7 @@ const InventoryLogs = () => {
                 )}
                 {logs.map(log => (
                   <tr key={log._id} className="table-row">
-                    <td className="table-cell">
+                    <td className="table-cell" data-label="Timestamp">
                       <div className="timestamp-col">
                         <div className="date-text">{new Date(log.createdAt || log.timestamp).toLocaleDateString()}</div>
                         <div className="time-text">{new Date(log.createdAt || log.timestamp).toLocaleTimeString()}</div>
@@ -195,14 +187,14 @@ const InventoryLogs = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="table-cell">
+                    <td className="table-cell" data-label="Chemical">
                       <div className="identity-name">{log.chemical_name || log.chemical_id}</div>
                       <div className="identity-meta">
                          <span className="id-tag">{log.chemical_id}</span>
                          {log.batch_number && <span className="batch-link">LOT {log.batch_number}</span>}
                       </div>
                     </td>
-                    <td className="table-cell">
+                    <td className="table-cell" data-label="Action">
                       <span className={`action-badge ${
                         log.action === 'IN' ? 'badge-in' : 
                         log.action === 'OUT' ? 'badge-out' :
@@ -213,7 +205,7 @@ const InventoryLogs = () => {
                       </span>
                       <div className="verify-tag">Audit Path Verified</div>
                     </td>
-                    <td className="table-cell">
+                    <td className="table-cell" data-label="Quantity">
                       <div className={`delta-container ${
                         log.action === 'IN' ? 'delta-positive' : 
                         log.action === 'OUT' || log.action === 'DISPOSAL' ? 'delta-negative' : 
@@ -225,7 +217,7 @@ const InventoryLogs = () => {
                       </div>
                       {log.num_containers_moved > 0 && <div className="vessels-count">{log.num_containers_moved} Individual Vessels</div>}
                     </td>
-                    <td className="table-cell">
+                    <td className="table-cell" data-label="Location">
                       {log.action === 'TRANSFER' ? (
                         <div className="location-trace">
                           <div className="trace-item">
@@ -251,7 +243,7 @@ const InventoryLogs = () => {
                         </div>
                       )}
                     </td>
-                    <td className="table-cell audit-notes-cell">
+                    <td className="table-cell audit-notes-cell" data-label="Notes">
                       <div className="audit-user">{log.user_name || 'System Auto-Log'}</div>
                       <div className="audit-reason" title={log.reason}>
                         "{log.reason || 'No specific operational reason provided.'}"

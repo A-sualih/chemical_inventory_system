@@ -23,11 +23,11 @@
 }
 
 .procurement-main-title {
-  font-size: 1.875rem;
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
   font-weight: 900;
   font-family: var(--font-display);
   color: var(--secondary-900);
-  tracking-tight: -0.025em;
+  letter-spacing: -0.025em;
 }
 
 .procurement-main-desc {
@@ -41,6 +41,12 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
   margin-bottom: 1.5rem;
+}
+
+@media (max-width: 480px) {
+  .procurement-summary-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -486,15 +492,26 @@
   gap: 0.5rem;
 }
 
-@media (max-width: 576px) {
+@media (max-width: 640px) {
   .procurement-tabs {
-    flex-direction: column;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 0.5rem;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+    gap: 0.5rem;
     border-radius: 1rem;
+    justify-content: flex-start;
+  }
+
+  .procurement-tabs::-webkit-scrollbar {
+    display: none; /* Safari/Chrome */
   }
 
   .procurement-tab {
-    border-radius: 0.75rem;
-    padding: 0.875rem;
+    flex: 0 0 auto;
+    min-width: max-content;
+    padding: 0.625rem 1rem;
   }
 }
 
@@ -682,6 +699,84 @@
 .procurement-table td {
   padding: 1rem 1.25rem;
   font-size: 0.875rem;
+}
+
+.procurement-actions-wrapper {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+@media (max-width: 1024px) {
+  .procurement-table, 
+  .procurement-table thead, 
+  .procurement-table tbody, 
+  .procurement-table th, 
+  .procurement-table td, 
+  .procurement-table tr {
+    display: block;
+  }
+
+  .procurement-table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  .procurement-table tr {
+    border: 1px solid var(--secondary-100);
+    border-radius: 1.25rem;
+    margin-bottom: 1.5rem;
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+
+  .procurement-table td {
+    border: none;
+    border-bottom: 1px solid var(--secondary-50);
+    position: relative;
+    padding-left: 50% !important;
+    text-align: right;
+    min-height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .procurement-table td:last-child {
+    border-bottom: none;
+    background: var(--secondary-50);
+    justify-content: center;
+    padding-left: 1.25rem !important;
+    text-align: center;
+  }
+
+  .procurement-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1.25rem;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--secondary-400);
+    letter-spacing: 0.05em;
+  }
+
+  .procurement-actions-wrapper {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn-table-action {
+    flex: 1;
+    padding: 0.75rem;
+    font-size: 11px;
+  }
 }
 
 /* Badges */

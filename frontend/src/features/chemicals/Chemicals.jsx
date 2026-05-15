@@ -229,12 +229,11 @@ const Chemicals = () => {
                             <div className="id-badge">
                               {item.id}
                             </div>
-                            <div>
+                            <div className="identity-info-wrapper">
                               <div className="item-name">{item.name}</div>
                               <div className="item-meta-badges">
                                 <span className="meta-badge meta-cas">CAS: {item.cas_number || 'N/A'}</span>
                                 <span className="meta-badge meta-formula">{item.formula}</span>
-                                {item.batch_number && <span className="meta-badge meta-batch">Batch: {item.batch_number}</span>}
                               </div>
                             </div>
                           </div>

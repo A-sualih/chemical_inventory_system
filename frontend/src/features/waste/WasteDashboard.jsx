@@ -22,15 +22,15 @@ export default function WasteDashboard() {
     <Layout>
       <div className="waste-container">
         <header className="waste-header">
-          <div>
+          <div className="waste-header-info">
             <span className="waste-subtitle">Compliance & Safety Management</span>
-            <h1 className="waste-title">Waste & Disposal</h1>
-            <p style={{ color: 'var(--secondary-500)', fontWeight: 500, fontSize: '0.9375rem' }}>
+            <h1 className="waste-title" style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', lineHeight: 1.1 }}>Waste & Disposal</h1>
+            <p className="waste-header-desc" style={{ color: 'var(--secondary-500)', fontWeight: 500, fontSize: 'clamp(0.875rem, 2vw, 0.9375rem)', maxWidth: '600px', marginTop: '0.5rem' }}>
               Track, approve, and manage hazardous waste disposal with full regulatory audit trails.
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-            <div className="compliance-summary-card" style={{ padding: '1.5rem 2rem', marginBottom: 0, minWidth: '350px' }}>
+          <div className="waste-header-stats">
+            <div className="compliance-summary-card">
               <div>
                 <div style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--waste-accent)', marginBottom: '0.25rem' }}>System Status</div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>Audit Ready</div>

@@ -22,12 +22,13 @@
 }
 
 .safety-title {
-  font-size: 1.875rem;
+  font-size: clamp(1.25rem, 5vw, 1.875rem);
   font-weight: 900;
   color: var(--secondary-950);
   letter-spacing: -0.05em;
   text-transform: uppercase;
   font-style: italic;
+  line-height: 1.1;
 }
 
 .safety-title span {
@@ -43,16 +44,19 @@
 .emergency-btn {
   background-color: #dc2626; /* red-600 */
   color: white;
-  padding: 0.75rem 1.5rem;
+  padding: clamp(0.625rem, 2vw, 0.75rem) clamp(1rem, 3vw, 1.5rem);
   border-radius: 1rem;
   font-weight: 900;
   box-shadow: 0 20px 25px -5px rgba(254, 226, 226, 1), 0 10px 10px -5px rgba(254, 226, 226, 0.5); /* red-200 */
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   border: none;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
+  white-space: nowrap;
 }
 
 .emergency-btn:hover {
