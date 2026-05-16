@@ -39,7 +39,7 @@ const Layout = ({ children }) => {
 
             <div className="header-right">
               <LabSwitcher />
-              <NotificationBell />
+              {user?.role !== "Viewer / Auditor" && <NotificationBell />}
               <div className="vertical-divider"></div>
               <div className="user-profile-summary">
                 <Link to="/profile" className="user-avatar-badge" style={{ padding: user?.profile_photo ? 0 : '', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>

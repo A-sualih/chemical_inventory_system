@@ -272,8 +272,19 @@ const Batches = () => {
                           {/* Actions */}
                           <td data-label="Actions">
                             <div className="batch-actions">
-                              <button onClick={() => handleOpenModal(b)} className="action-icon-btn action-edit"><Edit3 size={16} /></button>
-                              <button onClick={() => handleDelete(b._id)} className="action-icon-btn action-delete"><Trash2 size={16} /></button>
+                              {hasPermission("edit_chemical") && (
+                                <button onClick={() => handleOpenModal(b)} className="action-icon-btn action-edit" title="Edit Batch">
+                                  <Edit3 size={16} />
+                                </button>
+                              )}
+                              {hasPermission("delete_chemical") && (
+                                <button onClick={() => handleDelete(b._id)} className="action-icon-btn action-delete" title="Delete Batch">
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                              {!hasPermission("edit_chemical") && !hasPermission("delete_chemical") && (
+                                <span className="text-gray-400 text-xs italic">View Only</span>
+                              )}
                             </div>
                           </td>
                         </tr>

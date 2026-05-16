@@ -28,7 +28,7 @@ const ROLES = {
   SAFETY_OFFICER: 'Safety Officer',
   PROCUREMENT_OFFICER: 'Procurement Officer',
   LAB_STAFF: 'Laboratory Staff',
-  AUDITOR: 'Auditor'
+  AUDITOR: 'Viewer / Auditor'
 };
 
 const ROLE_PERMISSIONS = {

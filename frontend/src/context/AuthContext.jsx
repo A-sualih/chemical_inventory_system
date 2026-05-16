@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
     "Procurement Officer": [
       "view_chemicals", "view_reports", "view_financials", "submit_request"
     ],
-    "Auditor": [
+    "Viewer / Auditor": [
       "view_chemicals", "view_reports", "view_audit_logs", "view_safety_info"
     ]
   };

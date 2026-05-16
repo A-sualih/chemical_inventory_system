@@ -155,7 +155,7 @@ const AdminOnlyPage = ({ title, description }) => {
                                              <option value="Laboratory Staff">Lab Technician / Staff</option>
                                              <option value="Safety Officer">Safety Officer</option>
                                              <option value="Procurement Officer">Procurement Officer</option>
-                                             <option value="Auditor">External Auditor</option>
+                                             <option value="Viewer / Auditor">Viewer / Auditor</option>
                                           </select>
                                           <div className="role-select-icon">
                                              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"/></svg>
@@ -425,7 +425,7 @@ const AdminOnlyPage = ({ title, description }) => {
                            { r: "Lab Manager", d: "Operations head. Stock management and request approval.", color: "color-manager" },
                            { r: "Lab Technician", d: "Frontline scientist. Record transactions and requests.", color: "color-tech" },
                            { r: "Safety Officer", d: "Compliance lead. Risk assessment and reporting.", color: "color-safety" },
-                           { r: "External Auditor", d: "Restricted read-only access for compliance checks.", color: "color-viewer" },
+                           { r: "Viewer / Auditor", d: "Restricted read-only access for compliance and stock audit.", color: "color-viewer" },
                         ].map((item, i) => (
                            <div key={i} className="authority-role">
                               <h4 className={`role-name ${item.color}`}>{item.r}</h4>
