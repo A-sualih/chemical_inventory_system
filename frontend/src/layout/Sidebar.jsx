@@ -95,7 +95,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { 
       name: "Expiry Intelligence", 
       path: "/expiry", 
-      roles: ["Lab Manager", "Safety Officer", "Procurement Officer", "Laboratory Staff", "Viewer / Auditor"],
+      roles: ["Lab Manager", "Safety Officer", "Procurement Officer", "Laboratory Staff"],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -121,7 +121,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { 
       name: "Transfers", 
       path: "/transfers", 
-      roles: ["Lab Manager", "Safety Officer", "Procurement Officer", "Laboratory Staff"],
+      roles: ["Lab Manager", "Safety Officer", "Procurement Officer"],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -364,4 +364,4 @@ const Sidebar = ({ isOpen, onClose }) => {
   );
 };
 
-export default Sidebar;
+export default Sidebar;
