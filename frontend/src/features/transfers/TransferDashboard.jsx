@@ -218,7 +218,6 @@ const TransferDashboard = () => {
                   <th><div className="th-flex"><User size={14} /> Requester</div></th>
                   <th><div className="th-flex"><MessageSquare size={14} /> Reason</div></th>
                   <th><div className="th-flex"><Info size={14} /> Status</div></th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -261,20 +260,6 @@ const TransferDashboard = () => {
                       {t.reason || '—'}
                     </td>
                     <td data-label="Status">{statusBadge(t.status)}</td>
-                    <td data-label="Actions">
-                      {canApprove(t) && (
-                        <div className="action-buttons">
-                          <button className="btn-success-sm" onClick={() => handleApprove(t._id)}>
-                            <CheckCircle size={14} />
-                            <span>Approve</span>
-                          </button>
-                          <button className="btn-danger-sm" onClick={() => handleReject(t._id)}>
-                            <XCircle size={14} />
-                            <span>Decline</span>
-                          </button>
-                        </div>
-                      )}
-                    </td>
                   </tr>
                 ))}
               </tbody>
