@@ -5,7 +5,7 @@ import { Flame } from 'lucide-react';
 import './Waste.css';
 import { useAuth } from '../../context/AuthContext';
 import useUnits from '../../hooks/useUnits';
-import { IconTrash, IconClock, IconPlus, IconX, IconCheckCircle, IconAlertTriangle, IconFileText } from './WasteIcons';
+import { IconTrash, IconClock, IconPlus, IconX, IconCheckCircle, IconAlertTriangle, IconFileText, IconSearch } from './WasteIcons';
 
 const REASONS = ['Expired', 'Contaminated', 'Damaged', 'Excess stock', 'Experimental waste', 'Other'];
 const METHODS = ['Neutralization', 'Incineration', 'Chemical treatment', 'Recycling', 'Waste contractor pickup', 'Secure hazardous storage'];
@@ -18,6 +18,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [chemicalSearch, setChemicalSearch] = useState('');
 
   const [submitting, setSubmitting] = useState(false);
   const [chemicals, setChemicals] = useState([]);
@@ -207,82 +208,86 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
       </div>
 
       {externalShowModal && (
-        <div className="premium-modal-overlay" style={{ alignItems: 'flex-start', paddingTop: '5vh' }}>
-          <div className="premium-form-container" style={{ width: '100%', maxWidth: '750px', margin: '0 auto', transform: 'none', maxHeight: '85vh', overflowY: 'auto' }}>
-            <div className="premium-form-header" style={{ padding: '1.5rem 2rem 1rem', background: 'transparent' }}>
-              <div>
-                <h2 className="premium-form-title" style={{ fontSize: '1.75rem' }}>
-                  Create Disposal Request
-                </h2>
-                <p style={{ color: 'var(--secondary-400)', fontSize: '0.875rem', fontWeight: 600, marginTop: '0.25rem' }}>
-                  Submit a new hazardous waste management record
-                </p>
+        <div className="premium-modal-overlay">
+          <div className="premium-form-container" style={{ maxWidth: '850px', width: '100%' }}>
+            <div className="premium-form-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ width: '45px', height: '45px', background: 'var(--waste-grad)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', boxShadow: '0 8px 16px -4px rgba(99, 102, 241, 0.4)' }}>
+                  <IconTrash size={22} />
+                </div>
+                <div>
+                  <h2 className="premium-form-title" style={{ fontSize: '1.5rem' }}>Create Disposal Request</h2>
+                  <p style={{ color: 'var(--secondary-400)', fontSize: '0.8rem', fontWeight: 600, margin: 0 }}>Initiate hazardous waste management workflow</p>
+                </div>
               </div>
-              <button
-                onClick={onCloseModal}
-                style={{
-                  padding: 0,
-                  width: '32px',
-                  height: '32px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: '0.75rem',
-                  border: 'none',
-                  background: 'var(--secondary-100)',
-                  color: 'var(--secondary-600)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseOver={e => e.currentTarget.style.background = 'var(--secondary-200)'}
-                onMouseOut={e => e.currentTarget.style.background = 'var(--secondary-100)'}
-              >
-                <IconX size={18} />
+              <button onClick={onCloseModal} className="btn-modal-secondary" style={{ padding: '0.5rem', borderRadius: '12px' }}>
+                <IconX size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} style={{ padding: '0 2rem 1.5rem' }}>
-              <div className="premium-form-grid" style={{ gap: '1rem', padding: '1.5rem 0' }}>
+            <form onSubmit={handleSubmit}>
+              <div className="premium-form-grid">
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                    <div style={{ width: '4px', height: '16px', background: 'var(--waste-primary)', borderRadius: '2px' }}></div>
-                    <label className="premium-form-label" style={{ marginBottom: 0 }}>Chemical Selection</label>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div style={{ width: '4px', height: '16px', background: 'var(--waste-primary)', borderRadius: '2px' }}></div>
+                      <label className="premium-form-label" style={{ marginBottom: 0 }}>Select Chemical for Disposal</label>
+                    </div>
+                    <div className="modern-search-wrapper" style={{ width: '300px' }}>
+                      <IconSearch size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-400)' }} />
+                      <input
+                        type="text"
+                        placeholder="Search by name or CAS..."
+                        value={chemicalSearch}
+                        onChange={e => setChemicalSearch(e.target.value)}
+                        className="premium-form-input"
+                        style={{ height: '2.5rem', paddingLeft: '2.75rem', fontSize: '0.85rem' }}
+                      />
+                    </div>
                   </div>
-                  <select
-                    required
-                    value={form.chemical_id}
-                    onChange={async (e) => {
-                      const chemId = e.target.value;
-                      const chem = chemicals.find(c => c._id === chemId);
-                      setForm({
-                        ...form,
-                        chemical_id: chemId,
-                        batch_id: '',
-                        batch_number: '',
-                        unit: chem ? chem.unit : ''
-                      });
 
-                      if (chemId && chem) {
-                        try {
-                          const res = await axios.get('/api/batches', { params: { chemical_id: chem.id } });
-                          setBatches(res.data.data || res.data || []);
-                        } catch (err) {
-                          console.error('Fetch Batches Error:', err);
-                        }
-                      } else {
-                        setBatches([]);
-                      }
-                    }}
-                    className="premium-form-input"
-                    style={{ height: '60px', fontSize: '1.05rem' }}
-                  >
-                    <option value="">{chemicals.length > 0 ? 'Search for a chemical...' : 'No chemicals available in current lab scope'}</option>
-                    {chemicals.map(c => (
-                      <option key={c._id} value={c._id}>
-                        {c.name} ({c.cas_number}) — {c.quantity > 0 ? `In Stock: ${c.quantity} ${c.unit}` : 'Out of Stock'}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="chemical-selection-grid" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                    {chemicals
+                      .filter(c =>
+                        c.name.toLowerCase().includes(chemicalSearch.toLowerCase()) ||
+                        c.cas_number?.includes(chemicalSearch)
+                      )
+                      .map(c => (
+                        <div
+                          key={c._id}
+                          onClick={async () => {
+                            setForm({ ...form, chemical_id: c._id, batch_id: '', batch_number: '', unit: c.unit });
+                            try {
+                              const res = await axios.get('/api/batches', { params: { chemical_id: c.id } });
+                              setBatches(res.data.data || res.data || []);
+                            } catch (err) {
+                              console.error('Fetch Batches Error:', err);
+                              setBatches([]);
+                            }
+                          }}
+                          className={`chem-select-card ${form.chemical_id === c._id ? 'selected' : ''}`}
+                        >
+                          {form.chemical_id === c._id && (
+                            <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', color: 'var(--waste-primary)' }}>
+                              <IconCheckCircle size={20} />
+                            </div>
+                          )}
+                          <div style={{ fontWeight: 800, fontSize: '0.95rem', color: form.chemical_id === c._id ? 'var(--waste-primary)' : 'var(--secondary-900)', paddingRight: '1.5rem' }}>{c.name}</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--secondary-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>CAS: {c.cas_number || 'N/A'}</div>
+
+                          <div style={{ marginTop: 'auto', paddingTop: '0.75rem', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+                            <div>
+                              <div style={{ fontSize: '0.6rem', color: 'var(--secondary-400)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.1rem' }}>Stock Level</div>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 900, color: c.quantity > 0 ? 'var(--waste-primary)' : '#ef4444' }}>
+                                {c.quantity} {c.unit}
+                              </div>
+                            </div>
+                            {c.quantity <= 0 && <span style={{ fontSize: '0.6rem', background: '#fef2f2', color: '#ef4444', padding: '0.2rem 0.4rem', borderRadius: '0.4rem', fontWeight: 800 }}>OUT OF STOCK</span>}
+                          </div>
+                        </div>
+                      ))}
+                    {chemicals.length === 0 && <div style={{ gridColumn: '1 / -1', padding: '2rem', textAlign: 'center', color: 'var(--secondary-400)' }}>No chemicals found in current scope.</div>}
+                  </div>
                 </div>
 
                 {form.chemical_id && chemicals.find(c => c._id === form.chemical_id)?.disposal_file_url && (
@@ -325,7 +330,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   </div>
                 )}
 
-                <div style={{ gridColumn: 'span 1' }}>
+                <div style={{ gridColumn: 'span 2' }}>
                   <label className="premium-form-label">Specific Batch</label>
                   <select
                     value={form.batch_id}
@@ -342,13 +347,13 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                     <option value="">Default (FIFO - Auto Selection)</option>
                     {batches.map(b => (
                       <option key={b._id} value={b._id}>
-                        {b.batch_number} — {b.total_quantity} {b.unit} {b.status === 'Expired' ? <><Flame className="w-4 h-4 inline-block text-red-500 mx-1" /> (EXPIRED)</> : ''}
+                        {b.batch_number} — {b.total_quantity} {b.unit} {b.status === 'Expired' ? '(EXPIRED)' : ''}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                <div style={{ gridColumn: 'span 1' }}>
+                <div style={{ gridColumn: 'span 2' }}>
                   <label className="premium-form-label">Disposal Method</label>
                   <select
                     value={form.method}
@@ -359,7 +364,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   </select>
                 </div>
 
-                <div style={{ gridColumn: 'span 1' }}>
+                <div style={{ gridColumn: 'span 2' }}>
                   <label className="premium-form-label">Quantity to Dispose</label>
                   <div style={{ position: 'relative' }}>
                     <input
@@ -376,7 +381,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   </div>
                 </div>
 
-                <div style={{ gridColumn: 'span 1' }}>
+                <div style={{ gridColumn: 'span 2' }}>
                   <label className="premium-form-label">Primary Reason</label>
                   <select
                     value={form.reason}
@@ -399,11 +404,11 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   />
                 </div>
 
-                <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
-                  <button type="button" onClick={onCloseModal} className="btn-modal-secondary" style={{ height: '2.5rem', padding: '0 1.5rem', fontSize: '0.75rem' }}>
+                <div style={{ gridColumn: 'span 4', display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem', padding: '1.5rem 0 0', borderTop: '1px solid var(--secondary-100)' }}>
+                  <button type="button" onClick={onCloseModal} className="btn-waste-action" style={{ height: '3.5rem', padding: '0 2rem' }}>
                     Cancel
                   </button>
-                  <button type="submit" disabled={submitting} className="btn-premium-submit" style={{ width: 'auto', minWidth: '140px', height: '2.5rem', fontSize: '0.75rem' }}>
+                  <button type="submit" disabled={submitting} className="btn-premium-submit">
                     {submitting ? 'Processing...' : 'Submit Request'}
                   </button>
                 </div>
@@ -561,31 +566,39 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
 
 
       {viewingDisposal && (
-        <div className="waste-modal-overlay">
-          <div className="waste-modal-card" style={{ maxWidth: '600px' }}>
-            <div className="waste-card-header">
-              <h2 className="waste-title" style={{ fontSize: '1.25rem' }}>Record #{viewingDisposal.disposal_id}</h2>
-              <button onClick={() => setViewingDisposal(null)} className="btn-waste-action">
-                <IconX size={16} />
+        <div className="premium-modal-overlay">
+          <div className="premium-form-container" style={{ maxWidth: '650px', width: '100%' }}>
+            <div className="premium-form-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ width: '40px', height: '40px', background: 'var(--waste-grad)', color: 'white', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <IconFileText size={20} />
+                </div>
+                <div>
+                  <h2 className="premium-form-title">Disposal Record Details</h2>
+                  <p style={{ color: 'var(--secondary-400)', fontSize: '0.75rem', fontWeight: 600, margin: 0 }}>Reference ID: {viewingDisposal.disposal_id}</p>
+                </div>
+              </div>
+              <button onClick={() => setViewingDisposal(null)} className="btn-modal-secondary" style={{ padding: '0.5rem', borderRadius: '10px' }}>
+                <IconX size={20} />
               </button>
             </div>
             <div style={{ padding: '2rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                 <div>
-                  <label className="form-label-small">Chemical</label>
-                  <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>{viewingDisposal.chemical_name}</div>
+                  <label className="premium-form-label">Chemical Name</label>
+                  <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--secondary-900)', letterSpacing: '-0.01em' }}>{viewingDisposal.chemical_name}</div>
                 </div>
                 <div>
-                  <label className="form-label-small">Batch</label>
-                  <div style={{ fontWeight: 700 }}>{viewingDisposal.batch_number || 'N/A (FIFO)'}</div>
+                  <label className="premium-form-label">Batch Reference</label>
+                  <div style={{ fontWeight: 700, color: 'var(--secondary-700)' }}>{viewingDisposal.batch_number || 'Auto-FIFO Selection'}</div>
                 </div>
                 <div>
-                  <label className="form-label-small">Quantity</label>
-                  <div style={{ fontWeight: 700 }}>{viewingDisposal.quantity} {unitLabel(viewingDisposal.unit)}</div>
+                  <label className="premium-form-label">Quantity</label>
+                  <div style={{ fontWeight: 700, color: 'var(--waste-primary)', fontSize: '1.1rem' }}>{viewingDisposal.quantity} {unitLabel(viewingDisposal.unit)}</div>
                 </div>
                 <div>
-                  <label className="form-label-small">Current Status</label>
-                  <div>
+                  <label className="premium-form-label">Workflow Status</label>
+                  <div style={{ marginTop: '0.25rem' }}>
                     <span className={`waste-badge badge-${viewingDisposal.status.toLowerCase().replace(' ', '-')}`}>
                       <span className="dot"></span>
                       {viewingDisposal.status}
@@ -593,24 +606,24 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   </div>
                 </div>
                 <div>
-                  <label className="form-label-small">Method</label>
-                  <div style={{ fontWeight: 600 }}>{viewingDisposal.method}</div>
+                  <label className="premium-form-label">Disposal Method</label>
+                  <div style={{ fontWeight: 700, color: 'var(--secondary-800)' }}>{viewingDisposal.method}</div>
                 </div>
                 <div>
-                  <label className="form-label-small">Responsible</label>
-                  <div style={{ fontWeight: 600 }}>{viewingDisposal.responsible_person_name}</div>
+                  <label className="premium-form-label">Responsible Person</label>
+                  <div style={{ fontWeight: 600, color: 'var(--secondary-600)' }}>{viewingDisposal.responsible_person_name}</div>
                 </div>
               </div>
-              <div style={{ marginTop: '1.5rem' }}>
-                <label className="form-label-small">Notes</label>
-                <p style={{ background: 'var(--secondary-50)', padding: '1rem', borderRadius: '0.75rem', fontSize: '0.875rem' }}>
+              <div style={{ marginTop: '2rem' }}>
+                <label className="premium-form-label">Submission Notes</label>
+                <p style={{ background: 'var(--secondary-50)', padding: '1.25rem', borderRadius: '1rem', fontSize: '0.875rem', border: '1px solid var(--secondary-100)', color: 'var(--secondary-600)', lineHeight: 1.5 }}>
                   {viewingDisposal.notes || 'No notes provided.'}
                 </p>
               </div>
               {viewingDisposal.approval_notes && (
-                <div style={{ marginTop: '1rem' }}>
-                  <label className="form-label-small">Officer Comments</label>
-                  <p style={{ background: viewingDisposal.status === 'Rejected' ? '#fef2f2' : '#f0fdf4', color: viewingDisposal.status === 'Rejected' ? '#dc2626' : '#16a34a', padding: '1rem', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 600 }}>
+                <div style={{ marginTop: '1.5rem' }}>
+                  <label className="premium-form-label">Reviewer Comments</label>
+                  <p style={{ background: viewingDisposal.status === 'Rejected' ? '#fef2f2' : '#f0fdf4', color: viewingDisposal.status === 'Rejected' ? '#dc2626' : '#16a34a', padding: '1.25rem', borderRadius: '1rem', fontSize: '0.875rem', fontWeight: 700, border: '1px solid currentColor', borderOpacity: 0.1 }}>
                     {viewingDisposal.approval_notes}
                   </p>
                 </div>
@@ -650,27 +663,35 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                 </div>
               )}
             </div>
-            <div className="waste-modal-footer" style={{ padding: '1.5rem 2rem', borderTop: '1px solid var(--secondary-100)', display: 'flex', justifyContent: 'flex-end' }}>
-              <button onClick={() => setViewingDisposal(null)} className="btn-waste-primary" style={{ padding: '0.5rem 1.5rem', fontSize: '0.875rem' }}>
-                Close
+            <div style={{ padding: '1.5rem 2.5rem', background: 'rgba(248, 250, 252, 0.5)', borderTop: '1px solid var(--secondary-100)', display: 'flex', justifyContent: 'flex-end' }}>
+              <button onClick={() => setViewingDisposal(null)} className="btn-waste-action" style={{ height: '3.5rem', padding: '0 2.5rem' }}>
+                Close Details
               </button>
             </div>
           </div>
         </div>
       )}
       {completingDisposal && (
-        <div className="waste-modal-overlay">
-          <div className="waste-modal-card" style={{ maxWidth: '600px' }}>
-            <div className="waste-card-header">
-              <h2 className="waste-title" style={{ fontSize: '1.25rem' }}>Finalize Disposal: {completingDisposal.disposal_id}</h2>
-              <button onClick={() => setCompletingDisposal(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--secondary-400)' }}>
-                <IconX size={18} />
+        <div className="premium-modal-overlay">
+          <div className="premium-form-container" style={{ maxWidth: '750px', width: '100%' }}>
+            <div className="premium-form-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ width: '45px', height: '45px', background: 'var(--success-100)', color: 'var(--success-900)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <IconCheckCircle size={22} />
+                </div>
+                <div>
+                  <h2 className="premium-form-title">Finalize Disposal</h2>
+                  <p style={{ color: 'var(--secondary-400)', fontSize: '0.8rem', fontWeight: 600, margin: 0 }}>ID: {completingDisposal.disposal_id} — Document Verification</p>
+                </div>
+              </div>
+              <button onClick={() => setCompletingDisposal(null)} className="btn-modal-secondary" style={{ padding: '0.5rem', borderRadius: '12px' }}>
+                <IconX size={20} />
               </button>
             </div>
-            <form onSubmit={handleComplete} style={{ padding: '2rem' }}>
-              <div className="procurement-form-grid">
-                <div style={{ gridColumn: 'span 1' }}>
-                  <label className="form-label-small">Operator Name *</label>
+            <form onSubmit={handleComplete}>
+              <div className="premium-form-grid">
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label className="premium-form-label">Operator Name *</label>
                   <input
                     required
                     value={completionForm.method_details.operator_name}
@@ -678,12 +699,12 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                       ...completionForm,
                       method_details: { ...completionForm.method_details, operator_name: e.target.value }
                     })}
-                    className="procurement-input"
+                    className="premium-form-input"
                   />
                 </div>
 
-                <div style={{ gridColumn: 'span 1' }}>
-                  <label className="form-label-small">Disposal Facility *</label>
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label className="premium-form-label">Disposal Facility *</label>
                   <input
                     required
                     value={completionForm.method_details.facility_name}
@@ -691,22 +712,23 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                       ...completionForm,
                       method_details: { ...completionForm.method_details, facility_name: e.target.value }
                     })}
-                    className="procurement-input"
+                    className="premium-form-input"
                     placeholder="e.g. Lab B-12 or External Facility"
                   />
                 </div>
 
-                <div style={{ gridColumn: 'span 2' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>
+                <div style={{ gridColumn: 'span 4' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.9rem', fontWeight: 700, color: 'var(--secondary-700)', padding: '1rem', background: 'var(--secondary-50)', borderRadius: '1rem', border: '1px solid var(--secondary-100)', cursor: 'pointer' }}>
                     <input
                       type="checkbox"
+                      style={{ width: '1.25rem', height: '1.25rem', cursor: 'pointer' }}
                       checked={completionForm.method_details.safety_procedure_followed}
                       onChange={e => setCompletionForm({
                         ...completionForm,
                         method_details: { ...completionForm.method_details, safety_procedure_followed: e.target.checked }
                       })}
                     />
-                    Safety protocols and PPE requirements verified
+                    I confirm that all safety protocols and PPE requirements were strictly followed.
                   </label>
                 </div>
 
@@ -756,12 +778,14 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                       </div>
                     </div>
 
-                    <div className="verification-checkpoint-header" style={{ gridColumn: 'span 2', marginTop: '0.5rem', padding: '0.5rem 0', borderBottom: '1px solid var(--secondary-200)', color: 'var(--secondary-500)', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                      Verification Checkpoints
+                    <div style={{ gridColumn: 'span 4' }}>
+                      <div className="verification-checkpoint-header" style={{ marginTop: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--secondary-200)', color: 'var(--secondary-500)', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+                        Neutralization Verification Checkpoints
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="form-label-small">Initial pH</label>
+                    <div style={{ gridColumn: 'span 1' }}>
+                      <label className="premium-form-label">Initial pH</label>
                       <input
                         type="number" step="0.1"
                         value={completionForm.method_details.neutralization.initial_ph}
@@ -772,12 +796,12 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                             neutralization: { ...completionForm.method_details.neutralization, initial_ph: e.target.value }
                           }
                         })}
-                        className="procurement-input"
+                        className="premium-form-input"
                         placeholder="0-14"
                       />
                     </div>
-                    <div>
-                      <label className="form-label-small">Final pH</label>
+                    <div style={{ gridColumn: 'span 1' }}>
+                      <label className="premium-form-label">Final pH</label>
                       <input
                         type="number" step="0.1"
                         value={completionForm.method_details.neutralization.final_ph}
@@ -788,12 +812,12 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                             neutralization: { ...completionForm.method_details.neutralization, final_ph: e.target.value }
                           }
                         })}
-                        className="procurement-input"
+                        className="premium-form-input"
                         placeholder="Target: 6-9"
                       />
                     </div>
                     <div style={{ gridColumn: 'span 2' }}>
-                      <label className="form-label-small">Neutralizing Agent Used</label>
+                      <label className="premium-form-label">Neutralizing Agent Used</label>
                       <input
                         value={completionForm.method_details.neutralization.neutralizing_agent}
                         onChange={e => setCompletionForm({
@@ -803,15 +827,15 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                             neutralization: { ...completionForm.method_details.neutralization, neutralizing_agent: e.target.value }
                           }
                         })}
-                        className="procurement-input"
+                        className="premium-form-input"
                         placeholder="e.g. Sodium Bicarbonate, Lime, Soda Ash"
                       />
                     </div>
-                    <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'rgba(0,0,0,0.02)', padding: '1rem', borderRadius: '1rem' }}>
+                    <div style={{ gridColumn: 'span 4', display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'rgba(0,0,0,0.02)', padding: '1rem', borderRadius: '1rem' }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
                         <input
                           type="checkbox"
-                          style={{ width: '1.2rem', height: '1.2rem', accentColor: '#fb923c' }}
+                          style={{ width: '1.25rem', height: '1.25rem' }}
                           checked={completionForm.method_details.neutralization.compatible_agents_verified}
                           onChange={e => setCompletionForm({
                             ...completionForm,
@@ -826,7 +850,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                       <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
                         <input
                           type="checkbox"
-                          style={{ width: '1.2rem', height: '1.2rem', accentColor: '#10b981' }}
+                          style={{ width: '1.25rem', height: '1.25rem' }}
                           checked={completionForm.method_details.neutralization.safe_range_validated}
                           onChange={e => setCompletionForm({
                             ...completionForm,
@@ -844,8 +868,8 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
 
                 {completingDisposal.method === 'Incineration' && (
                   <>
-                    <div>
-                      <label className="form-label-small">Burn Temp (°C)</label>
+                    <div style={{ gridColumn: 'span 2' }}>
+                      <label className="premium-form-label">Burn Temp (°C)</label>
                       <input
                         type="number"
                         value={completionForm.method_details.incineration.temperature}
@@ -856,11 +880,11 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                             incineration: { ...completionForm.method_details.incineration, temperature: e.target.value }
                           }
                         })}
-                        className="procurement-input"
+                        className="premium-form-input"
                       />
                     </div>
-                    <div>
-                      <label className="form-label-small">Certificate #</label>
+                    <div style={{ gridColumn: 'span 2' }}>
+                      <label className="premium-form-label">Certificate #</label>
                       <input
                         value={completionForm.method_details.incineration.certificate_number}
                         onChange={e => setCompletionForm({
@@ -870,7 +894,8 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                             incineration: { ...completionForm.method_details.incineration, certificate_number: e.target.value }
                           }
                         })}
-                        className="procurement-input"
+                        className="premium-form-input"
+                        placeholder="Incineration cert ID"
                       />
                     </div>
                     <div style={{ gridColumn: 'span 2' }}>
@@ -890,7 +915,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                       </label>
                     </div>
                     <div style={{ gridColumn: 'span 2' }}>
-                      <label className="form-label-small">Final Disposal Report URL</label>
+                      <label className="premium-form-label">Final Disposal Report URL</label>
                       <input
                         value={completionForm.method_details.incineration.final_report_url}
                         onChange={e => setCompletionForm({
@@ -900,46 +925,45 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                             incineration: { ...completionForm.method_details.incineration, final_report_url: e.target.value }
                           }
                         })}
-                        className="procurement-input"
+                        className="premium-form-input"
                         placeholder="https://..."
                       />
                     </div>
                   </>
                 )}
 
-                <div style={{ gridColumn: 'span 2' }}>
-                  <label className="form-label-small">Waste Treatment Details</label>
+                <div style={{ gridColumn: 'span 4' }}>
+                  <label className="premium-form-label">Waste Treatment Details</label>
                   <textarea
                     value={completionForm.method_details.treatment_details}
                     onChange={e => setCompletionForm({
                       ...completionForm,
                       method_details: { ...completionForm.method_details, treatment_details: e.target.value }
                     })}
-                    className="procurement-input"
-                    rows="2"
+                    className="premium-form-input"
+                    rows="3"
                     placeholder="Describe treatment steps taken..."
+                    style={{ minHeight: '100px' }}
                   />
                 </div>
 
-                <div style={{ gridColumn: 'span 2' }}>
-                  <label className="form-label-small">Final Outcome Verification</label>
+                <div style={{ gridColumn: 'span 4' }}>
+                  <label className="premium-form-label">Final Outcome Verification</label>
                   <input
                     value={completionForm.method_details.verification_outcome}
                     onChange={e => setCompletionForm({
                       ...completionForm,
                       method_details: { ...completionForm.method_details, verification_outcome: e.target.value }
                     })}
-                    className="procurement-input"
+                    className="premium-form-input"
                     placeholder="e.g. Neutralized to pH 7.2, sent to municipal drain"
                   />
                 </div>
               </div>
 
-              <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                <button type="button" onClick={() => setCompletingDisposal(null)} className="btn-modal-secondary">Cancel</button>
-                <button type="submit" className="btn-waste-primary">
-                  Confirm & Finalize Disposal
-                </button>
+              <div style={{ padding: '1.5rem 2.5rem', background: 'rgba(248, 250, 252, 0.5)', borderTop: '1px solid var(--secondary-100)', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                <button type="button" onClick={() => setCompletingDisposal(null)} className="btn-waste-action" style={{ height: '3.5rem', padding: '0 2rem' }}>Cancel</button>
+                <button type="submit" className="btn-premium-submit">Confirm & Finalize Disposal</button>
               </div>
             </form>
           </div>
@@ -947,31 +971,39 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
       )}
 
       {rejectingId && (
-        <div className="waste-modal-overlay">
-          <div className="waste-modal-card" style={{ maxWidth: '500px' }}>
-            <div className="waste-card-header">
-              <h2 className="waste-title" style={{ fontSize: '1.25rem', color: 'var(--danger-900)' }}>Reject Disposal Request</h2>
-              <button onClick={() => setRejectingId(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--secondary-400)' }}>
+        <div className="premium-modal-overlay">
+          <div className="premium-form-container" style={{ maxWidth: '500px' }}>
+            <div className="premium-form-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ width: '40px', height: '40px', background: 'var(--danger-100)', color: 'var(--danger-900)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <IconX size={22} />
+                </div>
+                <h2 className="premium-form-title">Reject Request</h2>
+              </div>
+              <button onClick={() => setRejectingId(null)} className="btn-modal-secondary" style={{ padding: '0.5rem', borderRadius: '10px' }}>
                 <IconX size={18} />
               </button>
             </div>
-            <form onSubmit={handleReject} style={{ padding: '2rem' }}>
-              <p style={{ fontSize: '0.875rem', color: 'var(--secondary-600)', marginBottom: '1.5rem' }}>
-                Please provide a reason for rejecting this disposal request. This will be visible to the requester.
-              </p>
-              <label className="form-label-small">Rejection Reason *</label>
-              <textarea
-                required
-                value={rejectionNotes}
-                onChange={e => setRejectionNotes(e.target.value)}
-                className="procurement-input"
-                rows="4"
-                placeholder="Enter detailed reason for rejection..."
-                autoFocus
-              />
-              <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                <button type="button" onClick={() => setRejectingId(null)} className="btn-modal-secondary">Cancel</button>
-                <button type="submit" className="btn-waste-primary" style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}>
+            <form onSubmit={handleReject}>
+              <div style={{ padding: '2rem' }}>
+                <p style={{ fontSize: '0.875rem', color: 'var(--secondary-600)', marginBottom: '1.5rem', fontWeight: 500 }}>
+                  Please provide a reason for rejecting this disposal request. This will be visible to the requester.
+                </p>
+                <label className="premium-form-label">Rejection Reason *</label>
+                <textarea
+                  required
+                  value={rejectionNotes}
+                  onChange={e => setRejectionNotes(e.target.value)}
+                  className="premium-form-input"
+                  rows="4"
+                  placeholder="Enter detailed reason for rejection..."
+                  style={{ minHeight: '120px' }}
+                  autoFocus
+                />
+              </div>
+              <div style={{ padding: '1.5rem 2rem', background: 'rgba(254, 242, 242, 0.5)', borderTop: '1px solid var(--danger-100)', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                <button type="button" onClick={() => setRejectingId(null)} className="btn-waste-action">Cancel</button>
+                <button type="submit" className="btn-premium-submit" style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4)' }}>
                   Confirm Rejection
                 </button>
               </div>
@@ -980,70 +1012,77 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
         </div>
       )}
       {approvingDisposal && (
-        <div className="waste-modal-overlay">
-          <div className="waste-modal-card" style={{ maxWidth: '650px' }}>
-            <div className="waste-card-header">
-              <h2 className="waste-title" style={{ fontSize: '1.25rem' }}>Approve Disposal: {approvingDisposal.disposal_id}</h2>
-              <button onClick={() => setApprovingDisposal(null)} className="btn-waste-action">
+        <div className="premium-modal-overlay">
+          <div className="premium-form-container" style={{ maxWidth: '700px', width: '100%' }}>
+            <div className="premium-form-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ width: '40px', height: '40px', background: 'var(--waste-grad)', color: 'white', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <IconCheckCircle size={22} />
+                </div>
+                <h2 className="premium-form-title">Approve Disposal</h2>
+              </div>
+              <button onClick={() => setApprovingDisposal(null)} className="btn-modal-secondary" style={{ padding: '0.5rem', borderRadius: '10px' }}>
                 <IconX size={18} />
               </button>
             </div>
-            <form onSubmit={handleConfirmApproval} style={{ padding: '2rem' }}>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <p style={{ fontSize: '0.875rem', color: 'var(--secondary-600)', marginBottom: '1rem' }}>
+            <form onSubmit={handleConfirmApproval}>
+              <div style={{ padding: '2rem' }}>
+                <p style={{ fontSize: '0.875rem', color: 'var(--secondary-600)', marginBottom: '1.5rem', fontWeight: 500 }}>
                   The following batches will be affected based on the <strong>FIFO (First to Expire)</strong> policy:
                 </p>
 
                 {previewLoading ? (
-                  <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--secondary-400)' }}>Calculating FIFO impact...</div>
+                  <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--secondary-400)', background: 'var(--secondary-50)', borderRadius: '1.25rem' }}>
+                    <div className="loading-spinner" style={{ marginBottom: '0.5rem' }}></div>
+                    Calculating FIFO impact...
+                  </div>
                 ) : fifoPreview ? (
-                  <div style={{ background: 'var(--secondary-50)', borderRadius: '1rem', overflow: 'hidden', border: '1px solid var(--secondary-100)' }}>
-                    <table className="waste-table" style={{ fontSize: '0.8rem' }}>
-                      <thead style={{ background: 'var(--secondary-100)' }}>
+                  <div style={{ background: 'white', borderRadius: '1.25rem', overflow: 'hidden', border: '1px solid var(--secondary-100)', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+                    <table className="waste-table" style={{ fontSize: '0.85rem' }}>
+                      <thead style={{ background: 'var(--secondary-50)' }}>
                         <tr>
-                          <th>Batch #</th>
-                          <th>Current</th>
-                          <th>Subtract</th>
-                          <th>Remaining</th>
+                          <th style={{ padding: '1rem' }}>Batch #</th>
+                          <th style={{ padding: '1rem' }}>Current</th>
+                          <th style={{ padding: '1rem' }}>Subtract</th>
+                          <th style={{ padding: '1rem' }}>Remaining</th>
                         </tr>
                       </thead>
                       <tbody>
                         {fifoPreview.affected_batches.map(b => (
                           <tr key={b.batch_id}>
-                            <td style={{ fontWeight: 700 }}>{b.batch_number} {b.is_targeted && <span style={{ color: 'var(--waste-primary)', fontSize: '0.65rem' }}>(Selected)</span>}</td>
-                            <td>{b.current_quantity} {unitLabel(b.unit)}</td>
-                            <td style={{ color: '#ef4444', fontWeight: 800 }}>-{b.subtract_quantity} {unitLabel(b.unit)}</td>
-                            <td>{b.remaining_quantity} {unitLabel(b.unit)}</td>
+                            <td style={{ padding: '1rem', fontWeight: 800 }}>{b.batch_number} {b.is_targeted && <span style={{ color: 'var(--waste-primary)', fontSize: '0.65rem', marginLeft: '0.5rem', background: 'rgba(99, 102, 241, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '0.5rem' }}>Selected</span>}</td>
+                            <td style={{ padding: '1rem' }}>{b.current_quantity} {unitLabel(b.unit)}</td>
+                            <td style={{ padding: '1rem', color: '#ef4444', fontWeight: 900 }}>-{b.subtract_quantity}</td>
+                            <td style={{ padding: '1rem', fontWeight: 700 }}>{b.remaining_quantity}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                     {fifoPreview.insufficient_inventory && (
-                      <div style={{ padding: '1rem', background: '#fef2f2', color: '#ef4444', fontSize: '0.75rem', fontWeight: 700 }}>
-                        <IconAlertTriangle size={14} style={{ marginRight: '0.5rem' }} />
-                        Warning: Insufficient inventory. Shortfall: {fifoPreview.shortfall} {unitLabel(fifoPreview.unit)}
+                      <div style={{ padding: '1rem', background: '#fef2f2', color: '#dc2626', fontSize: '0.8rem', fontWeight: 800, borderTop: '1px solid #fee2e2', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <IconAlertTriangle size={18} />
+                        Critical: Insufficient inventory. Shortfall: {fifoPreview.shortfall} {unitLabel(fifoPreview.unit)}
                       </div>
                     )}
                   </div>
                 ) : null}
+
+                <div style={{ marginTop: '2rem' }}>
+                  <label className="premium-form-label">Approval Notes</label>
+                  <textarea
+                    value={approvalNotes}
+                    onChange={e => setApprovalNotes(e.target.value)}
+                    className="premium-form-input"
+                    rows="2"
+                    placeholder="Notes for compliance audit trail..."
+                    style={{ minHeight: '80px' }}
+                  />
+                </div>
               </div>
 
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label className="form-label-small">Approval Notes</label>
-                <textarea
-                  value={approvalNotes}
-                  onChange={e => setApprovalNotes(e.target.value)}
-                  className="procurement-input"
-                  rows="2"
-                  placeholder="Notes for compliance audit..."
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                <button type="button" onClick={() => setApprovingDisposal(null)} className="btn-modal-secondary">Cancel</button>
-                <button type="submit" className="btn-waste-primary">
-                  Confirm Approval
-                </button>
+              <div style={{ padding: '1.5rem 2rem', background: 'rgba(248, 250, 252, 0.5)', borderTop: '1px solid var(--secondary-100)', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                <button type="button" onClick={() => setApprovingDisposal(null)} className="btn-waste-action">Cancel</button>
+                <button type="submit" className="btn-premium-submit">Confirm Approval</button>
               </div>
             </form>
           </div>

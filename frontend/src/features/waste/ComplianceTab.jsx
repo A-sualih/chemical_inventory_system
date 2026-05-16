@@ -12,7 +12,7 @@ export default function ComplianceTab() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showPermitModal, setShowPermitModal] = useState(false);
-  
+
   const [form, setForm] = useState({
     type: 'Manifest', title: '', regulatory_body: '', reference_number: '', description: '', status: 'Active'
   });
@@ -78,9 +78,9 @@ export default function ComplianceTab() {
           <p className="waste-subtitle">Regulatory Compliance Monitoring</p>
           <h2 className="waste-title" style={{ fontSize: '2.5rem' }}>Compliance & Permits</h2>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="waste-header-actions" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           {hasPermission('manage_waste') && (
-            <button className="btn-waste-action" onClick={() => setShowPermitModal(true)}>
+            <button className="btn-waste-action" onClick={() => setShowPermitModal(true)} style={{ height: '3.5rem', borderRadius: '1.25rem', padding: '0 1.5rem' }}>
               <IconFileText size={18} /> Manage Permits
             </button>
           )}
@@ -229,11 +229,11 @@ export default function ComplianceTab() {
                   <td data-label="Hazard Class" style={{ fontWeight: 700 }}>{limit.hazard_class}</td>
                   <td data-label="Capacity Usage">
                     <div style={{ width: '100px', height: '6px', background: '#e2e8f0', borderRadius: '3px', marginBottom: '0.25rem' }}>
-                      <div style={{ 
-                        width: `${Math.min(100, (limit.current_quantity / limit.max_quantity) * 100)}%`, 
-                        height: '100%', 
-                        background: limit.current_quantity > limit.max_quantity ? '#ef4444' : '#10b981', 
-                        borderRadius: '3px' 
+                      <div style={{
+                        width: `${Math.min(100, (limit.current_quantity / limit.max_quantity) * 100)}%`,
+                        height: '100%',
+                        background: limit.current_quantity > limit.max_quantity ? '#ef4444' : '#10b981',
+                        borderRadius: '3px'
                       }}></div>
                     </div>
                     <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>
@@ -260,48 +260,56 @@ export default function ComplianceTab() {
       </div>
 
       {showModal && (
-        <div className="waste-modal-overlay">
-          <div className="waste-modal-card" style={{ maxWidth: '600px' }}>
-            <div className="waste-card-header">
-              <h2 className="waste-title" style={{ fontSize: '1.25rem' }}>New Compliance Entry</h2>
-              <button onClick={() => setShowModal(false)} className="btn-modal-secondary" style={{ padding: '0.5rem' }}>
+        <div className="premium-modal-overlay">
+          <div className="premium-form-container" style={{ maxWidth: '650px', width: '100%' }}>
+            <div className="premium-form-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ width: '40px', height: '40px', background: 'var(--waste-grad)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyCenter: 'center', color: 'white' }}>
+                  <IconFileText size={20} />
+                </div>
+                <div>
+                  <h2 className="premium-form-title">New Compliance Entry</h2>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--secondary-400)', fontWeight: 600, margin: 0 }}>Log regulatory events and document snapshots</p>
+                </div>
+              </div>
+              <button onClick={() => setShowModal(false)} className="btn-modal-secondary" style={{ padding: '0.5rem', borderRadius: '10px' }}>
                 <IconX size={18} />
               </button>
             </div>
-            <form onSubmit={handleSubmit} style={{ padding: '1.5rem' }}>
-              <div className="procurement-form-grid">
-                <div>
-                  <label className="form-label-small">Log Type</label>
-                  <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="procurement-input">
+            <form onSubmit={handleSubmit}>
+              <div className="premium-form-grid">
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label className="premium-form-label">Log Type</label>
+                  <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="premium-form-input">
                     {COMPLIANCE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
-                <div>
-                  <label className="form-label-small">Status</label>
-                  <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="procurement-input">
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label className="premium-form-label">Status</label>
+                  <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="premium-form-input">
                     {['Active', 'Pending Review', 'Resolved', 'Closed'].map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
-                <div style={{ gridColumn: 'span 2' }}>
-                  <label className="form-label-small">Title / Document Name *</label>
-                  <input required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="procurement-input" placeholder="e.g. Hazardous Waste Manifest #9901" />
-                </div>
-                <div>
-                  <label className="form-label-small">Regulatory Body</label>
-                  <input value={form.regulatory_body} onChange={e => setForm({ ...form, regulatory_body: e.target.value })} className="procurement-input" placeholder="EPA, OSHA, etc." />
-                </div>
-                <div>
-                  <label className="form-label-small">Reference Number</label>
-                  <input value={form.reference_number} onChange={e => setForm({ ...form, reference_number: e.target.value })} className="procurement-input" placeholder="Permit # or ID" />
+                <div style={{ gridColumn: 'span 4' }}>
+                  <label className="premium-form-label">Title / Document Name *</label>
+                  <input required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="premium-form-input" placeholder="e.g. Hazardous Waste Manifest #9901" />
                 </div>
                 <div style={{ gridColumn: 'span 2' }}>
-                  <label className="form-label-small">Description / Notes</label>
-                  <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="procurement-input" rows="3" />
+                  <label className="premium-form-label">Regulatory Body</label>
+                  <input value={form.regulatory_body} onChange={e => setForm({ ...form, regulatory_body: e.target.value })} className="premium-form-input" placeholder="EPA, OSHA, etc." />
+                </div>
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label className="premium-form-label">Reference Number</label>
+                  <input value={form.reference_number} onChange={e => setForm({ ...form, reference_number: e.target.value })} className="premium-form-input" placeholder="Permit # or ID" />
+                </div>
+                <div style={{ gridColumn: 'span 4' }}>
+                  <label className="premium-form-label">Description / Notes</label>
+                  <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="premium-form-input" rows="3" style={{ minHeight: '100px' }} />
                 </div>
               </div>
-              <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                <button type="button" onClick={() => setShowModal(false)} className="btn-modal-secondary">Cancel</button>
-                <button type="submit" className="btn-waste-primary">Create Log Entry</button>
+              <div style={{ padding: '1.5rem 2.5rem', background: 'rgba(248, 250, 252, 0.5)', borderTop: '1px solid var(--secondary-100)', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                <button type="button" onClick={() => setShowModal(false)} className="btn-waste-action">Cancel</button>
+                <button type="submit" className="btn-premium-submit">Create Log Entry</button>
               </div>
             </form>
           </div>
@@ -309,58 +317,66 @@ export default function ComplianceTab() {
       )}
 
       {showPermitModal && (
-        <div className="waste-modal-overlay">
-          <div className="waste-modal-card" style={{ maxWidth: '700px' }}>
-            <div className="waste-card-header">
-              <h2 className="waste-title" style={{ fontSize: '1.25rem' }}>Add Regulatory Permit</h2>
-              <button onClick={() => setShowPermitModal(false)} className="btn-waste-action">
+        <div className="premium-modal-overlay">
+          <div className="premium-form-container" style={{ maxWidth: '750px', width: '100%' }}>
+            <div className="premium-form-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ width: '40px', height: '40px', background: '#3b82f6', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                  <IconFileText size={20} />
+                </div>
+                <div>
+                  <h2 className="premium-form-title">Add Regulatory Permit</h2>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--secondary-400)', fontWeight: 600, margin: 0 }}>Register new environmental and safety permits</p>
+                </div>
+              </div>
+              <button onClick={() => setShowPermitModal(false)} className="btn-modal-secondary" style={{ padding: '0.5rem', borderRadius: '10px' }}>
                 <IconX size={18} />
               </button>
             </div>
-            <form onSubmit={handleCreatePermit} style={{ padding: '2rem' }}>
-              <div className="procurement-form-grid">
-                <div>
-                  <label className="form-label-small">Permit Number *</label>
-                  <input required value={permitForm.permit_number} onChange={e => setPermitForm({...permitForm, permit_number: e.target.value})} className="procurement-input" />
+            <form onSubmit={handleCreatePermit}>
+              <div className="premium-form-grid">
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label className="premium-form-label">Permit Number *</label>
+                  <input required value={permitForm.permit_number} onChange={e => setPermitForm({ ...permitForm, permit_number: e.target.value })} className="premium-form-input" />
                 </div>
-                <div>
-                  <label className="form-label-small">Regulatory Body *</label>
-                  <input required value={permitForm.regulatory_body} onChange={e => setPermitForm({...permitForm, regulatory_body: e.target.value})} className="procurement-input" />
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label className="premium-form-label">Regulatory Body *</label>
+                  <input required value={permitForm.regulatory_body} onChange={e => setPermitForm({ ...permitForm, regulatory_body: e.target.value })} className="premium-form-input" />
                 </div>
-                <div>
-                  <label className="form-label-small">Permit Type *</label>
-                  <select value={permitForm.type} onChange={e => setPermitForm({...permitForm, type: e.target.value})} className="procurement-input">
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label className="premium-form-label">Permit Type *</label>
+                  <select value={permitForm.type} onChange={e => setPermitForm({ ...permitForm, type: e.target.value })} className="premium-form-input">
                     {['Hazardous Waste Generation', 'Transportation', 'On-site Treatment', 'Storage'].map(t => (
                       <option key={t} value={t}>{t}</option>
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="form-label-small">Issue Date *</label>
-                  <input required type="date" value={permitForm.issue_date} onChange={e => setPermitForm({...permitForm, issue_date: e.target.value})} className="procurement-input" />
+                <div style={{ gridColumn: 'span 1' }}>
+                  <label className="premium-form-label">Issue Date *</label>
+                  <input required type="date" value={permitForm.issue_date} onChange={e => setPermitForm({ ...permitForm, issue_date: e.target.value })} className="premium-form-input" />
                 </div>
-                <div>
-                  <label className="form-label-small">Expiry Date *</label>
-                  <input required type="date" value={permitForm.expiry_date} onChange={e => setPermitForm({...permitForm, expiry_date: e.target.value})} className="procurement-input" />
+                <div style={{ gridColumn: 'span 1' }}>
+                  <label className="premium-form-label">Expiry Date *</label>
+                  <input required type="date" value={permitForm.expiry_date} onChange={e => setPermitForm({ ...permitForm, expiry_date: e.target.value })} className="premium-form-input" />
                 </div>
-                <div style={{ gridColumn: 'span 2' }}>
-                  <label className="form-label-small">Permit Limits (Format: HazardClass:Qty:Unit, e.g. Flammable:500:kg)</label>
-                  <input 
+                <div style={{ gridColumn: 'span 4' }}>
+                  <label className="premium-form-label">Permit Limits (Format: HazardClass:Qty:Unit, e.g. Flammable:500:kg)</label>
+                  <input
                     placeholder="Enter limits separated by semicolon"
                     onBlur={e => {
                       const limits = e.target.value.split(';').map(s => {
                         const [hc, qty, unit] = s.split(':');
                         return { hazard_class: hc, max_quantity: Number(qty), unit: unit || 'kg', current_quantity: 0 };
                       }).filter(l => l.hazard_class && l.max_quantity);
-                      setPermitForm({...permitForm, limits});
+                      setPermitForm({ ...permitForm, limits });
                     }}
-                    className="procurement-input"
+                    className="premium-form-input"
                   />
                 </div>
               </div>
-              <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                <button type="button" onClick={() => setShowPermitModal(false)} className="btn-modal-secondary">Cancel</button>
-                <button type="submit" className="btn-waste-primary">Save Permit</button>
+              <div style={{ padding: '1.5rem 2.5rem', background: 'rgba(248, 250, 252, 0.5)', borderTop: '1px solid var(--secondary-100)', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                <button type="button" onClick={() => setShowPermitModal(false)} className="btn-waste-action">Cancel</button>
+                <button type="submit" className="btn-premium-submit">Save Permit</button>
               </div>
             </form>
           </div>

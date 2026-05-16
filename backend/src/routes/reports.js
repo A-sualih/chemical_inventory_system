@@ -22,6 +22,9 @@ router.get('/export/excel', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), r
 // GET /api/reports/export/pdf
 router.get('/export/pdf', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), reportController.exportPdf);
 
+// GET /api/reports/export/csv
+router.get('/export/csv', authenticate, authorize(PERMISSIONS.VIEW_REPORTS), reportController.exportCsv);
+
 module.exports = router;
 
 

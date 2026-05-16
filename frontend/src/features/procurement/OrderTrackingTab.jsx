@@ -113,53 +113,57 @@ export default function OrderTrackingTab() {
             const StatusIcon = cfg.icon;
             const delayed = isDelayed(s);
             return (
-              <div key={s._id} className={`tracking-card ${delayed ? 'delayed' : ''}`}>
-                {delayed && <div className="delayed-banner"><AlertTriangle size={14} className="mr-2" /> Shipment Delayed</div>}
-                <div className="tracking-card-body">
-                  <div className="tracking-card-header">
+              <div key={s._id} className={`tracking-card ${delayed ? 'delayed' : ''}`} style={{ borderTop: delayed ? '6px solid #ef4444' : s.status === 'Delivered' ? '6px solid #10b981' : '1px solid var(--secondary-100)' }}>
+                {delayed && (
+                  <div className="delayed-banner" style={{ background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.25rem', borderBottom: '1px solid #fee2e2' }}>
+                    <AlertTriangle size={14} /> 
+                    <span style={{ fontWeight: 900, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Shipment Delayed</span>
+                  </div>
+                )}
+                <div className="tracking-card-body" style={{ padding: '1.75rem' }}>
+                  <div className="tracking-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
                     <div>
-                      <h3 className="tracking-po-num">{s.purchase_order_id?.po_number||'—'}</h3>
-                      <p className="tracking-supplier">{s.supplier_id?.name||'—'}</p>
+                      <h3 className="tracking-po-num" style={{ fontSize: '1.25rem', fontWeight: 950, color: 'var(--secondary-900)', margin: 0, letterSpacing: '-0.02em' }}>{s.purchase_order_id?.po_number||'—'}</h3>
+                      <p className="tracking-supplier" style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--secondary-500)', marginTop: '0.2rem' }}>{s.supplier_id?.name||'—'}</p>
                     </div>
-                    <span className={`status-badge-tracking procurement-badge ${cfg.className}`}>
-                      <StatusIcon size={12} className="mr-1" /> {s.status}
+                    <span className={`status-badge-tracking procurement-badge ${cfg.className}`} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', borderRadius: '2rem' }}>
+                      <StatusIcon size={12} /> {s.status}
                     </span>
                   </div>
 
-                  <div className="tracking-info-grid">
-                    <div>
-                      <p className="info-item-label">Tracking #</p>
-                      <p className="info-item-val val-mono">{s.tracking_number||'—'}</p>
+                  <div className="tracking-info-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem', marginBottom: '1.75rem' }}>
+                    <div className="info-item">
+                      <p className="info-item-label" style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--secondary-400)', textTransform: 'uppercase', marginBottom: '0.4rem', letterSpacing: '0.05em' }}>Tracking #</p>
+                      <p className="info-item-val val-mono" style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--secondary-700)', fontFamily: 'var(--font-mono)', background: 'var(--secondary-50)', padding: '0.4rem 0.6rem', borderRadius: '0.6rem', width: 'fit-content' }}>{s.tracking_number||'—'}</p>
                     </div>
-                    <div>
-                      <p className="info-item-label">Carrier</p>
-                      <p className="info-item-val">{s.carrier||'—'}</p>
+                    <div className="info-item">
+                      <p className="info-item-label" style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--secondary-400)', textTransform: 'uppercase', marginBottom: '0.4rem', letterSpacing: '0.05em' }}>Carrier</p>
+                      <p className="info-item-val" style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--secondary-900)' }}>{s.carrier||'—'}</p>
                     </div>
-                    <div>
-                      <p className="info-item-label">Est. Arrival</p>
-                      <p className={`info-item-val ${delayed ? 'text-delayed' : ''}`}>{s.estimated_arrival?new Date(s.estimated_arrival).toLocaleDateString():'—'}</p>
+                    <div className="info-item">
+                      <p className="info-item-label" style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--secondary-400)', textTransform: 'uppercase', marginBottom: '0.4rem', letterSpacing: '0.05em' }}>Est. Arrival</p>
+                      <p className={`info-item-val ${delayed ? 'text-delayed' : ''}`} style={{ fontSize: '0.875rem', fontWeight: 800, color: delayed ? '#dc2626' : 'var(--secondary-900)' }}>{s.estimated_arrival?new Date(s.estimated_arrival).toLocaleDateString():'—'}</p>
                     </div>
-                    <div>
-                      <p className="info-item-label">Condition</p>
-                      <p className={`info-item-val ${s.condition==='Good'?'text-emerald':s.condition==='Pending Inspection'?'text-amber':'text-red'}`}>{s.condition||'Pending Inspection'}</p>
+                    <div className="info-item">
+                      <p className="info-item-label" style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--secondary-400)', textTransform: 'uppercase', marginBottom: '0.4rem', letterSpacing: '0.05em' }}>Condition</p>
+                      <p className={`info-item-val ${s.condition==='Good'?'text-emerald':s.condition==='Pending Inspection'?'text-amber':'text-red'}`} style={{ fontSize: '0.875rem', fontWeight: 800 }}>{s.condition||'Pending Inspection'}</p>
                     </div>
                   </div>
 
-                  {/* Mini timeline */}
                   {s.timeline?.length > 0 && (
-                    <div className="latest-update-section">
-                      <p className="latest-update-title">Latest Update</p>
-                      <div className="audit-trail-item">
-                        <div className="audit-dot" />
+                    <div className="latest-update-section" style={{ background: 'linear-gradient(to right, var(--secondary-50), transparent)', padding: '1rem', borderRadius: '1.25rem', marginBottom: '1.75rem', borderLeft: '3px solid var(--proc-primary)' }}>
+                      <p className="latest-update-title" style={{ fontSize: '0.7rem', fontWeight: 900, color: 'var(--proc-primary)', textTransform: 'uppercase', marginBottom: '0.6rem', letterSpacing: '0.05em' }}>Latest Update</p>
+                      <div className="audit-trail-item" style={{ display: 'flex', gap: '0.75rem' }}>
                         <div>
-                          <p className="latest-update-desc">{s.timeline[s.timeline.length-1]?.description}</p>
-                          <p className="latest-update-time">{new Date(s.timeline[s.timeline.length-1]?.timestamp).toLocaleString()}</p>
+                          <p className="latest-update-desc" style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--secondary-800)', margin: 0, lineHeight: 1.4 }}>{s.timeline[s.timeline.length-1]?.description}</p>
+                          <p className="latest-update-time" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--secondary-400)', marginTop: '0.25rem' }}>{new Date(s.timeline[s.timeline.length-1]?.timestamp).toLocaleString()}</p>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  <button onClick={()=>openUpdate(s)} className="btn-update-shipment">
+                  <button onClick={()=>openUpdate(s)} className="btn-update-shipment" style={{ width: '100%', padding: '0.875rem', borderRadius: '1rem', border: 'none', background: 'var(--proc-primary)', color: 'white', fontWeight: 800, fontSize: '0.875rem', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 10px 20px -5px rgba(99, 102, 241, 0.3)' }}>
+                    <Settings size={16} />
                     Update Shipment
                   </button>
                 </div>

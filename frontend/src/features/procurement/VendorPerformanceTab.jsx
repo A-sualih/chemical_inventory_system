@@ -7,14 +7,32 @@ import {
 import '../../styles/Procurement.css';
 
 const Stars = ({ value, onClick }) => (
-  <div className="stars-group">
+  <div className="stars-group" style={{ display: 'flex', gap: '0.25rem' }}>
     {[1,2,3,4,5].map(s => (
-      <button key={s} type="button" onClick={()=>onClick&&onClick(s)}
-        className={`star-btn ${s <= value ? 'star-filled' : 'star-empty'}`}>
-        <svg xmlns="http://www.w3.org/2000/svg" className="star-icon" viewBox="0 0 24 24"
-          fill={s<=value?'currentColor':'none'} stroke="currentColor" strokeWidth={1.5}>
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-        </svg>
+      <button 
+        key={s} 
+        type="button" 
+        onClick={() => onClick && onClick(s)}
+        className="star-btn"
+        style={{ 
+          background: 'none', 
+          border: 'none', 
+          padding: '0.2rem', 
+          cursor: 'pointer',
+          color: s <= value ? '#fbbf24' : '#e2e8f0',
+          transition: 'transform 0.2s ease',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+      >
+        <Star 
+          size={20} 
+          fill={s <= value ? '#fbbf24' : 'none'} 
+          strokeWidth={2}
+        />
       </button>
     ))}
   </div>
@@ -194,7 +212,7 @@ export default function VendorPerformanceTab() {
             </div>
           ) : reviews.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon"><IconStar size={48}/></div>
+              <div className="empty-icon"><Star size={48}/></div>
               <p className="empty-title">No reviews yet</p>
               <p className="empty-desc">Submit the first vendor performance review.</p>
             </div>

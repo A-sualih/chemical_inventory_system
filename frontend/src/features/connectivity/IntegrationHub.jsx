@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { 
   Cloud, 
   Database, 
@@ -47,11 +48,76 @@ const IntegrationHub = () => {
   ]);
 
   const [activeProvider, setActiveProvider] = useState('drive');
+  const [stats, setStats] = useState({ health: '84%', usage: '1.2 TB' });
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await axios.get('/api/reports/inventory');
+        const total = res.data.summary.totalChemicals;
+        const sds = res.data.summary.totalChemicals - res.data.summary.expired; // Simulated logic
+        const health = total > 0 ? Math.round((sds / total) * 100) + '%' : '100%';
+        setStats({ health, usage: (total * 0.15).toFixed(1) + ' GB' });
+      } catch (err) {
+        console.error('Fetch Stats Error:', err);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const toggleIntegration = (id) => {
     setIntegrations(integrations.map(integ => 
       integ.id === id ? { ...integ, active: !integ.active } : integ
     ));
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const response = await axios.get('/api/reports/export/csv', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `inventory_report_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('CSV Export Error:', err);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      simulateUpload(files[0]);
+    }
+  };
+
+  const simulateUpload = (file) => {
+    setUploadStatus({ name: file.name, progress: 0 });
+    let p = 0;
+    const interval = setInterval(() => {
+      p += 10;
+      setUploadStatus(prev => ({ ...prev, progress: p }));
+      if (p >= 100) {
+        clearInterval(interval);
+        setTimeout(() => setUploadStatus(null), 2000);
+      }
+    }, 200);
   };
 
   return (
@@ -64,12 +130,12 @@ const IntegrationHub = () => {
           </div>
           <div className="storage-stats">
             <div className="stat-item">
-              <span className="stat-value">84%</span>
-              <span className="stat-label">API Health</span>
+              <span className="stat-value">{stats.health}</span>
+              <span className="stat-label">System Health</span>
             </div>
             <div className="stat-item">
-              <span className="stat-value">1.2 TB</span>
-              <span className="stat-label">Cloud Usage</span>
+              <span className="stat-value">{stats.usage}</span>
+              <span className="stat-label">Cloud Sync</span>
             </div>
           </div>
         </header>
@@ -126,22 +192,38 @@ const IntegrationHub = () => {
                   </div>
                 </div>
                 
-                <div className="drop-zone">
+                <div 
+                  className={`drop-zone ${isDragging ? 'dragging' : ''}`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
                   <Upload className="drop-icon" />
                   <div className="drop-text">
-                    <h4>Drop data manifest here</h4>
-                    <p>Support for .CSV, .XLSX, and .JSON datasets up to 50MB</p>
+                    {uploadStatus ? (
+                      <>
+                        <h4 style={{ color: 'var(--primary-600)' }}>Uploading {uploadStatus.name}...</h4>
+                        <div style={{ width: '200px', height: '6px', background: '#e2e8f0', margin: '1rem auto', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: `${uploadStatus.progress}%`, height: '100%', background: 'var(--primary-600)', transition: 'width 0.2s' }} />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <h4>Drop data manifest here</h4>
+                        <p>Support for .CSV, .XLSX, and .JSON datasets up to 50MB</p>
+                      </>
+                    )}
                   </div>
                 </div>
 
                 <div className="export-options">
-                  <button className="export-btn">
+                  <button className="export-btn" onClick={handleExportCSV}>
                     <Download size={18} />
                     Export CSV
                   </button>
-                  <button className="export-btn">
-                    <BarChart3 size={18} />
-                    Inventory Report
+                  <button className="export-btn" onClick={() => window.open('/api/reports/export/pdf', '_blank')}>
+                    <FileText size={18} />
+                    Inventory PDF
                   </button>
                 </div>
               </div>

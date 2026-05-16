@@ -36,12 +36,12 @@ export default function WasteDashboard() {
                 <div style={{ fontSize: '1.5rem', fontWeight: 950, letterSpacing: '-0.02em', color: 'white' }}>Audit Ready</div>
                 <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', marginTop: '0.5rem', fontWeight: 500 }}>All records are verified & signed</div>
               </div>
-              <div style={{ 
-                background: 'rgba(34, 197, 94, 0.15)', 
-                color: '#4ade80', 
-                padding: '1rem', 
-                borderRadius: '1.5rem', 
-                fontWeight: 900, 
+              <div style={{
+                background: 'rgba(34, 197, 94, 0.15)',
+                color: '#4ade80',
+                padding: '1rem',
+                borderRadius: '1.5rem',
+                fontWeight: 900,
                 fontSize: '0.75rem',
                 border: '1px solid rgba(34, 197, 94, 0.2)',
                 backdropFilter: 'blur(10px)',
@@ -72,9 +72,9 @@ export default function WasteDashboard() {
 
         <main className="waste-content">
           {activeTab === 'disposal' && (
-            <DisposalLogTab 
-              externalShowModal={showDisposalModal} 
-              onCloseModal={() => setShowDisposalModal(false)} 
+            <DisposalLogTab
+              externalShowModal={showDisposalModal}
+              onCloseModal={() => setShowDisposalModal(false)}
               onOpenModal={() => setShowDisposalModal(true)}
             />
           )}
