@@ -2,13 +2,14 @@
 
 /* --- ROOT VARIABLES --- */
 :root {
-  --proc-primary: #7c3aed;
-  --proc-primary-hover: #6d28d9;
-  --proc-glass-bg: rgba(255, 255, 255, 0.75);
+  --proc-primary: #6366f1;
+  --proc-primary-hover: #4f46e5;
+  --proc-glass-bg: rgba(255, 255, 255, 0.8);
   --proc-glass-border: rgba(255, 255, 255, 0.5);
-  --proc-shadow-subtle: 0 10px 30px -5px rgba(124, 58, 237, 0.05);
-  --proc-shadow-hover: 0 30px 60px -12px rgba(124, 58, 237, 0.15);
-  --proc-card-radius: 2rem;
+  --proc-shadow-subtle: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+  --proc-shadow-hover: 0 40px 80px -15px rgba(99, 102, 241, 0.15);
+  --proc-card-radius: 2.25rem;
+  --proc-grad: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
 }
 
 /* --- HEADER SECTION --- */
@@ -285,23 +286,60 @@
 }
 
 .btn-add {
-  background-color: var(--proc-primary);
+  background: var(--proc-grad);
   color: white;
-  padding: 0.75rem 1.25rem;
-  border-radius: 0.75rem;
+  padding: 0.875rem 1.5rem;
+  border-radius: 1.25rem;
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 800;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s;
+  gap: 0.6rem;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.3);
 }
 
 .btn-add:hover {
-  background-color: var(--proc-primary-hover);
-  transform: translateY(-1px);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.4);
+}
+
+.btn-add:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-filter-delayed {
+  background: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #ffedd5;
+  padding: 0.75rem 1.25rem;
+  border-radius: 1rem;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.08);
+}
+
+.btn-filter-delayed:hover {
+  background: #ea580c;
+  color: white;
+  border-color: #ea580c;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -5px rgba(234, 88, 12, 0.3);
+}
+
+.btn-filter-delayed svg {
+  transition: transform 0.3s ease;
+}
+
+.btn-filter-delayed:hover svg {
+  transform: rotate(15deg) scale(1.1);
 }
 
 /* --- DATA TABLES --- */
@@ -412,31 +450,41 @@
 }
 
 /* --- BADGES & TAGS --- */
-.procurement-badge {
-  padding: 0.4rem 1rem;
-  border-radius: 99px;
-  font-size: 0.65rem;
-  font-weight: 900;
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-size: 0.7rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-  border: 1px solid transparent;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-.badge-draft {
+.status-active {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #d1fae5;
+}
+
+.status-inactive {
   background: #f8fafc;
   color: #64748b;
-  border-color: #e2e8f0;
+  border: 1px solid #e2e8f0;
 }
 
-.badge-submitted {
-  background: #eff6ff;
-  color: #2563eb;
-  border-color: #dbeafe;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+.status-blacklisted {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fee2e2;
+}
+
+.pref-star {
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+  transition: all 0.3s ease;
+}
+
+.supplier-card:hover .pref-star {
+  transform: scale(1.1) rotate(5deg);
 }
 
 .badge-approved {
@@ -594,12 +642,75 @@
 }
 
 .tracking-card {
-  background: white;
-  border-radius: 2rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 2.25rem;
   border: 1px solid var(--secondary-100);
-  box-shadow: var(--proc-shadow-subtle);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.tracking-card:hover {
+  transform: translateY(-8px) scale(1.01);
+  box-shadow: 0 40px 80px -20px rgba(99, 102, 241, 0.15);
+  border-color: var(--proc-primary);
+}
+
+.btn-update-shipment {
+  background: var(--proc-grad);
+  color: white;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-update-shipment:hover {
+  transform: translateY(-4px) scale(1.02) !important;
+  box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.4) !important;
+}
+
+.procurement-modal-footer {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--secondary-100);
+}
+
+.btn-modal-primary {
+  background: var(--proc-grad);
+  color: white;
+  padding: 0.875rem 2rem;
+  border-radius: 1rem;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.3);
+}
+
+.btn-modal-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.4);
+}
+
+.btn-modal-secondary {
+  background: var(--secondary-50);
+  color: var(--secondary-600);
+  padding: 0.875rem 2rem;
+  border-radius: 1rem;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  border: 1px solid var(--secondary-200);
+  cursor: pointer;
   transition: all 0.3s;
+}
+
+.btn-modal-secondary:hover {
+  background: var(--secondary-100);
+  color: var(--secondary-900);
+  border-color: var(--secondary-300);
 }
 
 .tracking-card.delayed {

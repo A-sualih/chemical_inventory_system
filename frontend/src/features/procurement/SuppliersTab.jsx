@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Search, Plus, Edit2, Trash2, Eye, Ban, Star, Mail, Phone, Globe, 
-  User, Factory, MapPin, Receipt, Check, X, ShieldCheck
+  User, Factory, MapPin, Receipt, Check, X, ShieldCheck, AlertTriangle
 } from 'lucide-react';
 import axios from 'axios';
 import '../../styles/Procurement.css';
@@ -11,8 +11,20 @@ const STATUSES = ['Active','Inactive','Blacklisted'];
 const COUNTRIES = ['USA','UK','Germany','France','China','India','Japan','Canada','Australia','Other'];
 
 const StatusBadge = ({ status }) => {
-  const map = { Active:'status-active', Inactive:'status-inactive', Blacklisted:'status-blacklisted' };
-  return <span className={`status-badge ${map[status]||'status-inactive'}`}>{status}</span>;
+  const map = { 
+    Active: { class: 'status-active', icon: Check }, 
+    Inactive: { class: 'status-inactive', icon: X }, 
+    Blacklisted: { class: 'status-blacklisted', icon: AlertTriangle } 
+  };
+  const config = map[status] || map.Inactive;
+  const Icon = config.icon;
+  
+  return (
+    <span className={`status-badge ${config.class}`} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem' }}>
+      <Icon size={12} />
+      {status}
+    </span>
+  );
 };
 
 const Stars = ({ rating }) => (
@@ -204,51 +216,77 @@ export default function SuppliersTab() {
       ) : (
         <div className="supplier-grid">
           {suppliers.map(s => (
-            <div key={s._id} className="supplier-card">
+            <div key={s._id} className="supplier-card" style={{ borderTop: s.status === 'Blacklisted' ? '6px solid #ef4444' : s.is_preferred ? '6px solid var(--proc-primary)' : '1px solid var(--secondary-100)' }}>
               <div className="card-body">
                 <div className="card-header-row">
                   <div className="card-title-group">
-                    <div className="card-title-flex">
-                      {s.is_preferred && <span className="pref-star" title="Preferred Supplier"><ShieldCheck size={14} /></span>}
-                      <h3 className="card-title">{s.name}</h3>
+                    <div className="card-title-flex" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                      <h3 className="card-title" style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--secondary-900)', margin: 0 }}>{s.name}</h3>
+                      {s.is_preferred && <span className="pref-star" title="Preferred Supplier" style={{ color: 'var(--proc-primary)', background: 'rgba(124, 58, 237, 0.1)', padding: '0.3rem', borderRadius: '0.6rem', display: 'flex' }}><ShieldCheck size={14} /></span>}
                     </div>
-                    <p className="card-id">{s.supplier_id}</p>
+                    <p className="card-id" style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--secondary-400)', marginTop: '0.2rem' }}>{s.supplier_id}</p>
                   </div>
                   <StatusBadge status={s.status} />
                 </div>
 
-                <div className="card-rating">
+                <div className="card-rating" style={{ margin: '1rem 0' }}>
                   <Stars rating={s.rating} />
                 </div>
 
-                <div className="card-details">
-                  <p className="detail-line"><Mail size={12} className="detail-icon" /> {s.contact_email || '—'}</p>
-                  <p className="detail-line"><Phone size={12} className="detail-icon" /> {s.contact_phone || '—'}</p>
-                  <p className="detail-line"><Globe size={12} className="detail-icon" /> {s.country} · {s.category}</p>
-                  {s.contact_person && <p className="detail-line"><User size={12} className="detail-icon" /> {s.contact_person}</p>}
+                <div className="card-details" style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'var(--secondary-50)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--secondary-600)' }}>
+                      <Mail size={14} />
+                    </div>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--secondary-700)' }}>{s.contact_email || '—'}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'var(--secondary-50)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--secondary-600)' }}>
+                      <Phone size={14} />
+                    </div>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--secondary-700)' }}>{s.contact_phone || '—'}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'var(--secondary-50)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--secondary-600)' }}>
+                      <Globe size={14} />
+                    </div>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--secondary-700)' }}>{s.country} · {s.category}</span>
+                  </div>
+                  {s.contact_person && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'var(--secondary-50)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--secondary-600)' }}>
+                        <User size={14} />
+                      </div>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--secondary-900)' }}>{s.contact_person}</span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="card-stats-grid">
-                  <div className="stat-box">
-                    <p className="stat-box-label">Orders</p>
-                    <p className="stat-box-val">{s.total_orders}</p>
+                <div className="card-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginTop: '1.5rem', background: 'var(--secondary-50)', padding: '1rem', borderRadius: '1.5rem' }}>
+                  <div className="stat-box" style={{ textAlign: 'center' }}>
+                    <p className="stat-box-label" style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--secondary-400)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Orders</p>
+                    <p className="stat-box-val" style={{ fontSize: '1rem', fontWeight: 950, color: 'var(--secondary-900)', margin: 0 }}>{s.total_orders}</p>
                   </div>
-                  <div className="stat-box">
-                    <p className="stat-box-label">On-Time</p>
-                    <p className={`stat-box-val ${s.on_time_delivery_rate>=90?'text-emerald':s.on_time_delivery_rate>=70?'text-amber':'text-red'}`}>{s.on_time_delivery_rate}%</p>
+                  <div className="stat-box" style={{ textAlign: 'center' }}>
+                    <p className="stat-box-label" style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--secondary-400)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>On-Time</p>
+                    <p className={`stat-box-val ${s.on_time_delivery_rate>=90?'text-emerald':s.on_time_delivery_rate>=70?'text-amber':'text-red'}`} style={{ fontSize: '1rem', fontWeight: 950, margin: 0 }}>{s.on_time_delivery_rate}%</p>
                   </div>
-                  <div className="stat-box">
-                    <p className="stat-box-label">Reliability</p>
-                    <p className={`stat-box-val ${s.reliability_score>=80?'text-emerald':s.reliability_score>=60?'text-amber':'text-red'}`}>{s.reliability_score}</p>
+                  <div className="stat-box" style={{ textAlign: 'center' }}>
+                    <p className="stat-box-label" style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--secondary-400)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Reliability</p>
+                    <p className={`stat-box-val ${s.reliability_score>=80?'text-emerald':s.reliability_score>=60?'text-amber':'text-red'}`} style={{ fontSize: '1rem', fontWeight: 950, margin: 0 }}>{s.reliability_score}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="card-actions">
-                <button onClick={()=>openDetail(s)} className="action-btn action-view"><Eye size={13}/>View</button>
-                <button onClick={()=>openEdit(s)} className="action-btn action-edit"><Edit2 size={13}/>Edit</button>
-                {s.status !== 'Blacklisted' && <button onClick={()=>handleBlacklist(s._id)} className="action-btn action-danger"><Ban size={13}/>Blacklist</button>}
-                <button onClick={()=>handleDelete(s._id)} className="action-btn action-danger"><Trash2 size={13}/>Delete</button>
+              <div className="card-actions" style={{ padding: '1.25rem', display: 'flex', gap: '0.5rem', borderTop: '1px solid var(--secondary-100)', flexWrap: 'wrap' }}>
+                <button onClick={()=>openDetail(s)} className="action-btn action-view" style={{ flex: 1, minWidth: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', padding: '0.6rem', borderRadius: '0.75rem', fontWeight: 700 }}><Eye size={14}/>View</button>
+                <button onClick={()=>openEdit(s)} className="action-btn action-edit" style={{ flex: 1, minWidth: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', padding: '0.6rem', borderRadius: '0.75rem', fontWeight: 700 }}><Edit2 size={14}/>Edit</button>
+                {s.status !== 'Blacklisted' ? (
+                  <button onClick={()=>handleBlacklist(s._id)} className="action-btn action-danger" style={{ flex: 1, minWidth: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', padding: '0.6rem', borderRadius: '0.75rem', fontWeight: 700, background: '#fef2f2', color: '#dc2626' }}><Ban size={14}/>Blacklist</button>
+                ) : (
+                   <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: '#dc2626', fontWeight: 900, fontSize: '0.75rem' }}><AlertTriangle size={14} /> BLACKLISTED</div>
+                )}
+                <button onClick={()=>handleDelete(s._id)} className="action-btn action-danger" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.6rem', borderRadius: '0.75rem', background: '#fef2f2', color: '#dc2626' }}><Trash2 size={14}/></button>
               </div>
             </div>
           ))}
@@ -337,9 +375,9 @@ export default function SuppliersTab() {
                   <label htmlFor="preferred" className="checkbox-label">Mark as Preferred Supplier ⭐</label>
                 </div>
               </div>
-              <div className="form-actions">
-                <button type="button" onClick={()=>setShowModal(false)} className="btn-cancel">Cancel</button>
-                <button type="submit" disabled={submitting} className="btn-submit">
+              <div className="procurement-modal-footer">
+                <button type="button" onClick={()=>setShowModal(false)} className="btn-modal-secondary">Cancel</button>
+                <button type="submit" disabled={submitting} className="btn-modal-primary">
                   {submitting ? 'Saving…' : editing ? 'Update Supplier' : 'Add Supplier'}
                 </button>
               </div>

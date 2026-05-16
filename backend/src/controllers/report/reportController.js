@@ -249,3 +249,30 @@ exports.exportPdf = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.exportCsv = async (req, res) => {
+  try {
+    const chemicals = await Chemical.find({ archived: false });
+    
+    let csv = 'ID,Name,CAS Number,Status,Quantity,Unit,Location\n';
+    
+    chemicals.forEach(c => {
+      const row = [
+        c.id,
+        `"${c.name.replace(/"/g, '""')}"`,
+        c.cas_number || 'N/A',
+        c.status,
+        c.quantity,
+        c.unit,
+        `"${(c.location || 'Unassigned').replace(/"/g, '""')}"`
+      ];
+      csv += row.join(',') + '\n';
+    });
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=inventory_report.csv');
+    res.send(csv);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
