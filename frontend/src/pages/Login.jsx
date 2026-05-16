@@ -121,10 +121,16 @@ const Login = () => {
       case "mfa":
         return (
           <div className="login-view-wrapper">
-            <div className="mfa-icon-box">
-              <svg xmlns="http://www.w3.org/2000/svg" className="mfa-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
+            <div className="logo-header-wrapper">
+              <div className="app-logo-box" style={{ backgroundColor: settings?.systemLogo ? 'transparent' : '', boxShadow: settings?.systemLogo ? 'none' : '' }}>
+                {settings?.systemLogo ? (
+                  <img src={settings.systemLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '1rem' }} />
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="mfa-icon app-logo icon-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                )}
+              </div>
             </div>
             <h2 className="login-title-h2">Verify Identity</h2>
             <p className="login-subtitle">Enter the 6-digit code sent to your device.</p>
@@ -150,6 +156,18 @@ const Login = () => {
       case "forgot-password":
         return (
           <div className="login-view-wrapper">
+            <div className="logo-header-wrapper">
+              <div className="app-logo-box" style={{ backgroundColor: settings?.systemLogo ? 'transparent' : '', boxShadow: settings?.systemLogo ? 'none' : '' }}>
+                {settings?.systemLogo ? (
+                  <img src={settings.systemLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '1rem' }} />
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="app-logo icon-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" />
+                  </svg>
+                )}
+              </div>
+            </div>
             <h2 className="login-title-h2">Reset Password</h2>
             <p className="login-subtitle">Enter your email for the recovery link.</p>
             <form onSubmit={handleForgotPassword} className="form-spacing">
