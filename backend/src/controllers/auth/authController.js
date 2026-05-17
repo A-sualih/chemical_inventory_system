@@ -6,6 +6,7 @@ const nodemailer = require('nodemailer');
 const otpGenerator = require('otp-generator');
 const crypto = require('crypto');
 const User = require('../../models/User');
+const Lab = require('../../models/Lab');
 const { JWT_SECRET, logAudit, ROLES } = require('../../middleware/authMiddleware');
 const { notifyUnauthorizedAccess } = require('../../services/notificationService');
 
@@ -111,10 +112,17 @@ exports.login = async (req, res) => {
 };
 
 exports.register = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, labId } = req.body;
   try {
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ error: 'Email already in use' });
+
+    if (!labId) {
+      return res.status(400).json({ error: 'A primary laboratory must be selected.' });
+    }
+
+    const lab = await Lab.findById(labId);
+    if (!lab) return res.status(404).json({ error: 'Selected laboratory not found.' });
 
     const hash = await bcrypt.hash(password, 10);
     const userRole = ROLES.AUDITOR;
@@ -123,13 +131,24 @@ exports.register = async (req, res) => {
       name,
       email,
       password: hash,
-      role: userRole
+      role: userRole,
+      labs: [labId],
+      active_lab: labId
     });
     await user.save();
 
-    res.status(201).json({ message: 'User registered successfully' });
+    res.status(201).json({ message: 'User registered successfully and assigned to lab.' });
   } catch (err) {
-    res.status(500).json({ error: 'Server error', details: err.message });
+    res.status(500).json({ error: err.message || 'Server error' });
+  }
+};
+
+exports.getPublicLabs = async (req, res) => {
+  try {
+    const labs = await Lab.find({}, 'name').sort({ name: 1 });
+    res.json(labs);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch laboratories' });
   }
 };
 
