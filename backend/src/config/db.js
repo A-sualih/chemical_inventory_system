@@ -16,7 +16,7 @@ async function initDb() {
   try {
     console.log('Connecting to MongoDB Atlas...');
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 90000 // Timeout after 5s instead of default 30s
+      serverSelectionTimeoutMS: 70000 // Timeout after 5s instead of default 30s
     });
     console.log('Successfully connected to MongoDB Cluster.');
 

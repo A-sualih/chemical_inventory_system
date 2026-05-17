@@ -848,9 +848,9 @@
   inset: 0;
   z-index: 10000;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 1.5rem;
+  padding: 3rem 1.5rem;
   background-color: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -1032,6 +1032,7 @@
 
 /* Premium Form Redesign */
 .premium-form-container {
+  margin: auto;
   background: white;
   border-radius: 2.5rem;
   box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.3);

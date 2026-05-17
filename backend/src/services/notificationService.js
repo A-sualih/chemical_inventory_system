@@ -52,8 +52,8 @@ const createNotification = async (data) => {
       await notification.save();
     }
 
-    // TRIGGER EMAIL for high/critical severity or request updates
-    if (data.severity === 'high' || data.severity === 'critical' || data.type === 'REQUEST_UPDATE') {
+    // TRIGGER EMAIL for high/critical severity, request updates, or disposal alerts
+    if (data.severity === 'high' || data.severity === 'critical' || data.type === 'REQUEST_UPDATE' || data.type === 'DISPOSAL') {
       const User = require('../models/User');
 
       /**
@@ -69,7 +69,8 @@ const createNotification = async (data) => {
         // Safety Officer (+ Lab Manager as backup) — all hazard & compliance types
         'HAZARD': ['Safety Officer', 'Lab Manager'],
         'COMPLIANCE': ['Safety Officer', 'Lab Manager'],
-        'DISPOSAL': ['Safety Officer', 'Lab Manager'],
+        // Include Lab Technicians and Laboratory Staff so they are kept in the loop on disposal approvals
+        'DISPOSAL': ['Safety Officer', 'Lab Manager', 'Lab Technician', 'Laboratory Staff'],
         'INCOMPATIBILITY': ['Safety Officer', 'Lab Manager'],
         'SPILL_INCIDENT': ['Safety Officer', 'Lab Manager'],
         'STORAGE_CONDITION': ['Safety Officer', 'Lab Manager'],

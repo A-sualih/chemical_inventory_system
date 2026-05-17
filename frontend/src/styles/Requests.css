@@ -543,10 +543,11 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 9999;
-  padding: 1rem;
+  padding: 3rem 1rem;
+  overflow-y: auto;
   animation: fadeIn 0.3s ease-out forwards;
 }
 
@@ -561,6 +562,7 @@
 }
 
 .premium-modal-card {
+  margin: auto;
   width: 100%;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(20px);

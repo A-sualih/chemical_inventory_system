@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
     ],
     "Safety Officer": [
       "view_chemicals", "view_safety_info", "view_reports", "view_audit_logs",
-      "manage_waste", "approve_disposal"
+      "manage_waste", "edit_chemical"
     ],
     "Viewer / Auditor": [
       "view_chemicals", "view_reports", "view_audit_logs", "view_safety_info"

@@ -26,7 +26,10 @@ import {
     CheckCircle2,
     Calendar,
     Tag,
-    Link2
+    Link2,
+    FileText,
+    Download,
+    ExternalLink
 } from 'lucide-react';
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/ChemicalDetails.css";
@@ -44,6 +47,7 @@ const ChemicalDetails = () => {
 
   const [batches, setBatches] = useState([]);
   const [containers, setContainers] = useState([]);
+  const [viewingSDS, setViewingSDS] = useState(false);
 
   useEffect(() => {
     const fetchFullData = async () => {
@@ -210,10 +214,51 @@ const ChemicalDetails = () => {
                     <HazardBadge hazards={chemical.ghs_classes} showLabels={true} size="md" />
                  </div>
 
-                 <div className="nfpa-container">
-                    <NFPADiamond ratings={chemical.nfpa_rating} size="sm" />
-                 </div>
-              </div>
+                  <div className="nfpa-container">
+                     <NFPADiamond ratings={chemical.nfpa_rating} size="sm" />
+                  </div>
+               </div>
+
+               {/* Safety Data Sheet (SDS) Document Section */}
+               <div className="premium-card sds-card">
+                  <h3 className="panel-title"><FileText size={14} className="text-red-500" /> Safety Data Sheet (SDS)</h3>
+                  
+                  {chemical.sds_file_url ? (
+                     <>
+                        <div className="sds-preview-container">
+                           <div className="sds-pdf-icon-wrapper">
+                              <FileText size={24} />
+                           </div>
+                           <div className="sds-meta-info">
+                              <div className="sds-filename" title={chemical.sds_file_name || `SDS_CIMS-${chemical.id}.pdf`}>
+                                 {chemical.sds_file_name || `SDS_CIMS-${chemical.id}.pdf`}
+                              </div>
+                              <div className="sds-filetype">Verified Document • PDF</div>
+                           </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                           <button onClick={() => setViewingSDS(true)} className="dashboard-action-btn btn-primary-glow" style={{ padding: '0.75rem', borderRadius: '14px', fontSize: '0.75rem' }}>
+                              <ExternalLink size={14} /> View SDS
+                           </button>
+                           <a 
+                              href={`http://localhost:5001${chemical.sds_file_url}`} 
+                              download 
+                              className="dashboard-action-btn btn-glass" 
+                              style={{ padding: '0.75rem', borderRadius: '14px', fontSize: '0.75rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                           >
+                              <Download size={14} /> Download
+                           </a>
+                        </div>
+                     </>
+                  ) : (
+                     <div className="sds-empty-placeholder">
+                        <AlertTriangle size={24} className="text-amber-500" />
+                        <div className="placeholder-text">No Verified SDS attached.</div>
+                        <div className="placeholder-tip">Attach a PDF via the inventory editor to satisfy compliance.</div>
+                     </div>
+                  )}
+               </div>
 
             </div>
 
@@ -460,6 +505,54 @@ const ChemicalDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* Safety Data Sheet (SDS) Full-Screen Viewer Modal */}
+      {viewingSDS && chemical.sds_file_url && (
+         <div className="premium-modal-overlay" onClick={() => setViewingSDS(false)} style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', background: 'rgba(15, 23, 42, 0.6)' }}>
+            <div className="premium-modal-card" style={{ maxWidth: '1200px', width: '95%', height: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+               <div className="modal-header" style={{ borderBottom: '1px solid #e2e8f0', background: '#ffffff', padding: '1rem 2rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                     <div className="sds-pdf-icon-wrapper" style={{ width: '36px', height: '36px', borderRadius: '10px' }}>
+                        <FileText size={18} />
+                     </div>
+                     <div>
+                        <h2 className="modal-title" style={{ fontSize: '1.1rem', fontWeight: 800 }}>Safety Data Sheet (SDS) Viewer</h2>
+                        <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginTop: '0.05rem' }}>{chemical.name} — CAS: {chemical.cas_number || 'N/A'}</p>
+                     </div>
+                  </div>
+                  <button onClick={() => setViewingSDS(false)} className="close-btn" style={{ fontSize: '1.75rem', width: '36px', height: '36px', background: '#f1f5f9', borderRadius: '50%', color: '#64748b' }}>&times;</button>
+               </div>
+               
+               <div style={{ flex: 1, background: '#f8fafc', position: 'relative' }}>
+                  <iframe
+                     src={`http://localhost:5001${chemical.sds_file_url}`}
+                     title="SDS Document Viewer"
+                     width="100%"
+                     height="100%"
+                     style={{ border: 'none' }}
+                  />
+               </div>
+
+               <div className="modal-footer" style={{ borderTop: '1px solid #e2e8f0', padding: '1rem 2rem', background: '#f8fafc', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                  <a
+                     href={`http://localhost:5001${chemical.sds_file_url}`}
+                     download
+                     className="dashboard-action-btn btn-primary-glow"
+                     style={{ padding: '0.625rem 1.5rem', width: 'auto', borderRadius: '12px', fontSize: '0.8rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                  >
+                     <Download size={14} /> Download SDS (PDF)
+                  </a>
+                  <button
+                     onClick={() => setViewingSDS(false)}
+                     className="dashboard-action-btn btn-glass"
+                     style={{ padding: '0.625rem 1.5rem', width: 'auto', borderRadius: '12px', fontSize: '0.8rem' }}
+                  >
+                     Close Viewer
+                  </button>
+               </div>
+            </div>
+         </div>
+      )}
     </Layout>
   );
 };

@@ -5,6 +5,7 @@ import Layout from "../layout/Layout";
 import { useAuth } from "../context/AuthContext";
 import { HAZARD_CLASSES } from "../constants/hazards.jsx";
 import "../styles/Dashboard.css";
+import toast from 'react-hot-toast';
 
 const Dashboard = () => {
   const { user, hasPermission } = useAuth();
@@ -69,7 +70,7 @@ const Dashboard = () => {
       await axios.put(`/api/inventory/requests/${id}`, { status });
       fetchRequests();
     } catch (err) {
-      alert("Error updating request: " + (err.response?.data?.error || err.message));
+      toast.error("Error updating request: " + (err.response?.data?.error || err.message));
     }
   };
 

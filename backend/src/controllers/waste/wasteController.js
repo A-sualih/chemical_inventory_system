@@ -70,18 +70,18 @@ exports.createDisposalRequest = async (req, res) => {
                       chemical.hazard_summary?.hazard_class === 'Flammable' ? 'High' : 'Moderate';
     
     // Always trigger disposal notification for all requests so managers/safety officers are notified for approval
-    await notificationService.notifyDisposalAlert(
+    notificationService.notifyDisposalAlert(
       chemical, quantity, unit, riskLevel, req.activeLabId, req.user
-    );
+    ).catch(err => console.error("notifyDisposalAlert error:", err));
 
     // Also flag environmental risk for toxic/explosive chemicals
     if (chemical.hazard_summary?.hazard_class === 'Toxic' || chemical.hazard_summary?.hazard_class === 'Explosive' || quantity > 100) {
-      await notificationService.notifyEnvironmentalRisk(
+      notificationService.notifyEnvironmentalRisk(
         chemical,
         `Disposal of ${quantity} ${unit} of ${chemical.hazard_summary?.hazard_class || 'hazardous'} chemical`,
         req.activeLabId,
         req.user
-      );
+      ).catch(err => console.error("notifyEnvironmentalRisk error:", err));
     }
     
     // 1. Compliance Check: Legal Disposal Limits
@@ -90,14 +90,14 @@ exports.createDisposalRequest = async (req, res) => {
     if (permit) {
       const limit = permit.limits.find(l => l.hazard_class === (hazard_classification || chemical.hazard_summary?.hazard_class));
       if (limit && (limit.current_quantity + Number(quantity)) > limit.max_quantity) {
-        await notificationService.createNotification({ lab: req.activeLabId, 
+        notificationService.createNotification({ lab: req.activeLabId, 
           type: 'COMPLIANCE',
           category: 'safety',
           title: 'Disposal Limit Warning',
           message: `Disposal of ${quantity} ${unit} ${chemical.name} exceeds the ${limit.period} limit of ${limit.max_quantity} ${limit.unit} for permit ${permit.permit_number}.`,
           severity: 'high',
           metadata: { triggeredByEmail: req.user.email }
-        });
+        }).catch(err => console.error("createNotification error:", err));
       }
     }
 
@@ -192,31 +192,23 @@ exports.createDisposalRequest = async (req, res) => {
       }
       await chemical.save();
       
-      // Trigger Alerts based on new levels
-      const SystemSettings = require('../../models/SystemSettings');
-      const settings = await SystemSettings.findOne();
-      const globalLowStockPercent = settings?.alertThresholds?.lowStockPercent || 10;
-      
-      let lowStockThreshold = 5;
-      if (chemical.threshold !== undefined && chemical.threshold > 0) {
-        lowStockThreshold = chemical.threshold;
-      } else if (chemical.initial_quantity && chemical.initial_quantity > 0) {
-        lowStockThreshold = chemical.initial_quantity * (globalLowStockPercent / 100);
-      }
-
-      if (chemical.quantity <= 0) {
-        // Update status and notify
-        chemical.status = 'Out of Stock';
-        await chemical.save();
-        await notificationService.notifyLowStock(chemical, lowStockThreshold, req.activeLabId, req.user);
-      } else if (chemical.quantity <= lowStockThreshold) {
-        // Update status to Low Stock if it's currently In Stock
-        if (chemical.status === 'In Stock') {
-          chemical.status = 'Low Stock';
-          await chemical.save();
-        }
-        await notificationService.notifyLowStock(chemical, lowStockThreshold, req.activeLabId, req.user);
-      }
+      // Trigger Alerts based on new levels — fire-and-forget to avoid blocking
+      setImmediate(async () => {
+        try {
+          const SystemSettings = require('../../models/SystemSettings');
+          const settings = await SystemSettings.findOne();
+          const globalLowStockPercent = settings?.alertThresholds?.lowStockPercent || 10;
+          let lowStockThreshold = 5;
+          if (chemical.threshold !== undefined && chemical.threshold > 0) {
+            lowStockThreshold = chemical.threshold;
+          } else if (chemical.initial_quantity && chemical.initial_quantity > 0) {
+            lowStockThreshold = chemical.initial_quantity * (globalLowStockPercent / 100);
+          }
+          if (chemical.quantity <= 0 || chemical.quantity <= lowStockThreshold) {
+            await notificationService.notifyLowStock(chemical, lowStockThreshold, req.activeLabId, req.user);
+          }
+        } catch (e) { console.error('Low stock alert error:', e); }
+      });
         
 
       disposal.fifo_impact = impactedBatches;
@@ -594,9 +586,16 @@ exports.completeDisposal = async (req, res) => {
 exports.deleteDisposal = async (req, res) => {
   try {
     const { id } = req.params;
-    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
-    const disposal = await WasteDisposal.findOne({ _id: id, ...labQuery });
+    const disposal = await WasteDisposal.findById(id);
     if (!disposal) return res.status(404).json({ error: 'Disposal record not found' });
+
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+
+    // Lab scope check — compare as strings to avoid ObjectId vs string mismatch
+    const isAdmin = req.user.role === 'Admin' && !req.activeLabId;
+    if (!isAdmin && disposal.lab?.toString() !== req.activeLabId?.toString()) {
+      return res.status(403).json({ error: 'Access denied: disposal belongs to a different lab' });
+    }
 
     // Restore inventory if it was subtracted but not yet finalized
     if (disposal.status === 'Pending Approval' || disposal.status === 'Approved') {

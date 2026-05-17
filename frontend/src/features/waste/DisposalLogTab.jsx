@@ -106,7 +106,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
       await axios.post('/api/waste/disposals', form);
       onCloseModal();
       fetchDisposals();
-      toast.success('Disposal request submitted successfully.');
+      toast.success('Disposal request submitted. Awaiting approval.');
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to submit request');
     } finally {
@@ -121,7 +121,9 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
       const res = await axios.get(`/api/waste/disposals/${disposal._id}/fifo-preview`);
       setFifoPreview(res.data);
     } catch (err) {
-      console.error('FIFO Preview Error:', err);
+      const msg = err.response?.data?.error || 'Failed to load FIFO preview';
+      toast.error(msg);
+      setApprovingDisposal(null);
     } finally {
       setPreviewLoading(false);
     }
@@ -219,7 +221,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
           </button>
         </div>
       </div>
-    ), { duration: 10000, id: 'delete-confirm' });
+    ), { duration: 10000, id: `delete-confirm-${id}` });
   };
 
   return (

@@ -23,7 +23,7 @@
     min-height: 100vh;
     font-family: 'Inter', sans-serif;
     color: var(--text-main);
-    padding: 2rem;
+    padding: clamp(1rem, 3vw, 2.5rem);
     position: relative;
     overflow-x: hidden;
 }
@@ -89,17 +89,23 @@
     gap: 2rem;
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1400px) {
     .dashboard-grid {
-        grid-template-columns: 350px 1fr;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
     }
+    .column-left { grid-column: span 1; }
+    .column-main { grid-column: span 1; }
     .right-sidebar { grid-column: span 2; }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 992px) {
     .dashboard-grid {
         grid-template-columns: 1fr;
+        gap: 1.25rem;
     }
+    .column-left { grid-column: span 1; }
+    .column-main { grid-column: span 1; }
     .right-sidebar { grid-column: span 1; }
 }
 
@@ -151,7 +157,7 @@
 }
 
 .chemical-display-title {
-    font-size: 2.25rem;
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
     font-weight: 900;
     letter-spacing: -0.04em;
     background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
@@ -193,7 +199,7 @@
 }
 
 .large-stat-value {
-    font-size: 3.5rem;
+    font-size: clamp(2.5rem, 5vw, 4rem);
     font-weight: 900;
     color: var(--text-main);
     line-height: 1;
@@ -354,6 +360,14 @@
     gap: 1rem;
 }
 
+@media (max-width: 768px) {
+    .action-sidebar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.75rem;
+    }
+}
+
 .dashboard-action-btn {
     width: 100%;
     padding: 1.25rem;
@@ -417,10 +431,30 @@
     overflow-x: auto;
     margin-top: 1rem;
     padding-bottom: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99, 102, 241, 0.2) transparent;
+}
+
+.ledger-scroll-area::-webkit-scrollbar {
+    height: 6px;
+}
+
+.ledger-scroll-area::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ledger-scroll-area::-webkit-scrollbar-thumb {
+    background-color: rgba(99, 102, 241, 0.2);
+    border-radius: 99px;
+}
+
+.ledger-scroll-area::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(99, 102, 241, 0.4);
 }
 
 .ledger-premium-table {
     width: 100%;
+    min-width: 600px;
     border-collapse: separate;
     border-spacing: 0;
 }
@@ -434,6 +468,7 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
 }
 
 .ledger-premium-row {
@@ -448,6 +483,7 @@
     padding: 1.25rem 1rem;
     font-size: 0.8125rem;
     border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
 }
 
 .status-pill {
@@ -472,3 +508,90 @@
 .dashboard-grid > *:nth-child(1) { animation-delay: 0.1s; }
 .dashboard-grid > *:nth-child(2) { animation-delay: 0.2s; }
 .dashboard-grid > *:nth-child(3) { animation-delay: 0.3s; }
+
+/* SDS Card & Custom Placeholder Styles */
+.sds-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.5) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.sds-preview-container {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    background: rgba(239, 68, 68, 0.04);
+    border: 1px solid rgba(239, 68, 68, 0.1);
+    border-radius: 18px;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.sds-preview-container:hover {
+    transform: translateY(-2px);
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.sds-pdf-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+    color: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 16px -4px rgba(239, 68, 68, 0.4);
+    flex-shrink: 0;
+}
+
+.sds-meta-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.sds-filename {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text-main);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sds-filetype {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #ef4444;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.15rem;
+}
+
+.sds-empty-placeholder {
+    padding: 2rem 1.5rem;
+    background: rgba(248, 250, 252, 0.6);
+    border: 1.5px dashed var(--secondary-200);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.sds-empty-placeholder .placeholder-text {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.4;
+}
+
+.sds-empty-placeholder .placeholder-tip {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}

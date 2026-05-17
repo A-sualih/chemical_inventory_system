@@ -6,11 +6,13 @@ import axios from "axios";
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { HAZARD_CLASSES, PPE_OPTIONS, NFPA_RATINGS, EXPOSURE_RISKS } from "../../constants/hazards.jsx";
 import { Camera } from 'lucide-react';
+import { useAuth } from "../../context/AuthContext";
 import "../../styles/ChemicalForm.css";
 
 const ChemicalForm = ({ initialData, onClose, onSave }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleCancelClick = () => {
     if (onClose) {
@@ -354,7 +356,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
           }}
             className="form-main"
           >
-
+            <fieldset disabled={user?.role === 'Safety Officer'} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
             {/* SECTION: IDENTIFICATION */}
             <section className="form-section">
               <div className="section-header">
@@ -649,6 +651,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                 </div>
               </div>
             </section>
+            </fieldset>
 
             <section className="form-section">
               <div className="section-header">
@@ -657,6 +660,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                 <div className="header-line hide-mobile"></div>
               </div>
 
+              <fieldset disabled={user?.role === 'Safety Officer'} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
               <div className="grid-cols-1-2">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div className="form-group">
@@ -685,6 +689,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                   </div>
                 </div>
               </div>
+              </fieldset>
               <div className="form-group">
                 <label className="form-label">Safety Remarks & Tracking Notes</label>
                 <textarea value={formData.remarks} onChange={e => setFormData({ ...formData, remarks: e.target.value })} className="textarea-input" placeholder="Initial stock entry, handle with care..."></textarea>
