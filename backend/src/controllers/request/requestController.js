@@ -22,7 +22,7 @@ exports.getFifoContainer = async (req, res) => {
       chemStringId = chem.id;
     }
 
-    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const pendingRequests = await Request.find({ status: 'Pending', ...labQuery }).populate('container_id');
 
     const containers = await Container.find({
@@ -88,7 +88,7 @@ exports.submitRequest = async (req, res) => {
   }
 
   try {
-    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const chemical = await Chemical.findOne({
       $or: [
         { _id: mongoose.Types.ObjectId.isValid(chemical_id) ? chemical_id : undefined },
@@ -228,7 +228,7 @@ exports.submitRequest = async (req, res) => {
 
 exports.getRequests = async (req, res) => {
   try {
-    let query = req.activeLabId ? { lab: req.activeLabId } : {};
+    let query = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const userPermissions = require('../../config/roles').ROLE_PERMISSIONS[req.user.role] || [];
     
     if (!userPermissions.includes(PERMISSIONS.APPROVE_REQUEST)) {
@@ -251,7 +251,7 @@ exports.getRequests = async (req, res) => {
 exports.approveRequest = async (req, res) => {
   const { notes } = req.body;
   try {
-    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const request = await Request.findOne({ _id: req.params.id, ...labQuery })
       .populate('chemical_id')
       .populate('container_id');
@@ -350,7 +350,7 @@ exports.approveRequest = async (req, res) => {
 exports.rejectRequest = async (req, res) => {
   const { notes } = req.body;
   try {
-    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const request = await Request.findOne({ _id: req.params.id, ...labQuery });
     if (!request) return res.status(404).json({ error: 'Request not found' });
     if (request.status !== 'Pending') return res.status(400).json({ error: 'Request is already processed' });

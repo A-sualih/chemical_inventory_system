@@ -2,6 +2,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const transporter = nodemailer.createTransport({
+  pool: true, // Enable SMTP connection pooling
   host: 'smtp.gmail.com',
   port: 587,
   secure: false, // Use STARTTLS
@@ -11,7 +12,9 @@ const transporter = nodemailer.createTransport({
   },
   tls: {
     rejectUnauthorized: false
-  }
+  },
+  maxConnections: 5,
+  maxMessages: 100
 });
 
 

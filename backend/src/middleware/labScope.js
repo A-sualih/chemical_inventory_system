@@ -28,12 +28,17 @@ const requireLabScope = async (req, res, next) => {
       return next();
     }
 
-    // Non-admin with no lab set: still allow through with null scope
-    // Controllers should handle null activeLabId gracefully
+    // Non-admin with no lab set: reject with 403
     if (!activeLab) {
-      req.labScope = { lab: null };
-      req.activeLabId = null;
-      return next();
+      if (req.user.role === 'Admin') {
+        req.labScope = { lab: null };
+        req.activeLabId = null;
+        return next();
+      }
+      return res.status(403).json({ 
+        message: 'Access Denied: You must have an active laboratory selected to access this module.',
+        code: 'NO_ACTIVE_LAB'
+      });
     }
 
     // Auto-Rescue Logic: If user is in an unauthorized lab, move them to one they HAVE access to

@@ -6,24 +6,25 @@ const mongoose = require('mongoose');
 exports.getContainers = async (req, res) => {
   try {
     const { chemical_id } = req.query;
-    let query = req.activeLabId ? { lab: req.activeLabId } : {};
+    let query = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     if (chemical_id) {
        if (mongoose.Types.ObjectId.isValid(chemical_id)) {
-         const chemical = await Chemical.findById(chemical_id);
-         if (chemical) {
-           query.chemical_id = chemical.id;
-         } else {
-           query.chemical_id = chemical_id;
-         }
+          const chemical = await Chemical.findById(chemical_id);
+          if (chemical) {
+            query.chemical_id = chemical.id;
+          } else {
+            query.chemical_id = chemical_id;
+          }
        } else {
-         query.chemical_id = chemical_id;
+          query.chemical_id = chemical_id;
        }
     }
 
     const containers = await Container.find(query).lean();
 
     const enrichedContainers = await Promise.all(containers.map(async (container) => {
-      const chemical = await Chemical.findOne({ id: container.chemical_id, ...(req.activeLabId && { lab: req.activeLabId }) });
+      const query = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+      const chemical = await Chemical.findOne({ id: container.chemical_id, ...query });
       return { 
         ...container, 
         chemical_name: chemical ? chemical.name : 'Unknown' 
@@ -38,7 +39,7 @@ exports.getContainers = async (req, res) => {
 
 exports.getContainersByChemical = async (req, res) => {
   try {
-    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const containers = await Container.find({ chemical_id: req.params.chemical_id, ...labQuery });
     res.json(containers);
   } catch (err) {
@@ -48,7 +49,7 @@ exports.getContainersByChemical = async (req, res) => {
 
 exports.getContainer = async (req, res) => {
   try {
-    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const container = await Container.findOne({ container_id: req.params.id, ...labQuery });
     if (!container) return res.status(404).json({ error: 'Container not found' });
     res.json(container);
@@ -60,7 +61,7 @@ exports.getContainer = async (req, res) => {
 exports.createContainer = async (req, res) => {
   const data = req.body;
   try {
-    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const chemical = await Chemical.findOne({ id: data.chemical_id, ...labQuery });
     if (!chemical) return res.status(400).json({ error: 'Chemical reference not found' });
 
@@ -90,7 +91,7 @@ exports.createContainer = async (req, res) => {
 
 exports.updateContainer = async (req, res) => {
   try {
-    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const container = await Container.findOne({ container_id: req.params.id, ...labQuery });
     if (!container) return res.status(404).json({ error: 'Container not found' });
 
@@ -116,7 +117,7 @@ exports.updateContainer = async (req, res) => {
 
 exports.deleteContainer = async (req, res) => {
   try {
-    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const container = await Container.findOneAndDelete({ container_id: req.params.id, ...labQuery });
     if (!container) return res.status(404).json({ error: 'Container not found' });
 

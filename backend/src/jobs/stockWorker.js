@@ -18,20 +18,12 @@ const runStockCheck = async () => {
     const chemicals = await Chemical.find({ archived: false });
 
     for (const chemical of chemicals) {
-      // Calculate dynamic threshold
-      // 1. If chemical has a custom threshold explicitly set and it's not the default 5 (assuming they modified it)
-      // Actually, if we use global percentage, we do: initial_quantity * (globalLowStockPercent / 100)
-      // Default to chemical.threshold (5) if initial_quantity is not available
-      let calculatedThreshold = chemical.threshold !== undefined ? chemical.threshold : 5;
-      
-      if (chemical.initial_quantity && chemical.initial_quantity > 0) {
-        calculatedThreshold = chemical.initial_quantity * (globalLowStockPercent / 100);
-      } else if (chemical.base_quantity && chemical.quantity === chemical.base_quantity && !chemical.initial_quantity) {
-          // fallback if initial_quantity isn't set but base_quantity is
-          calculatedThreshold = chemical.quantity * (globalLowStockPercent / 100);
+      let threshold = 5;
+      if (chemical.threshold !== undefined && chemical.threshold > 0) {
+        threshold = chemical.threshold;
+      } else if (chemical.initial_quantity && chemical.initial_quantity > 0) {
+        threshold = chemical.initial_quantity * (globalLowStockPercent / 100);
       }
-
-      const threshold = calculatedThreshold;
 
       if (chemical.quantity <= 0) {
         // Out of stock — treat as low stock with threshold = 0

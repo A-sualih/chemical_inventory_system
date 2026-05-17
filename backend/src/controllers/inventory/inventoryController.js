@@ -371,14 +371,12 @@ exports.handleTransaction = async (req, res) => {
     const settings = await SystemSettings.findOne();
     const globalLowStockPercent = settings?.alertThresholds?.lowStockPercent || 10;
     
-    let calculatedThreshold = targetChem.threshold !== undefined ? targetChem.threshold : 5;
-    if (targetChem.initial_quantity && targetChem.initial_quantity > 0) {
-      calculatedThreshold = targetChem.initial_quantity * (globalLowStockPercent / 100);
-    } else if (targetChem.base_quantity && targetChem.quantity === targetChem.base_quantity && !targetChem.initial_quantity) {
-      calculatedThreshold = targetChem.quantity * (globalLowStockPercent / 100);
+    let lowStockThreshold = 5;
+    if (targetChem.threshold !== undefined && targetChem.threshold > 0) {
+      lowStockThreshold = targetChem.threshold;
+    } else if (targetChem.initial_quantity && targetChem.initial_quantity > 0) {
+      lowStockThreshold = targetChem.initial_quantity * (globalLowStockPercent / 100);
     }
-    
-    const lowStockThreshold = calculatedThreshold;
 
     if (targetChem.quantity <= 0) {
       targetChem.status = 'Out of Stock';

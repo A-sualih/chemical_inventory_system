@@ -27,15 +27,16 @@ const reconcileChemical = async (chemicalId, labId) => {
 exports.getBatches = async (req, res) => {
   try {
     const { chemical_id } = req.query;
-    const filter = req.activeLabId ? { lab: req.activeLabId } : {};
+    const filter = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     if (chemical_id) filter.chemical_id = chemical_id;
 
     const batches = await Batch.find(filter).lean();
     
     const enrichedBatches = await Promise.all(batches.map(async (batch) => {
+      const query = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
       const [chemical, containers] = await Promise.all([
-        Chemical.findOne({ id: batch.chemical_id, ...(req.activeLabId && { lab: req.activeLabId }) }),
-        Container.find({ batch_number: batch.batch_number, ...(req.activeLabId && { lab: req.activeLabId }) }).select('container_id')
+        Chemical.findOne({ id: batch.chemical_id, ...query }),
+        Container.find({ batch_number: batch.batch_number, ...query }).select('container_id')
       ]);
       
       return { 
@@ -53,7 +54,7 @@ exports.getBatches = async (req, res) => {
 
 exports.getBatch = async (req, res) => {
   try {
-    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const batch = await Batch.findOne({ batch_number: req.params.batch_number, ...labQuery }).lean();
     if (!batch) return res.status(404).json({ error: 'Batch not found' });
     
@@ -75,7 +76,7 @@ exports.getBatch = async (req, res) => {
 exports.createBatch = async (req, res) => {
   const data = req.body;
   try {
-    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const chemical = await Chemical.findOne({ id: data.chemical_id, ...labQuery });
     if (!chemical) return res.status(400).json({ error: 'Chemical reference not found' });
 
@@ -108,7 +109,7 @@ exports.createBatch = async (req, res) => {
 
 exports.updateBatch = async (req, res) => {
   try {
-    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const batch = await Batch.findOne({ batch_number: req.params.batch_number, ...labQuery });
     if (!batch) return res.status(404).json({ error: 'Batch not found' });
 
@@ -166,7 +167,7 @@ exports.updateBatch = async (req, res) => {
 
 exports.deleteBatch = async (req, res) => {
   try {
-    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const batch = await Batch.findOneAndDelete({ batch_number: req.params.batch_number, ...labQuery });
     if (!batch) return res.status(404).json({ error: 'Batch not found' });
 

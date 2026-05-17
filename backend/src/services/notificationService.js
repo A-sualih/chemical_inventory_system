@@ -15,25 +15,30 @@ const createNotification = async (data) => {
         'related.chemicalId': data.related.chemicalId,
         ...(data.lab && { lab: data.lab })
       };
-      
+
       if (data.related?.containerId) {
         matchCriteria['related.containerId'] = data.related.containerId;
       }
 
-      // Prevent duplicate notifications (especially for Expiry/Low Stock)
-      // Check if there is an active (unread) alert OR a recently created alert (within 24h)
-      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      notification = await Notification.findOne({
-        ...matchCriteria,
-        $or: [
-          { status: 'unread' },
-          { createdAt: { $gte: oneDayAgo } }
-        ]
-      });
-      
-      if (notification) {
-        // Notification already exists and is active/recent. Do not recreate or re-email.
-        return notification;
+      // Prevent duplicate notifications for EXPIRY alerts only (since cron runs daily).
+      // LOW_STOCK alerts are real-time and action-triggered, so they must be dispatched immediately.
+      if (data.type === 'EXPIRY') {
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        notification = await Notification.findOne({
+          ...matchCriteria,
+          $or: [
+            { status: 'unread' },
+            { createdAt: { $gte: oneDayAgo } }
+          ]
+        });
+
+        if (notification) {
+          const hasSentEmail = notification.channels.some(c => c.type === 'email' && c.isSent === true);
+          if (hasSentEmail) {
+            // Notification already exists and is active/recent, and email has already been sent successfully.
+            return notification;
+          }
+        }
       }
     }
 
@@ -47,8 +52,8 @@ const createNotification = async (data) => {
       await notification.save();
     }
 
-    // TRIGGER EMAIL for high/critical severity
-    if (data.severity === 'high' || data.severity === 'critical') {
+    // TRIGGER EMAIL for high/critical severity or request updates
+    if (data.severity === 'high' || data.severity === 'critical' || data.type === 'REQUEST_UPDATE') {
       const User = require('../models/User');
 
       /**
@@ -58,27 +63,27 @@ const createNotification = async (data) => {
        */
       const TYPE_TO_ROLES = {
         // Admin only — security & system
-        'UNAUTHORIZED_ACCESS':  ['Admin'],
-        'SYSTEM':               ['Admin'],
+        'UNAUTHORIZED_ACCESS': ['Admin'],
+        'SYSTEM': ['Admin'],
 
         // Safety Officer (+ Lab Manager as backup) — all hazard & compliance types
-        'HAZARD':               ['Safety Officer', 'Lab Manager'],
-        'COMPLIANCE':           ['Safety Officer', 'Lab Manager'],
-        'DISPOSAL':             ['Safety Officer', 'Lab Manager'],
-        'INCOMPATIBILITY':      ['Safety Officer', 'Lab Manager'],
-        'SPILL_INCIDENT':       ['Safety Officer', 'Lab Manager'],
-        'STORAGE_CONDITION':    ['Safety Officer', 'Lab Manager'],
-        'MISSING_DOCUMENT':     ['Safety Officer', 'Lab Manager'],
-        'EMERGENCY':            ['Safety Officer', 'Lab Manager', 'Admin'],
-        'ENVIRONMENTAL_RISK':   ['Safety Officer', 'Lab Manager'],
+        'HAZARD': ['Safety Officer', 'Lab Manager'],
+        'COMPLIANCE': ['Safety Officer', 'Lab Manager'],
+        'DISPOSAL': ['Safety Officer', 'Lab Manager'],
+        'INCOMPATIBILITY': ['Safety Officer', 'Lab Manager'],
+        'SPILL_INCIDENT': ['Safety Officer', 'Lab Manager'],
+        'STORAGE_CONDITION': ['Safety Officer', 'Lab Manager'],
+        'MISSING_DOCUMENT': ['Safety Officer', 'Lab Manager'],
+        'EMERGENCY': ['Safety Officer', 'Lab Manager', 'Admin'],
+        'ENVIRONMENTAL_RISK': ['Safety Officer', 'Lab Manager'],
 
         // Lab Manager & Lab Technicians — operational inventory alerts
-        'LOW_STOCK':            ['Lab Manager', 'Lab Technician', 'Lab Technician', 'Technician', 'Lab technician'],
-        'EXPIRY':               ['Lab Manager'],
-        'INFO':                 ['Lab Manager'],
+        'LOW_STOCK': ['Lab Manager', 'Lab Technician', 'Lab Technician', 'Technician', 'Lab technician', 'Admin'],
+        'EXPIRY': ['Lab Manager',],
+        'INFO': ['Lab Manager', 'Admin'],
 
         // REQUEST_UPDATE — email sent directly to the requester, handled separately
-        'REQUEST_UPDATE':       [],
+        'REQUEST_UPDATE': [],
       };
 
       const targetRoles = TYPE_TO_ROLES[data.type] ?? ['Lab Manager'];
@@ -139,7 +144,7 @@ const createNotification = async (data) => {
     if (data.severity === 'critical') {
       const smsMessage = `[CIMS CRITICAL] ${data.title}: ${data.message}`;
       await sendSMS(null, smsMessage);
-      
+
       notification.channels.push({ type: 'sms', isSent: true, sentAt: new Date() });
       await notification.save();
     }
@@ -187,8 +192,8 @@ const notifyExpiry = async (chemical, container, daysRemaining, labId, user = nu
     type: 'EXPIRY',
     category: 'safety',
     title: isExpired ? `EXPIRED: ${chemical.name}` : `Expiry Warning: ${chemical.name}`,
-    message: isExpired 
-      ? `Container ${container.container_id} of ${chemical.name} has expired!` 
+    message: isExpired
+      ? `Container ${container.container_id} of ${chemical.name} has expired!`
       : `Container ${container.container_id} of ${chemical.name} will expire in ${daysRemaining} days.`,
     severity: isExpired ? 'critical' : 'high',
     lab: labId || container.lab || chemical.lab,

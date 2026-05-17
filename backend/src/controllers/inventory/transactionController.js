@@ -17,9 +17,12 @@ exports.getChemicalByBarcode = async (req, res) => {
     const normalize = (val) => val ? val.toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '') : val;
     const normalizedBarcode = normalize(barcode);
 
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+
     // 1. Primary Lookup: Container
     // We check both exact match and normalized match
     let container = await Container.findOne({ 
+      ...labQuery,
       $or: [
         { container_id: barcode }, 
         { barcode: barcode },
@@ -31,21 +34,23 @@ exports.getChemicalByBarcode = async (req, res) => {
 
     if (!container) {
       // Fallback 1: Check if this is a Chemical system ID or CAS number
-      chemical = await Chemical.findOne({ $or: [{ id: barcode }, { cas_number: barcode }] });
+      chemical = await Chemical.findOne({ ...labQuery, $or: [{ id: barcode }, { cas_number: barcode }] }).populate('lab', 'name');
 
       // Fallback 2: Check if this matches a manufacturer barcode (exact or normalized)
       if (!chemical) {
         chemical = await Chemical.findOne({ 
+          ...labQuery,
           $or: [
             { barcode: barcode },
             { barcode: normalizedBarcode }
           ]
-        });
+        }).populate('lab', 'name');
       }
       
       if (chemical) {
         // Find the first available container for this chemical
         container = await Container.findOne({ 
+          ...labQuery,
           chemical_id: { $in: [chemical.id, chemical._id.toString()] }, 
           status: { $ne: 'Empty' } 
         });
@@ -59,7 +64,7 @@ exports.getChemicalByBarcode = async (req, res) => {
       // Container found, now get its chemical
       const chemId = container.chemical_id;
       const chemQuery = mongoose.Types.ObjectId.isValid(chemId) ? { $or: [{ _id: chemId }, { id: chemId }] } : { id: chemId };
-      chemical = await Chemical.findOne(chemQuery);
+      chemical = await Chemical.findOne({ ...labQuery, ...chemQuery }).populate('lab', 'name');
       if (!chemical) {
         return res.status(404).json({ error: 'Associated chemical record missing for this container.' });
       }
@@ -85,13 +90,25 @@ exports.getChemicalByBarcode = async (req, res) => {
       },
       chemical: {
         _id: chemical._id,
+        id: chemical.id,
         name: chemical.name,
+        formula: chemical.formula,
         cas_number: chemical.cas_number,
+        category: chemical.ghs_hazards?.categories?.[0] || chemical.chemical_family || 'N/A',
+        lab_name: chemical.lab?.name || 'N/A',
+        status: chemical.status,
         hazard_summary: chemical.hazard_summary,
         ppe_requirements: chemical.ppe_requirements,
         incompatibility: chemical.incompatibility,
         emergency_instructions: chemical.emergency_instructions,
-        emergency_response: chemical.emergency_response
+        emergency_response: chemical.emergency_response,
+        ghs_hazards: chemical.ghs_hazards,
+        nfpa_rating: chemical.nfpa_rating,
+        storage_temp: chemical.storage_temp,
+        storage_humidity: chemical.storage_humidity,
+        spill_instructions: chemical.spill_instructions,
+        sds_file_url: chemical.sds_file_url,
+        sds_docs: chemical.sds_docs
       },
       warnings
     });
@@ -114,13 +131,15 @@ exports.checkOut = async (req, res) => {
       device_info
     } = req.body;
 
-    const container = await Container.findById(container_id);
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+
+    const container = await Container.findOne({ ...labQuery, _id: container_id });
     if (!container) return res.status(404).json({ error: 'Container not found' });
     
     // Explicitly fetch chemical document safely
     const chemId = container.chemical_id;
     const chemQuery = mongoose.Types.ObjectId.isValid(chemId) ? { $or: [{ _id: chemId }, { id: chemId }] } : { id: chemId };
-    const chemical = await Chemical.findOne(chemQuery);
+    const chemical = await Chemical.findOne({ ...labQuery, ...chemQuery });
     if (!chemical) return res.status(404).json({ error: 'Associated chemical record missing.' });
     
     // 1. Validation
@@ -206,17 +225,19 @@ exports.checkIn = async (req, res) => {
       is_contaminated
     } = req.body;
 
-    const container = await Container.findById(container_id);
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const container = await Container.findOne({ ...labQuery, _id: container_id });
     if (!container) return res.status(404).json({ error: 'Container not found' });
     
     // Explicitly fetch chemical document safely
     const chemId = container.chemical_id;
     const chemQuery = mongoose.Types.ObjectId.isValid(chemId) ? { $or: [{ _id: chemId }, { id: chemId }] } : { id: chemId };
-    const chemical = await Chemical.findOne(chemQuery);
+    const chemical = await Chemical.findOne({ ...labQuery, ...chemQuery });
     if (!chemical) return res.status(404).json({ error: 'Associated chemical record missing.' });
 
     // Find the most recent active checkout for this user and container
     const originalTransaction = await Transaction.findOne({
+      ...labQuery,
       container_id: container._id,
       user_id: req.user.id,
       type: 'Check-Out',
@@ -293,7 +314,8 @@ exports.checkIn = async (req, res) => {
 exports.getTransactionHistory = async (req, res) => {
   try {
     const { limit = 20, type, user_id } = req.query;
-    const query = {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const query = { ...labQuery };
     if (type) query.type = type;
     if (user_id) query.user_id = user_id;
 

@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { NotificationProvider } from "../context/NotificationContext";
 import { SettingsProvider } from "../context/SettingsContext";
-
+import { Toaster } from "react-hot-toast";
 import Dashboard from "../pages/Dashboard";
 import Chemicals from "../features/chemicals/Chemicals";
 import Login from "../pages/Login";
@@ -51,6 +51,17 @@ function App() {
     <AuthProvider>
       <SettingsProvider>
         <NotificationProvider>
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              duration: 10000,
+              style: {
+                background: '#333',
+                color: '#fff',
+                borderRadius: '10px',
+              },
+            }}
+          />
           <BrowserRouter>
             <Routes>
               {/* Public Routes */}

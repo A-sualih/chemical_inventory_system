@@ -3,10 +3,13 @@ const Chemical = require('../../models/Chemical');
 
 exports.getSafetyDashboard = async (req, res) => {
   try {
-    const total = await Chemical.countDocuments({ archived: false });
-    const restricted = await Chemical.countDocuments({ restricted_access: true, archived: false });
-    const needsTraining = await Chemical.countDocuments({ training_required: true, archived: false });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    
+    const total = await Chemical.countDocuments({ ...labQuery, archived: false });
+    const restricted = await Chemical.countDocuments({ ...labQuery, restricted_access: true, archived: false });
+    const needsTraining = await Chemical.countDocuments({ ...labQuery, training_required: true, archived: false });
     const sdsPending = await Chemical.countDocuments({ 
+        ...labQuery,
         $or: [
             { sds_attached: false },
             { "sds_docs.verification_status": "Pending" }
@@ -15,13 +18,13 @@ exports.getSafetyDashboard = async (req, res) => {
     });
     
     const hazards = await Chemical.aggregate([
-      { $match: { archived: false } },
+      { $match: { ...labQuery, archived: false } },
       { $unwind: { path: "$ghs_classes", preserveNullAndEmptyArrays: false } },
       { $group: { _id: "$ghs_classes", count: { $sum: 1 } } }
     ]);
 
     const risks = await Chemical.aggregate([
-      { $match: { archived: false } },
+      { $match: { ...labQuery, archived: false } },
       { $group: { _id: "$exposure_details.risk_level", count: { $sum: 1 } } }
     ]);
 
@@ -43,7 +46,8 @@ exports.getSafetyDashboard = async (req, res) => {
 exports.checkIncompatibility = async (req, res) => {
   try {
     const { location } = req.params;
-    const chemicals = await Chemical.find({ location, archived: false });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const chemicals = await Chemical.find({ ...labQuery, location, archived: false });
     
     if (chemicals.length < 2) return res.json({ incompatible: false, conflicts: [] });
     
@@ -103,7 +107,8 @@ exports.getIncompatibilityMatrix = async (req, res) => {
 
 exports.exportSdsPdf = async (req, res) => {
   try {
-    const chemical = await Chemical.findOne({ id: req.params.id });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const chemical = await Chemical.findOne({ ...labQuery, id: req.params.id });
 
     if (!chemical) {
       return res.status(404).json({ error: "Chemical not found" });
@@ -169,7 +174,8 @@ exports.globalIncompatibilityScan = async (req, res) => {
       ['Water-Reactive', 'Aqueous Solutions'],
     ];
 
-    const chemicals = await Chemical.find({ archived: false, location: { $exists: true, $ne: '' } });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const chemicals = await Chemical.find({ ...labQuery, archived: false, location: { $exists: true, $ne: '' } });
 
     const byLocation = {};
     for (const c of chemicals) {

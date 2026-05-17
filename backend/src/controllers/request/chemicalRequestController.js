@@ -51,7 +51,7 @@ exports.submitRequest = async (req, res) => {
 
 exports.getRequests = async (req, res) => {
   try {
-    let query = req.activeLabId ? { lab: req.activeLabId } : {};
+    let query = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     
     // If technician, only see own
     if (req.user.role === 'Technician' || req.user.role === 'Lab Technician') {
@@ -75,7 +75,8 @@ exports.rejectRequest = async (req, res) => {
     const { id } = req.params;
     const { notes } = req.body;
     
-    const request = await ChemicalRequest.findById(id);
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const request = await ChemicalRequest.findOne({ _id: id, ...labQuery });
     if (!request) return res.status(404).json({ error: 'Request not found' });
     
     request.status = 'Rejected';
@@ -111,7 +112,8 @@ exports.buyRequest = async (req, res) => {
     const { id } = req.params;
     const { supplier_id, unit_price } = req.body; // Basic info to create a PO
     
-    const request = await ChemicalRequest.findById(id);
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const request = await ChemicalRequest.findOne({ _id: id, ...labQuery });
     if (!request) return res.status(404).json({ error: 'Request not found' });
 
     // Mark as purchase requested
@@ -147,7 +149,8 @@ exports.transferRequest = async (req, res) => {
     const { id } = req.params;
     const { target_lab_id, chemical_id } = req.body; // manager selects which chemical in another lab to request
     
-    const request = await ChemicalRequest.findById(id);
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const request = await ChemicalRequest.findOne({ _id: id, ...labQuery });
     if (!request) return res.status(404).json({ error: 'Request not found' });
 
     // Create a TransferRequest

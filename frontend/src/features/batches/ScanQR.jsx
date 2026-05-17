@@ -2,10 +2,12 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import Layout from "../../layout/Layout";
+import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import "../../styles/ScanQR.css";
 
 const ScanQR = () => {
+  const { user } = useAuth();
   const [scannerActive, setScannerActive] = useState(false);
   const [scanMode, setScanMode] = useState("view"); // view, in, out
   const [lastScanResult, setLastScanResult] = useState(null);
@@ -28,6 +30,10 @@ const ScanQR = () => {
     if (scanMode === "view") {
       setScannerActive(false);
       navigate(`/chemicals/details/${exactId}`);
+    } else if (user?.role === 'Laboratory Staff' && scanMode === 'out') {
+      setScannerActive(false);
+      // Take to request form with pre-selected chemical
+      navigate(`/requests?chemical_id=${exactId}`);
     } else {
       setProcessing(true);
       try {
