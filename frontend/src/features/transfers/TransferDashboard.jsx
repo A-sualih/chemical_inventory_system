@@ -23,6 +23,11 @@ const TransferDashboard = () => {
     container_id: '', quantity_moved: '', unit: 'ml', reason: '',
   });
 
+  // Rejection Modal State
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectTargetId, setRejectTargetId] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+
   const [chemSearch, setChemSearch] = useState('');
   const [chemResults, setChemResults] = useState([]);
   const [chemLoading, setChemLoading] = useState(false);
@@ -108,10 +113,24 @@ const TransferDashboard = () => {
     catch (err) { toast.error(err.response?.data?.error || 'Approval failed', { duration: 10000 }); }
   };
 
-  const handleReject = async (id) => {
-    const reason = prompt('Reason for rejection (optional):') ?? 'No reason provided';
-    try { await axios.put(`/api/transfers/${id}/reject`, { reason }); fetchTransfers(); }
-    catch (err) { toast.error(err.response?.data?.error || 'Rejection failed', { duration: 10000 }); }
+  const handleRejectClick = (id) => {
+    setRejectTargetId(id);
+    setRejectReason('');
+    setRejectModalOpen(true);
+  };
+
+  const submitReject = async () => {
+    if (!rejectTargetId) return;
+    const notes = rejectReason.trim() || 'No reason provided';
+    try { 
+      await axios.put(`/api/transfers/${rejectTargetId}/reject`, { notes }); 
+      setRejectModalOpen(false);
+      setRejectTargetId(null);
+      fetchTransfers(); 
+      toast.success('Requisition rejected successfully', { duration: 5000 });
+    } catch (err) { 
+      toast.error(err.response?.data?.error || 'Rejection failed', { duration: 10000 }); 
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -261,7 +280,7 @@ const TransferDashboard = () => {
                                 <button className="btn-outline-pill action-approve" onClick={() => handleApprove(t._id)}>
                                   <CheckCircle size={12} /> Approve
                                 </button>
-                                <button className="btn-outline-pill action-reject" onClick={() => handleReject(t._id)}>
+                                <button className="btn-outline-pill action-reject" onClick={() => handleRejectClick(t._id)}>
                                   <XCircle size={12} /> Reject
                                 </button>
                               </div>
@@ -329,7 +348,7 @@ const TransferDashboard = () => {
                           <button className="btn-outline-pill action-approve" onClick={() => handleApprove(t._id)}>
                             <CheckCircle size={14} /> Approve
                           </button>
-                          <button className="btn-outline-pill action-reject" onClick={() => handleReject(t._id)}>
+                          <button className="btn-outline-pill action-reject" onClick={() => handleRejectClick(t._id)}>
                             <XCircle size={14} /> Reject
                           </button>
                         </div>
@@ -513,6 +532,45 @@ const TransferDashboard = () => {
                 </div>
 
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════
+            MODAL – Reject Confirmation
+        ══════════════════════════════════════════════ */}
+        {rejectModalOpen && (
+          <div className="modal-overlay">
+            <div className="transfer-modal">
+              <div className="modal-modal-header" style={{ background: '#fef2f2', color: '#dc2626' }}>
+                <div>
+                  <h2>Reject Requisition</h2>
+                  <p style={{ color: '#ef4444' }}>Please provide a reason for rejecting this chemical request.</p>
+                </div>
+                <button type="button" className="modal-close-x" style={{ color: '#dc2626', background: 'rgba(220, 38, 38, 0.1)' }} onClick={() => setRejectModalOpen(false)}>
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="transfer-form">
+                <div className="form-group">
+                  <label>Reason for rejection (optional)</label>
+                  <textarea
+                    rows="3"
+                    placeholder="e.g. Not enough stock available right now..."
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                  />
+                </div>
+                <div className="modal-actions">
+                  <button type="button" className="btn-form-secondary" onClick={() => setRejectModalOpen(false)}>
+                    Cancel
+                  </button>
+                  <button type="button" className="btn-danger-small" style={{ fontSize: '0.875rem', padding: '0.875rem 1.75rem', borderRadius: '1.25rem' }} onClick={submitReject}>
+                    <XCircle size={16} />
+                    Reject Requisition
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
