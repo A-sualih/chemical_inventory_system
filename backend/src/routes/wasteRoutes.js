@@ -28,7 +28,7 @@ router.get('/permits',                  authorize(PERMISSIONS.VIEW_REPORTS), ctr
 router.post('/permits',                 authorize(PERMISSIONS.MANAGE_WASTE), ctrl.createPermit);
 
 // Safety Incidents
-router.get('/incidents',                authorize(PERMISSIONS.VIEW_REPORTS), ctrl.getSafetyIncidents);
+router.get('/incidents',                authorize(PERMISSIONS.VIEW_REPORTS, PERMISSIONS.VIEW_SAFETY_INFO), ctrl.getSafetyIncidents);
 router.post('/incidents',               authorize(PERMISSIONS.MANAGE_WASTE), ctrl.createSafetyIncident);
 router.put('/incidents/:id/impact',     authorize(PERMISSIONS.MANAGE_WASTE), ctrl.updateIncidentImpact);
 

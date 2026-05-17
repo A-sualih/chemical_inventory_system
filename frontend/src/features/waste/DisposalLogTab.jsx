@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 // Disposal Tracking Tab with Quick Log feature
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import { Flame } from 'lucide-react';
 import './Waste.css';
 import { useAuth } from '../../context/AuthContext';
@@ -92,11 +93,11 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
 
     if (selectedBatch) {
       if (requestedQty > selectedBatch.total_quantity) {
-        return alert(`Insufficient batch stock: Only ${selectedBatch.total_quantity} ${selectedBatch.unit} available in batch ${selectedBatch.batch_number}.`);
+        return toast.error(`Insufficient batch stock: Only ${selectedBatch.total_quantity} ${selectedBatch.unit} available in batch ${selectedBatch.batch_number}.`);
       }
     } else if (selectedChem) {
       if (requestedQty > selectedChem.quantity) {
-        return alert(`Insufficient total stock: Only ${selectedChem.quantity} ${selectedChem.unit} available in total inventory.`);
+        return toast.error(`Insufficient total stock: Only ${selectedChem.quantity} ${selectedChem.unit} available in total inventory.`);
       }
     }
 
@@ -105,8 +106,9 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
       await axios.post('/api/waste/disposals', form);
       onCloseModal();
       fetchDisposals();
+      toast.success('Disposal request submitted successfully.');
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to submit request');
+      toast.error(err.response?.data?.error || 'Failed to submit request');
     } finally {
       setSubmitting(false);
     }
@@ -132,22 +134,24 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
       setApprovingDisposal(null);
       setFifoPreview(null);
       fetchDisposals();
+      toast.success('Disposal request approved successfully.');
     } catch (err) {
-      alert(err.response?.data?.error || 'Approval failed');
+      toast.error(err.response?.data?.error || 'Approval failed');
     }
   };
 
   const handleReject = async (e) => {
     e.preventDefault();
-    if (!rejectionNotes) return alert('Rejection reason is required.');
+    if (!rejectionNotes) return toast.error('Rejection reason is required.');
 
     try {
       await axios.put(`/api/waste/disposals/${rejectingId}/reject`, { rejection_notes: rejectionNotes });
       setRejectingId(null);
       setRejectionNotes('');
       fetchDisposals();
+      toast.success('Disposal request rejected.');
     } catch (err) {
-      alert(err.response?.data?.error || 'Rejection failed');
+      toast.error(err.response?.data?.error || 'Rejection failed');
     }
   };
 
@@ -157,19 +161,65 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
       await axios.put(`/api/waste/disposals/${completingDisposal._id}/complete`, completionForm);
       setCompletingDisposal(null);
       fetchDisposals();
+      toast.success('Disposal completed successfully.');
     } catch (err) {
-      alert(err.response?.data?.error || 'Completion failed');
+      toast.error(err.response?.data?.error || 'Completion failed');
+    }
+  };
+
+  const executeDelete = async (id) => {
+    try {
+      await axios.delete(`/api/waste/disposals/${id}`);
+      fetchDisposals();
+      toast.success('Disposal record deleted successfully.');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Deletion failed');
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this disposal record? This will restore inventory if the disposal was not yet finalized.')) return;
-    try {
-      await axios.delete(`/api/waste/disposals/${id}`);
-      fetchDisposals();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Deletion failed');
-    }
+    toast((t) => (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 500, color: '#ffffff' }}>
+          Are you sure you want to delete this disposal record? This will restore inventory if the disposal was not yet finalized.
+        </p>
+        <div style={{ display: 'flex', gap: '8px', alignSelf: 'flex-end' }}>
+          <button 
+            onClick={() => {
+              toast.dismiss(t.id);
+              executeDelete(id);
+            }} 
+            style={{ 
+              background: '#ef4444', 
+              color: 'white', 
+              border: 'none', 
+              padding: '6px 12px', 
+              borderRadius: '6px', 
+              cursor: 'pointer',
+              fontSize: '0.75rem',
+              fontWeight: 600
+            }}
+          >
+            Yes, Delete
+          </button>
+          <button 
+            onClick={() => toast.dismiss(t.id)} 
+            style={{ 
+              background: '#f1f5f9', 
+              color: '#475569', 
+              border: 'none', 
+              padding: '6px 12px', 
+              borderRadius: '6px', 
+              cursor: 'pointer',
+              fontSize: '0.75rem',
+              fontWeight: 600
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    ), { duration: 10000, id: 'delete-confirm' });
   };
 
   return (
