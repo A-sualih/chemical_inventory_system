@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import Layout from "../../layout/Layout";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
-import { Calendar as CalendarIcon, Clock, Package as PackageIcon, CheckCircle2, ChevronRight, Hash, FlaskConical, CircleDot, AlertTriangle, Ban } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Package as PackageIcon, CheckCircle2, ChevronRight, Hash, FlaskConical, CircleDot, AlertTriangle, Ban, PlusCircle as PlusCircleIcon } from 'lucide-react';
+import toast from 'react-hot-toast';
 import "../../styles/Requests.css";
 
 const Requests = () => {
   const { user, hasPermission } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [chemicals, setChemicals] = useState([]);
   const [containers, setContainers] = useState([]);
@@ -33,10 +35,10 @@ const Requests = () => {
     chemical_name: "", cas_number: "", quantity: "", unit: "kg", reason: ""
   });
   const [activeTab, setActiveTab] = useState("standard"); // "standard" or "inventory"
-  
+
   // Choice B: Buy
   const [suppliers, setSuppliers] = useState([]);
-  
+
   // Choice C: Transfer
   const [otherLabs, setOtherLabs] = useState([]);
   const [otherLabChemicals, setOtherLabChemicals] = useState([]);
@@ -51,7 +53,7 @@ const Requests = () => {
     try {
       const { data } = await axios.get('/api/requests');
       setRequests(data);
-      
+
       const { data: invData } = await axios.get('/api/requests/inventory-request');
       setInventoryRequests(invData);
     } catch (err) {
@@ -63,8 +65,9 @@ const Requests = () => {
 
   const fetchOtherLabs = async () => {
     try {
-      const { data } = await axios.get('/api/labs');
-      setOtherLabs(data.filter(l => l._id !== user.activeLabId));
+      const { data } = await axios.get('/api/labs?all=true');
+      const currentLabId = String(user?.active_lab || '');
+      setOtherLabs(data.filter(l => String(l._id) !== currentLabId));
     } catch (err) {
       console.error(err);
     }
@@ -87,8 +90,8 @@ const Requests = () => {
     }
     try {
       // 1. Fetch containers for this chemical
-      const { data: containerData } = await axios.get(`/api/containers?chemical_id=${chemId}`);
-      
+      const { data: containerData } = await axios.get(`/api/containers?chemical_id=${chemId}&lab=${user?.active_lab || ''}`);
+
       // 2. Fetch all requests to check for pending ones
       const { data: requestData } = await axios.get('/api/requests');
       const pendingRequests = requestData.filter(r => r.status === 'Pending');
@@ -102,10 +105,10 @@ const Requests = () => {
       const adjustedContainers = containerData
         .filter(c => c.status !== 'Empty' && c.status !== 'Disposed')
         .map(container => {
-          const containerPending = pendingRequests.filter(r => 
+          const containerPending = pendingRequests.filter(r =>
             r.container_id?._id === container._id || r.container_id === container._id
           );
-          
+
           let pendingTotalBase = 0;
           containerPending.forEach(pr => {
             pendingTotalBase += Number(pr.quantity) * (rates[pr.unit] || 1);
@@ -113,7 +116,7 @@ const Requests = () => {
 
           const currentInBase = container.quantity * (rates[container.unit] || 1);
           const adjustedInBase = Math.max(0, currentInBase - pendingTotalBase);
-          
+
           return {
             ...container,
             available_quantity: (adjustedInBase / (rates[container.unit] || 1)).toFixed(3),
@@ -172,7 +175,7 @@ const Requests = () => {
     e.preventDefault();
     setSubmitError(null);
     if (!selectedChem || !selectedContainer || !quantity || !reason) {
-      alert("Please fill in all required fields.");
+      toast.error("Please fill in all required fields.", { duration: 10000 });
       return;
     }
 
@@ -200,7 +203,7 @@ const Requests = () => {
         unit,
         reason
       });
-      alert("Request submitted successfully and is pending approval.");
+      toast.success("Request submitted successfully and is pending approval.", { duration: 10000 });
       setSelectedChem("");
       setSelectedContainer("");
       setQuantity("");
@@ -221,10 +224,21 @@ const Requests = () => {
     try {
       const endpoint = status === 'Approved' ? 'approve' : 'reject';
       await axios.patch(`/api/requests/${id}/${endpoint}`, { notes: actionNotes });
-      alert(`Request ${status.toLowerCase()} successfully.`);
+      toast.success(`Request ${status.toLowerCase()} successfully.`, { duration: 10000 });
       fetchRequests();
     } catch (err) {
-      alert(err.response?.data?.error || `Error ${status.toLowerCase()} request`);
+      toast.error(err.response?.data?.error || `Error ${status.toLowerCase()} request`, { duration: 10000 });
+    }
+  };
+
+  const handleCancelRequest = async (id) => {
+    if (!window.confirm("Are you sure you want to cancel this request?")) return;
+    try {
+      await axios.patch(`/api/requests/${id}/cancel`);
+      toast.success("Request cancelled successfully.", { duration: 10000 });
+      fetchRequests();
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Error cancelling request", { duration: 10000 });
     }
   };
 
@@ -233,12 +247,12 @@ const Requests = () => {
     setSubmitting(true);
     try {
       await axios.post('/api/requests/inventory-request', newChemForm);
-      alert("New chemical request submitted successfully.");
+      toast.success("New chemical request submitted successfully.", { duration: 10000 });
       setNewChemForm({ chemical_name: "", cas_number: "", quantity: "", unit: "kg", reason: "" });
       setShowNewChemModal(false);
       fetchRequests();
     } catch (err) {
-      alert(err.response?.data?.error || "Error submitting inventory request");
+      toast.error(err.response?.data?.error || "Error submitting inventory request", { duration: 10000 });
     } finally {
       setSubmitting(false);
     }
@@ -247,7 +261,7 @@ const Requests = () => {
   const handleInventoryReject = async () => {
     try {
       await axios.patch(`/api/requests/inventory-request/${processingReqId}/reject`, { notes: rejectNotes });
-      alert("Request rejected and technician notified.");
+      toast.success("Request rejected and technician notified.", { duration: 10000 });
       setShowRejectModal(false);
       setRejectNotes("");
       fetchRequests();
@@ -256,29 +270,42 @@ const Requests = () => {
     }
   };
 
-  const handleInventoryBuy = async (id) => {
-    if (!window.confirm("Initiate purchase request for this chemical?")) return;
-    try {
-      await axios.patch(`/api/requests/inventory-request/${id}/buy`);
-      alert("Purchase request initiated.");
-      fetchRequests();
-    } catch (err) {
-      alert("Failed to initiate purchase");
-    }
+  const handleInventoryEnroll = (req) => {
+    const params = new URLSearchParams({
+      name: req.chemical_name || '',
+      cas: req.cas_number || '',
+      quantity: req.quantity || '',
+      unit: req.unit || 'kg'
+    });
+    navigate(`/chemicals/new?${params.toString()}`);
   };
 
   const handleInventoryTransfer = async () => {
-    if (!selectedTargetLab || !selectedTransferChem) return alert("Select lab and chemical");
+    if (!selectedTargetLab || !selectedTransferChem) {
+      toast.error("Select lab and chemical", { duration: 10000 });
+      return;
+    }
     try {
       await axios.patch(`/api/requests/inventory-request/${processingReqId}/transfer`, {
         target_lab_id: selectedTargetLab,
         chemical_id: selectedTransferChem
       });
-      alert("Transfer request sent to the other lab manager.");
+      toast.success("Transfer request sent to the other lab manager.", { duration: 10000 });
       setShowTransferModal(false);
       fetchRequests();
     } catch (err) {
-      alert("Failed to send transfer request");
+      toast.error("Failed to send transfer request", { duration: 10000 });
+    }
+  };
+
+  const handleCancelInventoryRequest = async (id) => {
+    if (!window.confirm("Are you sure you want to cancel this request?")) return;
+    try {
+      await axios.patch(`/api/requests/inventory-request/${id}/cancel`);
+      toast.success("Request cancelled successfully.", { duration: 10000 });
+      fetchRequests();
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Error cancelling request", { duration: 10000 });
     }
   };
 
@@ -298,24 +325,24 @@ const Requests = () => {
           <p className="requests-subtitle">Every usage must go through a request → approval process.</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            {hasPermission("submit_request") && user?.role !== "Lab Manager" && (
-              <>
-                <button onClick={() => setShowRequestModal(true)} className="btn-primary" style={{ height: '2.5rem', width: 'auto', padding: '0 1.25rem', margin: 0 }}>
-                  <PackageIcon size={18} /> Submit Usage Request
-                </button>
-                <button onClick={() => setShowNewChemModal(true)} className="btn-secondary" style={{ height: '2.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <FlaskConical size={18} /> Request New Chemical
-                </button>
-              </>
-            )}
-           <button onClick={fetchRequests} className="refresh-btn">
-              <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-           </button>
+          {hasPermission("submit_request") && user?.role !== "Lab Manager" && (
+            <>
+              <button onClick={() => setShowRequestModal(true)} className="btn-primary" style={{ height: '2.5rem', width: 'auto', padding: '0 1.25rem', margin: 0 }}>
+                <PackageIcon size={18} /> Submit Usage Request
+              </button>
+              <button onClick={() => setShowNewChemModal(true)} className="btn-secondary" style={{ height: '2.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <FlaskConical size={18} /> Request New Chemical
+              </button>
+            </>
+          )}
+          <button onClick={fetchRequests} className="refresh-btn">
+            <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+          </button>
         </div>
       </div>
 
       <div className="requests-layout">
-        
+
         {/* Step 5.2 — Submit Request (Normal User Side) - NOW IN MODAL */}
         {showRequestModal && (
           <div className="modal-overlay" onClick={() => setShowRequestModal(false)}>
@@ -326,16 +353,16 @@ const Requests = () => {
                   Submit Request
                 </h2>
                 <button onClick={() => setShowRequestModal(false)} className="close-modal-btn">
-                  <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                  <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
               <form onSubmit={handleSubmitRequest} className="form-layout">
                 <div>
                   <label className="form-label">Select Chemical</label>
-                  <select 
-                    value={selectedChem} 
-                    onChange={(e) => setSelectedChem(e.target.value)} 
-                    required 
+                  <select
+                    value={selectedChem}
+                    onChange={(e) => setSelectedChem(e.target.value)}
+                    required
                     className="form-input"
                   >
                     <option value="">-- Choose Chemical --</option>
@@ -395,13 +422,13 @@ const Requests = () => {
                 <div className="grid-cols-quantity">
                   <div className="col-span-q">
                     <label className="form-label">Quantity</label>
-                    <input 
-                      type="number" 
-                      step="0.01" 
-                      value={quantity} 
-                      onChange={(e) => setQuantity(e.target.value)} 
-                      required 
-                      className="form-input" 
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      required
+                      className="form-input"
                       placeholder="0.00"
                     />
                   </div>
@@ -413,9 +440,9 @@ const Requests = () => {
                       className="form-input"
                       style={{ fontWeight: 700, color: 'var(--secondary-900)' }}
                     >
-                      {chemicals.find(c => c._id === selectedChem)?.state?.toLowerCase() === 'liquid' || 
-                       chemicals.find(c => c._id === selectedChem)?.unit === 'L' || 
-                       chemicals.find(c => c._id === selectedChem)?.unit === 'mL' ? (
+                      {chemicals.find(c => c._id === selectedChem)?.state?.toLowerCase() === 'liquid' ||
+                        chemicals.find(c => c._id === selectedChem)?.unit === 'L' ||
+                        chemicals.find(c => c._id === selectedChem)?.unit === 'mL' ? (
                         <>
                           <option value="L">L</option>
                           <option value="mL">mL</option>
@@ -434,12 +461,12 @@ const Requests = () => {
 
                 <div>
                   <label className="form-label">Reason (Experiment/Project)</label>
-                  <textarea 
-                    value={reason} 
-                    onChange={(e) => setReason(e.target.value)} 
-                    required 
-                    className="form-input" 
-                    rows="3" 
+                  <textarea
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    required
+                    className="form-input"
+                    rows="3"
                     placeholder="Why do you need this?"
                   ></textarea>
                 </div>
@@ -468,15 +495,15 @@ const Requests = () => {
         <div className="requests-panel col-span-3">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <h2 
-                className={`panel-heading ${activeTab === 'standard' ? 'active-tab' : 'inactive-tab'}`} 
+              <h2
+                className={`panel-heading ${activeTab === 'standard' ? 'active-tab' : 'inactive-tab'}`}
                 onClick={() => setActiveTab('standard')}
                 style={{ marginBottom: 0, cursor: 'pointer', borderBottom: activeTab === 'standard' ? '3px solid var(--waste-primary)' : 'none', paddingBottom: '0.5rem' }}
               >
                 Standard Usage
               </h2>
-              <h2 
-                className={`panel-heading ${activeTab === 'inventory' ? 'active-tab' : 'inactive-tab'}`} 
+              <h2
+                className={`panel-heading ${activeTab === 'inventory' ? 'active-tab' : 'inactive-tab'}`}
                 onClick={() => setActiveTab('inventory')}
                 style={{ marginBottom: 0, cursor: 'pointer', borderBottom: activeTab === 'inventory' ? '3px solid var(--waste-primary)' : 'none', paddingBottom: '0.5rem' }}
               >
@@ -484,12 +511,12 @@ const Requests = () => {
               </h2>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-               <span className="total-badge">
-                  Total: {activeTab === 'standard' ? requests.length : inventoryRequests.length}
-               </span>
+              <span className="total-badge">
+                Total: {activeTab === 'standard' ? requests.length : inventoryRequests.length}
+              </span>
             </div>
           </div>
-          
+
           {loading ? (
             <div className="loading-view">
               <div className="spinner-primary"></div>
@@ -508,7 +535,7 @@ const Requests = () => {
                   )}
                 </div>
               )}
-              
+
               {requests.map(req => (
                 <div key={req._id} className="request-card">
                   <div style={{ display: 'flex', flexDirection: 'column', width: '100%', minWidth: 0, gap: '1rem' }}>
@@ -519,23 +546,23 @@ const Requests = () => {
                           {req.status}
                         </span>
                       </div>
-                      
+
                       <div className="req-details-grid">
                         <div className="req-detail-item">
-                          <svg style={{ width: '0.875rem', height: '0.875rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                          <svg style={{ width: '0.875rem', height: '0.875rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                           Requester: <span className="req-detail-val">{req.user_id?.name || "Unknown"}</span>
                         </div>
                         <div className="req-detail-item">
-                          <svg style={{ width: '0.875rem', height: '0.875rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                          <svg style={{ width: '0.875rem', height: '0.875rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
                           Container: <span className="req-detail-val">{req.container_id?.container_id || "N/A"}</span>
                         </div>
                         <div className="req-detail-item">
-                          <svg style={{ width: '0.875rem', height: '0.875rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                          <svg style={{ width: '0.875rem', height: '0.875rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           Requested: <span className="req-detail-val">{new Date(req.createdAt).toLocaleString()}</span>
                         </div>
                         {req.handled_at && (
-                           <div className="req-detail-item">
-                            <svg style={{ width: '0.875rem', height: '0.875rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                          <div className="req-detail-item">
+                            <svg style={{ width: '0.875rem', height: '0.875rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             Handled: <span className="req-detail-val">{new Date(req.handled_at).toLocaleString()}</span>
                           </div>
                         )}
@@ -548,8 +575,8 @@ const Requests = () => {
 
                       {req.notes && (
                         <div className="req-notes-box">
-                           <p style={{ color: '#60a5fa', fontSize: '10px', textTransform: 'uppercase', fontWeight: 900, marginBottom: '0.25rem' }}>Decision Notes</p>
-                           <p style={{ fontSize: '0.875rem', color: '#1d4ed8', fontWeight: 500 }}>{req.notes}</p>
+                          <p style={{ color: '#60a5fa', fontSize: '10px', textTransform: 'uppercase', fontWeight: 900, marginBottom: '0.25rem' }}>Decision Notes</p>
+                          <p style={{ fontSize: '0.875rem', color: '#1d4ed8', fontWeight: 500 }}>{req.notes}</p>
                         </div>
                       )}
                     </div>
@@ -561,38 +588,48 @@ const Requests = () => {
                       <span className="amount-val">{req.quantity} <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#60a5fa' }}>{req.unit}</span></span>
                     </div>
 
+                    {req.status === 'Pending' && req.user_id?._id === user?.id && (
+                      <button
+                        onClick={() => handleCancelRequest(req._id)}
+                        className="btn-cancel"
+                        style={{ marginTop: '0.5rem' }}
+                      >
+                        <Ban size={14} className="mr-2" /> Cancel Request
+                      </button>
+                    )}
+
                     {req.status === 'Pending' && hasPermission("approve_request") && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
-                         <textarea 
+                        <textarea
                           onChange={(e) => setNotes(e.target.value)}
                           placeholder="Decision notes..."
                           className="action-textarea"
-                         />
+                        />
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
-                          <button 
+                          <button
                             onClick={() => {
-                              if(window.confirm("Approve this usage request? Stock will be reduced.")) {
+                              if (window.confirm("Approve this usage request? Stock will be reduced.")) {
                                 handleAction(req._id, 'Approved', notes);
                                 setNotes("");
                               }
-                            }} 
+                            }}
                             className="btn-approve"
                             title="Approve Request"
                           >
-                            <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                            <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
                             <span style={{ marginLeft: '0.25rem', fontSize: '0.75rem', fontWeight: 700 }} className="hide-on-mobile">Approve</span>
                           </button>
-                          <button 
+                          <button
                             onClick={() => {
-                              if(window.confirm("Reject this request?")) {
+                              if (window.confirm("Reject this request?")) {
                                 handleAction(req._id, 'Rejected', notes);
                                 setNotes("");
                               }
-                            }} 
+                            }}
                             className="btn-reject"
                             title="Reject Request"
                           >
-                            <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                             <span style={{ marginLeft: '0.25rem', fontSize: '0.75rem', fontWeight: 700 }} className="hide-on-mobile">Reject</span>
                           </button>
                         </div>
@@ -619,7 +656,7 @@ const Requests = () => {
                           {req.status}
                         </span>
                       </div>
-                      
+
                       <div className="req-details-grid">
                         <div className="req-detail-item">
                           <PackageIcon size={14} /> Amount: <span className="req-detail-val">{req.quantity} {req.unit}</span>
@@ -638,27 +675,36 @@ const Requests = () => {
 
                       {req.manager_notes && (
                         <div className="req-notes-box">
-                           <p style={{ color: '#6d28d9', fontSize: '10px', textTransform: 'uppercase', fontWeight: 900, marginBottom: '0.25rem' }}>Manager Notes</p>
-                           <p style={{ fontSize: '0.875rem', color: '#4c1d95', fontWeight: 500 }}>{req.manager_notes}</p>
+                          <p style={{ color: '#6d28d9', fontSize: '10px', textTransform: 'uppercase', fontWeight: 900, marginBottom: '0.25rem' }}>Manager Notes</p>
+                          <p style={{ fontSize: '0.875rem', color: '#4c1d95', fontWeight: 500 }}>{req.manager_notes}</p>
                         </div>
                       )}
                     </div>
 
                     {req.status === 'Pending' && hasPermission("approve_request") && (
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '0.5rem' }}>
-                        <button 
+                        {req.requester?._id === user?.id && (
+                          <button
+                            onClick={() => handleCancelInventoryRequest(req._id)}
+                            className="btn-cancel"
+                            style={{ height: '2.5rem' }}
+                          >
+                            <Ban size={14} className="mr-2" /> Cancel
+                          </button>
+                        )}
+                        <button
                           onClick={() => { setProcessingReqId(req._id); setShowRejectModal(true); }}
-                          className="btn-reject" style={{ height: '2.5rem', borderColor: '#f87171', color: '#ef4444' }}
+                          className="btn-reject" style={{ height: '2.5rem', borderColor: '#f87171', color: '#000', fontWeight: 900 }}
                         >
                           <Ban size={14} className="mr-2" /> Reject
                         </button>
-                        <button 
-                          onClick={() => handleInventoryBuy(req._id)}
-                          className="btn-primary" style={{ height: '2.5rem', background: '#3b82f6' }}
+                        <button
+                          onClick={() => handleInventoryEnroll(req)}
+                          className="btn-primary" style={{ height: '2.5rem', background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' }}
                         >
-                          <PackageIcon size={14} className="mr-2" /> Buy Item
+                          <PlusCircleIcon size={14} className="mr-2" /> Enroll Chemical
                         </button>
-                        <button 
+                        <button
                           onClick={() => { setProcessingReqId(req._id); fetchOtherLabs(); setShowTransferModal(true); }}
                           className="btn-secondary" style={{ height: '2.5rem' }}
                         >
@@ -674,34 +720,34 @@ const Requests = () => {
         </div>
       </div>
       {/* --- Modals --- */}
-      
+
       {showNewChemModal && (
         <div className="premium-modal-overlay" onClick={() => setShowNewChemModal(false)}>
           <div className="premium-modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '95%' }}>
             <div className="modal-header">
               <h2 className="modal-title">Request New Chemical</h2>
               <button onClick={() => setShowNewChemModal(false)} className="close-btn">
-                <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             <form onSubmit={handleSubmitInventoryRequest} style={{ display: 'flex', flexDirection: 'column' }}>
               <div className="form-layout" style={{ padding: '2rem' }}>
                 <div>
                   <label className="form-label">Chemical Name *</label>
-                  <input required value={newChemForm.chemical_name} onChange={e => setNewChemForm({...newChemForm, chemical_name: e.target.value})} className="form-input" />
+                  <input required value={newChemForm.chemical_name} onChange={e => setNewChemForm({ ...newChemForm, chemical_name: e.target.value })} className="form-input" />
                 </div>
                 <div>
                   <label className="form-label">CAS Number</label>
-                  <input value={newChemForm.cas_number} onChange={e => setNewChemForm({...newChemForm, cas_number: e.target.value})} className="form-input" />
+                  <input value={newChemForm.cas_number} onChange={e => setNewChemForm({ ...newChemForm, cas_number: e.target.value })} className="form-input" />
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div>
                     <label className="form-label">Quantity *</label>
-                    <input required type="number" step="0.01" value={newChemForm.quantity} onChange={e => setNewChemForm({...newChemForm, quantity: e.target.value})} className="form-input" />
+                    <input required type="number" step="0.01" value={newChemForm.quantity} onChange={e => setNewChemForm({ ...newChemForm, quantity: e.target.value })} className="form-input" />
                   </div>
                   <div>
                     <label className="form-label">Unit *</label>
-                    <select value={newChemForm.unit} onChange={e => setNewChemForm({...newChemForm, unit: e.target.value})} className="form-input">
+                    <select value={newChemForm.unit} onChange={e => setNewChemForm({ ...newChemForm, unit: e.target.value })} className="form-input">
                       <option value="kg">kg</option>
                       <option value="g">g</option>
                       <option value="L">L</option>
@@ -711,7 +757,7 @@ const Requests = () => {
                 </div>
                 <div>
                   <label className="form-label">Reason *</label>
-                  <textarea required value={newChemForm.reason} onChange={e => setNewChemForm({...newChemForm, reason: e.target.value})} className="form-input" rows="3" />
+                  <textarea required value={newChemForm.reason} onChange={e => setNewChemForm({ ...newChemForm, reason: e.target.value })} className="form-input" rows="3" />
                 </div>
               </div>
               <div className="modal-footer">
@@ -729,7 +775,7 @@ const Requests = () => {
             <div className="modal-header">
               <h2 className="modal-title">Reject Request</h2>
               <button onClick={() => setShowRejectModal(false)} className="close-btn">
-                <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -754,7 +800,7 @@ const Requests = () => {
             <div className="modal-header">
               <h2 className="modal-title">Request Transfer from Another Lab</h2>
               <button onClick={() => setShowTransferModal(false)} className="close-btn">
-                <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>

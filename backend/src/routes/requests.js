@@ -25,12 +25,16 @@ router.patch('/:id/approve', authorize(PERMISSIONS.APPROVE_REQUEST), requestCont
 // Reject a request
 router.patch('/:id/reject', authorize(PERMISSIONS.APPROVE_REQUEST), requestController.rejectRequest);
 
+// Cancel a request (Requester)
+router.patch('/:id/cancel', requestController.cancelRequest);
+
 // --- Non-Existing Chemical Requests (New Feature) ---
 router.post('/inventory-request', chemicalRequestController.submitRequest);
 router.get('/inventory-request', chemicalRequestController.getRequests);
 router.patch('/inventory-request/:id/reject', authorize(PERMISSIONS.APPROVE_REQUEST), chemicalRequestController.rejectRequest);
 router.patch('/inventory-request/:id/buy', authorize(PERMISSIONS.APPROVE_REQUEST), chemicalRequestController.buyRequest);
 router.patch('/inventory-request/:id/transfer', authorize(PERMISSIONS.APPROVE_REQUEST), chemicalRequestController.transferRequest);
+router.patch('/inventory-request/:id/cancel', chemicalRequestController.cancelRequest);
 
 module.exports = router;
 

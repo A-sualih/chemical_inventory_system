@@ -7,17 +7,22 @@ exports.getContainers = async (req, res) => {
   try {
     const { chemical_id } = req.query;
     let query = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+
+    // Allow overriding lab if provided (for transfers)
+    if (req.query.lab) {
+      query.lab = req.query.lab;
+    }
     if (chemical_id) {
-       if (mongoose.Types.ObjectId.isValid(chemical_id)) {
-          const chemical = await Chemical.findById(chemical_id);
-          if (chemical) {
-            query.chemical_id = chemical.id;
-          } else {
-            query.chemical_id = chemical_id;
-          }
-       } else {
+      if (mongoose.Types.ObjectId.isValid(chemical_id)) {
+        const chemical = await Chemical.findById(chemical_id);
+        if (chemical) {
+          query.chemical_id = chemical.id;
+        } else {
           query.chemical_id = chemical_id;
-       }
+        }
+      } else {
+        query.chemical_id = chemical_id;
+      }
     }
 
     const containers = await Container.find(query).lean();
@@ -25,12 +30,12 @@ exports.getContainers = async (req, res) => {
     const enrichedContainers = await Promise.all(containers.map(async (container) => {
       const query = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
       const chemical = await Chemical.findOne({ id: container.chemical_id, ...query });
-      return { 
-        ...container, 
-        chemical_name: chemical ? chemical.name : 'Unknown' 
+      return {
+        ...container,
+        chemical_name: chemical ? chemical.name : 'Unknown'
       };
     }));
-    
+
     res.json(enrichedContainers);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -98,7 +103,7 @@ exports.updateContainer = async (req, res) => {
     const updates = req.body;
     Object.assign(container, updates);
     container.last_updated_by = req.user.id;
-    
+
     await container.save();
 
     await logAudit(req, {

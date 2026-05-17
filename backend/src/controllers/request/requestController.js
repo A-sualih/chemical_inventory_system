@@ -82,7 +82,7 @@ exports.getFifoContainer = async (req, res) => {
 
 exports.submitRequest = async (req, res) => {
   const { chemical_id, container_id, quantity, unit, reason } = req.body;
-  
+
   if (!req.activeLabId) {
     return res.status(400).json({ error: "Please select an active laboratory to submit a request." });
   }
@@ -107,8 +107,8 @@ exports.submitRequest = async (req, res) => {
     });
     if (!container) return res.status(404).json({ error: 'Container not found' });
 
-    const existingPending = await Request.find({ 
-      container_id: container._id, 
+    const existingPending = await Request.find({
+      container_id: container._id,
       status: 'Pending',
       ...labQuery
     });
@@ -124,9 +124,9 @@ exports.submitRequest = async (req, res) => {
     if ((requestedInBase + pendingTotalBase) > (availableInBase + 0.000001)) {
       const trulyAvailableBase = Math.max(0, availableInBase - pendingTotalBase);
       const trulyAvailableInUserUnit = (trulyAvailableBase / (require('../../utils/unitConverter').CONVERSION_RATES[unit] || 1)).toFixed(2);
-      
-      return res.status(400).json({ 
-        error: `Insufficient amount. After accounting for other pending requests, only ${trulyAvailableInUserUnit} ${unit} is truly available for new requests.` 
+
+      return res.status(400).json({
+        error: `Insufficient amount. After accounting for other pending requests, only ${trulyAvailableInUserUnit} ${unit} is truly available for new requests.`
       });
     }
 
@@ -230,7 +230,7 @@ exports.getRequests = async (req, res) => {
   try {
     let query = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const userPermissions = require('../../config/roles').ROLE_PERMISSIONS[req.user.role] || [];
-    
+
     if (!userPermissions.includes(PERMISSIONS.APPROVE_REQUEST)) {
       query.user_id = req.user.id;
     }
@@ -255,7 +255,7 @@ exports.approveRequest = async (req, res) => {
     const request = await Request.findOne({ _id: req.params.id, ...labQuery })
       .populate('chemical_id')
       .populate('container_id');
-    
+
     if (!request) return res.status(404).json({ error: 'Request not found' });
     if (request.status !== 'Pending') return res.status(400).json({ error: 'Request is already processed' });
 
@@ -266,9 +266,9 @@ exports.approveRequest = async (req, res) => {
     const availableInBase = convertToBase(Number(container.quantity), container.unit);
 
     if (requestedInBase > availableInBase + 0.000001) {
-        return res.status(400).json({ 
-           error: `Insufficient stock in the specified container. Requested: ${request.quantity} ${request.unit}. Available: ${container.quantity} ${container.unit}.` 
-        });
+      return res.status(400).json({
+        error: `Insufficient stock in the specified container. Requested: ${request.quantity} ${request.unit}. Available: ${container.quantity} ${container.unit}.`
+      });
     }
 
     request.status = 'Approved';
@@ -294,11 +294,11 @@ exports.approveRequest = async (req, res) => {
     const changeInBase = convertToBase(requestQty, request.unit);
     chemical.base_quantity = Number((chemical.base_quantity - changeInBase).toFixed(6));
     chemical.quantity = convertFromBase(chemical.base_quantity, chemical.unit);
-    
+
     if (chemical.quantity <= 0) {
-        chemical.quantity = 0;
-        chemical.base_quantity = 0;
-        chemical.status = 'Out of Stock';
+      chemical.quantity = 0;
+      chemical.base_quantity = 0;
+      chemical.status = 'Out of Stock';
     }
     await chemical.save();
 
@@ -339,7 +339,7 @@ exports.approveRequest = async (req, res) => {
       lab: req.activeLabId,
       metadata: { user: request.user_id }
     });
-    
+
     res.json({ message: 'Request approved and stock updated', request });
   } catch (err) {
     console.error(err);
@@ -380,7 +380,7 @@ exports.rejectRequest = async (req, res) => {
       lab: req.activeLabId,
       metadata: { user: request.user_id }
     });
-    
+
     res.json({ message: 'Request rejected', request });
   } catch (err) {
     res.status(500).json({ error: 'Failed to reject request' });
@@ -388,3 +388,34 @@ exports.rejectRequest = async (req, res) => {
 };
 
 
+exports.cancelRequest = async (req, res) => {
+  try {
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const request = await Request.findOne({ _id: req.params.id, ...labQuery });
+
+    if (!request) return res.status(404).json({ error: 'Request not found' });
+    if (request.status !== 'Pending') return res.status(400).json({ error: 'Only pending requests can be cancelled' });
+
+    // Check if the user is the owner
+    if (request.user_id.toString() !== req.user.id && req.user.role !== 'Admin') {
+      return res.status(403).json({ error: 'You can only cancel your own requests' });
+    }
+
+    request.status = 'Cancelled';
+    await request.save();
+
+    await logAudit(req, {
+      action: 'CANCEL',
+      targetType: 'request',
+      targetId: request._id,
+      targetName: 'Request',
+      details: `Cancelled request ${request._id}`,
+      newValue: { status: 'Cancelled' }
+    });
+
+    res.json({ message: 'Request cancelled', request });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to cancel request' });
+  }
+};
