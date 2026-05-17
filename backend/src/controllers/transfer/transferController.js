@@ -103,7 +103,7 @@ exports.approveTransfer = async (req, res) => {
   session.startTransaction();
   try {
     const { id } = req.params;
-    const { notes } = req.body;
+    const { notes } = req.body || {};
     const activeLab = req.activeLabId;
 
     const request = await TransferRequest.findById(id).session(session);
@@ -253,7 +253,7 @@ exports.approveTransfer = async (req, res) => {
 exports.rejectTransfer = async (req, res) => {
   try {
     const { id } = req.params;
-    const { notes } = req.body;
+    const { notes } = req.body || {};
     const activeLab = req.activeLabId;
 
     const request = await TransferRequest.findById(id);
