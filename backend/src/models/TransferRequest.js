@@ -13,12 +13,14 @@ const transferRequestSchema = new mongoose.Schema({
   reason: { type: String },  // Why the chemical is being requested
   requested_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   approved_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  handled_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   status: {
     type: String,
     enum: ['Pending', 'Approved', 'Rejected', 'Completed', 'Cancelled'],
     default: 'Pending'
   },
   transfer_date: { type: Date },
+  handled_at: { type: Date },
   rejection_reason: { type: String }
 }, { timestamps: true });
 

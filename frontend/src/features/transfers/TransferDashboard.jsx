@@ -14,7 +14,8 @@ import {
   Plus,
   Info,
   Clock,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Ban
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Layout from '../../layout/Layout';
@@ -58,21 +59,21 @@ const TransferDashboard = () => {
     return () => document.removeEventListener('mousedown', fn);
   }, []);
 
-  // Search chemicals belonging to the selected provider lab
   useEffect(() => {
     clearTimeout(timerRef.current);
-    if (!chemSearch.trim() || selectedChem || !form.source_lab) return;
+    // Trigger search if we have a lab and (search text OR empty search for initial list)
+    if (!form.source_lab || selectedChem) return;
 
     setChemLoading(true);
     timerRef.current = setTimeout(async () => {
       try {
-        // Dedicated endpoint that ignores activeLabId — scoped to provider lab only
         const res = await axios.get(`/api/transfers/lab-chemicals/${form.source_lab}`, {
           params: { search: chemSearch.trim(), limit: 15 }
         });
         const list = res.data?.data ?? [];
         setChemResults(list);
-        setDropdownOpen(true);
+        // Auto-open if we have results or if user is searching
+        if (list.length > 0 || chemSearch.trim()) setDropdownOpen(true);
       } catch (err) {
         console.error('Chem search error:', err);
         setChemResults([]);
@@ -80,7 +81,7 @@ const TransferDashboard = () => {
       } finally {
         setChemLoading(false);
       }
-    }, 350);
+    }, chemSearch.trim() ? 350 : 0); // Immediate if no search text (initial list)
 
     return () => clearTimeout(timerRef.current);
   }, [chemSearch, selectedChem, form.source_lab]);
@@ -212,14 +213,14 @@ const TransferDashboard = () => {
             <table className="transfer-table">
               <thead>
                 <tr>
-                  <th><div className="th-flex"><ArrowRightLeft size={14} /> Type</div></th>
-                  <th><div className="th-flex"><Calendar size={14} /> Date</div></th>
-                  <th><div className="th-flex"><Beaker size={14} /> Chemical</div></th>
-                  <th><div className="th-flex"><Package size={14} /> Quantity</div></th>
-                  <th><div className="th-flex"><MapPin size={14} /> Provider</div></th>
-                  <th><div className="th-flex"><User size={14} /> Requester</div></th>
-                  <th><div className="th-flex"><MessageSquare size={14} /> Reason</div></th>
-                  <th><div className="th-flex"><Info size={14} /> Status</div></th>
+                  <th><div className="th-flex"><ArrowRightLeft size={10} /> Type</div></th>
+                  <th><div className="th-flex"><Calendar size={10} /> Date</div></th>
+                  <th><div className="th-flex"><Beaker size={10} /> Chemical</div></th>
+                  <th><div className="th-flex"><Package size={10} /> Quantity</div></th>
+                  <th><div className="th-flex"><MapPin size={10} /> Provider</div></th>
+                  <th><div className="th-flex"><User size={10} /> Requester</div></th>
+                  <th><div className="th-flex"><MessageSquare size={10} /> Reason</div></th>
+                  <th><div className="th-flex"><Info size={10} /> Status</div></th>
                 </tr>
               </thead>
               <tbody>
@@ -227,13 +228,13 @@ const TransferDashboard = () => {
                   <tr key={t._id} style={{ '--index': idx }}>
                     <td data-label="Type">
                       {isSourceLab(t)
-                        ? <span className="dir-badge dir-out"><UploadCloud size={12} /> Outgoing</span>
-                        : <span className="dir-badge dir-in"><DownloadCloud size={12} /> Incoming</span>
+                        ? <span className="dir-badge dir-out"><UploadCloud size={10} /> Outgoing</span>
+                        : <span className="dir-badge dir-in"><DownloadCloud size={10} /> Incoming</span>
                       }
                     </td>
                     <td data-label="Date">
                       <div className="td-with-icon">
-                        <Clock size={14} className="td-icon-muted" />
+                        <Clock size={10} className="td-icon-muted" />
                         {new Date(t.createdAt).toLocaleDateString()}
                       </div>
                     </td>
@@ -244,18 +245,18 @@ const TransferDashboard = () => {
                       </div>
                     </td>
                     <td data-label="Quantity">
-                      <span className="qty-tag">{t.quantity_moved} <small>{t.unit}</small></span>
+                      <span className="qty-tag">{t.quantity_moved} <small style={{fontSize: '0.65rem', opacity: 0.6}}>{t.unit}</small></span>
                     </td>
                     <td data-label="Provider Lab">
                       <div className="td-with-icon">
-                        <MapPin size={14} className="td-icon-muted" />
-                        {t.source_lab?.name}
+                        <MapPin size={10} className="td-icon-muted" />
+                        <span style={{fontSize: '0.8125rem'}}>{t.source_lab?.name}</span>
                       </div>
                     </td>
                     <td data-label="Requested By">
                       <div className="td-with-icon">
-                        <User size={14} className="td-icon-muted" />
-                        {t.requested_by?.name || '—'}
+                        <User size={10} className="td-icon-muted" />
+                        <span style={{fontSize: '0.8125rem'}}>{t.requested_by?.name || '—'}</span>
                       </div>
                     </td>
                     <td data-label="Reason" className="reason-cell">
@@ -323,12 +324,13 @@ const TransferDashboard = () => {
                       </svg>
                       <input
                         type="text"
-                        className="chem-search-input"
-                        placeholder="Search by name, CAS, formula..."
+                        className="search-input"
+                        placeholder="Start typing chemical name or CAS..."
                         value={chemSearch}
                         onChange={e => setChemSearch(e.target.value)}
-                        onFocus={() => { if (chemResults.length > 0) setDropdownOpen(true); }}
+                        onFocus={() => { if (chemResults.length > 0 || !chemSearch.trim()) setDropdownOpen(true); }}
                         autoComplete="off"
+                        style={{ fontSize: '0.875rem' }}
                       />
                       {chemLoading && <div className="chem-search-spinner" />}
                     </div>
@@ -342,9 +344,9 @@ const TransferDashboard = () => {
                             <div className="chem-item-name">{chem.name}</div>
                             <div className="chem-item-meta">
                               <span className="chem-id-badge">{chem.id}</span>
-                              {chem.cas_number && <span>CAS: {chem.cas_number}</span>}
-                              {chem.formula && <span>{chem.formula}</span>}
-                              <span>{chem.quantity ?? '?'} {chem.unit}</span>
+                              {chem.cas_number && <span className="chem-cas-badge">CAS: {chem.cas_number}</span>}
+                              {chem.formula && <span className="chem-formula-badge">{chem.formula}</span>}
+                              <span className="chem-qty-badge">{chem.quantity ?? '?'} {chem.unit}</span>
                               <span className={`chem-status-dot ${chem.status === 'In Stock' ? 'dot-green' :
                                 chem.status === 'Low Stock' || chem.status === 'Near Expiry' ? 'dot-amber' : 'dot-red'
                                 }`}>{chem.status}</span>
@@ -353,7 +355,15 @@ const TransferDashboard = () => {
                         ))
                       ) : (
                         <div className="chem-no-results">
-                          {chemLoading ? 'Searching...' : `No chemicals found for "${chemSearch}" in that lab`}
+                          <Ban size={24} style={{ opacity: 0.5, marginBottom: '0.75rem' }} />
+                          {chemLoading ? 'Searching inventory...' : (
+                            <>
+                              <div style={{ fontWeight: 900, color: '#475569' }}>Chemical Not Found</div>
+                              <div style={{ fontSize: '0.8125rem', opacity: 0.7, marginTop: '0.25rem' }}>
+                                No results for "{chemSearch}" in this laboratory.
+                              </div>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
