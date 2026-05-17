@@ -4,8 +4,8 @@ exports.getAuditLogs = async (req, res) => {
   try {
     const { user, action, targetType, startDate, endDate, limit = 100, page = 1 } = req.query;
 
-    const query = {};
-    if (req.activeLabId) query.lab = req.activeLabId;
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const query = { ...labQuery };
 
     if (user) {
       query.$or = [
@@ -67,8 +67,8 @@ exports.exportAuditLogsExcel = async (req, res) => {
       { header: 'IP Address', key: 'ip', width: 15 }
     ];
 
-    const query = {};
-    if (req.activeLabId) query.lab = req.activeLabId;
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const query = { ...labQuery };
     const logs = await AuditLog.find(query).sort({ timestamp: -1 });
     logs.forEach(log => {
       sheet.addRow({
@@ -96,8 +96,8 @@ exports.exportAuditLogsExcel = async (req, res) => {
 exports.exportAuditLogsPdf = async (req, res) => {
   try {
     const doc = new jsPDF({ orientation: 'landscape' });
-    const query = {};
-    if (req.activeLabId) query.lab = req.activeLabId;
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const query = { ...labQuery };
     const logs = await AuditLog.find(query).sort({ timestamp: -1 }).limit(200);
 
     doc.setFontSize(20);
