@@ -95,7 +95,7 @@ exports.login = async (req, res) => {
       { expiresIn: '1h' }
     );
 
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, active_lab: user.active_lab, labs: user.labs } });
 
     logAudit({ user, ip: req.ip, headers: req.headers }, {
       action: 'LOGIN',
@@ -394,7 +394,7 @@ exports.verifyMfa = async (req, res) => {
     user.locked_until = null;
     await user.save();
 
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, active_lab: user.active_lab, labs: user.labs } });
   } catch (err) {
     res.status(500).json({ error: 'Server error during MFA verification' });
   }

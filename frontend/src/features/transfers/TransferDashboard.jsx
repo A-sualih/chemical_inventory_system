@@ -212,64 +212,78 @@ const TransferDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {transfers.map((t, idx) => (
-                      <tr key={t._id} style={{ '--index': idx }}>
-                        <td>
-                          {isSourceLab(t)
-                            ? <span className="dir-badge dir-out"><UploadCloud size={10} /> Outgoing</span>
-                            : <span className="dir-badge dir-in"><DownloadCloud size={10} /> Incoming</span>}
-                        </td>
-                        <td>
-                          <div className="td-with-icon">
-                            <Clock size={10} className="td-icon-muted" />
-                            {new Date(t.createdAt).toLocaleDateString()}
-                          </div>
-                        </td>
-                        <td>
-                          <div className="chem-identity-cell">
-                            <span className="chem-main-name">{t.chemical_id?.name || '—'}</span>
-                            <span className="chem-sub-id">{t.chemical_id?.id}</span>
-                          </div>
-                        </td>
-                        <td>
-                          <span className="qty-tag">{t.quantity_moved} <small style={{ fontSize: '0.65rem', opacity: 0.6 }}>{t.unit}</small></span>
-                        </td>
-                        <td>
-                          <div className="td-with-icon">
-                            <MapPin size={10} className="td-icon-muted" />
-                            <span>{t.source_lab?.name}</span>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="td-with-icon">
-                            <User size={10} className="td-icon-muted" />
-                            <span>{t.requested_by?.name || '—'}</span>
-                          </div>
-                        </td>
-                        <td className="reason-cell">{t.reason || '—'}</td>
-                        <td>{statusBadge(t.status)}</td>
-                        <td>
-                          {canApprove(t) && (
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                              <button className="btn-success-small" onClick={() => handleApprove(t._id)}>
-                                <CheckCircle size={12} /> Approve
-                              </button>
-                              <button className="btn-danger-small" onClick={() => handleReject(t._id)}>
-                                <XCircle size={12} /> Reject
-                              </button>
+                    {transfers.map((t, idx) => {
+                      // Determine border color based on status
+                      let borderColor = '#f1f5f9';
+                      if (t.status === 'Approved') borderColor = '#10b981'; // Green
+                      if (t.status === 'Pending') borderColor = '#f59e0b';  // Amber
+                      if (t.status === 'Rejected') borderColor = '#ef4444'; // Red
+
+                      return (
+                        <tr key={t._id} style={{ '--index': idx, '--status-color': borderColor }}>
+                          <td>
+                            {isSourceLab(t)
+                              ? <span className="dir-badge dir-out"><UploadCloud size={10} /> Outgoing</span>
+                              : <span className="dir-badge dir-in"><DownloadCloud size={10} /> Incoming</span>}
+                          </td>
+                          <td>
+                            <div className="td-with-icon">
+                              <Clock size={10} className="td-icon-muted" />
+                              {new Date(t.createdAt).toLocaleDateString()}
                             </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td>
+                            <div className="chem-identity-cell">
+                              <span className="chem-main-name">{t.chemical_id?.name || '—'}</span>
+                              <span className="chem-sub-id">{t.chemical_id?.id}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <span className="qty-tag">{t.quantity_moved} <small style={{ fontSize: '0.65rem', opacity: 0.6 }}>{t.unit}</small></span>
+                          </td>
+                          <td>
+                            <div className="td-with-icon">
+                              <MapPin size={10} className="td-icon-muted" />
+                              <span>{t.source_lab?.name}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="td-with-icon">
+                              <User size={10} className="td-icon-muted" />
+                              <span>{t.requested_by?.name || '—'}</span>
+                            </div>
+                          </td>
+                          <td className="reason-cell">{t.reason || '—'}</td>
+                          <td>{statusBadge(t.status)}</td>
+                          <td>
+                            {canApprove(t) && (
+                              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                <button className="btn-outline-pill action-approve" onClick={() => handleApprove(t._id)}>
+                                  <CheckCircle size={12} /> Approve
+                                </button>
+                                <button className="btn-outline-pill action-reject" onClick={() => handleReject(t._id)}>
+                                  <XCircle size={12} /> Reject
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
 
-              {/* ── Mobile / Tablet Cards (≤ 1024px) ─── */}
+              {/* ── Mobile / Tablet Cards (≤ 1280px) ─── */}
               <div className="transfer-cards-view">
-                {transfers.map(t => (
-                  <div key={t._id} className="transfer-mobile-card">
+                {transfers.map(t => {
+                  let borderColor = '#f1f5f9';
+                  if (t.status === 'Approved') borderColor = '#10b981';
+                  if (t.status === 'Pending') borderColor = '#f59e0b';
+                  if (t.status === 'Rejected') borderColor = '#ef4444';
+
+                  return (
+                  <div key={t._id} className="transfer-mobile-card" style={{ '--status-color': borderColor }}>
 
                     {/* Top row: direction badge + qty pill */}
                     <div className="card-top">
@@ -312,10 +326,10 @@ const TransferDashboard = () => {
                       {statusBadge(t.status)}
                       {canApprove(t) && (
                         <div className="card-actions">
-                          <button className="btn-success-small" onClick={() => handleApprove(t._id)}>
+                          <button className="btn-outline-pill action-approve" onClick={() => handleApprove(t._id)}>
                             <CheckCircle size={14} /> Approve
                           </button>
-                          <button className="btn-danger-small" onClick={() => handleReject(t._id)}>
+                          <button className="btn-outline-pill action-reject" onClick={() => handleReject(t._id)}>
                             <XCircle size={14} /> Reject
                           </button>
                         </div>
@@ -323,8 +337,9 @@ const TransferDashboard = () => {
                     </div>
 
                   </div>
-                ))}
-              </div>
+                );
+              })}
+            </div>
             </>
           )}
         </div>

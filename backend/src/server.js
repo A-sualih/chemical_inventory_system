@@ -15,9 +15,9 @@ initDb().then(() => {
   initSafetySchedule();   // Runs daily at 07:00 — missing SDS, incompatibility, env risk
 
   // ── Immediate startup checks ───────────────────────────────────────────────
-  runExpiryCheck();       // Catch any expiry issues since last server restart
-  runStockCheck();        // Catch any low-stock issues since last server restart
-  runSafetyCheck();       // Catch any safety issues since last server restart
+  // runExpiryCheck();       // Catch any expiry issues since last server restart
+  // runStockCheck();        // Catch any low-stock issues since last server restart
+  // runSafetyCheck();       // Catch any safety issues since last server restart
 
   app.listen(PORT, '127.0.0.1', () => {
     console.log(`Server running on http://127.0.0.1:${PORT}`);
