@@ -210,63 +210,118 @@ const TransferDashboard = () => {
           ) : transfers.length === 0 ? (
             <div className="empty-state">No requisitions found. Click <strong>"New Requisition"</strong> to request a chemical from another lab.</div>
           ) : (
-            <table className="transfer-table">
-              <thead>
-                <tr>
-                  <th><div className="th-flex"><ArrowRightLeft size={10} /> Type</div></th>
-                  <th><div className="th-flex"><Calendar size={10} /> Date</div></th>
-                  <th><div className="th-flex"><Beaker size={10} /> Chemical</div></th>
-                  <th><div className="th-flex"><Package size={10} /> Quantity</div></th>
-                  <th><div className="th-flex"><MapPin size={10} /> Provider</div></th>
-                  <th><div className="th-flex"><User size={10} /> Requester</div></th>
-                  <th><div className="th-flex"><MessageSquare size={10} /> Reason</div></th>
-                  <th><div className="th-flex"><Info size={10} /> Status</div></th>
-                </tr>
-              </thead>
-              <tbody>
-                {transfers.map((t, idx) => (
-                  <tr key={t._id} style={{ '--index': idx }}>
-                    <td data-label="Type">
-                      {isSourceLab(t)
-                        ? <span className="dir-badge dir-out"><UploadCloud size={10} /> Outgoing</span>
-                        : <span className="dir-badge dir-in"><DownloadCloud size={10} /> Incoming</span>
-                      }
-                    </td>
-                    <td data-label="Date">
-                      <div className="td-with-icon">
-                        <Clock size={10} className="td-icon-muted" />
-                        {new Date(t.createdAt).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td data-label="Chemical">
-                      <div className="chem-identity-cell">
-                        <span className="chem-main-name">{t.chemical_id?.name || '—'}</span>
-                        <span className="chem-sub-id">{t.chemical_id?.id}</span>
-                      </div>
-                    </td>
-                    <td data-label="Quantity">
-                      <span className="qty-tag">{t.quantity_moved} <small style={{fontSize: '0.65rem', opacity: 0.6}}>{t.unit}</small></span>
-                    </td>
-                    <td data-label="Provider Lab">
-                      <div className="td-with-icon">
-                        <MapPin size={10} className="td-icon-muted" />
-                        <span style={{fontSize: '0.8125rem'}}>{t.source_lab?.name}</span>
-                      </div>
-                    </td>
-                    <td data-label="Requested By">
-                      <div className="td-with-icon">
-                        <User size={10} className="td-icon-muted" />
-                        <span style={{fontSize: '0.8125rem'}}>{t.requested_by?.name || '—'}</span>
-                      </div>
-                    </td>
-                    <td data-label="Reason" className="reason-cell">
-                      {t.reason || '—'}
-                    </td>
-                    <td data-label="Status">{statusBadge(t.status)}</td>
+            <div className="table-scroll-container">
+              <table className="transfer-table">
+                <thead>
+                  <tr>
+                    <th><div className="th-flex"><ArrowRightLeft size={10} /> Type</div></th>
+                    <th><div className="th-flex"><Calendar size={10} /> Date</div></th>
+                    <th><div className="th-flex"><Beaker size={10} /> Chemical</div></th>
+                    <th><div className="th-flex"><Package size={10} /> Quantity</div></th>
+                    <th><div className="th-flex"><MapPin size={10} /> Provider</div></th>
+                    <th><div className="th-flex"><User size={10} /> Requester</div></th>
+                    <th><div className="th-flex"><MessageSquare size={10} /> Reason</div></th>
+                    <th><div className="th-flex"><Info size={10} /> Status</div></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {transfers.map((t, idx) => (
+                    <tr key={t._id} style={{ '--index': idx }}>
+                      <td data-label="Type">
+                        {isSourceLab(t)
+                          ? <span className="dir-badge dir-out"><UploadCloud size={10} /> Outgoing</span>
+                          : <span className="dir-badge dir-in"><DownloadCloud size={10} /> Incoming</span>
+                        }
+                      </td>
+                      <td data-label="Date">
+                        <div className="td-with-icon">
+                          <Clock size={10} className="td-icon-muted" />
+                          {new Date(t.createdAt).toLocaleDateString()}
+                        </div>
+                      </td>
+                      <td data-label="Chemical">
+                        <div className="chem-identity-cell">
+                          <span className="chem-main-name">{t.chemical_id?.name || '—'}</span>
+                          <span className="chem-sub-id">{t.chemical_id?.id}</span>
+                        </div>
+                      </td>
+                      <td data-label="Quantity">
+                        <span className="qty-tag">{t.quantity_moved} <small style={{ fontSize: '0.65rem', opacity: 0.6 }}>{t.unit}</small></span>
+                      </td>
+                      <td data-label="Provider Lab">
+                        <div className="td-with-icon">
+                          <MapPin size={10} className="td-icon-muted" />
+                          <span style={{ fontSize: '0.8125rem' }}>{t.source_lab?.name}</span>
+                        </div>
+                      </td>
+                      <td data-label="Requested By">
+                        <div className="td-with-icon">
+                          <User size={10} className="td-icon-muted" />
+                          <span style={{ fontSize: '0.8125rem' }}>{t.requested_by?.name || '—'}</span>
+                        </div>
+                      </td>
+                      <td data-label="Reason" className="reason-cell">
+                        {t.reason || '—'}
+                      </td>
+                      <td data-label="Status">{statusBadge(t.status)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Card View for Mobile/Tablet */}
+          {!loading && transfers.length > 0 && (
+            <div className="transfer-cards-view">
+              {transfers.map(t => (
+                <div key={t._id} className="transfer-mobile-card">
+                  <div className="card-top">
+                    {isSourceLab(t)
+                      ? <span className="dir-badge dir-out"><UploadCloud size={12} /> Outgoing</span>
+                      : <span className="dir-badge dir-in"><DownloadCloud size={12} /> Incoming</span>
+                    }
+                    <div className="card-qty-pill">{t.quantity_moved} {t.unit}</div>
+                  </div>
+
+                  <div className="card-chem-info">
+                    <div className="card-chem-name">{t.chemical_id?.name || '—'}</div>
+                    <div className="text-[10px] text-indigo-500 font-bold uppercase tracking-widest">{t.chemical_id?.id}</div>
+                  </div>
+
+                  <div className="card-meta">
+                    <div className="meta-row">
+                      <Calendar size={14} className="meta-icon" /> 
+                      {new Date(t.createdAt).toLocaleDateString()}
+                    </div>
+                    <div className="meta-row">
+                      <MapPin size={14} className="meta-icon" /> 
+                      <strong>From:</strong> {t.source_lab?.name || '—'}
+                    </div>
+                    <div className="meta-row">
+                      <User size={14} className="meta-icon" /> 
+                      <strong>User:</strong> {t.requested_by?.name || '—'}
+                    </div>
+                    <div className="meta-row italic opacity-80" style={{ fontSize: '0.75rem' }}>
+                      <MessageSquare size={14} className="meta-icon" /> 
+                      "{t.reason || 'No reason provided'}"
+                    </div>
+                  </div>
+
+                  <div className="card-footer">
+                    {statusBadge(t.status)}
+                    <div className="flex gap-2">
+                       {canApprove(t) && (
+                         <>
+                           <button className="btn-success-small" onClick={() => handleApprove(t._id)}><CheckCircle size={14} /> Approve</button>
+                           <button className="btn-danger-small" onClick={() => handleReject(t._id)}><XCircle size={14} /> Reject</button>
+                         </>
+                       )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
