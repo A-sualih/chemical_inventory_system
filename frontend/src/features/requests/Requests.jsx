@@ -298,7 +298,7 @@ const Requests = () => {
           <p className="requests-subtitle">Every usage must go through a request → approval process.</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            {hasPermission("submit_request") && (
+            {hasPermission("submit_request") && user?.role !== "Lab Manager" && (
               <>
                 <button onClick={() => setShowRequestModal(true)} className="btn-primary" style={{ height: '2.5rem', width: 'auto', padding: '0 1.25rem', margin: 0 }}>
                   <PackageIcon size={18} /> Submit Usage Request
@@ -501,7 +501,7 @@ const Requests = () => {
                 <div className="empty-state">
                   <PackageIcon size={48} style={{ color: 'var(--secondary-200)', marginBottom: '1rem' }} />
                   <p style={{ color: 'var(--secondary-500)', fontWeight: 500, marginBottom: '1.5rem' }}>No requests in queue.</p>
-                  {hasPermission("submit_request") && (
+                  {hasPermission("submit_request") && user?.role !== "Lab Manager" && (
                     <button onClick={() => setShowRequestModal(true)} className="btn-primary" style={{ width: 'auto', margin: '0 auto', padding: '0 2rem' }}>
                       Start Usage Request
                     </button>

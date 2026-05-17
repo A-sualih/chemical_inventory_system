@@ -78,6 +78,20 @@ const ChemicalDetails = () => {
     };
   }, [id]);
 
+  const handleQuickAction = async (action) => {
+    try {
+      const { data } = await axios.post("/api/inventory/quick-scan", {
+        chemical_id: chemical.id,
+        action: action
+      });
+      
+      setChemical(prev => ({ ...prev, quantity: data.newQty }));
+      alert(`${action === 'IN' ? 'Check-in' : 'Check-out'} successful. New quantity: ${data.newQty} ${data.unit}`);
+    } catch (err) {
+      alert(err.response?.data?.error || "Transaction failed");
+    }
+  };
+
   const handleExportSDS = async () => {
     setExportingPDF(true);
     try {
@@ -414,6 +428,17 @@ const ChemicalDetails = () => {
                      <Printer size={18} />
                      Print Safety Label
                   </Link>
+
+                  <button onClick={() => handleQuickAction('IN')} className="dashboard-action-btn btn-glass text-emerald-500">
+                     <Box size={18} />
+                     Fast Check-in (+1)
+                  </button>
+
+                  <button onClick={() => handleQuickAction('OUT')} className="dashboard-action-btn btn-glass text-orange-500">
+                     <Activity size={18} />
+                     Fast Check-out (-1)
+                  </button>
+
                   <button onClick={() => navigate('/chemicals')} className="dashboard-action-btn btn-glass">
                      <Edit3 size={18} />
                      Modify Protocol

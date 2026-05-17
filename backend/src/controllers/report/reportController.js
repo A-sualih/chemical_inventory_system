@@ -23,47 +23,55 @@ exports.getInventoryReport = async (req, res) => {
     const nearExpiryThreshold = parseInt(process.env.NEAR_EXPIRY_THRESHOLD) || 30;
     const nearExpiryCutoff = new Date(now.getTime() + (nearExpiryThreshold + 1) * 24 * 60 * 60 * 1000);
 
-    const totalChemicals = await Chemical.countDocuments({ archived: false });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    
+    const totalChemicals = await Chemical.countDocuments({ ...labQuery, archived: false });
     
     const lowStock = await Chemical.countDocuments({ 
+      ...labQuery,
       archived: false,
       $expr: { $lte: ["$quantity", { $ifNull: ["$threshold", 5] }] },
       quantity: { $gt: 0 }
     });
 
     const expired = await Chemical.countDocuments({ 
+      ...labQuery,
       archived: false, 
       expiry_date: { $lt: now }
     });
 
     const nearExpiry = await Chemical.countDocuments({ 
+      ...labQuery,
       archived: false, 
       expiry_date: { $gte: now, $lte: nearExpiryCutoff }
     });
 
     const hazardStats = await Chemical.aggregate([
-      { $match: { archived: false } },
+      { $match: { ...labQuery, archived: false } },
       { $unwind: '$ghs_classes' },
       { $group: { _id: '$ghs_classes', count: { $sum: 1 } } }
     ]);
 
     const locationStats = await Chemical.aggregate([
-      { $match: { archived: false } },
+      { $match: { ...labQuery, archived: false } },
       { $group: { _id: '$building', count: { $sum: 1 } } },
       { $sort: { count: -1 } }
     ]);
 
     const expiredList = await Chemical.find({ 
+      ...labQuery,
       archived: false, 
       expiry_date: { $lt: now }
     }).select('name id expiry_date location batch_number').lean();
 
     const nearExpiryList = await Chemical.find({ 
+      ...labQuery,
       archived: false, 
       expiry_date: { $gte: now, $lte: nearExpiryCutoff }
     }).select('name id expiry_date location batch_number').lean();
 
     const lowStockList = await Chemical.find({
+      ...labQuery,
       archived: false,
       $expr: { $lte: ["$quantity", { $ifNull: ["$threshold", 5] }] },
       quantity: { $gt: 0 }
@@ -89,9 +97,12 @@ exports.getUsageReport = async (req, res) => {
     const { start, end } = req.query;
     const dateRange = getDateRange(start, end);
 
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+
     const usageStats = await InventoryLog.aggregate([
       { 
         $match: { 
+          ...labQuery,
           action: 'OUT',
           createdAt: dateRange 
         } 
@@ -109,6 +120,7 @@ exports.getUsageReport = async (req, res) => {
     const topChemicals = await InventoryLog.aggregate([
       { 
         $match: { 
+          ...labQuery,
           action: 'OUT',
           createdAt: dateRange 
         } 
@@ -134,9 +146,12 @@ exports.getDisposalReport = async (req, res) => {
     const { start, end } = req.query;
     const dateRange = getDateRange(start, end);
 
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+
     const disposalStats = await InventoryLog.aggregate([
       { 
         $match: { 
+          ...labQuery,
           action: 'DISPOSAL',
           createdAt: dateRange 
         } 
@@ -158,8 +173,9 @@ exports.getDisposalReport = async (req, res) => {
 
 exports.getHazardReport = async (req, res) => {
   try {
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const hazards = await Chemical.aggregate([
-      { $match: { archived: false } },
+      { $match: { ...labQuery, archived: false } },
       { $unwind: '$ghs_classes' },
       {
         $group: {
@@ -190,7 +206,8 @@ exports.exportExcel = async (req, res) => {
       { header: 'Location', key: 'location', width: 20 }
     ];
 
-    const chemicals = await Chemical.find({ archived: false });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const chemicals = await Chemical.find({ ...labQuery, archived: false });
     chemicals.forEach(c => {
       sheet.addRow({
         id: c.id,
@@ -216,7 +233,8 @@ exports.exportExcel = async (req, res) => {
 exports.exportPdf = async (req, res) => {
   try {
     const doc = new jsPDF();
-    const chemicals = await Chemical.find({ archived: false });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const chemicals = await Chemical.find({ ...labQuery, archived: false });
 
     doc.setFontSize(20);
     doc.text('Chemical Inventory Master Report', 14, 22);
@@ -252,7 +270,8 @@ exports.exportPdf = async (req, res) => {
 
 exports.exportCsv = async (req, res) => {
   try {
-    const chemicals = await Chemical.find({ archived: false });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const chemicals = await Chemical.find({ ...labQuery, archived: false });
     
     let csv = 'ID,Name,CAS Number,Status,Quantity,Unit,Location\n';
     

@@ -14,11 +14,24 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [labs, setLabs] = useState([]);
+  const [labId, setLabId] = useState("");
 
   const navigate = useNavigate();
 
   useEffect(() => {
     if (currentUser) navigate("/");
+    
+    // Fetch available labs
+    const fetchLabs = async () => {
+      try {
+        const res = await axios.get('/api/auth/labs');
+        setLabs(res.data);
+      } catch (err) {
+        console.error("Failed to fetch labs", err);
+      }
+    };
+    fetchLabs();
   }, [currentUser, navigate]);
 
   const handleRegister = async (e) => {
@@ -26,7 +39,7 @@ const Register = () => {
     setIsLoading(true);
     setError("");
     try {
-      await axios.post('/api/auth/register', { name, email, password });
+      await axios.post('/api/auth/register', { name, email, password, labId });
       setIsLoading(false);
       setSuccess(true);
       setTimeout(() => {
@@ -128,6 +141,25 @@ const Register = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
+                </div>
+              </div>
+
+              <div className="login-form-group">
+                <label className="login-label">Primary Laboratory</label>
+                <div className="input-wrapper">
+                  <select
+                    className="login-input login-select"
+                    value={labId}
+                    onChange={(e) => setLabId(e.target.value)}
+                    required
+                  >
+                    <option value="" disabled style={{backgroundColor: '#1e293b'}}>Select Laboratory</option>
+                    {labs.map(lab => (
+                      <option key={lab._id} value={lab._id} style={{backgroundColor: '#1e293b'}}>
+                        {lab.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

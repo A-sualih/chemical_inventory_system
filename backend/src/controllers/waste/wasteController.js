@@ -78,7 +78,7 @@ exports.createDisposalRequest = async (req, res) => {
     }
     
     // 1. Compliance Check: Legal Disposal Limits
-    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const permit = await WastePermit.findOne({ status: 'Active', ...labQuery, 'limits.hazard_class': hazard_classification || chemical.hazard_summary?.hazard_class });
     if (permit) {
       const limit = permit.limits.find(l => l.hazard_class === (hazard_classification || chemical.hazard_summary?.hazard_class));
@@ -163,7 +163,7 @@ exports.createDisposalRequest = async (req, res) => {
       }
 
       if (remainingToSubtract > 0) {
-        const batches = await Batch.find({ chemical_id: chemical.id, _id: { $ne: cleanedBatchId } }).sort({ expiry_date: 1 });
+        const batches = await Batch.find({ chemical_id: chemical.id, _id: { $ne: cleanedBatchId }, ...labQuery }).sort({ expiry_date: 1 });
         for (const batch of batches) {
           if (remainingToSubtract <= 0) break;
           const bQtyInBase = convertToBase(batch.total_quantity, batch.unit);
@@ -282,7 +282,8 @@ exports.approveDisposal = async (req, res) => {
     const { id } = req.params;
     const { approval_notes } = req.body;
     
-    const disposal = await WasteDisposal.findOne({ _id: id, ...(req.activeLabId && { lab: req.activeLabId }) });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const disposal = await WasteDisposal.findOne({ _id: id, ...labQuery });
     if (!disposal) return res.status(404).json({ error: 'Disposal record not found' });
     
     if (disposal.status !== 'Pending Approval') {
@@ -310,7 +311,8 @@ exports.approveDisposal = async (req, res) => {
 exports.getDisposalFifoPreview = async (req, res) => {
   try {
     const { id } = req.params;
-    const disposal = await WasteDisposal.findOne({ _id: id, ...(req.activeLabId && { lab: req.activeLabId }) });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const disposal = await WasteDisposal.findOne({ _id: id, ...labQuery });
     if (!disposal) return res.status(404).json({ error: 'Disposal record not found' });
     
     const chemical = await Chemical.findById(disposal.chemical_id);
@@ -377,7 +379,8 @@ exports.getDisposalFifoPreview = async (req, res) => {
     if (remainingToSubtract > 0) {
       const batches = await Batch.find({ 
         chemical_id: chemical.id,
-        _id: { $ne: disposal.batch_id }
+        _id: { $ne: disposal.batch_id },
+        ...labQuery
       }).sort({ expiry_date: 1 });
       
       for (const batch of batches) {
@@ -436,7 +439,8 @@ exports.rejectDisposal = async (req, res) => {
       return res.status(400).json({ error: 'Rejection notes are required.' });
     }
 
-    const disposal = await WasteDisposal.findOne({ _id: id, ...(req.activeLabId && { lab: req.activeLabId }) });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const disposal = await WasteDisposal.findOne({ _id: id, ...labQuery });
     if (!disposal) return res.status(404).json({ error: 'Disposal record not found' });
     
     if (disposal.status !== 'Pending Approval') {
@@ -457,15 +461,15 @@ exports.rejectDisposal = async (req, res) => {
       chemical.quantity = convertFromBase(chemical.base_quantity, chemical.unit);
       
       // Update Batch (Restore to specific batch if targeted, or oldest batch)
-      const targetBatch = await Batch.findOne({ chemical_id: chemical.id, batch_number: disposal.batch_number }) || 
-                          await Batch.findOne({ chemical_id: chemical.id }).sort({ expiry_date: 1 });
+      const targetBatch = await Batch.findOne({ chemical_id: chemical.id, batch_number: disposal.batch_number, ...labQuery }) || 
+                          await Batch.findOne({ chemical_id: chemical.id, ...labQuery }).sort({ expiry_date: 1 });
       
       if (targetBatch) {
         const currentQtyInBase = convertToBase(targetBatch.total_quantity, targetBatch.unit);
         targetBatch.total_quantity = convertFromBase(currentQtyInBase + amountToAddInBase, targetBatch.unit);
         
         // Restore to a container
-        const container = await Container.findOne({ batch_number: targetBatch.batch_number }).sort({ created_at: -1 });
+        const container = await Container.findOne({ batch_number: targetBatch.batch_number, ...labQuery }).sort({ created_at: -1 });
         if (container) {
           const cQtyInBase = convertToBase(container.quantity, container.unit);
           container.quantity = convertFromBase(cQtyInBase + amountToAddInBase, container.unit);
@@ -506,7 +510,8 @@ exports.completeDisposal = async (req, res) => {
     const { id } = req.params;
     const { method_details, environmental_impact, compliance } = req.body;
     
-    const disposal = await WasteDisposal.findOne({ _id: id, ...(req.activeLabId && { lab: req.activeLabId }) });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const disposal = await WasteDisposal.findOne({ _id: id, ...labQuery });
     if (!disposal) return res.status(404).json({ error: 'Disposal record not found' });
     
     disposal.status = 'Disposed';
@@ -542,7 +547,8 @@ exports.completeDisposal = async (req, res) => {
 exports.deleteDisposal = async (req, res) => {
   try {
     const { id } = req.params;
-    const disposal = await WasteDisposal.findOne({ _id: id, ...(req.activeLabId && { lab: req.activeLabId }) });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const disposal = await WasteDisposal.findOne({ _id: id, ...labQuery });
     if (!disposal) return res.status(404).json({ error: 'Disposal record not found' });
 
     // Restore inventory if it was subtracted but not yet finalized
@@ -554,14 +560,14 @@ exports.deleteDisposal = async (req, res) => {
         chemical.quantity = convertFromBase(chemical.base_quantity, chemical.unit);
         
         // Restore to batch
-        const targetBatch = await Batch.findOne({ chemical_id: chemical.id, batch_number: disposal.batch_number }) || 
-                            await Batch.findOne({ chemical_id: chemical.id }).sort({ expiry_date: 1 });
+        const targetBatch = await Batch.findOne({ chemical_id: chemical.id, batch_number: disposal.batch_number, ...labQuery }) || 
+                            await Batch.findOne({ chemical_id: chemical.id, ...labQuery }).sort({ expiry_date: 1 });
         
         if (targetBatch) {
           const currentQtyInBase = convertToBase(targetBatch.total_quantity, targetBatch.unit);
           targetBatch.total_quantity = convertFromBase(currentQtyInBase + amountToAddInBase, targetBatch.unit);
           
-          const container = await Container.findOne({ batch_number: targetBatch.batch_number }).sort({ created_at: -1 });
+          const container = await Container.findOne({ batch_number: targetBatch.batch_number, ...labQuery }).sort({ created_at: -1 });
           if (container) {
             const cQtyInBase = convertToBase(container.quantity, container.unit);
             container.quantity = convertFromBase(cQtyInBase + amountToAddInBase, container.unit);
@@ -636,7 +642,8 @@ exports.createPermit = async (req, res) => {
 
 exports.getPermits = async (req, res) => {
   try {
-    const permits = await WastePermit.find(req.activeLabId ? { lab: req.activeLabId } : {}).sort({ expiry_date: 1 });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const permits = await WastePermit.find(labQuery).sort({ expiry_date: 1 });
     res.json(permits);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -649,7 +656,8 @@ exports.getPermits = async (req, res) => {
 exports.signComplianceLog = async (req, res) => {
   try {
     const { id } = req.params;
-    const log = await WasteCompliance.findOne({ _id: id, ...(req.activeLabId && { lab: req.activeLabId }) });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const log = await WasteCompliance.findOne({ _id: id, ...labQuery });
     if (!log) return res.status(404).json({ error: 'Log not found' });
     
     log.digital_signature = {
@@ -678,13 +686,14 @@ exports.getDisposals = async (req, res) => {
     if (method) query.method = method;
     if (search) query.chemical_name = { $regex: search, $options: 'i' };
     
-    const disposals = await WasteDisposal.find({ ...query, ...(req.activeLabId && { lab: req.activeLabId }) })
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const disposals = await WasteDisposal.find({ ...query, ...labQuery })
       .populate('chemical_id', 'name cas_number hazard_summary emergency_response incompatibility sds_file_url sds_file_name disposal_file_url disposal_file_name')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(Number(limit));
       
-    const total = await WasteDisposal.countDocuments({ ...query, ...(req.activeLabId && { lab: req.activeLabId }) });
+    const total = await WasteDisposal.countDocuments({ ...query, ...labQuery });
     
     res.json({ disposals, total, page: Number(page), pages: Math.ceil(total / limit) });
   } catch (err) {
@@ -711,7 +720,8 @@ exports.createComplianceLog = async (req, res) => {
 
 exports.getComplianceLogs = async (req, res) => {
   try {
-    const logs = await WasteCompliance.find(req.activeLabId ? { lab: req.activeLabId } : {}).sort({ createdAt: -1 });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const logs = await WasteCompliance.find(labQuery).sort({ createdAt: -1 });
     res.json(logs);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -738,7 +748,8 @@ exports.createSafetyIncident = async (req, res) => {
 
 exports.getSafetyIncidents = async (req, res) => {
   try {
-    const incidents = await WasteSafetyIncident.find(req.activeLabId ? { lab: req.activeLabId } : {}).sort({ createdAt: -1 });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const incidents = await WasteSafetyIncident.find(labQuery).sort({ createdAt: -1 });
     res.json(incidents);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -750,23 +761,25 @@ exports.getSafetyIncidents = async (req, res) => {
  */
 exports.getWasteAnalytics = async (req, res) => {
   try {
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    
     // Total disposed by method
-    const methodStats = await WasteDisposal.aggregate([ { $match: req.activeLabId ? { lab: req.activeLabId } : {} }, 
+    const methodStats = await WasteDisposal.aggregate([ { $match: labQuery }, 
       { $group: { _id: '$method', count: { $sum: 1 }, totalQty: { $sum: '$quantity' } } }
     ]);
     
     // Status counts
-    const statusStats = await WasteDisposal.aggregate([ { $match: req.activeLabId ? { lab: req.activeLabId } : {} }, 
+    const statusStats = await WasteDisposal.aggregate([ { $match: labQuery }, 
       { $group: { _id: '$status', count: { $sum: 1 } } }
     ]);
     
     // Incidents by severity
-    const incidentStats = await WasteSafetyIncident.aggregate([ { $match: req.activeLabId ? { lab: req.activeLabId } : {} }, 
+    const incidentStats = await WasteSafetyIncident.aggregate([ { $match: labQuery }, 
       { $group: { _id: '$severity', count: { $sum: 1 } } }
     ]);
 
     // Monthly trends
-    const monthlyStats = await WasteDisposal.aggregate([ { $match: req.activeLabId ? { lab: req.activeLabId } : {} }, 
+    const monthlyStats = await WasteDisposal.aggregate([ { $match: labQuery }, 
       { $match: { createdAt: { $exists: true, $type: 'date' } } },
       {
         $group: {
@@ -814,7 +827,8 @@ exports.updateIncidentImpact = async (req, res) => {
     const { id } = req.params;
     const { environmental_impact_details, cleanup_procedure_followed, status } = req.body;
     
-    const incident = await WasteSafetyIncident.findById(id);
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const incident = await WasteSafetyIncident.findOne({ _id: id, ...labQuery });
     if (!incident) return res.status(404).json({ error: 'Incident not found' });
     
     incident.environmental_impact_details = environmental_impact_details;
@@ -827,6 +841,3 @@ exports.updateIncidentImpact = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
-
-
-

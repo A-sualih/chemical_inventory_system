@@ -8,7 +8,7 @@ const { logAudit } = require('../../middleware/authMiddleware');
 
 exports.getStats = async (req, res) => {
   try {
-    const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const totalCount = await Chemical.countDocuments({ archived: false, ...labQuery });
     const flammables = await Chemical.countDocuments({ ghs_classes: "Flammable", archived: false, ...labQuery });
     
@@ -98,7 +98,7 @@ exports.getChemicals = async (req, res) => {
     } = req.query;
 
     const baseQuery = { archived: archived === 'true' };
-    if (req.activeLabId) {
+    if (!(req.user.role === 'Admin' && !req.activeLabId)) {
       baseQuery.lab = req.activeLabId;
     }
 
@@ -206,7 +206,7 @@ exports.getChemical = async (req, res) => {
   try {
     const query = { id: req.params.id };
     
-    if (req.activeLabId) {
+    if (!(req.user.role === 'Admin' && !req.activeLabId)) {
       query.lab = req.activeLabId;
     }
     
