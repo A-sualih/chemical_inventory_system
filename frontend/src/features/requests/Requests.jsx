@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import Layout from "../../layout/Layout";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
-import { Calendar as CalendarIcon, Clock, Package as PackageIcon, CheckCircle2, ChevronRight, Hash, FlaskConical, CircleDot, AlertTriangle, Ban } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Package as PackageIcon, CheckCircle2, ChevronRight, Hash, FlaskConical, CircleDot, AlertTriangle, Ban, PlusCircle as PlusCircleIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import "../../styles/Requests.css";
 
 const Requests = () => {
   const { user, hasPermission } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [chemicals, setChemicals] = useState([]);
   const [containers, setContainers] = useState([]);
@@ -230,6 +231,17 @@ const Requests = () => {
     }
   };
 
+  const handleCancelRequest = async (id) => {
+    if (!window.confirm("Are you sure you want to cancel this request?")) return;
+    try {
+      await axios.patch(`/api/requests/${id}/cancel`);
+      toast.success("Request cancelled successfully.", { duration: 10000 });
+      fetchRequests();
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Error cancelling request", { duration: 10000 });
+    }
+  };
+
   const handleSubmitInventoryRequest = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -258,15 +270,14 @@ const Requests = () => {
     }
   };
 
-  const handleInventoryBuy = async (id) => {
-    if (!window.confirm("Initiate purchase request for this chemical?")) return;
-    try {
-      await axios.patch(`/api/requests/inventory-request/${id}/buy`);
-      toast.success("Purchase request initiated.", { duration: 10000 });
-      fetchRequests();
-    } catch (err) {
-      alert("Failed to initiate purchase");
-    }
+  const handleInventoryEnroll = (req) => {
+    const params = new URLSearchParams({
+      name: req.chemical_name || '',
+      cas: req.cas_number || '',
+      quantity: req.quantity || '',
+      unit: req.unit || 'kg'
+    });
+    navigate(`/chemicals/new?${params.toString()}`);
   };
 
   const handleInventoryTransfer = async () => {
@@ -284,6 +295,17 @@ const Requests = () => {
       fetchRequests();
     } catch (err) {
       toast.error("Failed to send transfer request", { duration: 10000 });
+    }
+  };
+
+  const handleCancelInventoryRequest = async (id) => {
+    if (!window.confirm("Are you sure you want to cancel this request?")) return;
+    try {
+      await axios.patch(`/api/requests/inventory-request/${id}/cancel`);
+      toast.success("Request cancelled successfully.", { duration: 10000 });
+      fetchRequests();
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Error cancelling request", { duration: 10000 });
     }
   };
 
@@ -566,6 +588,16 @@ const Requests = () => {
                       <span className="amount-val">{req.quantity} <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#60a5fa' }}>{req.unit}</span></span>
                     </div>
 
+                    {req.status === 'Pending' && req.user_id?._id === user?.id && (
+                      <button
+                        onClick={() => handleCancelRequest(req._id)}
+                        className="btn-cancel"
+                        style={{ marginTop: '0.5rem' }}
+                      >
+                        <Ban size={14} className="mr-2" /> Cancel Request
+                      </button>
+                    )}
+
                     {req.status === 'Pending' && hasPermission("approve_request") && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
                         <textarea
@@ -651,17 +683,26 @@ const Requests = () => {
 
                     {req.status === 'Pending' && hasPermission("approve_request") && (
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '0.5rem' }}>
+                        {req.requester?._id === user?.id && (
+                          <button
+                            onClick={() => handleCancelInventoryRequest(req._id)}
+                            className="btn-cancel"
+                            style={{ height: '2.5rem' }}
+                          >
+                            <Ban size={14} className="mr-2" /> Cancel
+                          </button>
+                        )}
                         <button
                           onClick={() => { setProcessingReqId(req._id); setShowRejectModal(true); }}
-                          className="btn-reject" style={{ height: '2.5rem', borderColor: '#f87171', color: '#ef4444' }}
+                          className="btn-reject" style={{ height: '2.5rem', borderColor: '#f87171', color: '#000', fontWeight: 900 }}
                         >
                           <Ban size={14} className="mr-2" /> Reject
                         </button>
                         <button
-                          onClick={() => handleInventoryBuy(req._id)}
-                          className="btn-primary" style={{ height: '2.5rem', background: '#3b82f6' }}
+                          onClick={() => handleInventoryEnroll(req)}
+                          className="btn-primary" style={{ height: '2.5rem', background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' }}
                         >
-                          <PackageIcon size={14} className="mr-2" /> Buy Item
+                          <PlusCircleIcon size={14} className="mr-2" /> Enroll Chemical
                         </button>
                         <button
                           onClick={() => { setProcessingReqId(req._id); fetchOtherLabs(); setShowTransferModal(true); }}

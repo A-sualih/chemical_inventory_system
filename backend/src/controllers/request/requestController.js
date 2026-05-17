@@ -338,3 +338,35 @@ exports.rejectRequest = async (req, res) => {
     res.status(500).json({ error: 'Failed to reject request' });
   }
 };
+
+exports.cancelRequest = async (req, res) => {
+  try {
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const request = await Request.findOne({ _id: req.params.id, ...labQuery });
+    
+    if (!request) return res.status(404).json({ error: 'Request not found' });
+    if (request.status !== 'Pending') return res.status(400).json({ error: 'Only pending requests can be cancelled' });
+    
+    // Check if the user is the owner
+    if (request.user_id.toString() !== req.user.id && req.user.role !== 'Admin') {
+      return res.status(403).json({ error: 'You can only cancel your own requests' });
+    }
+
+    request.status = 'Cancelled';
+    await request.save();
+
+    await logAudit(req, {
+      action: 'CANCEL',
+      targetType: 'request',
+      targetId: request._id,
+      targetName: 'Request',
+      details: `Cancelled request ${request._id}`,
+      newValue: { status: 'Cancelled' }
+    });
+    
+    res.json({ message: 'Request cancelled', request });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to cancel request' });
+  }
+};

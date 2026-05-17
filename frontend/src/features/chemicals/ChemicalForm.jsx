@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import QRCodeLib from "react-qr-code";
 const QRCode = QRCodeLib.default || QRCodeLib;
 import axios from "axios";
@@ -8,7 +9,17 @@ import { Camera } from 'lucide-react';
 import "../../styles/ChemicalForm.css";
 
 const ChemicalForm = ({ initialData, onClose, onSave }) => {
-  // ... (state remains same)
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const handleCancelClick = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      navigate(-1); // Go back if no onClose prop (e.g. when on /chemicals/new)
+    }
+  };
+  
   const [formData, setFormData] = useState(initialData ? {
     ...initialData,
     cas_number: initialData.cas_number || "",
@@ -52,12 +63,12 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     restricted_access: initialData.restricted_access || false,
     training_required: initialData.training_required || false
   } : {
-    name: "",
+    name: searchParams.get("name") || "",
     iupac_name: "",
-    cas_number: "",
+    cas_number: searchParams.get("cas") || "",
     formula: "",
-    quantity: "",
-    unit: "L",
+    quantity: searchParams.get("quantity") || "",
+    unit: searchParams.get("unit") || "L",
     threshold: 5,
     purity: "99%",
 
@@ -228,7 +239,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
 
   return (
     <div className="chemical-form-overlay">
-      <div className="chemical-form-backdrop" onClick={onClose}></div>
+      <div className="chemical-form-backdrop" onClick={handleCancelClick}></div>
 
       <div className="chemical-form-container">
 
@@ -319,7 +330,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
               )}
             </div>
 
-            <button onClick={onClose} className="cancel-button">
+            <button type="button" onClick={handleCancelClick} className="cancel-button">
               Cancel & Discard
             </button>
           </div>

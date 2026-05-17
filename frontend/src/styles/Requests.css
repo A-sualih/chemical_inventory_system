@@ -492,7 +492,8 @@
 .btn-reject {
   background-color: #dc2626;
   /* red-600 */
-  color: white;
+  color: #000;
+  font-weight: 900;
   border: none;
   border-radius: 0.75rem;
   padding: 0.625rem;
@@ -509,6 +510,28 @@
 }
 
 /* red-500 */
+/* red-500 */
+
+.btn-cancel {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  padding: 0.625rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
 /* --- PREMIUM MODALS --- */
 .premium-modal-overlay {
   position: fixed;

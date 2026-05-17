@@ -143,3 +143,25 @@ exports.transferRequest = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.cancelRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const request = await ChemicalRequest.findOne({ _id: id, ...labQuery });
+    
+    if (!request) return res.status(404).json({ error: 'Request not found' });
+    if (request.status !== 'Pending') return res.status(400).json({ error: 'Only pending requests can be cancelled' });
+    
+    if (request.requester.toString() !== req.user.id && req.user.role !== 'Admin') {
+      return res.status(403).json({ error: 'You can only cancel your own requests' });
+    }
+
+    request.status = 'Cancelled';
+    await request.save();
+
+    res.json(request);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
