@@ -2,24 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import {
-  ArrowUpDown,
-  Calendar,
-  Beaker,
-  Package,
-  MapPin,
-  User,
-  MessageSquare,
-  CheckCircle,
-  XCircle,
-  Plus,
-  Info,
-  Clock,
-  ArrowRightLeft,
-  Ban
+  ArrowUpDown, Calendar, Beaker, Package, MapPin, User,
+  MessageSquare, CheckCircle, XCircle, Plus, Info,
+  Clock, ArrowRightLeft, Ban, UploadCloud, DownloadCloud, X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Layout from '../../layout/Layout';
-import { UploadCloud, DownloadCloud, X } from 'lucide-react';
 import './TransferDashboard.css';
 
 const TransferDashboard = () => {
@@ -30,18 +18,11 @@ const TransferDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [allLabs, setAllLabs] = useState([]);
 
-  // Form state
   const [form, setForm] = useState({
-    source_lab: '',       // The lab that HAS the chemical (provider)
-    chemical_id: '',      // Mongo _id of the chemical
-    batch_number: '',
-    container_id: '',
-    quantity_moved: '',
-    unit: 'ml',
-    reason: '',
+    source_lab: '', chemical_id: '', batch_number: '',
+    container_id: '', quantity_moved: '', unit: 'ml', reason: '',
   });
 
-  // Chemical search state
   const [chemSearch, setChemSearch] = useState('');
   const [chemResults, setChemResults] = useState([]);
   const [chemLoading, setChemLoading] = useState(false);
@@ -59,11 +40,10 @@ const TransferDashboard = () => {
     return () => document.removeEventListener('mousedown', fn);
   }, []);
 
+  // Chemical search
   useEffect(() => {
     clearTimeout(timerRef.current);
-    // Trigger search if we have a lab and (search text OR empty search for initial list)
     if (!form.source_lab || selectedChem) return;
-
     setChemLoading(true);
     timerRef.current = setTimeout(async () => {
       try {
@@ -72,17 +52,14 @@ const TransferDashboard = () => {
         });
         const list = res.data?.data ?? [];
         setChemResults(list);
-        // Auto-open if we have results or if user is searching
         if (list.length > 0 || chemSearch.trim()) setDropdownOpen(true);
-      } catch (err) {
-        console.error('Chem search error:', err);
+      } catch {
         setChemResults([]);
         setDropdownOpen(false);
       } finally {
         setChemLoading(false);
       }
-    }, chemSearch.trim() ? 350 : 0); // Immediate if no search text (initial list)
-
+    }, chemSearch.trim() ? 350 : 0);
     return () => clearTimeout(timerRef.current);
   }, [chemSearch, selectedChem, form.source_lab]);
 
@@ -91,12 +68,7 @@ const TransferDashboard = () => {
     setChemSearch('');
     setDropdownOpen(false);
     setChemResults([]);
-    setForm(f => ({
-      ...f,
-      chemical_id: chem._id,  // ← send MongoDB _id, not string id
-      unit: chem.unit || f.unit,
-      batch_number: chem.batch_number || '',
-    }));
+    setForm(f => ({ ...f, chemical_id: chem._id, unit: chem.unit || f.unit, batch_number: chem.batch_number || '' }));
   };
 
   const clearChem = () => {
@@ -112,10 +84,7 @@ const TransferDashboard = () => {
     clearChem();
   };
 
-  useEffect(() => {
-    fetchTransfers();
-    fetchLabs();
-  }, [user?.active_lab]);
+  useEffect(() => { fetchTransfers(); fetchLabs(); }, [user?.active_lab]);
 
   const fetchTransfers = async () => {
     try {
@@ -124,37 +93,31 @@ const TransferDashboard = () => {
       setTransfers(res.data);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to fetch transfers');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const fetchLabs = async () => {
     try {
       const res = await axios.get('/api/labs?all=true');
       setAllLabs(res.data.filter(l => String(l._id) !== String(user.active_lab)));
-    } catch { }
+    } catch {}
   };
 
   const handleApprove = async (id) => {
-    try {
-      await axios.put(`/api/transfers/${id}/approve`);
-      fetchTransfers();
-    } catch (err) { toast.error(err.response?.data?.error || 'Approval failed', { duration: 10000 }); }
+    try { await axios.put(`/api/transfers/${id}/approve`); fetchTransfers(); }
+    catch (err) { toast.error(err.response?.data?.error || 'Approval failed', { duration: 10000 }); }
   };
 
   const handleReject = async (id) => {
     const reason = prompt('Reason for rejection (optional):') ?? 'No reason provided';
-    try {
-      await axios.put(`/api/transfers/${id}/reject`, { reason });
-      fetchTransfers();
-    } catch (err) { toast.error(err.response?.data?.error || 'Rejection failed', { duration: 10000 }); }
+    try { await axios.put(`/api/transfers/${id}/reject`, { reason }); fetchTransfers(); }
+    catch (err) { toast.error(err.response?.data?.error || 'Rejection failed', { duration: 10000 }); }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.source_lab) { toast.error('Please select the provider lab.', { duration: 10000 }); return; }
-    if (!form.chemical_id) { toast.error('Please select a chemical from the search list.', { duration: 10000 }); return; }
+    if (!form.source_lab)  { toast.error('Please select the provider lab.',          { duration: 10000 }); return; }
+    if (!form.chemical_id) { toast.error('Please select a chemical from the list.',  { duration: 10000 }); return; }
     if (!form.quantity_moved || form.quantity_moved <= 0) { toast.error('Please enter a valid quantity.', { duration: 10000 }); return; }
     try {
       await axios.post('/api/transfers', form);
@@ -172,187 +135,235 @@ const TransferDashboard = () => {
     return <span className={`status-badge ${cls}`}>{s}</span>;
   };
 
-  // Whether this user's lab is the source (provider) for a given transfer
   const isSourceLab = (t) => String(t.source_lab?._id) === String(user.active_lab);
-  const isDestLab = (t) => String(t.destination_lab?._id) === String(user.active_lab);
-
-  const canApprove = (t) =>
+  const canApprove  = (t) =>
     t.status === 'Pending' && isSourceLab(t) &&
-    (hasPermission('approve_cross_lab_transfer') || hasPermission('approve_request') || user.role === 'Admin' || user.role === 'Lab Manager');
+    (hasPermission('approve_cross_lab_transfer') || hasPermission('approve_request') ||
+     user.role === 'Admin' || user.role === 'Lab Manager');
 
   return (
     <Layout>
       <div className="transfer-dashboard">
+
+        {/* ── Header ─────────────────────────────────── */}
         <div className="transfer-header">
           <div>
             <h1>Chemical Requisitions</h1>
             <p>Request chemicals from other labs. Provider lab approves and sends them.</p>
           </div>
-          <button className="btn-primary-glow" onClick={() => { setIsModalOpen(true); resetModal(); }}>
-            <svg xmlns="http://www.w3.org/2000/svg" style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-            </svg>
+          <button
+            className="btn-primary-glow"
+            onClick={() => { setIsModalOpen(true); resetModal(); }}
+          >
+            <ArrowRightLeft size={16} />
             New Requisition
           </button>
         </div>
 
-        {/* Legend */}
+        {/* ── Legend ─────────────────────────────────── */}
         <div className="transfer-legend">
-          <span className="legend-item"><UploadCloud className="w-4 h-4 inline-block mr-1" /> <strong>Outgoing</strong>: Another lab requested from you (you approve)</span>
-          <span className="legend-item"><DownloadCloud className="w-4 h-4 inline-block mr-1" /> <strong>Incoming</strong>: You requested from another lab</span>
+          <span className="legend-item">
+            <UploadCloud size={14} />
+            <strong>Outgoing</strong>: Another lab requested from you (you approve)
+          </span>
+          <span className="legend-item">
+            <DownloadCloud size={14} />
+            <strong>Incoming</strong>: You requested from another lab
+          </span>
         </div>
 
         {error && <div className="error-banner">{error}</div>}
 
+        {/* ── List ───────────────────────────────────── */}
         <div className="transfer-list">
           {loading ? (
-            <div className="empty-state">Loading requisitions...</div>
+            <div className="empty-state">Loading requisitions…</div>
           ) : transfers.length === 0 ? (
-            <div className="empty-state">No requisitions found. Click <strong>"New Requisition"</strong> to request a chemical from another lab.</div>
+            <div className="empty-state">
+              No requisitions found. Click <strong>"New Requisition"</strong> to request a chemical from another lab.
+            </div>
           ) : (
-            <div className="table-scroll-container">
-              <table className="transfer-table">
-                <thead>
-                  <tr>
-                    <th><div className="th-flex"><ArrowRightLeft size={10} /> Type</div></th>
-                    <th><div className="th-flex"><Calendar size={10} /> Date</div></th>
-                    <th><div className="th-flex"><Beaker size={10} /> Chemical</div></th>
-                    <th><div className="th-flex"><Package size={10} /> Quantity</div></th>
-                    <th><div className="th-flex"><MapPin size={10} /> Provider</div></th>
-                    <th><div className="th-flex"><User size={10} /> Requester</div></th>
-                    <th><div className="th-flex"><MessageSquare size={10} /> Reason</div></th>
-                    <th><div className="th-flex"><Info size={10} /> Status</div></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transfers.map((t, idx) => (
-                    <tr key={t._id} style={{ '--index': idx }}>
-                      <td data-label="Type">
-                        {isSourceLab(t)
-                          ? <span className="dir-badge dir-out"><UploadCloud size={10} /> Outgoing</span>
-                          : <span className="dir-badge dir-in"><DownloadCloud size={10} /> Incoming</span>
-                        }
-                      </td>
-                      <td data-label="Date">
-                        <div className="td-with-icon">
-                          <Clock size={10} className="td-icon-muted" />
-                          {new Date(t.createdAt).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td data-label="Chemical">
-                        <div className="chem-identity-cell">
-                          <span className="chem-main-name">{t.chemical_id?.name || '—'}</span>
-                          <span className="chem-sub-id">{t.chemical_id?.id}</span>
-                        </div>
-                      </td>
-                      <td data-label="Quantity">
-                        <span className="qty-tag">{t.quantity_moved} <small style={{ fontSize: '0.65rem', opacity: 0.6 }}>{t.unit}</small></span>
-                      </td>
-                      <td data-label="Provider Lab">
-                        <div className="td-with-icon">
-                          <MapPin size={10} className="td-icon-muted" />
-                          <span style={{ fontSize: '0.8125rem' }}>{t.source_lab?.name}</span>
-                        </div>
-                      </td>
-                      <td data-label="Requested By">
-                        <div className="td-with-icon">
-                          <User size={10} className="td-icon-muted" />
-                          <span style={{ fontSize: '0.8125rem' }}>{t.requested_by?.name || '—'}</span>
-                        </div>
-                      </td>
-                      <td data-label="Reason" className="reason-cell">
-                        {t.reason || '—'}
-                      </td>
-                      <td data-label="Status">{statusBadge(t.status)}</td>
+            <>
+              {/* ── Desktop Table (≥ 1025px) ─── */}
+              <div className="table-scroll-container">
+                <table className="transfer-table">
+                  <colgroup>
+                    <col className="col-type" />
+                    <col className="col-date" />
+                    <col className="col-chemical" />
+                    <col className="col-qty" />
+                    <col className="col-provider" />
+                    <col className="col-requester" />
+                    <col className="col-reason" />
+                    <col className="col-status" />
+                    <col className="col-actions" />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th><div className="th-flex"><ArrowRightLeft size={10} /> Type</div></th>
+                      <th><div className="th-flex"><Calendar size={10} /> Date</div></th>
+                      <th><div className="th-flex"><Beaker size={10} /> Chemical</div></th>
+                      <th><div className="th-flex"><Package size={10} /> Quantity</div></th>
+                      <th><div className="th-flex"><MapPin size={10} /> Provider</div></th>
+                      <th><div className="th-flex"><User size={10} /> Requester</div></th>
+                      <th><div className="th-flex"><MessageSquare size={10} /> Reason</div></th>
+                      <th><div className="th-flex"><Info size={10} /> Status</div></th>
+                      <th>Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody>
+                    {transfers.map((t, idx) => (
+                      <tr key={t._id} style={{ '--index': idx }}>
+                        <td>
+                          {isSourceLab(t)
+                            ? <span className="dir-badge dir-out"><UploadCloud size={10} /> Outgoing</span>
+                            : <span className="dir-badge dir-in"><DownloadCloud size={10} /> Incoming</span>}
+                        </td>
+                        <td>
+                          <div className="td-with-icon">
+                            <Clock size={10} className="td-icon-muted" />
+                            {new Date(t.createdAt).toLocaleDateString()}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="chem-identity-cell">
+                            <span className="chem-main-name">{t.chemical_id?.name || '—'}</span>
+                            <span className="chem-sub-id">{t.chemical_id?.id}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="qty-tag">{t.quantity_moved} <small style={{ fontSize: '0.65rem', opacity: 0.6 }}>{t.unit}</small></span>
+                        </td>
+                        <td>
+                          <div className="td-with-icon">
+                            <MapPin size={10} className="td-icon-muted" />
+                            <span>{t.source_lab?.name}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="td-with-icon">
+                            <User size={10} className="td-icon-muted" />
+                            <span>{t.requested_by?.name || '—'}</span>
+                          </div>
+                        </td>
+                        <td className="reason-cell">{t.reason || '—'}</td>
+                        <td>{statusBadge(t.status)}</td>
+                        <td>
+                          {canApprove(t) && (
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <button className="btn-success-small" onClick={() => handleApprove(t._id)}>
+                                <CheckCircle size={12} /> Approve
+                              </button>
+                              <button className="btn-danger-small" onClick={() => handleReject(t._id)}>
+                                <XCircle size={12} /> Reject
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-          {/* Card View for Mobile/Tablet */}
-          {!loading && transfers.length > 0 && (
-            <div className="transfer-cards-view">
-              {transfers.map(t => (
-                <div key={t._id} className="transfer-mobile-card">
-                  <div className="card-top">
-                    {isSourceLab(t)
-                      ? <span className="dir-badge dir-out"><UploadCloud size={12} /> Outgoing</span>
-                      : <span className="dir-badge dir-in"><DownloadCloud size={12} /> Incoming</span>
-                    }
-                    <div className="card-qty-pill">{t.quantity_moved} {t.unit}</div>
-                  </div>
+              {/* ── Mobile / Tablet Cards (≤ 1024px) ─── */}
+              <div className="transfer-cards-view">
+                {transfers.map(t => (
+                  <div key={t._id} className="transfer-mobile-card">
 
-                  <div className="card-chem-info">
-                    <div className="card-chem-name">{t.chemical_id?.name || '—'}</div>
-                    <div className="text-[10px] text-indigo-500 font-bold uppercase tracking-widest">{t.chemical_id?.id}</div>
-                  </div>
+                    {/* Top row: direction badge + qty pill */}
+                    <div className="card-top">
+                      {isSourceLab(t)
+                        ? <span className="dir-badge dir-out"><UploadCloud size={12} /> Outgoing</span>
+                        : <span className="dir-badge dir-in"><DownloadCloud size={12} /> Incoming</span>}
+                      <div className="card-qty-pill">{t.quantity_moved} {t.unit}</div>
+                    </div>
 
-                  <div className="card-meta">
-                    <div className="meta-row">
-                      <Calendar size={14} className="meta-icon" /> 
-                      {new Date(t.createdAt).toLocaleDateString()}
+                    {/* Chemical identity */}
+                    <div className="card-chem-info">
+                      <div className="card-chem-name">{t.chemical_id?.name || '—'}</div>
+                      {t.chemical_id?.id && <div className="card-chem-id">{t.chemical_id.id}</div>}
                     </div>
-                    <div className="meta-row">
-                      <MapPin size={14} className="meta-icon" /> 
-                      <strong>From:</strong> {t.source_lab?.name || '—'}
-                    </div>
-                    <div className="meta-row">
-                      <User size={14} className="meta-icon" /> 
-                      <strong>User:</strong> {t.requested_by?.name || '—'}
-                    </div>
-                    <div className="meta-row italic opacity-80" style={{ fontSize: '0.75rem' }}>
-                      <MessageSquare size={14} className="meta-icon" /> 
-                      "{t.reason || 'No reason provided'}"
-                    </div>
-                  </div>
 
-                  <div className="card-footer">
-                    {statusBadge(t.status)}
-                    <div className="flex gap-2">
-                       {canApprove(t) && (
-                         <>
-                           <button className="btn-success-small" onClick={() => handleApprove(t._id)}><CheckCircle size={14} /> Approve</button>
-                           <button className="btn-danger-small" onClick={() => handleReject(t._id)}><XCircle size={14} /> Reject</button>
-                         </>
-                       )}
+                    {/* Meta rows */}
+                    <div className="card-meta">
+                      <div className="meta-row">
+                        <Calendar size={14} className="meta-icon" />
+                        {new Date(t.createdAt).toLocaleDateString()}
+                      </div>
+                      <div className="meta-row">
+                        <MapPin size={14} className="meta-icon" />
+                        <span><strong>From:</strong> {t.source_lab?.name || '—'}</span>
+                      </div>
+                      <div className="meta-row">
+                        <User size={14} className="meta-icon" />
+                        <span><strong>By:</strong> {t.requested_by?.name || '—'}</span>
+                      </div>
+                      {t.reason && (
+                        <div className="meta-row" style={{ fontStyle: 'italic', opacity: 0.8 }}>
+                          <MessageSquare size={14} className="meta-icon" />
+                          "{t.reason}"
+                        </div>
+                      )}
                     </div>
+
+                    {/* Footer: status + actions */}
+                    <div className="card-footer">
+                      {statusBadge(t.status)}
+                      {canApprove(t) && (
+                        <div className="card-actions">
+                          <button className="btn-success-small" onClick={() => handleApprove(t._id)}>
+                            <CheckCircle size={14} /> Approve
+                          </button>
+                          <button className="btn-danger-small" onClick={() => handleReject(t._id)}>
+                            <XCircle size={14} /> Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
 
-        {/* Requisition Modal */}
+        {/* ══════════════════════════════════════════════
+            MODAL – New Requisition
+        ══════════════════════════════════════════════ */}
         {isModalOpen && (
           <div className="modal-overlay">
             <div className="transfer-modal">
+
+              {/* Modal Header */}
               <div className="modal-modal-header">
                 <div>
                   <h2>Request Chemical</h2>
                   <p>Request a chemical FROM another lab. Their manager will approve.</p>
                 </div>
                 <button className="modal-close-x" onClick={() => { setIsModalOpen(false); resetModal(); }}>
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               </div>
 
+              {/* Modal Form */}
               <form onSubmit={handleSubmit} className="transfer-form">
-                {/* Provider Lab */}
+
+                {/* 1. Provider Lab */}
                 <div className="form-group">
                   <label>Provider Lab (has the chemical) *</label>
-                  <select required value={form.source_lab} onChange={e => {
-                    setForm(f => ({ ...f, source_lab: e.target.value }));
-                    clearChem(); // Clear chemical when lab changes
-                  }}>
-                    <option value="">Select lab to request from...</option>
+                  <select
+                    required
+                    value={form.source_lab}
+                    onChange={e => { setForm(f => ({ ...f, source_lab: e.target.value })); clearChem(); }}
+                  >
+                    <option value="">Select lab to request from…</option>
                     {allLabs.map(l => <option key={l._id} value={l._id}>{l.name}</option>)}
                   </select>
                 </div>
 
-                {/* Chemical Search */}
+                {/* 2. Chemical Search */}
                 <div className="form-group" ref={wrapRef} style={{ position: 'relative' }}>
                   <label>Chemical *</label>
 
@@ -361,6 +372,7 @@ const TransferDashboard = () => {
                   )}
 
                   {form.source_lab && (selectedChem ? (
+                    /* Selected state */
                     <div className="selected-chem-card">
                       <div className="selected-chem-info">
                         <span className="selected-chem-name">{selectedChem.name}</span>
@@ -370,9 +382,12 @@ const TransferDashboard = () => {
                           {` · ${selectedChem.quantity ?? '?'} ${selectedChem.unit ?? ''}`}
                         </span>
                       </div>
-                      <button type="button" className="clear-chem-btn" onClick={clearChem} title="Change chemical"><X className="w-4 h-4 inline-block" /></button>
+                      <button type="button" className="clear-chem-btn" onClick={clearChem} title="Change chemical">
+                        <X size={15} />
+                      </button>
                     </div>
                   ) : (
+                    /* Search input */
                     <div className="chem-search-wrap">
                       <svg className="chem-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -380,42 +395,41 @@ const TransferDashboard = () => {
                       <input
                         type="text"
                         className="search-input"
-                        placeholder="Start typing chemical name or CAS..."
+                        placeholder="Type chemical name or CAS…"
                         value={chemSearch}
                         onChange={e => setChemSearch(e.target.value)}
                         onFocus={() => { if (chemResults.length > 0 || !chemSearch.trim()) setDropdownOpen(true); }}
                         autoComplete="off"
-                        style={{ fontSize: '0.875rem' }}
                       />
                       {chemLoading && <div className="chem-search-spinner" />}
                     </div>
                   ))}
 
+                  {/* Dropdown */}
                   {dropdownOpen && !selectedChem && form.source_lab && (
                     <div className="chem-dropdown">
-                      {chemResults.length > 0 ? (
-                        chemResults.map(chem => (
-                          <div key={chem._id} className="chem-dropdown-item" onMouseDown={() => pickChem(chem)}>
-                            <div className="chem-item-name">{chem.name}</div>
-                            <div className="chem-item-meta">
-                              <span className="chem-id-badge">{chem.id}</span>
-                              {chem.cas_number && <span className="chem-cas-badge">CAS: {chem.cas_number}</span>}
-                              {chem.formula && <span className="chem-formula-badge">{chem.formula}</span>}
-                              <span className="chem-qty-badge">{chem.quantity ?? '?'} {chem.unit}</span>
-                              <span className={`chem-status-dot ${chem.status === 'In Stock' ? 'dot-green' :
-                                chem.status === 'Low Stock' || chem.status === 'Near Expiry' ? 'dot-amber' : 'dot-red'
-                                }`}>{chem.status}</span>
-                            </div>
+                      {chemResults.length > 0 ? chemResults.map(chem => (
+                        <div key={chem._id} className="chem-dropdown-item" onMouseDown={() => pickChem(chem)}>
+                          <div className="chem-item-name">{chem.name}</div>
+                          <div className="chem-item-meta">
+                            <span className="chem-id-badge">{chem.id}</span>
+                            {chem.cas_number && <span className="chem-cas-badge">CAS: {chem.cas_number}</span>}
+                            {chem.formula    && <span className="chem-formula-badge">{chem.formula}</span>}
+                            <span className="chem-qty-badge">{chem.quantity ?? '?'} {chem.unit}</span>
+                            <span className={`chem-status-dot ${
+                              chem.status === 'In Stock' ? 'dot-green' :
+                              chem.status === 'Low Stock' || chem.status === 'Near Expiry' ? 'dot-amber' : 'dot-red'
+                            }`}>{chem.status}</span>
                           </div>
-                        ))
-                      ) : (
+                        </div>
+                      )) : (
                         <div className="chem-no-results">
-                          <Ban size={24} style={{ opacity: 0.5, marginBottom: '0.75rem' }} />
-                          {chemLoading ? 'Searching inventory...' : (
+                          <Ban size={22} style={{ opacity: 0.4, marginBottom: '0.5rem' }} />
+                          {chemLoading ? 'Searching…' : (
                             <>
                               <div style={{ fontWeight: 900, color: '#475569' }}>Chemical Not Found</div>
-                              <div style={{ fontSize: '0.8125rem', opacity: 0.7, marginTop: '0.25rem' }}>
-                                No results for "{chemSearch}" in this laboratory.
+                              <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '0.25rem' }}>
+                                No results for "{chemSearch}" in this lab.
                               </div>
                             </>
                           )}
@@ -425,7 +439,7 @@ const TransferDashboard = () => {
                   )}
                 </div>
 
-                {/* Batch & Container */}
+                {/* 3. Batch & Container */}
                 <div className="form-row">
                   <div className="form-group">
                     <label>Batch Number</label>
@@ -439,12 +453,13 @@ const TransferDashboard = () => {
                   </div>
                 </div>
 
-                {/* Quantity & Unit */}
+                {/* 4. Quantity & Unit */}
                 <div className="form-row">
                   <div className="form-group">
                     <label>Quantity *</label>
                     <input type="number" required min="0.001" step="any" placeholder="Amount"
-                      value={form.quantity_moved} onChange={e => setForm(f => ({ ...f, quantity_moved: e.target.value }))} />
+                      value={form.quantity_moved}
+                      onChange={e => setForm(f => ({ ...f, quantity_moved: e.target.value }))} />
                   </div>
                   <div className="form-group">
                     <label>Unit *</label>
@@ -459,46 +474,34 @@ const TransferDashboard = () => {
                   </div>
                 </div>
 
-                {/* Reason */}
+                {/* 5. Reason */}
                 <div className="form-group">
                   <label>Reason / Purpose</label>
                   <textarea
-                    rows="2"
-                    placeholder="e.g. Running low on stock for experiment #34, urgently needed..."
+                    rows="3"
+                    placeholder="e.g. Running low on stock for experiment #34, urgently needed…"
                     value={form.reason}
                     onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
-                    style={{
-                      width: '100%',
-                      background: 'var(--secondary-50)',
-                      border: '1px solid var(--secondary-100)',
-                      borderRadius: '1rem',
-                      padding: '0.875rem 1.25rem',
-                      fontSize: '0.9375rem',
-                      color: 'var(--secondary-900)',
-                      resize: 'vertical',
-                      outline: 'none',
-                      fontFamily: 'inherit'
-                    }}
                   />
                 </div>
 
+                {/* Submit Row */}
                 <div className="modal-actions">
-                  <button
-                    type="button"
-                    className="btn-form-secondary"
-                    onClick={() => { setIsModalOpen(false); resetModal(); }}
-                  >
+                  <button type="button" className="btn-form-secondary"
+                    onClick={() => { setIsModalOpen(false); resetModal(); }}>
                     Cancel
                   </button>
                   <button type="submit" className="btn-primary-glow">
-                    <ArrowUpDown size={18} />
+                    <ArrowUpDown size={16} />
                     Submit Requisition
                   </button>
                 </div>
+
               </form>
             </div>
           </div>
         )}
+
       </div>
     </Layout>
   );

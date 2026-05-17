@@ -17,8 +17,8 @@ const Sidebar = ({ isOpen, onClose }) => {
   };
 
   const handleNavClick = () => {
-    // Close sidebar on mobile after nav click
-    if (window.innerWidth < 1024) onClose?.();
+    // Close sidebar on mobile/narrow desktop after nav click
+    if (window.innerWidth < 1280) onClose?.();
   };
 
   const menuItems = [
