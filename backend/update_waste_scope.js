@@ -21,3 +21,4 @@ content = content.replace(/WasteSafetyIncident\.aggregate\(\[/g, 'WasteSafetyInc
 
 fs.writeFileSync('src/controllers/waste/wasteController.js', content, 'utf8');
 
+

@@ -50,18 +50,65 @@ const createNotification = async (data) => {
     // TRIGGER EMAIL for high/critical severity
     if (data.severity === 'high' || data.severity === 'critical') {
       const User = require('../models/User');
-      const labManagers = await User.find({ role: 'Lab Manager', status: 'Active' });
-      
-      let recipientEmails = labManagers.map(mgr => mgr.email);
-      
-      // Include the triggering user if they are provided and have an email
-      if (data.metadata?.triggeredByEmail && !recipientEmails.includes(data.metadata.triggeredByEmail)) {
-         recipientEmails.push(data.metadata.triggeredByEmail);
+
+      /**
+       * Role-based email routing map.
+       * Each notification type maps to the roles whose users should receive the email.
+       * Types not explicitly listed fall back to ['Lab Manager'].
+       */
+      const TYPE_TO_ROLES = {
+        // Admin only — security & system
+        'UNAUTHORIZED_ACCESS':  ['Admin'],
+        'SYSTEM':               ['Admin'],
+
+        // Safety Officer (+ Lab Manager as backup) — all hazard & compliance types
+        'HAZARD':               ['Safety Officer', 'Lab Manager'],
+        'COMPLIANCE':           ['Safety Officer', 'Lab Manager'],
+        'DISPOSAL':             ['Safety Officer', 'Lab Manager'],
+        'INCOMPATIBILITY':      ['Safety Officer', 'Lab Manager'],
+        'SPILL_INCIDENT':       ['Safety Officer', 'Lab Manager'],
+        'STORAGE_CONDITION':    ['Safety Officer', 'Lab Manager'],
+        'MISSING_DOCUMENT':     ['Safety Officer', 'Lab Manager'],
+        'EMERGENCY':            ['Safety Officer', 'Lab Manager', 'Admin'],
+        'ENVIRONMENTAL_RISK':   ['Safety Officer', 'Lab Manager'],
+
+        // Lab Manager & Lab Technicians — operational inventory alerts
+        'LOW_STOCK':            ['Lab Manager', 'Lab Technician', 'Lab Technician', 'Technician', 'Lab technician'],
+        'EXPIRY':               ['Lab Manager'],
+        'INFO':                 ['Lab Manager'],
+
+        // REQUEST_UPDATE — email sent directly to the requester, handled separately
+        'REQUEST_UPDATE':       [],
+      };
+
+      const targetRoles = TYPE_TO_ROLES[data.type] ?? ['Lab Manager'];
+      let recipientEmails = [];
+
+      if (data.type === 'REQUEST_UPDATE') {
+        // Email only the original requester (ObjectId stored in metadata.user)
+        if (data.metadata?.user) {
+          const requester = await User.findById(data.metadata.user).select('email status');
+          if (requester && requester.status === 'Active' && requester.email) {
+            recipientEmails.push(requester.email);
+          }
+        }
+      } else if (targetRoles.length > 0) {
+        const roleQuery = { status: 'Active', role: { $in: targetRoles } };
+        // Scope to the lab that generated the alert — prevent cross-lab email leakage
+        if (data.lab) roleQuery.labs = data.lab;
+
+        const targetedUsers = await User.find(roleQuery).select('email');
+        recipientEmails = targetedUsers.map(u => u.email);
       }
 
-      // Fallback to EMAIL_USER if no lab managers or triggered user exist
+      // Always CC the action-triggering user (e.g. the technician who submitted a request)
+      if (data.metadata?.triggeredByEmail && !recipientEmails.includes(data.metadata.triggeredByEmail)) {
+        recipientEmails.push(data.metadata.triggeredByEmail);
+      }
+
+      // Fallback: if nothing resolved, use the system email
       if (recipientEmails.length === 0) {
-         recipientEmails = [process.env.EMAIL_USER];
+        recipientEmails = [process.env.EMAIL_USER];
       }
 
       const emailHtml = formatNotificationEmail(data);
@@ -69,17 +116,17 @@ const createNotification = async (data) => {
       let lastError = null;
 
       for (const email of recipientEmails) {
-         console.log(`[Email] Attempting to send alert: ${data.title} to ${email}`);
-         const emailResult = await sendEmail(email, `[CIMS ALERT] ${data.title}`, emailHtml);
-         if (emailResult.success) {
-            console.log(`[Email] Successfully delivered: ${emailResult.messageId} to ${email}`);
-            anySuccess = true;
-         } else {
-            console.error(`[Email] Failed delivery to ${email}:`, emailResult.error);
-            lastError = emailResult.error?.message;
-         }
+        console.log(`[Email] Sending [${data.type}] "${data.title}" → ${email}`);
+        const emailResult = await sendEmail(email, `[CIMS ALERT] ${data.title}`, emailHtml);
+        if (emailResult.success) {
+          console.log(`[Email] Delivered: ${emailResult.messageId} → ${email}`);
+          anySuccess = true;
+        } else {
+          console.error(`[Email] Failed → ${email}:`, emailResult.error);
+          lastError = emailResult.error?.message;
+        }
       }
-      
+
       if (anySuccess) {
         notification.channels.push({ type: 'email', isSent: true, sentAt: new Date() });
       } else {
@@ -109,7 +156,7 @@ const createNotification = async (data) => {
 /**
  * Specifically creates a low stock notification.
  */
-const notifyLowStock = async (chemical, threshold, labId) => {
+const notifyLowStock = async (chemical, threshold, labId, user = null) => {
   return await createNotification({
     type: 'LOW_STOCK',
     category: 'inventory',
@@ -124,7 +171,9 @@ const notifyLowStock = async (chemical, threshold, labId) => {
     },
     metadata: {
       currentQuantity: chemical.quantity,
-      threshold: threshold
+      threshold: threshold,
+      triggeredByEmail: user?.email,
+      triggeredByName: user?.name
     }
   });
 };
@@ -201,12 +250,190 @@ const notifyHazardWarning = async (chemical, action, user, labId) => {
   });
 };
 
+/**
+ * Disposal chemical alert — triggered when a high-risk disposal request is submitted.
+ */
+const notifyDisposalAlert = async (chemical, quantity, unit, riskLevel, labId, user = null) => {
+  return await createNotification({
+    type: 'DISPOSAL',
+    category: 'safety',
+    title: `Disposal Alert: ${chemical.name}`,
+    message: `A disposal request for ${quantity} ${unit} of ${chemical.name} has been submitted. Risk Level: ${riskLevel}.`,
+    severity: riskLevel === 'Extreme' ? 'critical' : 'high',
+    priority: riskLevel === 'Extreme' ? 1 : 2,
+    lab: labId || chemical.lab,
+    related: { chemicalId: String(chemical._id || chemical.id), chemicalName: chemical.name },
+    metadata: {
+      triggeredByEmail: user?.email,
+      triggeredByName: user?.name,
+      action: `Disposal Requested (${riskLevel} Risk)`
+    }
+  });
+};
+
+/**
+ * Chemical incompatibility warning.
+ */
+const notifyIncompatibility = async (chemical, incompatibleWith, labId, user = null) => {
+  return await createNotification({
+    type: 'INCOMPATIBILITY',
+    category: 'safety',
+    title: `Incompatibility Warning: ${chemical.name}`,
+    message: `${chemical.name} is incompatible with ${incompatibleWith}. Ensure proper separation and storage segregation.`,
+    severity: 'high',
+    priority: 2,
+    lab: labId || chemical.lab,
+    related: { chemicalId: String(chemical._id || chemical.id), chemicalName: chemical.name },
+    metadata: {
+      triggeredByEmail: user?.email,
+      triggeredByName: user?.name,
+      action: 'Incompatibility Detected'
+    }
+  });
+};
+
+/**
+ * Spill incident alert.
+ */
+const notifySpillIncident = async ({ chemicalName, chemicalId, severity, location, labId, user }) => {
+  return await createNotification({
+    type: 'SPILL_INCIDENT',
+    category: 'safety',
+    title: `Spill Incident: ${chemicalName}`,
+    message: `A chemical spill involving ${chemicalName} has been reported at ${location || 'an unknown location'}. Immediate response required.`,
+    severity: severity || 'critical',
+    priority: 1,
+    lab: labId,
+    related: { chemicalId: chemicalId ? String(chemicalId) : undefined, chemicalName },
+    metadata: {
+      triggeredByEmail: user?.email,
+      triggeredByName: user?.name,
+      action: 'Spill Incident Reported'
+    }
+  });
+};
+
+/**
+ * Unsafe storage condition alert.
+ */
+const notifyUnsafeStorage = async (chemical, issue, labId, user = null) => {
+  return await createNotification({
+    type: 'STORAGE_CONDITION',
+    category: 'safety',
+    title: `Unsafe Storage: ${chemical.name}`,
+    message: `Unsafe storage condition detected for ${chemical.name}: ${issue}. Please review storage requirements immediately.`,
+    severity: 'high',
+    priority: 2,
+    lab: labId || chemical.lab,
+    related: { chemicalId: String(chemical._id || chemical.id), chemicalName: chemical.name },
+    metadata: {
+      triggeredByEmail: user?.email,
+      triggeredByName: user?.name,
+      action: 'Unsafe Storage Detected'
+    }
+  });
+};
+
+/**
+ * Missing SDS document alert.
+ */
+const notifyMissingSDS = async (chemical, labId, user = null) => {
+  return await createNotification({
+    type: 'MISSING_DOCUMENT',
+    category: 'safety',
+    title: `Missing SDS: ${chemical.name}`,
+    message: `Safety Data Sheet (SDS) is missing for ${chemical.name}. Upload or link the SDS document to ensure regulatory compliance.`,
+    severity: 'medium',
+    priority: 3,
+    lab: labId || chemical.lab,
+    related: { chemicalId: String(chemical._id || chemical.id), chemicalName: chemical.name },
+    metadata: {
+      triggeredByEmail: user?.email,
+      triggeredByName: user?.name,
+      action: 'Missing SDS Detected'
+    }
+  });
+};
+
+/**
+ * Emergency hazard alert (highest urgency).
+ */
+const notifyEmergencyHazard = async ({ title, message, chemicalName, chemicalId, labId, user }) => {
+  return await createNotification({
+    type: 'EMERGENCY',
+    category: 'safety',
+    title: title || `EMERGENCY: ${chemicalName}`,
+    message: message || `An emergency hazard event has been triggered involving ${chemicalName}. Evacuate and follow emergency protocols immediately.`,
+    severity: 'critical',
+    priority: 1,
+    lab: labId,
+    related: { chemicalId: chemicalId ? String(chemicalId) : undefined, chemicalName },
+    metadata: {
+      triggeredByEmail: user?.email,
+      triggeredByName: user?.name,
+      action: 'Emergency Hazard Triggered'
+    }
+  });
+};
+
+/**
+ * Environmental risk warning.
+ */
+const notifyEnvironmentalRisk = async (chemical, details, labId, user = null) => {
+  return await createNotification({
+    type: 'ENVIRONMENTAL_RISK',
+    category: 'safety',
+    title: `Environmental Risk: ${chemical.name}`,
+    message: `Environmental risk detected for ${chemical.name}: ${details}. Review disposal and containment procedures immediately.`,
+    severity: 'high',
+    priority: 2,
+    lab: labId || chemical.lab,
+    related: { chemicalId: String(chemical._id || chemical.id), chemicalName: chemical.name },
+    metadata: {
+      triggeredByEmail: user?.email,
+      triggeredByName: user?.name,
+      action: 'Environmental Risk Detected'
+    }
+  });
+};
+
+/**
+ * Hazard exposure alert.
+ */
+const notifyHazardExposure = async ({ chemicalName, chemicalId, exposureType, affectedPersons, labId, user }) => {
+  return await createNotification({
+    type: 'HAZARD',
+    category: 'safety',
+    title: `Hazard Exposure: ${chemicalName}`,
+    message: `A hazard exposure event (${exposureType}) involving ${chemicalName} has been reported. ${affectedPersons ? `Affected: ${affectedPersons}.` : ''} Immediate medical assessment may be required.`,
+    severity: 'critical',
+    priority: 1,
+    lab: labId,
+    related: { chemicalId: chemicalId ? String(chemicalId) : undefined, chemicalName },
+    metadata: {
+      triggeredByEmail: user?.email,
+      triggeredByName: user?.name,
+      action: 'Hazard Exposure Reported'
+    }
+  });
+};
+
 module.exports = {
   createNotification,
   notifyLowStock,
   notifyExpiry,
   notifyUnauthorizedAccess,
-  notifyHazardWarning
+  notifyHazardWarning,
+  notifyDisposalAlert,
+  notifyIncompatibility,
+  notifySpillIncident,
+  notifyUnsafeStorage,
+  notifyMissingSDS,
+  notifyEmergencyHazard,
+  notifyEnvironmentalRisk,
+  notifyHazardExposure
 };
+
+
 
 

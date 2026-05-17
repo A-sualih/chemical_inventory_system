@@ -95,3 +95,4 @@ const FilterPanel = ({ filters, setFilters, onClear, buildings }) => {
 };
 
 export default FilterPanel;
+

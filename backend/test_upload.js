@@ -8,3 +8,4 @@ cloudinary.config({
 cloudinary.uploader.upload("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", { folder: "test" })
   .then(res => console.log("Success:", res))
   .catch(err => console.log("Cloudinary Upload Error:", err));
+

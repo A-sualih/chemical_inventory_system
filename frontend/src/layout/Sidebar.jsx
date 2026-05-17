@@ -44,7 +44,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { 
       name: "Inventory", 
       path: "/chemicals", 
-      roles: ["Lab Manager", "Safety Officer", "Procurement Officer", "Laboratory Staff", "Viewer / Auditor"],
+      roles: ["Lab Manager", "Safety Officer", "Lab Technician", "Viewer / Auditor"],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 00-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" />
@@ -55,7 +55,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { 
       name: "Fast Check-In/Out", 
       path: "/transactions", 
-      roles: ["Lab Manager", "Safety Officer", "Procurement Officer", "Laboratory Staff"],
+      roles: ["Lab Manager", "Safety Officer", "Lab Technician"],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -65,7 +65,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { 
       name: "Alerts Center", 
       path: "/notifications", 
-      roles: ["Admin", "Lab Manager", "Safety Officer", "Procurement Officer", "Laboratory Staff"],
+      roles: ["Admin", "Lab Manager", "Safety Officer", "Lab Technician"],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -75,7 +75,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { 
       name: "Containers", 
       path: "/containers", 
-      roles: ["Lab Manager", "Safety Officer", "Procurement Officer", "Laboratory Staff", "Viewer / Auditor"],
+      roles: ["Lab Manager", "Safety Officer", "Lab Technician", "Viewer / Auditor"],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -85,7 +85,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { 
       name: "Batches", 
       path: "/batches", 
-      roles: ["Lab Manager", "Safety Officer", "Procurement Officer", "Laboratory Staff", "Viewer / Auditor"],
+      roles: ["Lab Manager", "Safety Officer", "Lab Technician", "Viewer / Auditor"],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
@@ -95,7 +95,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { 
       name: "Expiry Intelligence", 
       path: "/expiry", 
-      roles: ["Lab Manager", "Safety Officer", "Procurement Officer", "Laboratory Staff"],
+      roles: ["Lab Manager", "Safety Officer", "Lab Technician"],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -105,7 +105,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { 
       name: "Master Ledger", 
       path: "/logs", 
-      roles: ["Lab Manager", "Safety Officer", "Procurement Officer", "Laboratory Staff"],
+      roles: ["Lab Manager", "Safety Officer", "Lab Technician"],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
       )
@@ -113,7 +113,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { 
       name: "Requests", 
       path: "/requests", 
-      roles: ["Lab Manager", "Safety Officer", "Procurement Officer", "Laboratory Staff"],
+      roles: ["Lab Manager", "Safety Officer", "Lab Technician"],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
       )
@@ -121,7 +121,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { 
       name: "Transfers", 
       path: "/transfers", 
-      roles: ["Lab Manager", "Safety Officer", "Procurement Officer"],
+      roles: ["Lab Manager", "Safety Officer"],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -182,7 +182,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { 
       name: "Procurement", 
       path: "/procurement", 
-      roles: ["Admin", "Lab Manager", "Procurement Officer"],
+      roles: ["Admin", "Lab Manager"],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -202,7 +202,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { 
       name: "Waste & Disposal", 
       path: "/waste", 
-      roles: ["Lab Manager", "Safety Officer"],
+      roles: ["Lab Manager", "Safety Officer", "Lab Technician"],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -248,8 +248,8 @@ const Sidebar = ({ isOpen, onClose }) => {
       case "Admin": return "role-admin";
       case "Lab Manager": return "role-manager";
       case "Safety Officer": return "role-safety";
-      case "Procurement Officer": return "role-procurement";
-      case "Laboratory Staff": return "role-technician";
+      case "Lab Technician": return "role-technician";
+      case "Lab Technician": return "role-technician";
       case "Viewer / Auditor": return "role-auditor";
       default: return "role-default";
     }
@@ -365,3 +365,6 @@ const Sidebar = ({ isOpen, onClose }) => {
 };
 
 export default Sidebar;
+
+
+

@@ -29,3 +29,4 @@ batchSchema.index({ batch_number: 1, lab: 1 }, { unique: true });
 module.exports = mongoose.model('Batch', batchSchema);
 
 
+

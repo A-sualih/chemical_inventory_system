@@ -13,3 +13,4 @@ router.get('/', settingsController.getSettings);
 router.put('/', authenticate, authorize(PERMISSIONS.MANAGE_SETTINGS), settingsController.updateSettings);
 
 module.exports = router;
+

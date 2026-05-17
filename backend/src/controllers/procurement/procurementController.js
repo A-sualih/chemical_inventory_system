@@ -272,10 +272,10 @@ exports.updatePurchaseOrderStatus = async (req, res) => {
 
     // RBAC checks
     const role = req.user?.role;
-    if (status === 'Approved' && !['Admin', 'Lab Manager', 'Procurement Officer'].includes(role)) {
+    if (status === 'Approved' && !['Admin', 'Lab Manager'].includes(role)) {
       return res.status(403).json({ error: 'Insufficient permissions to approve purchase orders' });
     }
-    if (status === 'Rejected' && !['Admin', 'Lab Manager', 'Procurement Officer'].includes(role)) {
+    if (status === 'Rejected' && !['Admin', 'Lab Manager'].includes(role)) {
       return res.status(403).json({ error: 'Insufficient permissions to reject purchase orders' });
     }
 
@@ -612,3 +612,5 @@ exports.getSupplierRankings = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+

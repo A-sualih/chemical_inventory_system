@@ -80,3 +80,4 @@ filesToFix.forEach(f => {
 });
 
 console.log("Emoji replacement complete.");
+

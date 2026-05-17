@@ -24,20 +24,21 @@ function authenticate(req, res, next) {
 }
 
 /**
- * Middleware to check if user has a specific permission
+ * Middleware to check if user has at least one of the specific permissions
  */
-function authorize(permission) {
+function authorize(...permissions) {
   return (req, res, next) => {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
 
     const userPermissions = ROLE_PERMISSIONS[req.user.role] || [];
-    if (!userPermissions.includes(permission)) {
+    const hasPermission = permissions.some(p => userPermissions.includes(p));
+    
+    if (!hasPermission) {
       const { notifyUnauthorizedAccess } = require('../services/notificationService');
-      notifyUnauthorizedAccess(req.user, `Attempted restricted action: ${permission}`, req.ip, req.headers['user-agent']).catch(console.error);
-      return res.status(403).json({ error: `Forbidden: Missing permission [${permission}]` });
+      notifyUnauthorizedAccess(req.user, `Attempted restricted action: ${permissions.join(' OR ')}`, req.ip, req.headers['user-agent']).catch(console.error);
+      return res.status(403).json({ error: `Forbidden: Missing permission [${permissions.join(' OR ')}]` });
     }
     next();
-
   };
 }
 
@@ -75,6 +76,7 @@ async function logAudit(req, { action, targetType, targetId, targetName, details
 }
 
 module.exports = { authenticate, authorize, logAudit, JWT_SECRET, ROLES };
+
 
 
 

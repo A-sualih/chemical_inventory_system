@@ -24,8 +24,17 @@ exports.createChemical = async (req, res) => {
     const baseUnit = getBaseUnit(chemData.unit);
     const baseQuantity = convertToBase(chemData.quantity, chemData.unit);
     
+    const SystemSettings = require('../../models/SystemSettings');
+    const settings = await SystemSettings.findOne();
+    const globalLowStockPercent = settings?.alertThresholds?.lowStockPercent || 10;
+    
     const count = await Chemical.countDocuments(req.activeLabId ? { lab: req.activeLabId } : {});
     const id = `C${String(count + 1).padStart(3, '0')}`;
+    
+    let threshold = chemData.threshold !== undefined ? chemData.threshold : 5;
+    if (chemData.quantity && chemData.quantity > 0) {
+      threshold = chemData.quantity * (globalLowStockPercent / 100);
+    }
     
     const chemical = new Chemical({
       lab: req.activeLabId,
@@ -33,7 +42,8 @@ exports.createChemical = async (req, res) => {
       id,
       base_unit: baseUnit,
       base_quantity: baseQuantity,
-      status: chemData.quantity < 5 ? 'Low Stock' : 'In Stock'
+      initial_quantity: chemData.quantity,
+      status: chemData.quantity <= threshold ? 'Low Stock' : 'In Stock'
     });
     
     await chemical.save();
@@ -357,11 +367,24 @@ exports.handleTransaction = async (req, res) => {
       return res.status(400).json({ error: "Invalid action" });
     }
 
+    const SystemSettings = require('../../models/SystemSettings');
+    const settings = await SystemSettings.findOne();
+    const globalLowStockPercent = settings?.alertThresholds?.lowStockPercent || 10;
+    
+    let calculatedThreshold = targetChem.threshold !== undefined ? targetChem.threshold : 5;
+    if (targetChem.initial_quantity && targetChem.initial_quantity > 0) {
+      calculatedThreshold = targetChem.initial_quantity * (globalLowStockPercent / 100);
+    } else if (targetChem.base_quantity && targetChem.quantity === targetChem.base_quantity && !targetChem.initial_quantity) {
+      calculatedThreshold = targetChem.quantity * (globalLowStockPercent / 100);
+    }
+    
+    const lowStockThreshold = calculatedThreshold;
+
     if (targetChem.quantity <= 0) {
       targetChem.status = 'Out of Stock';
     } else if (action === 'OUT' || action === 'DISPOSAL') {
       targetChem.status = 'In Use';
-    } else if (targetChem.quantity < 5) {
+    } else if (targetChem.quantity <= lowStockThreshold) {
       targetChem.status = 'Low Stock';
     } else if (targetChem.status !== 'In Use') {
       targetChem.status = 'In Stock';
@@ -372,9 +395,8 @@ exports.handleTransaction = async (req, res) => {
     const { checkChemicalExpiry } = require('../../services/expiryService');
     await checkChemicalExpiry(targetChem);
 
-    const lowStockThreshold = targetChem.threshold !== undefined ? targetChem.threshold : 5;
     if (targetChem.quantity <= lowStockThreshold) {
-      await notifyLowStock(targetChem, lowStockThreshold);
+      await notifyLowStock(targetChem, lowStockThreshold, req.activeLabId, req.user);
     }
 
     if (action === 'TRANSFER' || action === 'DISPOSAL') {
@@ -630,9 +652,20 @@ exports.handleFifoUsage = async (req, res) => {
 
     await chem.save();
 
-    const lowStockThreshold = chem.threshold !== undefined ? chem.threshold : 5;
+    const SystemSettings = require('../../models/SystemSettings');
+    const settings = await SystemSettings.findOne();
+    const globalLowStockPercent = settings?.alertThresholds?.lowStockPercent || 10;
+    
+    let calculatedThreshold = chem.threshold !== undefined ? chem.threshold : 5;
+    if (chem.initial_quantity && chem.initial_quantity > 0) {
+      calculatedThreshold = chem.initial_quantity * (globalLowStockPercent / 100);
+    } else if (chem.base_quantity && chem.quantity === chem.base_quantity && !chem.initial_quantity) {
+      calculatedThreshold = chem.quantity * (globalLowStockPercent / 100);
+    }
+    
+    const lowStockThreshold = calculatedThreshold;
     if (chem.quantity <= lowStockThreshold) {
-      await notifyLowStock(chem, lowStockThreshold);
+      await notifyLowStock(chem, lowStockThreshold, req.activeLabId, req.user);
     }
 
     const batchIdsList = [...new Set(usedContainersLog.map(c => c.batchId))].join(', ');
@@ -703,9 +736,27 @@ exports.quickScan = async (req, res) => {
 
       chem.base_quantity -= changeInBase;
       chem.quantity = convertFromBase(chem.base_quantity, chem.unit);
-      chem.status = chem.quantity <= 0 ? 'Out of Stock' : (chem.quantity < 5 ? 'Low Stock' : 'In Use');
+      
+      const SystemSettings = require('../../models/SystemSettings');
+      const settings = await SystemSettings.findOne();
+      const globalLowStockPercent = settings?.alertThresholds?.lowStockPercent || 10;
+      
+      let calculatedThreshold = chem.threshold !== undefined ? chem.threshold : 5;
+      if (chem.initial_quantity && chem.initial_quantity > 0) {
+        calculatedThreshold = chem.initial_quantity * (globalLowStockPercent / 100);
+      } else if (chem.base_quantity && chem.quantity === chem.base_quantity && !chem.initial_quantity) {
+        calculatedThreshold = chem.quantity * (globalLowStockPercent / 100);
+      }
+      
+      const lowStockThreshold = calculatedThreshold;
+      
+      chem.status = chem.quantity <= 0 ? 'Out of Stock' : (chem.quantity <= lowStockThreshold ? 'Low Stock' : 'In Use');
       
       await chem.save();
+      
+      if (chem.quantity <= lowStockThreshold) {
+        await notifyLowStock(chem, lowStockThreshold, req.activeLabId, req.user);
+      }
 
       const log = new InventoryLog({ lab: req.activeLabId, 
         chemical_id: chem.id,
@@ -775,3 +826,4 @@ exports.quickScan = async (req, res) => {
     res.status(500).json({ error: 'Quick scan failed' });
   }
 };
+

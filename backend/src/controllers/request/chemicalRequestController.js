@@ -1,13 +1,17 @@
 const ChemicalRequest = require('../../models/ChemicalRequest');
 const PurchaseOrder = require('../../models/PurchaseOrder');
 const TransferRequest = require('../../models/TransferRequest');
-const Notification = require('../../models/Notification');
+const { createNotification } = require('../../services/notificationService');
 const Chemical = require('../../models/Chemical');
 const User = require('../../models/User');
 
 // technician submits
 exports.submitRequest = async (req, res) => {
   try {
+    if (!req.activeLabId) {
+      return res.status(400).json({ error: "Please select an active laboratory to submit a request." });
+    }
+
     const { chemical_name, cas_number, quantity, unit, reason } = req.body;
     
     const request = new ChemicalRequest({
@@ -22,21 +26,35 @@ exports.submitRequest = async (req, res) => {
 
     await request.save();
     
-    // Notify Manager (optional, but good)
-    // Find lab manager...
-    
+    // Notify Lab Manager of new request
+    await createNotification({
+      type: 'INFO',
+      category: 'inventory',
+      title: 'New Chemical Request',
+      message: `${req.user.name} has submitted a request for ${quantity} ${unit} of ${chemical_name}. Reason: ${reason}`,
+      severity: 'high',
+      priority: 2,
+      lab: req.activeLabId,
+      metadata: {
+        triggeredByEmail: req.user.email,
+        triggeredByName: req.user.name,
+        requestId: request._id
+      }
+    });
+
     res.status(201).json(request);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 };
 
+
 exports.getRequests = async (req, res) => {
   try {
-    let query = { lab: req.activeLabId };
+    let query = req.activeLabId ? { lab: req.activeLabId } : {};
     
     // If technician, only see own
-    if (req.user.role === 'Technician') {
+    if (req.user.role === 'Technician' || req.user.role === 'Lab Technician') {
       query.requester = req.user.id;
     }
 
@@ -66,14 +84,20 @@ exports.rejectRequest = async (req, res) => {
     await request.save();
 
     // Notify Technician
-    const notification = new Notification({
-      user: request.requester,
+    await createNotification({
+      type: 'REQUEST_UPDATE',
+      category: 'system',
       title: 'Chemical Request Rejected',
       message: `Your request for ${request.chemical_name} was rejected: ${notes}`,
-      type: 'Alert',
-      lab: request.lab
+      severity: 'medium',
+      priority: 3,
+      lab: request.lab,
+      metadata: {
+        triggeredByEmail: req.user.email,
+        triggeredByName: req.user.name,
+        user: request.requester
+      }
     });
-    await notification.save();
 
     res.json(request);
   } catch (err) {
@@ -96,14 +120,20 @@ exports.buyRequest = async (req, res) => {
     await request.save();
 
     // Create Notification for technician
-    const notification = new Notification({
-      user: request.requester,
+    await createNotification({
+      type: 'REQUEST_UPDATE',
+      category: 'system',
       title: 'Purchase Requested',
       message: `A purchase order has been initiated for ${request.chemical_name}.`,
-      type: 'Info',
-      lab: request.lab
+      severity: 'low',
+      priority: 3,
+      lab: request.lab,
+      metadata: {
+        triggeredByEmail: req.user.email,
+        triggeredByName: req.user.name,
+        user: request.requester
+      }
     });
-    await notification.save();
 
     res.json(request);
   } catch (err) {
@@ -139,8 +169,24 @@ exports.transferRequest = async (req, res) => {
     request.target_lab = target_lab_id;
     await request.save();
 
+    await createNotification({
+      type: 'REQUEST_UPDATE',
+      category: 'system',
+      title: 'Transfer Requested',
+      message: `A chemical transfer has been initiated for ${request.chemical_name}.`,
+      severity: 'low',
+      priority: 3,
+      lab: request.lab,
+      metadata: {
+        triggeredByEmail: req.user.email,
+        triggeredByName: req.user.name,
+        user: request.requester
+      }
+    });
+
     res.json(request);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+

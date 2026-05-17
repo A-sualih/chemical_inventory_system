@@ -7,6 +7,7 @@ const chemicalSchema = new mongoose.Schema({
   cas_number: { type: String },
   formula: { type: String },
   quantity: { type: Number },
+  initial_quantity: { type: Number },
   unit: { type: String },
   base_quantity: { type: Number },
   base_unit: { type: String },
@@ -120,6 +121,7 @@ chemicalSchema.index({ archived: 1 });
 chemicalSchema.index({ id: 1, lab: 1 }, { unique: true });
 
 module.exports = mongoose.model('Chemical', chemicalSchema);
+
 
 
 

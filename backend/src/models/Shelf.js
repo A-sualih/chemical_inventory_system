@@ -15,3 +15,4 @@ const shelfSchema = new mongoose.Schema({
 shelfSchema.index({ cabinet: 1, name: 1 }, { unique: true });
 
 module.exports = mongoose.model('Shelf', shelfSchema);
+

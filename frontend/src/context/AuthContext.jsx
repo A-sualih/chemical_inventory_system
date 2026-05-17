@@ -24,15 +24,12 @@ export const AuthProvider = ({ children }) => {
       "view_audit_logs", "view_chemicals", "submit_request", "update_stock",
       "view_safety_info", "manage_waste", "approve_disposal", "approve_cross_lab_transfer"
     ],
-    "Laboratory Staff": [
-      "view_chemicals", "update_stock", "submit_request"
+    "Lab Technician": [
+      "view_chemicals", "update_stock", "submit_request", "view_safety_info"
     ],
     "Safety Officer": [
       "view_chemicals", "view_safety_info", "view_reports", "view_audit_logs",
       "manage_waste", "approve_disposal"
-    ],
-    "Procurement Officer": [
-      "view_chemicals", "view_reports", "view_financials", "submit_request"
     ],
     "Viewer / Auditor": [
       "view_chemicals", "view_reports", "view_audit_logs", "view_safety_info"
@@ -165,3 +162,6 @@ export const useAuth = () => {
   }
   return context;
 };
+
+
+

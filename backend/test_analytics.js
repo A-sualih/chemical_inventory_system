@@ -15,3 +15,4 @@ mongoose.connect(process.env.MONGO_URI).then(async () => {
   }
   process.exit();
 });
+

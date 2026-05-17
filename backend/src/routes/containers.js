@@ -18,3 +18,4 @@ router.delete('/:id', authorize(PERMISSIONS.DELETE_CHEMICAL), containerControlle
 module.exports = router;
 
 
+

@@ -72,3 +72,4 @@ const requireLabScope = async (req, res, next) => {
 module.exports = {
   requireLabScope
 };
+

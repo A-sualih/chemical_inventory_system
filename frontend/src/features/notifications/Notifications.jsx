@@ -1,34 +1,68 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Layout from '../../layout/Layout';
 import { useNotifications } from '../../context/NotificationContext';
-import { Inbox, Box, AlertTriangle, Lock, Info } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import {
+  Inbox, Box, AlertTriangle, Lock, Info, ShieldAlert, Trash2,
+  FlaskConical, Droplets, Thermometer, FileWarning, Siren,
+  Leaf, Bell, CheckCheck, RefreshCw, ChevronDown
+} from 'lucide-react';
 import axios from 'axios';
 import '../../styles/Notifications.css';
 
+// ── Static config ──────────────────────────────────────────────────────────────
+const TYPE_CONFIG = {
+  LOW_STOCK:           { label: 'Low Stock',              icon: Box,           color: 'sev-high' },
+  EXPIRY:              { label: 'Expiry Warning',         icon: AlertTriangle, color: 'sev-warning' },
+  UNAUTHORIZED_ACCESS: { label: 'Security Alert',         icon: Lock,          color: 'sev-critical' },
+  SYSTEM:              { label: 'System',                 icon: Bell,          color: 'sev-info' },
+  COMPLIANCE:          { label: 'Compliance',             icon: FileWarning,   color: 'sev-warning' },
+  HAZARD:              { label: 'Hazard Warning',         icon: ShieldAlert,   color: 'sev-critical' },
+  DISPOSAL:            { label: 'Disposal Alert',         icon: Trash2,        color: 'sev-high' },
+  INCOMPATIBILITY:     { label: 'Incompatibility',        icon: FlaskConical,  color: 'sev-high' },
+  SPILL_INCIDENT:      { label: 'Spill Incident',         icon: Droplets,      color: 'sev-critical' },
+  STORAGE_CONDITION:   { label: 'Unsafe Storage',         icon: Thermometer,   color: 'sev-high' },
+  MISSING_DOCUMENT:    { label: 'Missing SDS',            icon: FileWarning,   color: 'sev-warning' },
+  EMERGENCY:           { label: 'Emergency',              icon: Siren,         color: 'sev-critical' },
+  ENVIRONMENTAL_RISK:  { label: 'Environmental Risk',     icon: Leaf,          color: 'sev-high' },
+  REQUEST_UPDATE:      { label: 'Request Update',         icon: CheckCheck,    color: 'sev-info' },
+  INFO:                { label: 'Info',                   icon: Info,          color: 'sev-info' },
+};
+
+// Types visible per role (mirrors backend applyRoleFilters)
+const ROLE_TYPES = {
+  'Admin':              ['UNAUTHORIZED_ACCESS', 'SYSTEM'],
+  'Lab Manager':        ['LOW_STOCK', 'EXPIRY', 'COMPLIANCE', 'SYSTEM'],
+  'Safety Officer':     ['COMPLIANCE', 'HAZARD', 'SYSTEM', 'DISPOSAL', 'INCOMPATIBILITY', 'SPILL_INCIDENT', 'STORAGE_CONDITION', 'MISSING_DOCUMENT', 'EMERGENCY', 'ENVIRONMENTAL_RISK'],
+  'Lab Technician':     ['LOW_STOCK', 'EXPIRY', 'REQUEST_UPDATE', 'SYSTEM'],
+  'Technician':         ['LOW_STOCK', 'EXPIRY', 'REQUEST_UPDATE', 'SYSTEM'],
+};
+
 const Notifications = () => {
   const { notifications, loading, markAsRead, dismissNotification, refresh } = useNotifications();
+  const { user } = useAuth();
   const [filter, setFilter] = useState({ type: '', severity: '', status: '' });
   const [cleaning, setCleaning] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
+  const [testType, setTestType] = useState('SYSTEM');
+  const [toastMsg, setToastMsg] = useState(null);
 
-  const getSeverityStyles = (severity) => {
-    switch (severity) {
-      case 'critical': return 'sev-critical';
-      case 'high': return 'sev-high';
-      case 'medium': return 'sev-medium';
-      default: return 'sev-default';
-    }
+  const showToast = (msg, isError = false) => {
+    setToastMsg({ msg, isError });
+    setTimeout(() => setToastMsg(null), 3500);
   };
 
-  const [sendingTest, setSendingTest] = useState(false);
+  // Role-aware type options for the filter
+  const roleTypes = ROLE_TYPES[user?.role] || Object.keys(TYPE_CONFIG);
 
   const handleTestAlert = async () => {
     setSendingTest(true);
     try {
-      await axios.post('/api/notifications/test');
+      await axios.post(`/api/notifications/test/${testType}`);
       refresh();
-      alert('Test alert triggered! Check your dashboard terminal for the SMS log and your email for the alert.');
+      showToast(`[${testType}] test alert fired successfully.`);
     } catch (err) {
-      alert('Failed to trigger test alert.');
+      showToast('Failed to trigger test alert.', true);
     } finally {
       setSendingTest(false);
     }
@@ -40,9 +74,9 @@ const Notifications = () => {
     try {
       await axios.delete('/api/notifications/cleanup');
       refresh();
-      alert('Cleanup complete.');
+      showToast('Cleanup complete.');
     } catch (err) {
-      alert('Cleanup failed.');
+      showToast('Cleanup failed.', true);
     } finally {
       setCleaning(false);
     }
@@ -50,32 +84,55 @@ const Notifications = () => {
 
   return (
     <Layout>
+      {/* Toast */}
+      {toastMsg && (
+        <div style={{
+          position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 9999,
+          background: toastMsg.isError ? '#ef4444' : '#10b981',
+          color: 'white', padding: '0.875rem 1.5rem', borderRadius: '0.875rem',
+          fontWeight: 700, fontSize: '0.875rem', boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+          display: 'flex', alignItems: 'center', gap: '0.5rem'
+        }}>
+          {toastMsg.isError ? '✕' : '✓'} {toastMsg.msg}
+        </div>
+      )}
+
       <div className="notif-header">
-        <div>
-          <h1 className="notif-title">Notification Center</h1>
-          <p className="notif-subtitle">Manage your alerts, safety warnings, and security events.</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="header-icon-container" style={{ width: '48px', height: '48px', backgroundColor: 'var(--primary-50)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-600)' }}>
+            <Bell size={26} />
+          </div>
+          <div>
+            <h1 className="notif-title">Notification Center</h1>
+            <p className="notif-subtitle">Manage your alerts, safety warnings, and security events.</p>
+          </div>
         </div>
         <div className="notif-actions">
-          <button 
-            onClick={handleTestAlert}
-            disabled={sendingTest}
-            className="btn-test"
-          >
-            <svg className="w-5 h-5" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-            {sendingTest ? 'Sending...' : 'Send Test Alert'}
+          {/* Typed test selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <select
+              value={testType}
+              onChange={e => setTestType(e.target.value)}
+              className="filter-select"
+              style={{ minWidth: '160px', fontSize: '0.8rem' }}
+            >
+              {roleTypes.map(t => (
+                <option key={t} value={t}>{TYPE_CONFIG[t]?.label || t}</option>
+              ))}
+            </select>
+            <button
+              onClick={handleTestAlert}
+              disabled={sendingTest}
+              className="btn-test"
+            >
+              {sendingTest ? 'Sending…' : 'Test Alert'}
+            </button>
+          </div>
+          <button onClick={refresh} className="btn-refresh" title="Refresh">
+            <RefreshCw size={16} />
           </button>
-          <button 
-            onClick={refresh}
-            className="btn-refresh"
-          >
-            <svg className="w-5 h-5" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-          </button>
-          <button 
-            onClick={handleCleanup}
-            disabled={cleaning}
-            className="btn-cleanup"
-          >
-            {cleaning ? 'Cleaning...' : 'Cleanup Old Alerts'}
+          <button onClick={handleCleanup} disabled={cleaning} className="btn-cleanup">
+            {cleaning ? 'Cleaning…' : 'Cleanup Old Alerts'}
           </button>
         </div>
       </div>
@@ -85,20 +142,19 @@ const Notifications = () => {
         <div className="notif-filters-col">
           <div className="filter-card">
             <h3 className="filter-title">Filters</h3>
-            
+
             <div>
               <div className="filter-group">
                 <label className="filter-label">Alert Type</label>
-                <select 
+                <select
                   className="filter-select"
                   value={filter.type}
                   onChange={(e) => setFilter({...filter, type: e.target.value})}
                 >
                   <option value="">All Types</option>
-                  <option value="LOW_STOCK">Low Stock</option>
-                  <option value="EXPIRY">Expiry</option>
-                  <option value="UNAUTHORIZED_ACCESS">Security</option>
-                  <option value="SYSTEM">System</option>
+                  {roleTypes.map(t => (
+                    <option key={t} value={t}>{TYPE_CONFIG[t]?.label || t}</option>
+                  ))}
                 </select>
               </div>
 
@@ -153,7 +209,7 @@ const Notifications = () => {
               if (filteredNotifications.length === 0) {
                 return (
                   <div className="empty-state">
-                    <div className="empty-icon"><Inbox /></div>
+                    <div className="empty-icon"><Inbox className="empty-svg-icon" /></div>
                     <p className="empty-title">Inbox is Empty</p>
                     <p className="empty-desc">No alerts matching your criteria.</p>
                   </div>
@@ -161,65 +217,81 @@ const Notifications = () => {
               }
 
               return (
-                <div>
-                  {filteredNotifications.map((notif) => (
-                  <div key={notif._id} className={`notif-item ${notif.status === 'unread' ? 'unread' : ''}`}>
-                    <div className="icon-box">
-                      {notif.type === 'LOW_STOCK' ? <Box color="var(--amber-500)" /> : notif.type === 'EXPIRY' ? <AlertTriangle color="var(--red-500)" /> : notif.type === 'UNAUTHORIZED_ACCESS' ? <Lock color="var(--red-500)" /> : <Info color="var(--primary-500)" />}
-                    </div>
+                <div className="notif-cards-wrapper">
+                  {filteredNotifications.map((notif) => {
                     
-                    <div className="notif-content">
-                      <div className="notif-top-row">
-                        <div>
-                          <h3 className="notif-heading">{notif.title}</h3>
-                          <div className="notif-meta">
-                             <span className={`severity-badge ${getSeverityStyles(notif.severity)}`}>
-                              {notif.severity}
-                            </span>
-                            <span className="time-badge">
-                              {new Date(notif.createdAt).toLocaleString()}
-                            </span>
-                          </div>
+                    // Resolve type config
+                    const tc = TYPE_CONFIG[notif.type] || TYPE_CONFIG.INFO;
+                    const IconComp = tc.icon;
+
+                    // Severity colour class
+                    let sevClass = tc.color;
+                    if (notif.severity === 'critical') sevClass = 'sev-critical';
+                    else if (notif.severity === 'high') sevClass = 'sev-high';
+                    else if (notif.severity === 'medium') sevClass = 'sev-warning';
+
+                    return (
+                      <div key={notif._id} className={`notif-item ${notif.status === 'unread' ? 'unread' : ''}`}>
+                        <div className={`icon-box ${sevClass}`}>
+                          <IconComp className="notif-svg-icon" />
                         </div>
-                        <div className="notif-actions-btns">
-                          {notif.status === 'unread' && (
-                            <button 
-                              onClick={() => markAsRead(notif._id)}
-                              className="btn-mark-read"
-                            >
-                              Mark Read
-                            </button>
+                        
+                        <div className="notif-content">
+                          <div className="notif-top-row">
+                            <div>
+                              <h3 className="notif-heading">{notif.title}</h3>
+                              <div className="notif-meta">
+                                <span className={`severity-badge ${sevClass}-badge`}>
+                                  {notif.severity}
+                                </span>
+                                <span className="related-tag" style={{ fontSize: '0.7rem', fontWeight: 700, opacity: 0.85 }}>
+                                  {tc.label}
+                                </span>
+                                <span className="time-badge">
+                                  {new Date(notif.createdAt).toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="notif-actions-btns">
+                              {notif.status === 'unread' && (
+                                <button 
+                                  onClick={() => markAsRead(notif._id)}
+                                  className="btn-mark-read"
+                                >
+                                  Mark Read
+                                </button>
+                              )}
+                              <button 
+                                onClick={() => dismissNotification(notif._id)}
+                                className="btn-dismiss"
+                              >
+                                Dismiss
+                              </button>
+                            </div>
+                          </div>
+                          <p className="notif-message">
+                            {notif.message}
+                          </p>
+                          
+                          {notif.related && (
+                            <div className="notif-related">
+                              {notif.related.chemicalName && (
+                                <span className="related-tag">
+                                  Chemical: {notif.related.chemicalName}
+                                </span>
+                              )}
+                              {notif.related.containerId && (
+                                <span className="related-tag">
+                                  Container: {notif.related.containerId}
+                                </span>
+                              )}
+                            </div>
                           )}
-                          <button 
-                            onClick={() => dismissNotification(notif._id)}
-                            className="btn-dismiss"
-                          >
-                            Dismiss
-                          </button>
                         </div>
                       </div>
-                      <p className="notif-message">
-                        {notif.message}
-                      </p>
-                      
-                      {notif.related && (
-                        <div className="notif-related">
-                          {notif.related.chemicalName && (
-                            <span className="related-tag">
-                              Chemical: {notif.related.chemicalName}
-                            </span>
-                          )}
-                           {notif.related.containerId && (
-                            <span className="related-tag">
-                              Container: {notif.related.containerId}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    );
+                  })}
+                </div>
               );
             })()}
           </div>
@@ -230,3 +302,6 @@ const Notifications = () => {
 };
 
 export default Notifications;
+
+
+

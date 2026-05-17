@@ -192,3 +192,4 @@ const FIFOUsageModal = ({ chemical, onClose, onSuccess }) => {
 };
 
 export default FIFOUsageModal;
+

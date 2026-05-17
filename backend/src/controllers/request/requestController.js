@@ -83,6 +83,10 @@ exports.getFifoContainer = async (req, res) => {
 exports.submitRequest = async (req, res) => {
   const { chemical_id, container_id, quantity, unit, reason } = req.body;
   
+  if (!req.activeLabId) {
+    return res.status(400).json({ error: "Please select an active laboratory to submit a request." });
+  }
+
   try {
     const labQuery = req.activeLabId ? { lab: req.activeLabId } : {};
     const chemical = await Chemical.findOne({
@@ -193,6 +197,28 @@ exports.submitRequest = async (req, res) => {
       details: `Requested ${quantity} ${unit} of ${chemical.name} from container ${container.container_id}`,
       newValue: request.toObject()
     });
+
+    const { createNotification } = require('../../services/notificationService');
+    await createNotification({
+      type: 'INFO',
+      category: 'inventory',
+      title: 'Standard Usage Request',
+      message: `${req.user.name} has requested ${quantity} ${unit} of ${chemical.name}. Reason: ${reason}`,
+      severity: 'high',
+      priority: 2,
+      lab: req.activeLabId,
+      related: {
+        chemicalId: chemical._id,
+        chemicalName: chemical.name,
+        containerId: container.container_id
+      },
+      metadata: {
+        triggeredByEmail: req.user.email,
+        triggeredByName: req.user.name,
+        requestId: request._id
+      }
+    });
+
     res.status(201).json(request);
   } catch (err) {
     console.error(err);
@@ -283,7 +309,7 @@ exports.approveRequest = async (req, res) => {
       chemical_name: chemical.name,
       user_id: request.user_id,
       user_name: requester ? requester.name : 'Unknown',
-      user_role: requester ? requester.role : 'Laboratory Staff',
+      user_role: requester ? requester.role : 'Lab Technician',
       action: 'OUT',
       quantity_change: request.quantity,
       unit: request.unit,
@@ -301,6 +327,17 @@ exports.approveRequest = async (req, res) => {
       targetName: chemical.name,
       details: `Approved request ${request._id} for ${chemical.name}`,
       newValue: { status: 'Approved', handled_by: req.user.name, notes }
+    });
+
+    const notificationService = require('../../services/notificationService');
+    await notificationService.createNotification({
+      type: 'REQUEST_UPDATE',
+      category: 'inventory',
+      title: 'Usage Request Approved',
+      message: `Your request for ${request.quantity} ${request.unit} of ${chemical.name} has been APPROVED by ${req.user.name}. Notes: ${notes || 'None'}`,
+      severity: 'low',
+      lab: req.activeLabId,
+      metadata: { user: request.user_id }
     });
     
     res.json({ message: 'Request approved and stock updated', request });
@@ -332,9 +369,22 @@ exports.rejectRequest = async (req, res) => {
       details: `Rejected request ${request._id}`,
       newValue: { status: 'Rejected', handled_by: req.user.name, notes }
     });
+
+    const notificationService = require('../../services/notificationService');
+    await notificationService.createNotification({
+      type: 'REQUEST_UPDATE',
+      category: 'inventory',
+      title: 'Usage Request Rejected',
+      message: `Your chemical usage request has been REJECTED by ${req.user.name}. Notes: ${notes || 'None'}`,
+      severity: 'medium',
+      lab: req.activeLabId,
+      metadata: { user: request.user_id }
+    });
     
     res.json({ message: 'Request rejected', request });
   } catch (err) {
     res.status(500).json({ error: 'Failed to reject request' });
   }
 };
+
+

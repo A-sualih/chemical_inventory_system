@@ -20,3 +20,4 @@ procurementLogSchema.index({ performed_by: 1 });
 procurementLogSchema.index({ timestamp: -1 });
 
 module.exports = mongoose.model('ProcurementLog', procurementLogSchema);
+

@@ -105,3 +105,4 @@ purchaseOrderSchema.index({ order_date: -1 });
 purchaseOrderSchema.index({ is_deleted: 1 });
 
 module.exports = mongoose.model('PurchaseOrder', purchaseOrderSchema);
+

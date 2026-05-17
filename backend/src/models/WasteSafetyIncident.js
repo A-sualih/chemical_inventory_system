@@ -51,3 +51,4 @@ wasteSafetyIncidentSchema.pre('validate', async function() {
 });
 
 module.exports = mongoose.model('WasteSafetyIncident', wasteSafetyIncidentSchema);
+

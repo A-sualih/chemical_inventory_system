@@ -35,3 +35,4 @@ router.patch('/inventory-request/:id/transfer', authorize(PERMISSIONS.APPROVE_RE
 module.exports = router;
 
 
+

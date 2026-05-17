@@ -40,3 +40,4 @@ const inventoryLogSchema = new mongoose.Schema({
 module.exports = mongoose.model('InventoryLog', inventoryLogSchema);
 
 
+

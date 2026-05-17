@@ -26,3 +26,4 @@ router.delete('/:batch_number', authorize(PERMISSIONS.DELETE_CHEMICAL), batchCon
 module.exports = router;
 
 
+

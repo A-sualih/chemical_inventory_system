@@ -19,3 +19,4 @@ router.get('/export/pdf', authorize(PERMISSIONS.VIEW_AUDIT_LOGS), auditControlle
 module.exports = router;
 
 
+

@@ -36,3 +36,4 @@ router.put('/:id', authorize(PERMISSIONS.MANAGE_SETTINGS), locationController.up
 router.delete('/:id', authorize(PERMISSIONS.MANAGE_SETTINGS), locationController.deleteLocation);
 
 module.exports = router;
+

@@ -14,3 +14,4 @@ const cabinetSchema = new mongoose.Schema({
 cabinetSchema.index({ room: 1, name: 1 }, { unique: true });
 
 module.exports = mongoose.model('Cabinet', cabinetSchema);
+

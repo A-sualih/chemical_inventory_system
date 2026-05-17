@@ -13,3 +13,4 @@ router.delete('/:id', authorize('MANAGE_LABS'), labController.deleteLab);
 router.post('/switch', labController.switchActiveLab);
 
 module.exports = router;
+

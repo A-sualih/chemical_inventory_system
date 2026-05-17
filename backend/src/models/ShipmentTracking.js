@@ -59,3 +59,4 @@ shipmentTrackingSchema.index({ status: 1 });
 shipmentTrackingSchema.index({ tracking_number: 1 });
 
 module.exports = mongoose.model('ShipmentTracking', shipmentTrackingSchema);
+

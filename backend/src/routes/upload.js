@@ -24,3 +24,4 @@ router.post('/', authenticate, (req, res, next) => {
 });
 
 module.exports = router;
+

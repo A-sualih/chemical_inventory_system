@@ -4,7 +4,7 @@ const NotificationSchema = new mongoose.Schema({
   lab: { type: mongoose.Schema.Types.ObjectId, ref: 'Lab' },
   type: {
     type: String,
-    enum: ['LOW_STOCK', 'EXPIRY', 'UNAUTHORIZED_ACCESS', 'SYSTEM', 'INFO', 'COMPLIANCE'],
+    enum: ['LOW_STOCK', 'EXPIRY', 'UNAUTHORIZED_ACCESS', 'SYSTEM', 'INFO', 'COMPLIANCE', 'REQUEST_UPDATE', 'HAZARD', 'DISPOSAL', 'INCOMPATIBILITY', 'SPILL_INCIDENT', 'STORAGE_CONDITION', 'MISSING_DOCUMENT', 'EMERGENCY', 'ENVIRONMENTAL_RISK'],
     required: true
   },
   category: {
@@ -97,5 +97,6 @@ NotificationSchema.index({ 'recipients.userId': 1 });
 NotificationSchema.index({ isRead: 1 });
 
 module.exports = mongoose.model('Notification', NotificationSchema);
+
 
 

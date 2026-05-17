@@ -77,3 +77,4 @@ supplierSchema.index({ is_deleted: 1 });
 supplierSchema.index({ is_preferred: 1 });
 
 module.exports = mongoose.model('Supplier', supplierSchema);
+

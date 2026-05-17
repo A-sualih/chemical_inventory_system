@@ -47,3 +47,4 @@ vendorPerformanceSchema.index({ supplier_id: 1 });
 vendorPerformanceSchema.index({ review_date: -1 });
 
 module.exports = mongoose.model('VendorPerformance', vendorPerformanceSchema);
+

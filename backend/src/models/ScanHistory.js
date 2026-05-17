@@ -26,3 +26,4 @@ scanHistorySchema.index({ barcode: 1 });
 scanHistorySchema.index({ labId: 1 });
 
 module.exports = mongoose.model('ScanHistory', scanHistorySchema);
+

@@ -357,7 +357,7 @@ exports.verifyMfa = async (req, res) => {
     if (!verified) {
       user.failed_attempts = (user.failed_attempts || 0) + 1;
       if (user.failed_attempts >= 5) {
-        user.locked_until = new Date(Date.now() + 15 * 60 * 1000);
+        user.locked_until = new Date(Date.now() + 1 * 60 * 1000);
         await notifyUnauthorizedAccess(user, 'Multiple failed MFA attempts', req.ip, req.headers['user-agent']);
       }
       await user.save();
@@ -458,3 +458,4 @@ exports.checkAdminsTemp = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+

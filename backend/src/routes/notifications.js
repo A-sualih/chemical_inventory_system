@@ -22,10 +22,16 @@ router.patch('/:id/dismiss', notificationController.dismissNotification);
 // DELETE /api/notifications/cleanup - Admin cleanup of old notifications
 router.delete('/cleanup', authorize(PERMISSIONS.DELETE_CHEMICAL), notificationController.cleanupNotifications);
 
-// POST /api/notifications/test - Trigger a test notification for debugging
+// POST /api/notifications/test - Trigger a generic SYSTEM test notification
 router.post('/test', authorize(PERMISSIONS.EDIT_CHEMICAL), notificationController.triggerTestNotification);
 
+// POST /api/notifications/test/:type - Trigger a specific alert type for testing
+// e.g. POST /api/notifications/test/DISPOSAL
+// e.g. POST /api/notifications/test/SPILL_INCIDENT
+router.post('/test/:type', authorize(PERMISSIONS.EDIT_CHEMICAL), notificationController.triggerTypedTestNotification);
+
 module.exports = router;
+
 
 
 

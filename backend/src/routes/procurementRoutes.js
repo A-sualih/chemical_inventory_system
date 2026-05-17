@@ -41,3 +41,4 @@ router.get('/analytics',              authenticate, ctrl.getProcurementAnalytics
 router.get('/logs',                   authenticate, ctrl.getProcurementLogs);
 
 module.exports = router;
+

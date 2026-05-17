@@ -51,3 +51,4 @@ wasteComplianceSchema.pre('validate', async function() {
 });
 
 module.exports = mongoose.model('WasteCompliance', wasteComplianceSchema);
+

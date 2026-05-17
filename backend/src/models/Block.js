@@ -12,3 +12,4 @@ const blockSchema = new mongoose.Schema({
 blockSchema.index({ lab: 1, name: 1 }, { unique: true });
 
 module.exports = mongoose.model('Block', blockSchema);
+

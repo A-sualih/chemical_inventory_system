@@ -31,3 +31,4 @@ async function createNitricContainer() {
 }
 
 createNitricContainer().catch(console.error);
+

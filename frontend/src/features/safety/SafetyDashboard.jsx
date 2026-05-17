@@ -438,3 +438,4 @@ const SafetyDashboard = () => {
 };
 
 export default SafetyDashboard;
+

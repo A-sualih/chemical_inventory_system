@@ -283,3 +283,4 @@ const LabManagement = () => {
 };
 
 export default LabManagement;
+

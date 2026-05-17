@@ -10,7 +10,7 @@ router.use(authenticate, requireLabScope);
 
 // Disposal Records
 router.get('/disposals',                authorize(PERMISSIONS.VIEW_CHEMICALS), ctrl.getDisposals);
-router.post('/disposals',               authorize(PERMISSIONS.MANAGE_WASTE), ctrl.createDisposalRequest);
+router.post('/disposals',               authorize(PERMISSIONS.MANAGE_WASTE, PERMISSIONS.SUBMIT_REQUEST), ctrl.createDisposalRequest);
 router.get('/disposals/:id/fifo-preview', authorize(PERMISSIONS.APPROVE_DISPOSAL), ctrl.getDisposalFifoPreview);
 router.put('/disposals/:id/approve',    authorize(PERMISSIONS.APPROVE_DISPOSAL), ctrl.approveDisposal);
 router.put('/disposals/:id/reject',     authorize(PERMISSIONS.APPROVE_DISPOSAL), ctrl.rejectDisposal);
@@ -40,3 +40,4 @@ router.post('/protocols',               authorize(PERMISSIONS.MANAGE_WASTE), ctr
 router.get('/analytics',                authorize(PERMISSIONS.VIEW_REPORTS), ctrl.getWasteAnalytics);
 
 module.exports = router;
+

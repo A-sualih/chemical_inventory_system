@@ -798,3 +798,4 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
 };
 
 export default StockActionModal;
+

@@ -237,3 +237,4 @@ exports.globalIncompatibilityScan = async (req, res) => {
     res.status(500).json({ error: 'Global incompatibility scan failed' });
   }
 };
+

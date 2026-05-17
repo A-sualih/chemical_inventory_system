@@ -87,3 +87,4 @@ export const SettingsProvider = ({ children }) => {
 };
 
 export const useSettings = () => useContext(SettingsContext);
+

@@ -21,3 +21,4 @@ router.get('/scan/:code', authorize('view_chemical'), mobileController.getScanRe
 router.post('/history/sync', mobileController.syncHistory);
 
 module.exports = router;
+

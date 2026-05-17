@@ -19,3 +19,4 @@ content = content.replace(/const logs = await InventoryLog\.find\(\{ chemical_id
 content = content.replace(/const log = new InventoryLog\(\{/g, 'const log = new InventoryLog({ lab: req.activeLabId, ');
 
 fs.writeFileSync('src/controllers/inventory/inventoryController.js', content, 'utf8');
+

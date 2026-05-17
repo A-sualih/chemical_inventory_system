@@ -430,7 +430,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
               style={{ width: '300px' }}
             />
           </div>
-          {hasPermission('manage_waste') && (
+          { (hasPermission('manage_waste') || hasPermission('submit_request')) && (
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button
                 className="btn-waste-primary"
@@ -1091,3 +1091,4 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
     </div>
   );
 }
+

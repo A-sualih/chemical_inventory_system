@@ -422,3 +422,4 @@ const Chemicals = () => {
 };
 
 export default Chemicals;
+

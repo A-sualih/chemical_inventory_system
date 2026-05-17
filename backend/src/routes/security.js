@@ -40,3 +40,4 @@ router.post('/restore', authenticate, authorize(PERMISSIONS.PERFORM_RESTORE), se
 router.get('/roles', authenticate, authorize(PERMISSIONS.MANAGE_USERS), securityController.getRoleStats);
 
 module.exports = router;
+

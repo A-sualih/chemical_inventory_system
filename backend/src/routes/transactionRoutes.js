@@ -18,3 +18,4 @@ router.post('/checkin',  ctrl.checkIn);
 router.get('/history', ctrl.getTransactionHistory);
 
 module.exports = router;
+

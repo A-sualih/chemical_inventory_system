@@ -229,3 +229,4 @@ const ScanQR = () => {
 };
 
 export default ScanQR;
+

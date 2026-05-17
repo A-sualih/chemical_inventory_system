@@ -440,3 +440,4 @@ const ChemicalDetails = () => {
 };
 
 export default ChemicalDetails;
+

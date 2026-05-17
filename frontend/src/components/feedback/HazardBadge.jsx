@@ -43,3 +43,4 @@ export const HazardBadge = ({ hazards = [], size = "md", showLabel = false }) =>
 };
 
 export default HazardBadge;
+

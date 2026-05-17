@@ -385,3 +385,4 @@ const InventoryLogs = () => {
 };
 
 export default InventoryLogs;
+

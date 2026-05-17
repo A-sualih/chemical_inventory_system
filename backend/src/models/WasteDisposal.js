@@ -115,3 +115,4 @@ wasteDisposalSchema.index({ status: 1 });
 wasteDisposalSchema.index({ method: 1 });
 
 module.exports = mongoose.model('WasteDisposal', wasteDisposalSchema);
+

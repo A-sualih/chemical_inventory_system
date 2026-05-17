@@ -26,3 +26,4 @@ locationSchema.index({ lab: 1, building: 1, room: 1, cabinet: 1, shelf: 1 }, { u
 module.exports = mongoose.model('Location', locationSchema);
 
 
+

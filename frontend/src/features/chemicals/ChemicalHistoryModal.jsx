@@ -164,3 +164,4 @@ const ChemicalHistoryModal = ({ chemical, onClose }) => {
 };
 
 export default ChemicalHistoryModal;
+

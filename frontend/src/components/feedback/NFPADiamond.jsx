@@ -28,3 +28,4 @@ const NFPADiamond = ({ ratings = { health: 0, flammability: 0, reactivity: 0, sp
 };
 
 export default NFPADiamond;
+

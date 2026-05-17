@@ -35,3 +35,4 @@ const chemicalRequestSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 module.exports = mongoose.model('ChemicalRequest', chemicalRequestSchema);
+

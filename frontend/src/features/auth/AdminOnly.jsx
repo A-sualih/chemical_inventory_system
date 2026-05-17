@@ -152,9 +152,8 @@ const AdminOnlyPage = ({ title, description }) => {
                                           >
                                              <option value="Admin">System Administrator</option>
                                              <option value="Lab Manager">Operations Manager</option>
-                                             <option value="Laboratory Staff">Lab Technician / Staff</option>
+                                             <option value="Lab Technician">Lab Technician</option>
                                              <option value="Safety Officer">Safety Officer</option>
-                                             <option value="Procurement Officer">Procurement Officer</option>
                                              <option value="Viewer / Auditor">Viewer / Auditor</option>
                                           </select>
                                           <div className="role-select-icon">
@@ -474,3 +473,4 @@ const AdminOnlyPage = ({ title, description }) => {
 };
 
 export default AdminOnlyPage;
+

@@ -347,8 +347,33 @@ exports.createChemical = async (req, res) => {
 
     const highHazards = ['Explosive', 'Flammable', 'Toxic', 'Corrosive', 'Oxidizer'];
     if (newChem.ghs_classes?.some(h => highHazards.includes(h))) {
-      const { notifyHazardWarning } = require('../../services/notificationService');
+      const { notifyHazardWarning, notifyMissingSDS, notifyIncompatibility } = require('../../services/notificationService');
       await notifyHazardWarning(newChem, 'registered', req.user, req.activeLabId);
+
+      // Missing SDS alert
+      if (!hasSdsFile) {
+        await notifyMissingSDS(newChem, req.activeLabId, req.user);
+      }
+
+      // Incompatibility check against co-located chemicals
+      if (newChem.location && newChem.chemical_family) {
+        const collocated = await Chemical.find({ location: newChem.location, id: { $ne: newChem.id }, archived: false });
+        const incompatiblePairs = [['Acid','Base'],['Flammable','Oxidizer'],['Acid','Oxidizer'],['Base','Oxidizer']];
+        for (const co of collocated) {
+          if (!co.chemical_family) continue;
+          for (const pair of incompatiblePairs) {
+            if (pair.includes(newChem.chemical_family) && pair.includes(co.chemical_family) && newChem.chemical_family !== co.chemical_family) {
+              await notifyIncompatibility(newChem, `${co.chemical_family} chemical at ${newChem.location}`, req.activeLabId, req.user);
+              break;
+            }
+          }
+        }
+      }
+    } else {
+      const { notifyMissingSDS } = require('../../services/notificationService');
+      if (!hasSdsFile && newChem.ghs_classes?.length > 0) {
+        await notifyMissingSDS(newChem, req.activeLabId, req.user);
+      }
     }
 
     let safety_warnings = [];
@@ -515,6 +540,8 @@ exports.updateChemical = async (req, res) => {
       details: `Updated chemical information for ${oldName} (${chemical.id})`
     });
 
+    // Safety Officer: Incompatibility notification
+    const { notifyIncompatibility, notifyUnsafeStorage } = require('../../services/notificationService');
     let safety_warnings = [];
     if (chemical.location && chemical.chemical_family) {
       const collocated = await Chemical.find({ location: chemical.location, id: { $ne: chemical.id }, archived: false });
@@ -531,7 +558,18 @@ exports.updateChemical = async (req, res) => {
         for (let pair of incompatiblePairs) {
           if ((pair.includes(chemical.chemical_family) && pair.includes(f)) && chemical.chemical_family !== f) {
             safety_warnings.push(`⚠️ WARNING: Critical Incompatibility Detected. You have stored a(n) ${chemical.chemical_family} in the exact same location (${chemical.location}) as a(n) ${f}.`);
+            // Fire incompatibility notification
+            await notifyIncompatibility(chemical, `${f} chemical at ${chemical.location}`, chemical.lab || req.activeLabId, req.user);
           }
+        }
+      }
+
+      // Unsafe storage: check temperature/humidity against known rules
+      if (chemical.storage_temp) {
+        const tempStr = String(chemical.storage_temp).toLowerCase();
+        if (tempStr.includes('room') && chemical.ghs_classes?.includes('Flammable')) {
+          safety_warnings.push(`⚠️ Storage Condition: ${chemical.name} is flammable and stored at room temperature. Verify flammable cabinet compliance.`);
+          await notifyUnsafeStorage(chemical, 'Flammable chemical stored at room temperature without verified flammable cabinet', chemical.lab || req.activeLabId, req.user);
         }
       }
     }
@@ -630,3 +668,4 @@ exports.getLabelData = async (req, res) => {
     res.status(500).json({ error: 'Label data generation failed' });
   }
 };
+

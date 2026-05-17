@@ -68,24 +68,24 @@ function App() {
 
               {/* Chemical & Inventory Management */}
               <Route path="/chemicals" element={
-                <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Laboratory Staff", "Safety Officer", "Viewer / Auditor"]}>
+                <ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}>
                   <Chemicals />
                 </ProtectedRoute>
               } />
-              <Route path="/chemicals/new" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Laboratory Staff"]}><ChemicalForm /></ProtectedRoute>} />
-              <Route path="/chemicals/edit/:id" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Laboratory Staff"]}><ChemicalForm /></ProtectedRoute>} />
+              <Route path="/chemicals/new" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician"]}><ChemicalForm /></ProtectedRoute>} />
+              <Route path="/chemicals/edit/:id" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician"]}><ChemicalForm /></ProtectedRoute>} />
               <Route path="/chemicals/details/:id" element={<ProtectedRoute><ChemicalDetails /></ProtectedRoute>} />
               <Route path="/print/:id" element={<ProtectedRoute><PrintLabel /></ProtectedRoute>} />
               
               {/* Logistics & Batches */}
-              <Route path="/containers" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Laboratory Staff", "Safety Officer", "Procurement Officer", "Viewer / Auditor"]}><ContainerMaster /></ProtectedRoute>} />
-              <Route path="/batches" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Laboratory Staff", "Safety Officer", "Procurement Officer", "Viewer / Auditor"]}><BatchMaster /></ProtectedRoute>} />
-              <Route path="/expiry" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Laboratory Staff", "Safety Officer", "Procurement Officer"]}><ExpiryTracker /></ProtectedRoute>} />
+              <Route path="/containers" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}><ContainerMaster /></ProtectedRoute>} />
+              <Route path="/batches" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer", "Viewer / Auditor"]}><BatchMaster /></ProtectedRoute>} />
+              <Route path="/expiry" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Lab Technician", "Safety Officer"]}><ExpiryTracker /></ProtectedRoute>} />
               <Route path="/locations" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Viewer / Auditor"]}><LocationManager /></ProtectedRoute>} />
               
               {/* Workflow & Auditing */}
               <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
-              <Route path="/transfers" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Procurement Officer"]}><TransferDashboard /></ProtectedRoute>} />
+              <Route path="/transfers" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer"]}><TransferDashboard /></ProtectedRoute>} />
               <Route path="/logs" element={<ProtectedRoute><InventoryLogs /></ProtectedRoute>} />
               <Route path="/transactions" element={<ProtectedRoute><TransactionSystem /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer / Auditor"]}><Reports /></ProtectedRoute>} />
@@ -93,7 +93,7 @@ function App() {
               {/* Specialized Modules */}
               <Route path="/safety" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer / Auditor"]}><SafetyDashboard /></ProtectedRoute>} />
               <Route path="/procurement" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager"]}><ProcurementDashboard /></ProtectedRoute>} />
-              <Route path="/waste" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer"]}><WasteDashboard /></ProtectedRoute>} />
+              <Route path="/waste" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Lab Technician"]}><WasteDashboard /></ProtectedRoute>} />
 
               {/* Admin & Security Command Center */}
               <Route path="/settings" element={<ProtectedRoute allowedRoles={["Admin"]}><SystemSettings /></ProtectedRoute>} />
@@ -114,3 +114,7 @@ function App() {
 }
 
 export default App;
+
+
+
+

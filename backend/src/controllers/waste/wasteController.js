@@ -8,7 +8,10 @@ const Notification = require('../../models/Notification');
 const notificationService = require('../../services/notificationService');
 const User = require('../../models/User');
 const WasteSafetyProtocol = require('../../models/WasteSafetyProtocol');
-const { getBaseUnit } = require('../../utils/unitConverter');
+const { getBaseUnit, convertToBase, convertFromBase } = require('../../utils/unitConverter');
+const Batch = require('../../models/Batch');
+const Container = require('../../models/Container');
+const InventoryLog = require('../../models/InventoryLog');
 
 // Helper for audit logging
 const logWasteAction = async (req, action, targetId, details) => {
@@ -67,14 +70,18 @@ exports.createDisposalRequest = async (req, res) => {
                       chemical.hazard_summary?.hazard_class === 'Flammable' ? 'High' : 'Moderate';
     
     if (riskLevel === 'Extreme' || quantity > 100) {
-       await Notification.create({ lab: req.activeLabId, 
-         type: 'COMPLIANCE',
-         category: 'safety',
-         title: 'High-Risk Disposal Alert',
-         message: `A high-risk disposal activity has been requested for ${chemical.name} (${quantity} ${unit}). Risk Level: ${riskLevel}.`,
-         severity: 'critical',
-         recipients: [{ role: 'admin' }, { role: 'lab_manager' }]
-       });
+      await notificationService.notifyDisposalAlert(
+        chemical, quantity, unit, riskLevel, req.activeLabId, req.user
+      );
+      // Also flag environmental risk for toxic/explosive chemicals
+      if (chemical.hazard_summary?.hazard_class === 'Toxic' || chemical.hazard_summary?.hazard_class === 'Explosive') {
+        await notificationService.notifyEnvironmentalRisk(
+          chemical,
+          `Disposal of ${quantity} ${unit} of ${chemical.hazard_summary.hazard_class} chemical`,
+          req.activeLabId,
+          req.user
+        );
+      }
     }
     
     // 1. Compliance Check: Legal Disposal Limits
@@ -83,14 +90,13 @@ exports.createDisposalRequest = async (req, res) => {
     if (permit) {
       const limit = permit.limits.find(l => l.hazard_class === (hazard_classification || chemical.hazard_summary?.hazard_class));
       if (limit && (limit.current_quantity + Number(quantity)) > limit.max_quantity) {
-        // Create an alert but allow request (officer will see warning)
-        await Notification.create({ lab: req.activeLabId, 
+        await notificationService.createNotification({ lab: req.activeLabId, 
           type: 'COMPLIANCE',
           category: 'safety',
           title: 'Disposal Limit Warning',
           message: `Disposal of ${quantity} ${unit} ${chemical.name} exceeds the ${limit.period} limit of ${limit.max_quantity} ${limit.unit} for permit ${permit.permit_number}.`,
           severity: 'high',
-          recipients: [{ role: 'admin' }, { role: 'lab_manager' }]
+          metadata: { triggeredByEmail: req.user.email }
         });
       }
     }
@@ -187,27 +193,34 @@ exports.createDisposalRequest = async (req, res) => {
       await chemical.save();
       
       // Trigger Alerts based on new levels
-      if (chemical.quantity <= 0) {
-        await notificationService.createNotification({
-          type: 'SYSTEM',
-          category: 'inventory',
-          title: 'Out of Stock Alert',
-          message: `The inventory for ${chemical.name} has been completely depleted (0 ${chemical.unit}). Please restock if necessary.`,
-          severity: 'high',
-          lab: req.activeLabId,
-          recipients: [{ role: 'admin' }, { role: 'lab_manager' }]
-        });
-      } else {
-        const lowStockThreshold = chemical.threshold !== undefined ? chemical.threshold : 5;
-        if (chemical.quantity <= lowStockThreshold) {
-          // Update status to Low Stock if it's currently In Stock
-          if (chemical.status === 'In Stock') {
-            chemical.status = 'Low Stock';
-            await chemical.save();
-          }
-          await notificationService.notifyLowStock(chemical, lowStockThreshold, req.activeLabId);
-        }
+      const SystemSettings = require('../../models/SystemSettings');
+      const settings = await SystemSettings.findOne();
+      const globalLowStockPercent = settings?.alertThresholds?.lowStockPercent || 10;
+      
+      let calculatedThreshold = chemical.threshold !== undefined ? chemical.threshold : 5;
+      if (chemical.initial_quantity && chemical.initial_quantity > 0) {
+        calculatedThreshold = chemical.initial_quantity * (globalLowStockPercent / 100);
+      } else if (chemical.base_quantity && chemical.quantity === chemical.base_quantity && !chemical.initial_quantity) {
+        calculatedThreshold = chemical.quantity * (globalLowStockPercent / 100);
       }
+      
+      const lowStockThreshold = calculatedThreshold;
+
+      if (chemical.quantity <= 0) {
+        // Update status and notify
+        chemical.status = 'Out of Stock';
+        await chemical.save();
+        await notificationService.notifyLowStock(chemical, lowStockThreshold, req.activeLabId, req.user);
+      } else if (chemical.quantity <= lowStockThreshold) {
+        // Update status to Low Stock if it's currently In Stock
+        if (chemical.status === 'In Stock') {
+          chemical.status = 'Low Stock';
+          await chemical.save();
+        }
+        await notificationService.notifyLowStock(chemical, lowStockThreshold, req.activeLabId, req.user);
+      }
+        
+
       disposal.fifo_impact = impactedBatches;
       await disposal.save();
       
@@ -224,6 +237,22 @@ exports.createDisposalRequest = async (req, res) => {
     }
     // --------------------------------------
 
+    // Immediate notification to Lab Manager for disposal review
+    await notificationService.createNotification({
+      type: 'INFO',
+      category: 'safety',
+      title: 'Disposal Request Pending',
+      message: `${req.user.name} has requested to dispose of ${quantity} ${unit} of ${chemical.name}. Method: ${method}. Please review.`,
+      severity: 'high',
+      priority: 2,
+      lab: req.activeLabId,
+      metadata: {
+        triggeredByEmail: req.user.email,
+        triggeredByName: req.user.name,
+        disposalId: disposal._id
+      }
+    });
+
     await logWasteAction(req, 'CREATE', disposal._id, `Requested disposal of ${quantity} ${unit} ${chemical.name}`);
     res.status(201).json(disposal);
   } catch (err) {
@@ -231,11 +260,7 @@ exports.createDisposalRequest = async (req, res) => {
   }
 };
 
-const { convertToBase, convertFromBase } = require('../../utils/unitConverter');
 
-const Batch = require('../../models/Batch');
-const Container = require('../../models/Container');
-const InventoryLog = require('../../models/InventoryLog');
 
 // Helper to deplete containers for a specific batch
 const depleteContainersForBatch = async (batch, amountToSubtractInBase, targetedContainerId) => {
@@ -296,6 +321,18 @@ exports.approveDisposal = async (req, res) => {
     
     await disposal.save();
     await logWasteAction(req, 'APPROVE', disposal._id, `Approved disposal request for ${disposal.chemical_name}`);
+
+    // Notify the technician that their disposal was approved
+    const notificationService = require('../../services/notificationService');
+    await notificationService.createNotification({
+      type: 'REQUEST_UPDATE',
+      category: 'safety',
+      title: 'Disposal Request Approved',
+      message: `Your disposal request for ${disposal.quantity} ${disposal.unit} of ${disposal.chemical_name} has been APPROVED by ${req.user.name}. Notes: ${approval_notes || 'None'}`,
+      severity: 'low',
+      lab: req.activeLabId,
+      metadata: { user: disposal.requested_by }
+    });
 
     res.json(disposal);
   } catch (err) {
@@ -492,6 +529,18 @@ exports.rejectDisposal = async (req, res) => {
 
     await logWasteAction(req, 'REJECT', disposal._id, `Rejected disposal request for ${disposal.chemical_name}: ${rejection_notes}`);
 
+    // Notify the technician that their disposal was rejected
+    const notificationService = require('../../services/notificationService');
+    await notificationService.createNotification({
+      type: 'REQUEST_UPDATE',
+      category: 'safety',
+      title: 'Disposal Request Rejected',
+      message: `Your disposal request for ${disposal.quantity} ${disposal.unit} of ${disposal.chemical_name} has been REJECTED by ${req.user.name}. Notes: ${rejection_notes || 'None'}`,
+      severity: 'medium',
+      lab: req.activeLabId,
+      metadata: { user: disposal.requested_by }
+    });
+
     res.json(disposal);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -518,13 +567,13 @@ exports.completeDisposal = async (req, res) => {
     
     // Compliance Check: Missing Manifest or Certificate
     if (!disposal.compliance?.manifest_number || !disposal.compliance?.certificate_url) {
-      await Notification.create({ lab: req.activeLabId, 
+      await notificationService.createNotification({ lab: req.activeLabId, 
         type: 'COMPLIANCE',
         category: 'safety',
         title: 'Missing Disposal Documentation',
         message: `Disposal #${disposal.disposal_id} was completed without a manifest number or certificate link.`,
         severity: 'medium',
-        recipients: [{ role: 'admin' }, { userId: req.user.id }]
+        metadata: { triggeredByEmail: req.user.email }
       });
     }
 
@@ -730,6 +779,45 @@ exports.createSafetyIncident = async (req, res) => {
       reported_by_name: req.user.name
     });
     await incident.save();
+
+    const { type, chemical_name, chemical_id, severity, location } = req.body;
+
+    // Fire targeted Safety Officer alerts based on incident type
+    if (type === 'Spill' || type === 'spill') {
+      await notificationService.notifySpillIncident({
+        chemicalName: chemical_name || 'Unknown Chemical',
+        chemicalId: chemical_id,
+        severity: severity?.toLowerCase() || 'critical',
+        location,
+        labId: req.activeLabId,
+        user: req.user
+      });
+    } else if (type === 'Exposure' || type === 'exposure') {
+      await notificationService.notifyHazardExposure({
+        chemicalName: chemical_name || 'Unknown Chemical',
+        chemicalId: chemical_id,
+        exposureType: type,
+        affectedPersons: req.body.affected_persons,
+        labId: req.activeLabId,
+        user: req.user
+      });
+    } else if (type === 'Emergency' || severity?.toLowerCase() === 'critical') {
+      await notificationService.notifyEmergencyHazard({
+        chemicalName: chemical_name || 'Unknown Chemical',
+        chemicalId: chemical_id,
+        labId: req.activeLabId,
+        user: req.user
+      });
+    } else {
+      // General hazard warning for any other incident type
+      await notificationService.notifyHazardWarning(
+        { name: chemical_name || 'Unknown Chemical', _id: chemical_id, id: chemical_id, ghs_classes: req.body.ghs_classes, lab: req.activeLabId },
+        type || 'reported',
+        req.user,
+        req.activeLabId
+      );
+    }
+
     res.status(201).json(incident);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -827,6 +915,7 @@ exports.updateIncidentImpact = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
 
 
 
