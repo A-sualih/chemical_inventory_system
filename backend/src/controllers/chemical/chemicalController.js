@@ -11,7 +11,7 @@ exports.getStats = async (req, res) => {
     const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const totalCount = await Chemical.countDocuments({ archived: false, ...labQuery });
     const flammables = await Chemical.countDocuments({ ghs_classes: "Flammable", archived: false, ...labQuery });
-    
+
     const allHazards = await Chemical.aggregate([
       { $match: { archived: false, ...labQuery } },
       { $unwind: "$ghs_classes" },
@@ -19,7 +19,7 @@ exports.getStats = async (req, res) => {
     ]);
     const hazardSummary = allHazards.map(h => ({ id: h._id, count: h.count }));
     const lowStock = await Chemical.countDocuments({ status: "Low Stock", archived: false, ...labQuery });
-    
+
     const now = new Date();
     const in90Days = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
     const expiring = await Chemical.find({
@@ -30,11 +30,11 @@ exports.getStats = async (req, res) => {
 
     const expirations = expiring.map(c => {
       const daysLeft = Math.ceil((new Date(c.expiry_date) - now) / (1000 * 60 * 60 * 24));
-      return { 
-        name: c.name, 
-        days: daysLeft, 
+      return {
+        name: c.name,
+        days: daysLeft,
         location: c.location || 'Unassigned',
-        batch_number: c.batch_number 
+        batch_number: c.batch_number
       };
     });
 
@@ -81,17 +81,17 @@ exports.getStats = async (req, res) => {
 
 exports.getChemicals = async (req, res) => {
   try {
-    const { 
-      search, 
-      hazard, 
-      status, 
-      building, 
-      room, 
-      cabinet, 
+    const {
+      search,
+      hazard,
+      status,
+      building,
+      room,
+      cabinet,
       shelf,
       expiryStatus,
       archived,
-      page = 1, 
+      page = 1,
       limit = 20,
       sortBy = 'name',
       sortOrder = 'asc'
@@ -99,7 +99,12 @@ exports.getChemicals = async (req, res) => {
 
     const baseQuery = { archived: archived === 'true' };
     if (!(req.user.role === 'Admin' && !req.activeLabId)) {
-      baseQuery.lab = req.activeLabId;
+      // Allow overriding lab if provided in query (for transfers)
+      if (req.query.lab) {
+        baseQuery.lab = req.query.lab;
+      } else {
+        baseQuery.lab = req.activeLabId;
+      }
     }
 
     const hazardParam = hazard || req.query['hazard[]'];
@@ -151,13 +156,13 @@ exports.getChemicals = async (req, res) => {
             .limit(l);
           total = await Chemical.countDocuments(fullTextQuery);
           searchMode = 'fulltext';
-          
+
           if (!chemicals.some(c => c.id.toLowerCase() === trimmed.toLowerCase())) {
-             const exactIdChem = await Chemical.findOne({ ...baseQuery, id: trimmed.toUpperCase() });
-             if (exactIdChem) {
-                chemicals = [exactIdChem, ...chemicals.filter(c => c.id !== exactIdChem.id)].slice(0, l);
-                total += 1;
-             }
+            const exactIdChem = await Chemical.findOne({ ...baseQuery, id: trimmed.toUpperCase() });
+            if (exactIdChem) {
+              chemicals = [exactIdChem, ...chemicals.filter(c => c.id !== exactIdChem.id)].slice(0, l);
+              total += 1;
+            }
           }
         } else {
           throw new Error("No text results");
@@ -195,9 +200,9 @@ exports.getChemicals = async (req, res) => {
     });
   } catch (err) {
     console.error('SEARCH ERROR:', err);
-    res.status(500).json({ 
-      error: 'Server error', 
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined 
+    res.status(500).json({
+      error: 'Server error',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 };
@@ -205,11 +210,11 @@ exports.getChemicals = async (req, res) => {
 exports.getChemical = async (req, res) => {
   try {
     const query = { id: req.params.id };
-    
+
     if (!(req.user.role === 'Admin' && !req.activeLabId)) {
       query.lab = req.activeLabId;
     }
-    
+
     const chemical = await Chemical.findOne(query);
     if (!chemical) return res.status(404).json({ error: 'Chemical not found or access denied' });
     res.json(chemical);
@@ -235,25 +240,25 @@ exports.createChemical = async (req, res) => {
     const baseCount = await Chemical.countDocuments({});
     let attempt = baseCount + 1;
     let idValue = '';
-    
+
     while (!isUnique) {
       idValue = `C${String(attempt).padStart(3, '0')}`;
       const existing = await Chemical.findOne({ id: idValue, lab: req.activeLabId });
       if (!existing) isUnique = true;
       else attempt++;
     }
-    
+
     const sdsFile = req.files && req.files['sds_file'] ? req.files['sds_file'][0] : null;
     const disposalFile = req.files && req.files['disposal_file'] ? req.files['disposal_file'][0] : null;
 
     const hasSdsFile = !!sdsFile;
     const sdsFileName = hasSdsFile ? sdsFile.originalname : undefined;
     const sdsFileUrl = hasSdsFile ? `/api/uploads/${sdsFile.filename}` : undefined;
-    
+
     const hasDisposalFile = !!disposalFile;
     const disposalFileName = hasDisposalFile ? disposalFile.originalname : undefined;
     const disposalFileUrl = hasDisposalFile ? `/api/uploads/${disposalFile.filename}` : undefined;
-    
+
     const newChem = new Chemical({
       id: idValue,
       name: data.name,
@@ -287,16 +292,16 @@ exports.createChemical = async (req, res) => {
       chemical_family: data.chemical_family,
       spill_instructions: data.spill_instructions,
       emergency_instructions: data.emergency_instructions,
-      exposure_risks: (() => { try { return typeof data.exposure_risks === 'string' ? JSON.parse(data.exposure_risks) : (data.exposure_risks || []); } catch(e) { return []; } })(),
+      exposure_risks: (() => { try { return typeof data.exposure_risks === 'string' ? JSON.parse(data.exposure_risks) : (data.exposure_risks || []); } catch (e) { return []; } })(),
       ghs_classes: parsedGhs || [],
-      
-      ghs_hazards: (() => { try { return typeof data.ghs_hazards === 'string' ? JSON.parse(data.ghs_hazards) : (data.ghs_hazards || {}); } catch(e) { return {}; } })(),
-      nfpa_rating: (() => { try { return typeof data.nfpa_rating === 'string' ? JSON.parse(data.nfpa_rating) : (data.nfpa_rating || {}); } catch(e) { return {}; } })(),
-      hazard_summary: (() => { try { return typeof data.hazard_summary === 'string' ? JSON.parse(data.hazard_summary) : (data.hazard_summary || {}); } catch(e) { return {}; } })(),
-      ppe_requirements: (() => { try { return typeof data.ppe_requirements === 'string' ? JSON.parse(data.ppe_requirements) : (data.ppe_requirements || []); } catch(e) { return []; } })(),
-      incompatibility: (() => { try { return typeof data.incompatibility === 'string' ? JSON.parse(data.incompatibility) : (data.incompatibility || []); } catch(e) { return []; } })(),
-      emergency_response: (() => { try { return typeof data.emergency_response === 'string' ? JSON.parse(data.emergency_response) : (data.emergency_response || {}); } catch(e) { return {}; } })(),
-      exposure_details: (() => { try { return typeof data.exposure_details === 'string' ? JSON.parse(data.exposure_details) : (data.exposure_details || {}); } catch(e) { return {}; } })(),
+
+      ghs_hazards: (() => { try { return typeof data.ghs_hazards === 'string' ? JSON.parse(data.ghs_hazards) : (data.ghs_hazards || {}); } catch (e) { return {}; } })(),
+      nfpa_rating: (() => { try { return typeof data.nfpa_rating === 'string' ? JSON.parse(data.nfpa_rating) : (data.nfpa_rating || {}); } catch (e) { return {}; } })(),
+      hazard_summary: (() => { try { return typeof data.hazard_summary === 'string' ? JSON.parse(data.hazard_summary) : (data.hazard_summary || {}); } catch (e) { return {}; } })(),
+      ppe_requirements: (() => { try { return typeof data.ppe_requirements === 'string' ? JSON.parse(data.ppe_requirements) : (data.ppe_requirements || []); } catch (e) { return []; } })(),
+      incompatibility: (() => { try { return typeof data.incompatibility === 'string' ? JSON.parse(data.incompatibility) : (data.incompatibility || []); } catch (e) { return []; } })(),
+      emergency_response: (() => { try { return typeof data.emergency_response === 'string' ? JSON.parse(data.emergency_response) : (data.emergency_response || {}); } catch (e) { return {}; } })(),
+      exposure_details: (() => { try { return typeof data.exposure_details === 'string' ? JSON.parse(data.exposure_details) : (data.exposure_details || {}); } catch (e) { return {}; } })(),
       restricted_access: data.restricted_access === 'true',
       training_required: data.training_required === 'true',
 
@@ -336,7 +341,7 @@ exports.createChemical = async (req, res) => {
     });
 
     await checkChemicalExpiry(newChem, req.user);
-    
+
     await logAudit(req, {
       action: 'CREATE',
       targetType: 'chemical',
@@ -355,7 +360,7 @@ exports.createChemical = async (req, res) => {
     if (newChem.location && newChem.chemical_family) {
       const collocated = await Chemical.find({ location: newChem.location, id: { $ne: newChem.id }, archived: false });
       const familiesInLocation = [...new Set(collocated.map(c => c.chemical_family).filter(Boolean))];
-      
+
       const incompatiblePairs = [
         ['Acid', 'Base'],
         ['Flammable', 'Oxidizer'],
@@ -380,7 +385,7 @@ exports.createChemical = async (req, res) => {
 };
 
 exports.updateChemical = async (req, res) => {
-  const id = req.params.id; 
+  const id = req.params.id;
   const data = req.body;
   const casRegex = /^\d{2,7}-\d{2}-\d$/;
   if (data.cas && !casRegex.test(data.cas)) {
@@ -428,10 +433,10 @@ exports.updateChemical = async (req, res) => {
     chemical.chemical_family = data.chemical_family;
     chemical.spill_instructions = data.spill_instructions;
     chemical.emergency_instructions = data.emergency_instructions;
-    chemical.exposure_risks = (() => { try { return typeof data.exposure_risks === 'string' ? JSON.parse(data.exposure_risks) : (data.exposure_risks || []); } catch(e) { return []; } })();
+    chemical.exposure_risks = (() => { try { return typeof data.exposure_risks === 'string' ? JSON.parse(data.exposure_risks) : (data.exposure_risks || []); } catch (e) { return []; } })();
     chemical.location = data.building ? `${data.building}-${data.room || ''}-${data.cabinet || ''}-${data.shelf || ''}`.replace(/-+$/, '') : (data.location || chemical.location);
     chemical.ghs_classes = parsedGhs || [];
-    
+
     if (data.ghs_hazards) chemical.ghs_hazards = typeof data.ghs_hazards === 'string' ? JSON.parse(data.ghs_hazards) : data.ghs_hazards;
     if (data.nfpa_rating) chemical.nfpa_rating = typeof data.nfpa_rating === 'string' ? JSON.parse(data.nfpa_rating) : data.nfpa_rating;
     if (data.hazard_summary) chemical.hazard_summary = typeof data.hazard_summary === 'string' ? JSON.parse(data.hazard_summary) : data.hazard_summary;
@@ -441,7 +446,7 @@ exports.updateChemical = async (req, res) => {
     if (data.exposure_details) chemical.exposure_details = typeof data.exposure_details === 'string' ? JSON.parse(data.exposure_details) : data.exposure_details;
     if (data.restricted_access !== undefined) chemical.restricted_access = data.restricted_access === 'true' || data.restricted_access === true;
     if (data.training_required !== undefined) chemical.training_required = data.training_required === 'true' || data.training_required === true;
-    
+
     const sdsFile = req.files && req.files['sds_file'] ? req.files['sds_file'][0] : null;
     const disposalFile = req.files && req.files['disposal_file'] ? req.files['disposal_file'][0] : null;
 
@@ -487,24 +492,24 @@ exports.updateChemical = async (req, res) => {
       const Batch = require('../../models/Batch');
       const batches = await Batch.find({ chemical_id: chemical.id });
       for (let b of batches) {
-         b.expiry_date = expiryToUse;
-         if (newExpStatus) b.status = newExpStatus;
-         else if (['Near Expiry', 'Expired'].includes(b.status)) b.status = 'Active';
-         await b.save();
+        b.expiry_date = expiryToUse;
+        if (newExpStatus) b.status = newExpStatus;
+        else if (['Near Expiry', 'Expired'].includes(b.status)) b.status = 'Active';
+        await b.save();
       }
 
       const Container = require('../../models/Container');
       const containers = await Container.find({ chemical_id: chemical.id });
       for (let c of containers) {
-         c.expiry_date = expiryToUse;
-         if (!['Empty', 'Damaged'].includes(c.status)) {
-            if (newExpStatus) c.status = newExpStatus;
-            else if (['Near Expiry', 'Expired'].includes(c.status)) c.status = 'Full';
-         }
-         await c.save();
+        c.expiry_date = expiryToUse;
+        if (!['Empty', 'Damaged'].includes(c.status)) {
+          if (newExpStatus) c.status = newExpStatus;
+          else if (['Near Expiry', 'Expired'].includes(c.status)) c.status = 'Full';
+        }
+        await c.save();
       }
     }
-    
+
     await checkChemicalExpiry(chemical, req.user);
 
     await logAudit(req, {
@@ -519,7 +524,7 @@ exports.updateChemical = async (req, res) => {
     if (chemical.location && chemical.chemical_family) {
       const collocated = await Chemical.find({ location: chemical.location, id: { $ne: chemical.id }, archived: false });
       const familiesInLocation = [...new Set(collocated.map(c => c.chemical_family).filter(Boolean))];
-      
+
       const incompatiblePairs = [
         ['Acid', 'Base'],
         ['Flammable', 'Oxidizer'],
@@ -537,7 +542,7 @@ exports.updateChemical = async (req, res) => {
     }
 
     res.json({ message: 'Updated successfully', chemical, safety_warnings });
-  } catch(err) {
+  } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
   }
@@ -561,7 +566,7 @@ exports.archiveChemical = async (req, res) => {
     });
 
     res.json({ message: 'Archived successfully' });
-  } catch(err) {
+  } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -584,7 +589,7 @@ exports.restoreChemical = async (req, res) => {
     });
 
     res.json({ message: 'Restored successfully' });
-  } catch(err) {
+  } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -593,10 +598,10 @@ exports.getQRCode = async (req, res) => {
   try {
     const chemical = await Chemical.findOne({ id: req.params.id });
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
-    
+
     const qrData = chemical.id;
     const qrImage = await QRCode.toDataURL(qrData);
-    
+
     res.json({ qrCode: qrImage });
   } catch (err) {
     res.status(500).json({ error: 'QR Generation failed' });
@@ -607,9 +612,9 @@ exports.getLabelData = async (req, res) => {
   try {
     const chemical = await Chemical.findOne({ id: req.params.id });
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
-    
+
     const qrData = await QRCode.toDataURL(chemical.id);
-    
+
     const labelData = {
       name: chemical.name,
       id: chemical.id,
@@ -624,7 +629,7 @@ exports.getLabelData = async (req, res) => {
       expiry_date: chemical.expiry_date,
       status: chemical.status
     };
-    
+
     res.json(labelData);
   } catch (err) {
     res.status(500).json({ error: 'Label data generation failed' });

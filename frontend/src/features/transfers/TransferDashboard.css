@@ -112,21 +112,53 @@
 
 /* 8-column width distribution */
 .transfer-table th:nth-child(1),
-.transfer-table td:nth-child(1) { width: 9%; }   /* Type */
+.transfer-table td:nth-child(1) {
+  width: 9%;
+}
+
+/* Type */
 .transfer-table th:nth-child(2),
-.transfer-table td:nth-child(2) { width: 9%; }   /* Date */
+.transfer-table td:nth-child(2) {
+  width: 9%;
+}
+
+/* Date */
 .transfer-table th:nth-child(3),
-.transfer-table td:nth-child(3) { width: 18%; }  /* Chemical */
+.transfer-table td:nth-child(3) {
+  width: 18%;
+}
+
+/* Chemical */
 .transfer-table th:nth-child(4),
-.transfer-table td:nth-child(4) { width: 9%; }   /* Quantity */
+.transfer-table td:nth-child(4) {
+  width: 9%;
+}
+
+/* Quantity */
 .transfer-table th:nth-child(5),
-.transfer-table td:nth-child(5) { width: 16%; }  /* Provider */
+.transfer-table td:nth-child(5) {
+  width: 16%;
+}
+
+/* Provider */
 .transfer-table th:nth-child(6),
-.transfer-table td:nth-child(6) { width: 13%; }  /* Requester */
+.transfer-table td:nth-child(6) {
+  width: 13%;
+}
+
+/* Requester */
 .transfer-table th:nth-child(7),
-.transfer-table td:nth-child(7) { width: 16%; }  /* Reason */
+.transfer-table td:nth-child(7) {
+  width: 16%;
+}
+
+/* Reason */
 .transfer-table th:nth-child(8),
-.transfer-table td:nth-child(8) { width: 10%; }  /* Status */
+.transfer-table td:nth-child(8) {
+  width: 10%;
+}
+
+/* Status */
 
 .transfer-table thead th {
   padding: 1.25rem 0.75rem;

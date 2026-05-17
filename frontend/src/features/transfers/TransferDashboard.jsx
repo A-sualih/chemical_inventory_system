@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import {
   ArrowUpDown,
   Calendar,
@@ -129,8 +130,8 @@ const TransferDashboard = () => {
 
   const fetchLabs = async () => {
     try {
-      const res = await axios.get('/api/labs');
-      setAllLabs(res.data.filter(l => l._id !== user.active_lab));
+      const res = await axios.get('/api/labs?all=true');
+      setAllLabs(res.data.filter(l => String(l._id) !== String(user.active_lab)));
     } catch { }
   };
 
@@ -138,7 +139,7 @@ const TransferDashboard = () => {
     try {
       await axios.put(`/api/transfers/${id}/approve`);
       fetchTransfers();
-    } catch (err) { alert(err.response?.data?.error || 'Approval failed'); }
+    } catch (err) { toast.error(err.response?.data?.error || 'Approval failed', { duration: 10000 }); }
   };
 
   const handleReject = async (id) => {
@@ -146,21 +147,22 @@ const TransferDashboard = () => {
     try {
       await axios.put(`/api/transfers/${id}/reject`, { reason });
       fetchTransfers();
-    } catch (err) { alert(err.response?.data?.error || 'Rejection failed'); }
+    } catch (err) { toast.error(err.response?.data?.error || 'Rejection failed', { duration: 10000 }); }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.source_lab) { alert('Please select the provider lab.'); return; }
-    if (!form.chemical_id) { alert('Please select a chemical from the search list.'); return; }
-    if (!form.quantity_moved || form.quantity_moved <= 0) { alert('Please enter a valid quantity.'); return; }
+    if (!form.source_lab) { toast.error('Please select the provider lab.', { duration: 10000 }); return; }
+    if (!form.chemical_id) { toast.error('Please select a chemical from the search list.', { duration: 10000 }); return; }
+    if (!form.quantity_moved || form.quantity_moved <= 0) { toast.error('Please enter a valid quantity.', { duration: 10000 }); return; }
     try {
       await axios.post('/api/transfers', form);
       setIsModalOpen(false);
       resetModal();
+      toast.success('Requisition submitted successfully', { duration: 10000 });
       fetchTransfers();
     } catch (err) {
-      alert(err.response?.data?.message || err.response?.data?.error || 'Transfer request failed');
+      toast.error(err.response?.data?.message || err.response?.data?.error || 'Transfer request failed', { duration: 10000 });
     }
   };
 

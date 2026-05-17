@@ -28,10 +28,11 @@ exports.getLabs = async (req, res) => {
   try {
     const userPermissions = ROLE_PERMISSIONS[req.user.role] || [];
     const canManageLabs = userPermissions.includes(PERMISSIONS.MANAGE_LABS);
+    const canTransfer = userPermissions.includes(PERMISSIONS.APPROVE_CROSS_LAB_TRANSFER);
     const { all } = req.query;
     let labs;
 
-    if (all === 'true' && canManageLabs) {
+    if (all === 'true' && (canManageLabs || canTransfer)) {
       // Admins/Managers specifically requesting full list (e.g. for Management UI)
       labs = await Lab.find().sort({ name: 1 });
     } else {
@@ -39,7 +40,7 @@ exports.getLabs = async (req, res) => {
       // Fetch user to get latest assignments
       const user = await User.findById(req.user.id).select('labs role');
       if (!user) return res.status(404).json({ message: 'User not found' });
-      
+
       const query = { _id: { $in: user.labs || [] } };
       labs = await Lab.find(query).sort({ name: 1 });
     }
@@ -64,7 +65,7 @@ exports.switchActiveLab = async (req, res) => {
     const { labId } = req.body;
     const lab = await Lab.findById(labId);
     if (!lab) return res.status(404).json({ message: 'Lab not found' });
-    
+
     // Admin can switch to any lab; regular users must be assigned
     if (req.user.role !== 'Admin') {
       const userRecord = await User.findById(req.user.id);
@@ -73,26 +74,26 @@ exports.switchActiveLab = async (req, res) => {
         return res.status(403).json({ message: 'You do not have access to this lab' });
       }
     }
-    
+
     const userToUpdate = await User.findById(req.user.id);
     userToUpdate.active_lab = labId;
     await userToUpdate.save();
-    
+
     // Issue a NEW token so the frontend's state is consistent
     const newToken = jwt.sign(
       { id: userToUpdate._id, role: userToUpdate.role, name: userToUpdate.name, email: userToUpdate.email },
       JWT_SECRET,
       { expiresIn: '8h' }
     );
-    
+
     res.status(200).json({
       message: 'Active lab switched successfully',
       token: newToken,
-      user: { 
-        id: userToUpdate._id, 
-        name: userToUpdate.name, 
-        email: userToUpdate.email, 
-        role: userToUpdate.role, 
+      user: {
+        id: userToUpdate._id,
+        name: userToUpdate.name,
+        email: userToUpdate.email,
+        role: userToUpdate.role,
         active_lab: userToUpdate.active_lab,
         labs: userToUpdate.labs
       }
