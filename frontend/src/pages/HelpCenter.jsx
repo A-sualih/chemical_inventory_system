@@ -13,7 +13,7 @@ import {
 import '../styles/HelpCenter.css';
 
 const HelpCenter = () => {
-  const [activeSection, setActiveSection] = useState('getting_started');
+  const [activeSection, setActiveSection] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Expandable FAQ state
@@ -29,6 +29,7 @@ const HelpCenter = () => {
   };
 
   const categories = [
+    { id: 'overview', title: 'Overview', desc: 'All help topics', icon: <BookOpen size={18} /> },
     { id: 'getting_started', title: 'Getting Started', desc: 'System basics', icon: <BookOpen size={18} /> },
     { id: 'chemical_management', title: 'Chemical Management', desc: 'Inventory & batches', icon: <BookOpen size={18} /> },
     { id: 'scanner_help', title: 'Scanner Help', desc: 'QR & Barcode usage', icon: <Wrench size={18} /> },
@@ -38,8 +39,8 @@ const HelpCenter = () => {
     { id: 'emergency_support', title: 'Emergency Support', desc: 'Immediate assistance', icon: <ShieldAlert size={18} color="#ef4444" /> }
   ];
 
-  const renderContent = () => {
-    switch (activeSection) {
+  const renderSectionContent = (sectionId) => {
+    switch (sectionId) {
       case 'getting_started':
         return (
           <div className="help-content-wrapper">
@@ -421,6 +422,21 @@ const HelpCenter = () => {
       default:
         return null;
     }
+  };
+
+  const renderContent = () => {
+    if (activeSection === 'overview') {
+      return (
+        <div className="help-overview-container">
+          {categories.filter(c => c.id !== 'overview').map(cat => (
+            <div key={cat.id} className="overview-section-block" style={{ marginBottom: '4rem', paddingBottom: '2rem', borderBottom: '2px dashed #cbd5e1' }}>
+              {renderSectionContent(cat.id)}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return renderSectionContent(activeSection);
   };
 
   return (

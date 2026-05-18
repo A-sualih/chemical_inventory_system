@@ -54,9 +54,8 @@
 .help-search {
   display: flex;
   align-items: center;
-  background: var(--bg-main, #f8fafc);
-  border: 1px solid var(--border-light, #cbd5e1);
-  border-radius: 999px;
+  background: transparent;
+  border: none;
   padding: 0.5rem 1rem;
   width: 100%;
   max-width: 400px;
