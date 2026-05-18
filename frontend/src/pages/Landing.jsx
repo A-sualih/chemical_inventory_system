@@ -1,5 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 import { 
   Package, 
   ShieldCheck, 
@@ -15,11 +17,25 @@ import {
   Database,
   Lock,
   Layers,
-  ArrowUpRight
+  ArrowUpRight,
+  Building
 } from 'lucide-react';
 import '../styles/Landing.css';
 
 const Landing = () => {
+  const { user } = useAuth();
+  const { settings } = useSettings();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
+  const systemName = settings?.systemName || "CIMS PRO";
+  const systemLogo = settings?.systemLogo;
+  const orgName = settings?.orgName || "Managed Stack";
   return (
     <div className="landing-container">
       {/* Background Decor */}
@@ -29,28 +45,42 @@ const Landing = () => {
       {/* Navigation */}
       <nav className="landing-nav">
         <div className="nav-logo">
-          <FlaskConical size={32} />
-          <span>CIMS PRO</span>
+          {systemLogo ? (
+            <img src={systemLogo} alt="Logo" style={{ height: '32px', width: 'auto', borderRadius: '6px' }} />
+          ) : (
+            <FlaskConical size={32} />
+          )}
+          <span>{systemName}</span>
         </div>
         <div className="nav-links">
           <a href="#features" className="nav-link">Features</a>
           <a href="#about" className="nav-link">About</a>
           <a href="#workflow" className="nav-link">Workflow</a>
-          <Link to="/login" className="btn-nav-login">Sign In</Link>
+          {user ? (
+            <Link to="/dashboard" className="btn-nav-login">Go to Dashboard</Link>
+          ) : (
+            <Link to="/login" className="btn-nav-login" style={{ background: 'var(--primary-600)', color: 'white', border: 'none' }}>Sign In</Link>
+          )}
         </div>
       </nav>
 
       {/* Hero Section */}
       <header className="hero-section">
         <div className="hero-content">
-          <h1>Chemical Inventory Management System</h1>
+          <h1>{systemName}</h1>
           <p className="hero-description">
             A secure multi-lab platform for tracking chemicals, containers, safety compliance, 
-            inventory movement, and disposal workflows with enterprise-grade precision.
+            inventory movement, and disposal workflows with enterprise-grade precision in {orgName}.
           </p>
           <div className="hero-actions">
-            <Link to="/register" className="btn-hero-primary">Get Started Free</Link>
-            <Link to="/login" className="btn-hero-secondary">Enterprise Demo</Link>
+            {user ? (
+              <Link to="/dashboard" className="btn-hero-primary">Go to Dashboard</Link>
+            ) : (
+              <>
+                <Link to="/register" className="btn-hero-primary">Create Account</Link>
+                <Link to="/login" className="btn-hero-secondary">Sign In</Link>
+              </>
+            )}
           </div>
         </div>
         <div className="hero-visual">
@@ -133,12 +163,12 @@ const Landing = () => {
              <span className="section-tag" style={{ textAlign: 'left' }}>Our Mission</span>
              <h2>Instituting Digital Safety in Science</h2>
              <p>
-                The Chemical Inventory Management System was developed to bridge the gap between 
+                {systemName} was developed to bridge the gap between 
                 complex laboratory operations and digital oversight. Our mission is to eliminate 
                 manual tracking errors and minimize hazards through intelligent automation.
              </p>
              <p>
-                By providing institutional-wide visibility, CIMS helps safety officers and 
+                By providing institutional-wide visibility, {systemName} helps safety officers and 
                 lab managers maintain a zero-incident environment while optimizing procurement.
              </p>
              <button className="btn-hero-secondary" style={{ padding: '0.8rem 2rem' }}>Learn More About Our Tech</button>
@@ -152,7 +182,7 @@ const Landing = () => {
           <ShieldAlert size={60} color="#ef4444" style={{ marginBottom: '2rem' }} />
           <h2 className="section-title">Compliance is not optional</h2>
           <p className="hero-description" style={{ margin: '0 auto 4rem' }}>
-            Built to exceed safety standards, CIMS integrates with GHS protocols and provides 
+            Built to exceed safety standards, {systemName} integrates with GHS protocols and provides 
             real-time hazard analysis for every storage location in your facility.
           </p>
           <div className="roles-container">
@@ -179,7 +209,7 @@ const Landing = () => {
       {/* Workflow Section */}
       <section id="workflow" className="section-container">
         <span className="section-tag">The Process</span>
-        <h2 className="section-title">How CIMS Powers Your Lab</h2>
+        <h2 className="section-title">How {systemName} Powers Your Lab</h2>
         <div className="workflow-grid">
            <WorkflowStep num="1" title="Add" desc="Fast enrollment of new chemicals" />
            <WorkflowStep num="2" title="Assign" desc="Allocate to secure storage" />
@@ -216,7 +246,7 @@ const Landing = () => {
       <section className="section-container" style={{ textAlign: 'center', padding: '10rem 5%' }}>
          <h2 style={{ fontSize: '3.5rem', marginBottom: '2rem' }}>Ready to modernize your inventory?</h2>
          <p className="hero-description" style={{ margin: '0 auto 3rem' }}>
-           Join hundreds of laboratories globally using CIMS PRO for world-class management.
+           Join hundreds of laboratories globally using {systemName} for world-class management.
          </p>
          <Link to="/register" className="btn-hero-primary" style={{ padding: '1.2rem 4rem', fontSize: '1.2rem' }}>
            Create Your Account <ArrowRight size={20} className="inline ml-2" />
@@ -226,7 +256,12 @@ const Landing = () => {
       {/* Footer */}
       <footer className="landing-footer">
         <div className="footer-logo">
-          <FlaskConical size={24} className="inline mr-2" /> CIMS PRO
+          {systemLogo ? (
+            <img src={systemLogo} alt="Logo" style={{ height: '24px', width: 'auto', marginRight: '0.5rem', display: 'inline-block', verticalAlign: 'middle' }} />
+          ) : (
+            <FlaskConical size={24} className="inline mr-2" />
+          )}
+          {systemName}
         </div>
         <div className="footer-links">
            <a href="#" className="nav-link">Privacy Policy</a>
@@ -234,7 +269,7 @@ const Landing = () => {
            <a href="#" className="nav-link">Contact Support</a>
            <a href="#" className="nav-link">Documentation</a>
         </div>
-        <p className="copyright">© 2026 Chemical Inventory Management System. All rights reserved.</p>
+        <p className="copyright">© 2026 {systemName}. All rights reserved.</p>
       </footer>
     </div>
   );
