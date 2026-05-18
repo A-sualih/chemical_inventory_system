@@ -14,7 +14,6 @@ import '../styles/HelpCenter.css';
 
 const HelpCenter = () => {
   const [activeSection, setActiveSection] = useState('overview');
-  const [searchQuery, setSearchQuery] = useState('');
 
   // Expandable FAQ state
   const [openFaqs, setOpenFaqs] = useState({});
@@ -447,15 +446,6 @@ const HelpCenter = () => {
           <div className="header-brand">
              <Link to="/" className="back-link-help">← Back</Link>
              <h1>Help <span>Center</span></h1>
-          </div>
-          <div className="help-search">
-            <Search size={20} className="search-icon" />
-            <input 
-              type="text" 
-              placeholder="Search guides, FAQs, troubleshooting..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
           </div>
         </div>
       </header>
