@@ -118,36 +118,51 @@ const createNotification = async (data) => {
       }
 
       const emailHtml = formatNotificationEmail(data);
-      let anySuccess = false;
-      let lastError = null;
 
-      for (const email of recipientEmails) {
-        console.log(`[Email] Sending [${data.type}] "${data.title}" → ${email}`);
-        const emailResult = await sendEmail(email, `[CIMS ALERT] ${data.title}`, emailHtml);
-        if (emailResult.success) {
-          console.log(`[Email] Delivered: ${emailResult.messageId} → ${email}`);
-          anySuccess = true;
-        } else {
-          console.error(`[Email] Failed → ${email}:`, emailResult.error);
-          lastError = emailResult.error?.message;
+      // Fire and forget email dispatch so it doesn't block the HTTP response
+      (async () => {
+        let anySuccess = false;
+        let lastError = null;
+
+        for (const email of recipientEmails) {
+          console.log(`[Email] Sending [${data.type}] "${data.title}" → ${email}`);
+          const emailResult = await sendEmail(email, `[CIMS ALERT] ${data.title}`, emailHtml);
+          if (emailResult.success) {
+            console.log(`[Email] Delivered: ${emailResult.messageId} → ${email}`);
+            anySuccess = true;
+          } else {
+            console.error(`[Email] Failed → ${email}:`, emailResult.error);
+            lastError = emailResult.error?.message;
+          }
         }
-      }
 
-      if (anySuccess) {
-        notification.channels.push({ type: 'email', isSent: true, sentAt: new Date() });
-      } else {
-        notification.channels.push({ type: 'email', isSent: false, error: lastError });
-      }
-      await notification.save();
+        try {
+          if (anySuccess) {
+            notification.channels.push({ type: 'email', isSent: true, sentAt: new Date() });
+          } else {
+            notification.channels.push({ type: 'email', isSent: false, error: lastError });
+          }
+          await notification.save();
+        } catch (err) {
+          console.error("Failed to update notification channels:", err);
+        }
+      })().catch(console.error);
     }
 
     // TRIGGER SMS for critical severity ONLY
     if (data.severity === 'critical') {
       const smsMessage = `[CIMS CRITICAL] ${data.title}: ${data.message}`;
-      await sendSMS(null, smsMessage);
-
-      notification.channels.push({ type: 'sms', isSent: true, sentAt: new Date() });
-      await notification.save();
+      
+      // Fire and forget SMS dispatch
+      (async () => {
+        try {
+          await sendSMS(null, smsMessage);
+          notification.channels.push({ type: 'sms', isSent: true, sentAt: new Date() });
+          await notification.save();
+        } catch (err) {
+          console.error("Failed to send SMS or update notification channels:", err);
+        }
+      })().catch(console.error);
     }
 
     return notification;

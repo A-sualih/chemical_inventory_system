@@ -147,7 +147,7 @@ exports.approveTransfer = async (req, res) => {
 
     // Deplete Batches and Containers in Source (FIFO)
     let remaining = amountInBase;
-    const sourceBatches = await Batch.find({ chemical_id: request.chemical_id, lab: request.source_lab }).sort({ expiry_date: 1 }).session(session);
+    const sourceBatches = await Batch.find({ chemical_id: sourceChemical.id, lab: request.source_lab }).sort({ expiry_date: 1 }).session(session);
 
     for (const batch of sourceBatches) {
       if (remaining <= 0) break;
@@ -174,11 +174,12 @@ exports.approveTransfer = async (req, res) => {
         // --- ADD TO DESTINATION (Maintain Batch Info) ---
         // CRITICAL: Use the _id for finding batches within the SAME lab, but when moving cross-lab, 
         // we might need to match by batch_number if it's considered a logical duplicate.
-        let destBatch = await Batch.findOne({ chemical_id: destChemical._id, lab: request.destination_lab, batch_number: batch.batch_number }).session(session);
+        let destBatch = await Batch.findOne({ chemical_id: destChemical.id, lab: request.destination_lab, batch_number: batch.batch_number }).session(session);
         if (!destBatch) {
           destBatch = new Batch({
             ...batch.toObject(),
             _id: new mongoose.Types.ObjectId(),
+            chemical_id: destChemical.id,
             lab: request.destination_lab,
             total_quantity: 0
           });
@@ -190,7 +191,7 @@ exports.approveTransfer = async (req, res) => {
         // Add dummy container in destination for the transferred amount
         const destContainer = new Container({
           container_id: `TR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-          chemical_id: destChemical._id,
+          chemical_id: destChemical.id,
           batch_number: batch.batch_number,
           lab: request.destination_lab,
           quantity: convertFromBase(subtract, request.unit),
@@ -212,7 +213,7 @@ exports.approveTransfer = async (req, res) => {
     // Inventory Logs
     await InventoryLog.create([{
       lab: request.source_lab,
-      chemical_id: sourceChemical._id,
+      chemical_id: sourceChemical.id,
       chemical_name: sourceChemical.name,
       user_id: req.user.id,
       action: 'OUT',
@@ -223,7 +224,7 @@ exports.approveTransfer = async (req, res) => {
 
     await InventoryLog.create([{
       lab: request.destination_lab,
-      chemical_id: destChemical._id,
+      chemical_id: destChemical.id,
       chemical_name: destChemical.name,
       user_id: req.user.id,
       action: 'IN',

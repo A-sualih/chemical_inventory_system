@@ -52,37 +52,49 @@ exports.login = async (req, res) => {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
 
+    let requireMfaPrompt = false;
     if (user.mfa_enabled) {
-      if (user.mfa_type === 'email') {
-        const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false });
-        user.otp = otp;
-        user.otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
-        await user.save();
-
-        console.log(`[Email OTP] Sending ${otp} to ${user.email}`);
-        try {
-          await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: user.email,
-            subject: "CIMS - Your OTP Code",
-            html: `
-                <div style="font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 40px 20px; text-align: center;">
-                  <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block;">
-                    <h2 style="color: #2c3e50; margin-bottom: 10px;">Login Verification</h2>
-                    <p style="color: #7f8c8d; font-size: 16px; margin-bottom: 30px;">Enter the code below to securely log in to your CIMS account.</p>
-                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-                      <h1 style="color: #ffffff; font-size: 48px; margin: 0; letter-spacing: 12px;">${otp}</h1>
-                    </div>
-                    <p style="color: #e74c3c; font-size: 14px; font-weight: bold;">This code expires in 5 minutes.</p>
-                  </div>
-                </div>
-              `
-          });
-        } catch (err) {
-          console.error("Email send failed:", err.message);
+      if (!user.last_mfa_verified_at) {
+        requireMfaPrompt = true;
+      } else {
+        const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+        const timeSinceLastVerified = Date.now() - new Date(user.last_mfa_verified_at).getTime();
+        if (timeSinceLastVerified > thirtyDaysInMs) {
+          requireMfaPrompt = true;
         }
       }
-      return res.json({ requireMfa: true, mfaType: user.mfa_type, userId: user._id });
+    }
+
+    if (requireMfaPrompt) {
+      user.mfa_type = 'email';
+      const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false });
+      user.otp = otp;
+      user.otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+      await user.save();
+
+      console.log(`[Email OTP] Sending ${otp} to ${user.email}`);
+      try {
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: user.email,
+          subject: "CIMS - Your OTP Code",
+          html: `
+              <div style="font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 40px 20px; text-align: center;">
+                <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block;">
+                  <h2 style="color: #2c3e50; margin-bottom: 10px;">Login Verification</h2>
+                  <p style="color: #7f8c8d; font-size: 16px; margin-bottom: 30px;">Enter the code below to securely log in to your CIMS account.</p>
+                  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                    <h1 style="color: #ffffff; font-size: 48px; margin: 0; letter-spacing: 12px;">${otp}</h1>
+                  </div>
+                  <p style="color: #e74c3c; font-size: 14px; font-weight: bold;">This code expires in 5 minutes.</p>
+                </div>
+              </div>
+            `
+        });
+      } catch (err) {
+        console.error("Email send failed:", err.message);
+      }
+      return res.json({ requireMfa: true, mfaType: 'email', userId: user._id });
     }
 
     user.failed_attempts = 0;
@@ -392,6 +404,7 @@ exports.verifyMfa = async (req, res) => {
     user.mfa_temp_secret = null;
     user.failed_attempts = 0;
     user.locked_until = null;
+    user.last_mfa_verified_at = new Date();
     await user.save();
 
     res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, active_lab: user.active_lab, labs: user.labs } });
@@ -438,11 +451,13 @@ exports.enableMfa = async (req, res) => {
         user.mfa_type = 'totp';
         user.mfa_secret = user.mfa_temp_secret;
         user.mfa_temp_secret = null;
+        user.last_mfa_verified_at = new Date();
         await user.save();
       }
     } else if (type === 'email') {
       user.mfa_enabled = true;
       user.mfa_type = 'email';
+      user.last_mfa_verified_at = new Date();
       await user.save();
       verified = true;
     }

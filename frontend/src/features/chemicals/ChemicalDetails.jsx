@@ -32,6 +32,7 @@ import {
     ExternalLink
 } from 'lucide-react';
 import { useAuth } from "../../context/AuthContext";
+import { fmtQty } from "../../utils/formatQuantity";
 import "../../styles/ChemicalDetails.css";
 
 const ChemicalDetails = () => {
@@ -271,7 +272,7 @@ const ChemicalDetails = () => {
                      <div>
                         <h3 className="panel-title"><Box size={14} /> Inventory Intelligence</h3>
                         <div className="large-stat-value">
-                            {parseFloat(parseFloat(chemical.quantity).toFixed(1))}
+                            {fmtQty(chemical.quantity, chemical.unit).split(' ')[0]}
                            <span className="stat-unit-label">{chemical.unit}</span>
                         </div>
                      </div>
@@ -289,7 +290,7 @@ const ChemicalDetails = () => {
                   <div className="flex justify-between items-center mt-4">
                      <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
                         <CheckCircle2 size={14} className="text-emerald-500" />
-                        Minimum Safety Threshold: {parseFloat(parseFloat(chemical.threshold).toFixed(1))} {chemical.unit}
+                        Minimum Safety Threshold: {fmtQty(chemical.threshold, chemical.unit)}
                      </div>
                      <div className="text-xs font-black text-indigo-600">
                         {Math.round(stockPercentage)}% OF CAPACITY
@@ -405,7 +406,7 @@ const ChemicalDetails = () => {
                                 </td>
                                 <td>
                                    <div className="flex flex-col items-end">
-                                      <span className="font-black text-slate-800">{parseFloat(parseFloat(container.quantity).toFixed(1))} {container.unit}</span>
+                                      <span className="font-black text-slate-800">{fmtQty(container.quantity, container.unit)}</span>
                                       <span className={`text-[9px] font-black uppercase ${
                                          container.status === 'Full' ? 'text-emerald-500' :
                                          container.status === 'Empty' ? 'text-slate-400' : 'text-orange-500'

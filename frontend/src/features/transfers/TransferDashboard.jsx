@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Layout from '../../layout/Layout';
+import { fmtQty } from '../../utils/formatQuantity';
 import './TransferDashboard.css';
 
 const TransferDashboard = () => {
@@ -258,7 +259,7 @@ const TransferDashboard = () => {
                             </div>
                           </td>
                           <td>
-                            <span className="qty-tag">{t.quantity_moved} <small style={{ fontSize: '0.65rem', opacity: 0.6 }}>{t.unit}</small></span>
+                            <span className="qty-tag">{fmtQty(t.quantity_moved, t.unit)}</span>
                           </td>
                           <td>
                             <div className="td-with-icon">
@@ -309,7 +310,7 @@ const TransferDashboard = () => {
                       {isSourceLab(t)
                         ? <span className="dir-badge dir-out"><UploadCloud size={12} /> Outgoing</span>
                         : <span className="dir-badge dir-in"><DownloadCloud size={12} /> Incoming</span>}
-                      <div className="card-qty-pill">{t.quantity_moved} {t.unit}</div>
+                      <div className="card-qty-pill">{fmtQty(t.quantity_moved, t.unit)}</div>
                     </div>
 
                     {/* Chemical identity */}
@@ -413,7 +414,7 @@ const TransferDashboard = () => {
                         <span className="selected-chem-id">
                           ID: {selectedChem.id}
                           {selectedChem.cas_number ? ` · CAS: ${selectedChem.cas_number}` : ''}
-                          {` · ${selectedChem.quantity ?? '?'} ${selectedChem.unit ?? ''}`}
+                          {` · ${selectedChem.quantity !== undefined ? fmtQty(selectedChem.quantity, selectedChem.unit) : '?'}`}
                         </span>
                       </div>
                       <button type="button" className="clear-chem-btn" onClick={clearChem} title="Change chemical">
@@ -449,7 +450,7 @@ const TransferDashboard = () => {
                             <span className="chem-id-badge">{chem.id}</span>
                             {chem.cas_number && <span className="chem-cas-badge">CAS: {chem.cas_number}</span>}
                             {chem.formula    && <span className="chem-formula-badge">{chem.formula}</span>}
-                            <span className="chem-qty-badge">{chem.quantity ?? '?'} {chem.unit}</span>
+                            <span className="chem-qty-badge">{chem.quantity !== undefined ? fmtQty(chem.quantity, chem.unit) : '?'}</span>
                             <span className={`chem-status-dot ${
                               chem.status === 'In Stock' ? 'dot-green' :
                               chem.status === 'Low Stock' || chem.status === 'Near Expiry' ? 'dot-amber' : 'dot-red'

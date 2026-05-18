@@ -10,10 +10,10 @@ const cleanChemicalQty = (doc) => {
   if (!doc) return doc;
   const obj = typeof doc.toObject === 'function' ? doc.toObject() : doc;
   if (obj.quantity !== undefined && obj.quantity !== null) {
-    obj.quantity = Number(Number(obj.quantity).toFixed(1));
+    obj.quantity = Number(Number(obj.quantity).toFixed(4));
   }
   if (obj.threshold !== undefined && obj.threshold !== null) {
-    obj.threshold = Number(Number(obj.threshold).toFixed(1));
+    obj.threshold = Number(Number(obj.threshold).toFixed(4));
   }
   return obj;
 };

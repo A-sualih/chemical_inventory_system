@@ -7,6 +7,7 @@ import './Waste.css';
 import { useAuth } from '../../context/AuthContext';
 import useUnits from '../../hooks/useUnits';
 import { IconTrash, IconClock, IconPlus, IconX, IconCheckCircle, IconAlertTriangle, IconFileText, IconSearch } from './WasteIcons';
+import { fmtQty } from '../../utils/formatQuantity';
 
 const REASONS = ['Expired', 'Contaminated', 'Damaged', 'Excess stock', 'Experimental waste', 'Other'];
 const METHODS = ['Neutralization', 'Incineration', 'Chemical treatment', 'Recycling', 'Waste contractor pickup', 'Secure hazardous storage'];
@@ -331,7 +332,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                             <div>
                               <div style={{ fontSize: '0.6rem', color: 'var(--secondary-400)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.1rem' }}>Stock Level</div>
                               <div style={{ fontSize: '0.9rem', fontWeight: 900, color: c.quantity > 0 ? 'var(--waste-primary)' : '#ef4444' }}>
-                                {c.quantity} {c.unit}
+                                {fmtQty(c.quantity, c.unit)}
                               </div>
                             </div>
                             {c.quantity <= 0 && <span style={{ fontSize: '0.6rem', background: '#fef2f2', color: '#ef4444', padding: '0.2rem 0.4rem', borderRadius: '0.4rem', fontWeight: 800 }}>OUT OF STOCK</span>}
@@ -399,7 +400,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                     <option value="">Default (FIFO - Auto Selection)</option>
                     {batches.map(b => (
                       <option key={b._id} value={b._id}>
-                        {b.batch_number} — {b.total_quantity} {b.unit} {b.status === 'Expired' ? '(EXPIRED)' : ''}
+                        {b.batch_number} — {fmtQty(b.total_quantity, b.unit)} {b.status === 'Expired' ? '(EXPIRED)' : ''}
                       </option>
                     ))}
                   </select>
@@ -551,7 +552,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                       <div style={{ fontSize: '0.7rem', color: 'var(--secondary-400)', fontWeight: '700', marginTop: '0.2rem' }}>{d.hazard_classification}</div>
                     </div>
                   </div>
-                  <div className="waste-td" data-label="Quantity"><span className="waste-quantity-cell">{d.quantity} {unitLabel(d.unit)}</span></div>
+                  <div className="waste-td" data-label="Quantity"><span className="waste-quantity-cell">{fmtQty(d.quantity, d.unit)}</span></div>
                   <div className="waste-td waste-hide-1350" data-label="Method" style={{ fontWeight: '600' }}>{d.method}</div>
                   <div className="waste-td" data-label="Status">
                     <span className={`waste-badge badge-${d.status.toLowerCase().replace(' ', '-')}`}>
@@ -646,7 +647,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                 </div>
                 <div>
                   <label className="premium-form-label">Quantity</label>
-                  <div style={{ fontWeight: 700, color: 'var(--waste-primary)', fontSize: '1.1rem' }}>{viewingDisposal.quantity} {unitLabel(viewingDisposal.unit)}</div>
+                  <div style={{ fontWeight: 700, color: 'var(--waste-primary)', fontSize: '1.1rem' }}>{fmtQty(viewingDisposal.quantity, viewingDisposal.unit)}</div>
                 </div>
                 <div>
                   <label className="premium-form-label">Workflow Status</label>

@@ -21,6 +21,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Layout from '../../layout/Layout';
 import ChemicalForm from '../chemicals/ChemicalForm';
+import { fmtQty } from '../../utils/formatQuantity';
 import './Transactions.css';
 
 import { Html5Qrcode } from 'html5-qrcode';
@@ -59,9 +60,10 @@ const TransactionSystem = () => {
         const syncTransactions = async () => {
             fetchHistory();
             if (scannedData && scannedData.container && scannedData.container.container_id) {
-                // Silently refresh scanned data to update quantities
+                // Silently refresh scanned data using the container_id (not barcode state which may be empty)
                 try {
-                    const res = await axios.get(`/api/transactions/scan/${encodeURIComponent(barcode)}`);
+                    const refreshId = scannedData.container.container_id;
+                    const res = await axios.get(`/api/transactions/scan/${encodeURIComponent(refreshId)}`);
                     setScannedData(res.data);
                 } catch (e) { /* ignore silent refresh errors */ }
             }
@@ -127,6 +129,7 @@ const TransactionSystem = () => {
     }, [showCamera, scannedData]);
 
     const autoScan = async (code) => {
+        if (!code || String(code).trim() === '') return; // Guard against empty barcode calls
         let finalCode = code;
 
         // Handle full URLs (e.g. from printed labels)
@@ -367,7 +370,7 @@ const TransactionSystem = () => {
                                                         <div className="chem-result-cas">CAS: {chem.cas_number || 'N/A'}</div>
                                                     </div>
                                                     <div className="chem-result-stock">
-                                                        {Number(chem.quantity).toFixed(1)} {chem.unit}
+                                                        {fmtQty(chem.quantity, chem.unit)}
                                                     </div>
                                                 </div>
                                             ))}
@@ -716,7 +719,7 @@ const TransactionSystem = () => {
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '2rem' }}>
                                     <div className="detail-section">
                                         <div className="detail-label">Current Stock</div>
-                                        <div className="detail-value">{Number(scannedData.container.quantity).toFixed(1)} {scannedData.container.unit}</div>
+                                        <div className="detail-value">{fmtQty(scannedData.container.quantity, scannedData.container.unit)}</div>
                                     </div>
                                     <div className="detail-section">
                                         <div className="detail-label">Storage Location</div>
@@ -766,7 +769,7 @@ const TransactionSystem = () => {
                                             value={quantity}
                                             onChange={(e) => setQuantity(e.target.value)}
                                             className="input-neon"
-                                            placeholder={`Max: ${Number(scannedData.container.quantity).toFixed(1)}`}
+                                            placeholder={`Max: ${fmtQty(scannedData.container.quantity, '').trim()}`}
                                         />
                                         <span style={{ position: 'absolute', right: '1.25rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: 'var(--text-muted)' }}>{scannedData.container.unit}</span>
                                     </div>
@@ -852,7 +855,7 @@ const TransactionSystem = () => {
                     </div>
                     <div style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: '1.25rem', fontWeight: 800, color: item.type === 'Check-Out' ? 'var(--danger)' : 'var(--success)' }}>
-                            {item.type === 'Check-Out' ? '-' : '+'}{Number(item.quantity).toFixed(1)} {item.unit}
+                            {item.type === 'Check-Out' ? '-' : '+'}{fmtQty(item.quantity, item.unit)}
                         </div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
                             {item.container_barcode.substring(0, 12)}

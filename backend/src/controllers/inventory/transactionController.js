@@ -4,6 +4,7 @@ const Chemical = require('../../models/Chemical');
 const Container = require('../../models/Container');
 const AuditLog = require('../../models/AuditLog');
 const Notification = require('../../models/Notification');
+const InventoryLog = require('../../models/InventoryLog');
 const { convertToBase, convertFromBase } = require('../../utils/unitConverter');
 
 /**
@@ -48,14 +49,29 @@ exports.getChemicalByBarcode = async (req, res) => {
       }
       
       if (chemical) {
-        // Find the first available container for this chemical
+        // Find the first available (non-empty) container
         container = await Container.findOne({ 
           ...labQuery,
           chemical_id: { $in: [chemical.id, chemical._id.toString()] }, 
           status: { $ne: 'Empty' } 
         });
+        // If no active containers found, fall back to ANY container (including empty)
         if (!container) {
-            return res.status(404).json({ error: `Chemical found (${chemical.name}), but no active containers are available for check-out.` });
+          container = await Container.findOne({ 
+            ...labQuery,
+            chemical_id: { $in: [chemical.id, chemical._id.toString()] }
+          });
+        }
+        // If still no container at all, create a virtual placeholder so the UI can show the chemical
+        if (!container) {
+          container = {
+            _id: chemical._id,
+            container_id: chemical.id,
+            quantity: chemical.quantity || 0,
+            unit: chemical.unit,
+            status: chemical.status || 'Out of Stock',
+            location: chemical.location || 'Unassigned'
+          };
         }
       } else {
         return res.status(404).json({ error: 'Barcode not recognized as a Container, Chemical ID, or Manufacturer Barcode.' });
@@ -78,13 +94,30 @@ exports.getChemicalByBarcode = async (req, res) => {
     if (chemical.hazard_summary?.health || chemical.hazard_summary?.physical) {
       warnings.push('HAZARDOUS: PPE required for handling.');
     }
+    if ((container.quantity || 0) <= 0 || container.status === 'Out of Stock' || container.status === 'Empty') {
+      warnings.push('OUT OF STOCK: No quantity available for check-out. Use Stock-In to replenish.');
+    }
+
+    // Normalize container quantity to chemical's display unit to avoid unit mismatch (e.g. 0.013 L vs 13 mL)
+    let displayQty = container.quantity;
+    let displayUnit = container.unit || chemical.unit;
+    if (container.unit && chemical.unit && container.unit !== chemical.unit) {
+      try {
+        const baseQty = convertToBase(container.quantity, container.unit);
+        const converted = convertFromBase(baseQty, chemical.unit);
+        if (isFinite(converted) && converted > 0) {
+          displayQty = converted;
+          displayUnit = chemical.unit;
+        }
+      } catch (e) { /* keep original if conversion fails */ }
+    }
 
     res.json({
       container: {
         _id: container._id,
         container_id: container.container_id,
-        quantity: container.quantity,
-        unit: container.unit,
+        quantity: displayQty,
+        unit: displayUnit,
         status: container.status,
         location: container.location
       },
@@ -203,6 +236,28 @@ exports.checkOut = async (req, res) => {
       metadata: { ip: req.ip, userAgent: req.headers['user-agent'] }
     });
 
+    // 5. Write to Master Ledger (InventoryLog)
+    const outLog = new InventoryLog({
+      lab: req.activeLabId,
+      chemical_id: chemical.id,
+      chemical_name: chemical.name,
+      user_id: req.user.id,
+      user_name: req.user.name,
+      user_role: req.user.role,
+      action: 'OUT',
+      quantity_change: quantity,
+      unit,
+      reason: notes || 'Fast Check-Out (Transaction System)',
+      batch_number: container.batch_number || chemical.batch_number,
+      building: chemical.building,
+      room: chemical.room,
+      cabinet: chemical.cabinet,
+      shelf: chemical.shelf,
+      container_id: container.container_id,
+      old_location: chemical.location
+    });
+    await outLog.save();
+
     res.status(201).json({
       message: 'Check-out successful',
       transaction,
@@ -302,6 +357,28 @@ exports.checkIn = async (req, res) => {
       container.save(),
       chemical.save()
     ]);
+
+    // Write to Master Ledger (InventoryLog)
+    const inLog = new InventoryLog({
+      lab: req.activeLabId,
+      chemical_id: chemical.id,
+      chemical_name: chemical.name,
+      user_id: req.user.id,
+      user_name: req.user.name,
+      user_role: req.user.role,
+      action: 'IN',
+      quantity_change: returned_quantity,
+      unit,
+      reason: notes || 'Fast Check-In (Transaction System)',
+      batch_number: container.batch_number || chemical.batch_number,
+      building: chemical.building,
+      room: chemical.room,
+      cabinet: chemical.cabinet,
+      shelf: chemical.shelf,
+      container_id: container.container_id,
+      new_location: chemical.location
+    });
+    await inLog.save();
 
     res.json({
       message: 'Check-in successful',

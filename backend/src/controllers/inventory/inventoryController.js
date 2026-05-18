@@ -501,7 +501,7 @@ exports.handleTransaction = async (req, res) => {
 
     res.status(201).json({ 
       message: 'Transaction recorded successfully', 
-      newQty: Number(Number(targetChem.quantity).toFixed(1)), 
+      newQty: Number(Number(targetChem.quantity).toFixed(4)), 
       unit: targetChem.unit,
       location: targetChem.location,
       newRecordCreated: targetChem.id !== chem.id,
@@ -697,7 +697,7 @@ exports.handleFifoUsage = async (req, res) => {
       message: 'FIFO consumption successful',
       totalDeducted: quantity,
       unit: txUnit,
-      remainingChemicalStock: Number(Number(chem.quantity).toFixed(1)),
+      remainingChemicalStock: Number(Number(chem.quantity).toFixed(4)),
       batchesUsed: usedBatchesLog,
       containersUsed: usedContainersLog
     });
@@ -767,7 +767,11 @@ exports.quickScan = async (req, res) => {
         unit: txUnit,
         reason: 'Quick Scan Check-Out',
         batch_number: chem.batch_number,
-        location: chem.location
+        building: chem.building,
+        room: chem.room,
+        cabinet: chem.cabinet,
+        shelf: chem.shelf,
+        old_location: chem.location
       });
       await log.save();
 
@@ -797,7 +801,11 @@ exports.quickScan = async (req, res) => {
         unit: txUnit,
         reason: 'Quick Scan Check-In',
         batch_number: chem.batch_number,
-        location: chem.location
+        building: chem.building,
+        room: chem.room,
+        cabinet: chem.cabinet,
+        shelf: chem.shelf,
+        new_location: chem.location
       });
       await log.save();
 
@@ -814,7 +822,7 @@ exports.quickScan = async (req, res) => {
 
     res.json({ 
       message: `Successfully checked ${action === 'IN' ? 'in' : 'out'} ${qtyToChange} ${txUnit}`,
-      newQty: Number(Number(chem.quantity).toFixed(1)),
+      newQty: Number(Number(chem.quantity).toFixed(4)),
       unit: chem.unit,
       chemicalName: chem.name
     });

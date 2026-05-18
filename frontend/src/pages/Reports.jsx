@@ -9,6 +9,7 @@ import {
   FileText, Download, RefreshCw 
 } from 'lucide-react';
 import axios from 'axios';
+import { fmtQty } from '../utils/formatQuantity';
 import '../styles/Reports.css';
 
 const COLORS = ['#0f172a', '#3b82f6', '#f59e0b', '#ef4444', '#10b981', '#6366f1'];
@@ -229,7 +230,7 @@ const Reports = () => {
                     <p className="item-meta-xs">{item.id}</p>
                   </div>
                   <span className="item-badge-xs badge-blue">
-                    {item.quantity} {item.unit}
+                    {fmtQty(item.quantity, item.unit)}
                   </span>
                 </div>
               ))

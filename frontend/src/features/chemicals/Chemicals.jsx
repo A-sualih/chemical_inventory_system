@@ -13,6 +13,7 @@ import FilterPanel from "../../components/forms/FilterPanel";
 import useUnits from "../../hooks/useUnits";
 import axios from "axios";
 import { debounce } from "lodash-es";
+import { fmtQty } from "../../utils/formatQuantity";
 import "../../styles/Chemicals.css";
 
 const Chemicals = () => {
@@ -255,7 +256,7 @@ const Chemicals = () => {
                             <div className="inventory-subtext">
                               <span className="location-text">[{item.location}]</span>
                               <span className="separator">•</span>
-                              <span>{item.quantity} {unitLabel(item.unit)}</span>
+                              <span>{fmtQty(item.quantity, item.unit)}</span>
                               {item.batch_number && (
                                 <>
                                   <span className="separator">•</span>

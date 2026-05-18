@@ -18,7 +18,7 @@
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--proc-glass-border);
   position: sticky;
-  top: var(--top-header-height, 4.5rem);
+  top: 0;
   z-index: 30;
   padding: clamp(1rem, 3vw, 1.75rem);
 }
