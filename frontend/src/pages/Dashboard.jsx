@@ -378,7 +378,7 @@ const Dashboard = () => {
             <div className="section-header" style={{position: 'relative', zIndex: 10}}>
               <div>
                 <h2 className="section-title">Inventory Overview</h2>
-                <p className="stat-subtext" style={{fontSize: '0.75rem', marginTop: '0.375rem'}}>Volume distribution across locations</p>
+                <p className="stat-subtext" style={{fontSize: '0.75rem', marginTop: '0.375rem', color: '#3b82f6', fontWeight: 'bold'}}>Volume distribution across locations • Responsive Live View</p>
               </div>
               {user?.role !== "Admin" && (
                 <Link to="/chemicals" className="section-badge" style={{textDecoration: 'none'}}>View All →</Link>
