@@ -210,39 +210,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Emergency Contact Strip */}
-      <section className="section-container">
-        <div className="emergency-strip">
-          <div className="emergency-content">
-            <div className="emergency-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                <AlertTriangle size={40} color="#fff" />
-                <span style={{ color: '#fff', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '2px' }}>Emergency Oversight</span>
-              </div>
-              <h2>Immediate Safety Response</h2>
-              <p>In case of chemical spills, leaks, or medical emergencies, contact these authorized institution numbers immediately.</p>
-            </div>
-            <div className="emergency-contacts">
-               <div className="e-contact-card">
-                  <h4>Campus Security</h4>
-                  <div className="e-contact-value">911 / (555) 123-4567</div>
-               </div>
-               <div className="e-contact-card">
-                  <h4>EHS Support</h4>
-                  <div className="e-contact-value">(555) 987-6543</div>
-               </div>
-               <div className="e-contact-card">
-                  <h4>Poison Control</h4>
-                  <div className="e-contact-value">1-800-222-1222</div>
-               </div>
-               <div className="e-contact-card">
-                  <h4>Medical Facility</h4>
-                  <div className="e-contact-value">(555) 000-1111</div>
-               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* About Section */}
       <section id="about" className="section-container">
