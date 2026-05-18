@@ -476,6 +476,11 @@
     grid-template-columns: 1fr;
   }
 
+  .restore-table-container {
+    padding: 1.25rem;
+    background-color: #f8fafc; /* Professional slate-tinted contrast background */
+  }
+
   .restore-table, 
   .restore-table thead, 
   .restore-table tbody, 
@@ -491,15 +496,27 @@
 
   .restore-table tr {
     padding: 1.25rem;
-    border-bottom: 1px solid var(--secondary-50);
+    background: white;
+    margin-bottom: 1.25rem;
+    border-radius: 1.25rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--secondary-100);
+    box-sizing: border-box;
+  }
+
+  .restore-table tr:last-child {
+    margin-bottom: 0;
   }
 
   .restore-table td {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.625rem 0 !important;
+    padding: 0.75rem 0 !important;
     text-align: right;
+    gap: 1rem;
+    min-height: 2.25rem;
+    box-sizing: border-box;
   }
 
   .restore-table td::before {
@@ -509,6 +526,24 @@
     color: var(--secondary-400);
     text-transform: uppercase;
     letter-spacing: 0.1em;
+    flex-shrink: 0;
+    width: 90px; /* Rigid width to prevent any squishing */
+    text-align: left;
+  }
+
+  .backup-name-cell {
+    word-break: break-all;
+    font-size: 0.75rem;
+    max-width: calc(100% - 100px);
+    text-align: right;
+    line-height: 1.4;
+  }
+
+  .timestamp-cell {
+    font-size: 0.75rem;
+    max-width: calc(100% - 100px);
+    justify-content: flex-end;
+    text-align: right;
   }
 
   .restore-table td:last-child {
@@ -517,9 +552,15 @@
     border-top: 1px dotted var(--secondary-100);
   }
 
+  /* Hide redundant "Actions" label on mobile since button is full-width */
+  .restore-table td:last-child::before {
+    display: none;
+  }
+
   .restore-btn {
     width: 100%;
     padding: 0.875rem;
+    text-align: center;
   }
 
   .activity-item-header {
