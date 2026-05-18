@@ -24,6 +24,8 @@ const labRoutes = require('./routes/labs');
 const transferRoutes = require('./routes/transfers');
 const transactionRoutes = require('./routes/transactionRoutes');
 const mobileRoutes = require('./routes/mobile');
+const publicRoutes = require('./routes/public');
+const supportRoutes = require('./routes/support');
 const app = express();
 
 app.use(cors());
@@ -54,6 +56,8 @@ app.use('/api/labs', labRoutes);
 app.use('/api/transfers', transferRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/mobile', mobileRoutes);
+app.use('/api/public', publicRoutes);
+app.use('/api/support', supportRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
 });
