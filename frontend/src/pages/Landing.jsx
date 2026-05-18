@@ -175,7 +175,7 @@ const Landing = () => {
                 By providing institutional-wide visibility, {systemName} helps safety officers and 
                 lab managers maintain a zero-incident environment while optimizing procurement.
              </p>
-             <button className="btn-hero-secondary" style={{ padding: '0.8rem 2rem' }}>Learn More About Our Tech</button>
+             <Link to="/learn-more" className="btn-hero-secondary" style={{ padding: '0.8rem 2rem' }}>Learn More About Our Tech</Link>
           </div>
         </div>
       </section>
@@ -268,10 +268,10 @@ const Landing = () => {
           {systemName}
         </div>
         <div className="footer-links">
-           <a href="#" className="nav-link">Privacy Policy</a>
-           <a href="#" className="nav-link">Terms of Service</a>
-           <a href="#" className="nav-link">Contact Support</a>
-           <a href="#" className="nav-link">Documentation</a>
+           <Link to="/privacy" className="nav-link">Privacy Policy</Link>
+           <Link to="/terms" className="nav-link">Terms of Service</Link>
+           <Link to="/support" className="nav-link">Contact Support</Link>
+           <Link to="/docs" className="nav-link">Documentation</Link>
         </div>
         <p className="copyright">© 2026 {systemName}. All rights reserved.</p>
       </footer>
