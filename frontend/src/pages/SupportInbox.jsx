@@ -3,6 +3,7 @@ import axios from 'axios';
 import Layout from '../layout/Layout';
 import { Mail, Clock, AlertCircle, Filter, CheckCircle, XCircle, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
+import '../styles/SupportInbox.css';
 
 const SupportInbox = () => {
   const [requests, setRequests] = useState([]);
@@ -49,7 +50,7 @@ const SupportInbox = () => {
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case 'Pending': return 'status-pending';
-      case 'In Progress': return 'status-approved'; // Reuse existing styles
+      case 'In Progress': return 'status-approved';
       case 'Resolved': return 'status-approved';
       case 'Closed': return 'status-rejected';
       default: return '';
@@ -81,7 +82,7 @@ const SupportInbox = () => {
         </div>
       </div>
 
-      <div className="dashboard-section" style={{ minHeight: '600px', marginTop: '2rem' }}>
+      <div className="support-inbox-container">
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
             <div className="spinner-mini"></div>
@@ -93,34 +94,34 @@ const SupportInbox = () => {
             <p className="stat-subtext">Everything is caught up!</p>
           </div>
         ) : (
-          <div className="approval-list-beautiful">
+          <div className="support-list">
             {requests.map((req) => (
-              <div key={req._id} className="approval-card-beautiful" style={{ padding: '2rem', marginBottom: '1.5rem', alignItems: 'flex-start', background: '#fff', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)' }}>
-                <div className="approval-info" style={{ flex: 1 }}>
-                  <div className="approval-avatar-beautiful" style={{ background: getPriorityColor(req.priority), color: '#fff' }}>
+              <div key={req._id} className="support-request-card">
+                <div className="support-request-info">
+                  <div className="priority-avatar" style={{ background: getPriorityColor(req.priority), color: '#fff' }}>
                     {req.priority[0]}
                   </div>
-                  <div className="approval-details" style={{ flex: 1 }}>
-                    <div className="approval-item-name-beautiful" style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div className="support-content">
+                    <div className="support-subject">
                       {req.subject}
                       <span className={`status-tag ${getStatusBadgeClass(req.status)}`} style={{ fontSize: '0.7rem' }}>
                         {req.status}
                       </span>
                     </div>
-                    <div className="approval-meta-beautiful" style={{ marginTop: '0.5rem', marginBottom: '1rem', color: '#64748b' }}>
-                      <span className="req-by" style={{ color: '#475569', fontWeight: 600 }}>FROM: {req.fullName} ({req.email})</span>
-                      <span className="meta-dot" style={{ color: '#cbd5e1' }}>•</span>
-                      <span className="req-by" style={{ color: '#475569', fontWeight: 600 }}>LAB: {req.department || 'N/A'}</span>
-                      <span className="meta-dot" style={{ color: '#cbd5e1' }}>•</span>
-                      <span className="req-time" style={{ color: '#64748b' }}>{new Date(req.createdAt).toLocaleString()}</span>
+                    <div className="support-meta">
+                      <span>FROM: {req.fullName} ({req.email})</span>
+                      <span className="meta-dot">•</span>
+                      <span>LAB: {req.department || 'N/A'}</span>
+                      <span className="meta-dot">•</span>
+                      <span>{new Date(req.createdAt).toLocaleString()}</span>
                     </div>
-                    <div style={{ background: 'rgba(0,0,0,0.03)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.05)', color: '#334155', lineHeight: '1.6', fontSize: '0.95rem' }}>
+                    <div className="support-message-body">
                       {req.message}
                     </div>
                   </div>
                 </div>
                 
-                <div className="approval-actions-beautiful" style={{ flexDirection: 'column', gap: '1rem', marginLeft: '2rem', paddingTop: '0.5rem' }}>
+                <div className="support-actions">
                   <button 
                     onClick={() => handleStatusUpdate(req._id, 'In Progress')}
                     className="action-btn-circle approve-btn" 
