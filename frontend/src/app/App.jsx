@@ -4,9 +4,15 @@ import { NotificationProvider } from "../context/NotificationContext";
 import { SettingsProvider } from "../context/SettingsContext";
 import { Toaster } from "react-hot-toast";
 import Dashboard from "../pages/Dashboard";
+import Landing from "../pages/Landing";
+import LearnMore from "../pages/LearnMore";
 import Chemicals from "../features/chemicals/Chemicals";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import PrivacyPolicy from "../pages/PrivacyPolicy";
+import TermsOfService from "../pages/TermsOfService";
+import Support from "../pages/Support";
+import Documentation from "../pages/Documentation";
 import ResetPassword from "../features/auth/ResetPassword";
 import Reports from "../pages/Reports";
 import AdminOnly from "../features/auth/AdminOnly";
@@ -67,10 +73,16 @@ function App() {
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/learn-more" element={<LearnMore />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/support" element={<Support />} />
+              <Route path="/docs" element={<Documentation />} />
               <Route path="/reset-password/:token" element={<ResetPassword />} />
               
               {/* Common Protected Routes */}
-              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/" element={<Landing />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/scan" element={<ProtectedRoute><ScanQR /></ProtectedRoute>} />

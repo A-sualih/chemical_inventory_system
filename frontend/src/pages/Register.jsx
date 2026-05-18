@@ -86,7 +86,7 @@ const Register = () => {
               Create Account
             </h1>
             <p className="logo-subtext" style={{marginTop: '0.5rem'}}>
-              Join {settings?.systemName || "the Chemical Inventory System"}
+              Join {settings?.systemName || "the Chemical Inventory System"} in {settings?.orgName || "our organization"}
             </p>
           </div>
 
@@ -199,12 +199,12 @@ const Register = () => {
 
       {/* Subtle Bottom Footer */}
       <p className="page-footer-tag">
-        Secure Access Provided by GoldenBatch Tech
+        Secure Access Provided by {settings?.orgName || "Chemical Inventory Management"}
       </p>
     </div>
   );
 };
 
+
+
 export default Register;
-
-

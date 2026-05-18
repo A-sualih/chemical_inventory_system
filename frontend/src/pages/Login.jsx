@@ -8,6 +8,7 @@ import "../styles/Login.css";
 const Login = () => {
   const { login, user: currentUser } = useAuth();
   const { settings } = useSettings();
+  const orgName = settings?.orgName || "Chemical Inventory Management";
   const [view, setView] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +22,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (currentUser) navigate("/");
+    if (currentUser) navigate("/dashboard");
   }, [currentUser, navigate]);
 
   useEffect(() => {
@@ -62,7 +63,7 @@ const Login = () => {
         setView("mfa");
       } else {
         const res = await login(email, password);
-        if (res.success) navigate("/");
+        if (res.success) navigate("/dashboard");
         else setError(res.error);
       }
     } catch (err) {
@@ -93,7 +94,7 @@ const Login = () => {
       axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
       
       // Navigate instead of reload so React state updates cleanly
-      navigate('/');
+      navigate('/dashboard');
       window.location.reload();
     } catch (err) {
       setIsLoading(false);
@@ -231,7 +232,7 @@ const Login = () => {
                 {settings?.systemName || "CIMS Portal"}
               </h1>
               <p className="logo-subtext">
-                {settings?.orgName || "Chemical Inventory Management"}
+                {orgName}
               </p>
             </div>
 
@@ -332,12 +333,12 @@ const Login = () => {
 
       {/* Subtle Bottom Footer */}
       <p className="page-footer-tag">
-        Secure Access Provided by GoldenBatch Tech
+        Secure Access Provided by {orgName}
       </p>
     </div>
   );
 };
 
+
+
 export default Login;
-
-
