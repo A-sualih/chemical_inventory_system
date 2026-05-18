@@ -13,6 +13,7 @@ import PrivacyPolicy from "../pages/PrivacyPolicy";
 import TermsOfService from "../pages/TermsOfService";
 import Support from "../pages/Support";
 import Documentation from "../pages/Documentation";
+import HelpCenter from "../pages/HelpCenter";
 import ResetPassword from "../features/auth/ResetPassword";
 import Reports from "../pages/Reports";
 import SupportInbox from "../pages/SupportInbox";
@@ -78,6 +79,7 @@ function App() {
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/support" element={<Support />} />
+              <Route path="/help-center" element={<HelpCenter />} />
               <Route path="/docs" element={<Documentation />} />
               <Route path="/reset-password/:token" element={<ResetPassword />} />
               

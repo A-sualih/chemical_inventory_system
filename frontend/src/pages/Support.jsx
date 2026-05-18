@@ -89,11 +89,11 @@ const Support = () => {
               <h3>Email Us</h3>
               <p>support@labsystem.edu</p>
             </div>
-            <div className="tech-card">
+            <Link to="/help-center" className="tech-card" style={{ textDecoration: 'none', color: 'inherit' }}>
               <HelpCircle size={32} color="var(--landing-teal)" />
               <h3>Help Center</h3>
               <p>Search our knowledge base</p>
-            </div>
+            </Link>
             <div className="tech-card">
               <Phone size={32} color="#f87171" />
               <h3>Hotline</h3>
