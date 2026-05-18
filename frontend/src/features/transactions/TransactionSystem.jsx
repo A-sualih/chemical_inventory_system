@@ -28,7 +28,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 const TransactionSystem = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const isViewer = user?.role?.toLowerCase() === 'viewer / auditor';
+    const isViewer = user?.role?.toLowerCase() === 'viewer / auditor' || user?.role === 'Safety Officer';
     const isLabStaff = user?.role?.toLowerCase() === 'laboratory staff';
     const [activeTab, setActiveTab] = useState('checkout');
     const [barcode, setBarcode] = useState('');
@@ -41,6 +41,7 @@ const TransactionSystem = () => {
     const [enrollSuccess, setEnrollSuccess] = useState(null);
     const [scanError, setScanError] = useState(null);      // friendly scan-not-found state
     const [enrollPrefillBarcode, setEnrollPrefillBarcode] = useState(''); // pre-fill barcode in enroll form
+    const [editingChemical, setEditingChemical] = useState(null);
 
     // Form state
     const [quantity, setQuantity] = useState('');
@@ -170,19 +171,26 @@ const TransactionSystem = () => {
 
     const handleEnrollSave = async (formData) => {
         try {
-            const res = await axios.post('/api/chemicals', formData);
-            if (res.data.safety_warnings && res.data.safety_warnings.length > 0) {
-                alert('STORAGE WARNING:\n\n' + res.data.safety_warnings.join('\n\n'));
+            let res;
+            if (editingChemical) {
+                res = await axios.put(`/api/chemicals/${editingChemical.id || editingChemical._id}`, formData);
+                toast.success('Chemical updated successfully!');
+            } else {
+                res = await axios.post('/api/chemicals', formData);
+                if (res.data.safety_warnings && res.data.safety_warnings.length > 0) {
+                    alert('STORAGE WARNING:\n\n' + res.data.safety_warnings.join('\n\n'));
+                }
+                setEnrollSuccess(res.data);
             }
             setShowEnrollForm(false);
-            setEnrollSuccess(res.data);
-            // Auto-switch to checkout and pre-fill the new chemical's ID
+            setEditingChemical(null);
+            // Auto-switch to checkout and pre-fill the chemical's ID
             setBarcode(res.data.id || '');
             setActiveTab('checkout');
-            // Auto-load the scanned data for the newly enrolled chemical
+            // Auto-load the scanned data
             setTimeout(() => autoScan(res.data.id), 300);
         } catch (err) {
-            toast.error('Error enrolling asset: ' + (err.response?.data?.error || err.message));
+            toast.error(editingChemical ? 'Error updating chemical: ' + (err.response?.data?.error || err.message) : 'Error enrolling asset: ' + (err.response?.data?.error || err.message));
         }
     };
 
@@ -359,7 +367,7 @@ const TransactionSystem = () => {
                                                         <div className="chem-result-cas">CAS: {chem.cas_number || 'N/A'}</div>
                                                     </div>
                                                     <div className="chem-result-stock">
-                                                        {chem.quantity} {chem.unit}
+                                                        {Number(chem.quantity).toFixed(1)} {chem.unit}
                                                     </div>
                                                 </div>
                                             ))}
@@ -708,7 +716,7 @@ const TransactionSystem = () => {
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '2rem' }}>
                                     <div className="detail-section">
                                         <div className="detail-label">Current Stock</div>
-                                        <div className="detail-value">{scannedData.container.quantity} {scannedData.container.unit}</div>
+                                        <div className="detail-value">{Number(scannedData.container.quantity).toFixed(1)} {scannedData.container.unit}</div>
                                     </div>
                                     <div className="detail-section">
                                         <div className="detail-label">Storage Location</div>
@@ -758,7 +766,7 @@ const TransactionSystem = () => {
                                             value={quantity}
                                             onChange={(e) => setQuantity(e.target.value)}
                                             className="input-neon"
-                                            placeholder={`Max: ${scannedData.container.quantity}`}
+                                            placeholder={`Max: ${Number(scannedData.container.quantity).toFixed(1)}`}
                                         />
                                         <span style={{ position: 'absolute', right: '1.25rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: 'var(--text-muted)' }}>{scannedData.container.unit}</span>
                                     </div>
@@ -844,7 +852,7 @@ const TransactionSystem = () => {
                     </div>
                     <div style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: '1.25rem', fontWeight: 800, color: item.type === 'Check-Out' ? 'var(--danger)' : 'var(--success)' }}>
-                            {item.type === 'Check-Out' ? '-' : '+'}{item.quantity} {item.unit}
+                            {item.type === 'Check-Out' ? '-' : '+'}{Number(item.quantity).toFixed(1)} {item.unit}
                         </div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
                             {item.container_barcode.substring(0, 12)}

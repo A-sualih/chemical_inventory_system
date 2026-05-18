@@ -501,7 +501,7 @@ exports.handleTransaction = async (req, res) => {
 
     res.status(201).json({ 
       message: 'Transaction recorded successfully', 
-      newQty: targetChem.quantity, 
+      newQty: Number(Number(targetChem.quantity).toFixed(1)), 
       unit: targetChem.unit,
       location: targetChem.location,
       newRecordCreated: targetChem.id !== chem.id,
@@ -697,7 +697,7 @@ exports.handleFifoUsage = async (req, res) => {
       message: 'FIFO consumption successful',
       totalDeducted: quantity,
       unit: txUnit,
-      remainingChemicalStock: chem.quantity,
+      remainingChemicalStock: Number(Number(chem.quantity).toFixed(1)),
       batchesUsed: usedBatchesLog,
       containersUsed: usedContainersLog
     });
@@ -814,7 +814,7 @@ exports.quickScan = async (req, res) => {
 
     res.json({ 
       message: `Successfully checked ${action === 'IN' ? 'in' : 'out'} ${qtyToChange} ${txUnit}`,
-      newQty: chem.quantity,
+      newQty: Number(Number(chem.quantity).toFixed(1)),
       unit: chem.unit,
       chemicalName: chem.name
     });

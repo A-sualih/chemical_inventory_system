@@ -122,6 +122,9 @@ exports.getChemicalByBarcode = async (req, res) => {
  */
 exports.checkOut = async (req, res) => {
   try {
+    if (req.user.role === 'Safety Officer') {
+      return res.status(403).json({ error: 'Safety Officers are restricted from checking out chemicals.' });
+    }
     const { 
       container_id, 
       quantity, 
@@ -216,6 +219,9 @@ exports.checkOut = async (req, res) => {
  */
 exports.checkIn = async (req, res) => {
   try {
+    if (req.user.role === 'Safety Officer') {
+      return res.status(403).json({ error: 'Safety Officers are restricted from checking in chemicals.' });
+    }
     const { 
       container_id, 
       returned_quantity, 

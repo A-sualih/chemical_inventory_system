@@ -75,8 +75,10 @@ const Dashboard = () => {
   };
 
   const timeAgo = (dateStr) => {
+    if (!dateStr) return "N/A";
     const now = new Date();
     const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "N/A";
     const diffMs = now - date;
     const diffMins = Math.floor(diffMs / 60000);
     if (diffMins < 1) return "Just now";
@@ -101,15 +103,15 @@ const Dashboard = () => {
   };
 
   const stats = [
-    { label: "Total Chemicals", value: dbStats.total.toString().padStart(3, '0'), sub: "Active Listings", color: "primary", path: "/chemicals", icon: (
+    { label: "Total Chemicals", value: dbStats.total.toString().padStart(3, '0'), sub: "Active Listings", color: "primary", path: user?.role === "Admin" ? "#" : "/chemicals", icon: (
       <svg className="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" /></svg>
     )},
-    { label: "Flammables", value: dbStats.flammables.toString().padStart(3, '0'), sub: "Class 3 Assets", color: "orange", path: "/chemicals?hazard=Flammable", icon: (
+    { label: "Flammables", value: dbStats.flammables.toString().padStart(3, '0'), sub: "Class 3 Assets", color: "orange", path: user?.role === "Admin" ? "#" : "/chemicals?hazard=Flammable", icon: (
       <div className="icon-md">
         {HAZARD_CLASSES.find(h => h.id === 'Flammable')?.icon}
       </div>
     )},
-    { label: "Critical Stock", value: dbStats.lowStock.toString().padStart(2, '0'), sub: "Reorder Required", color: "red", path: "/chemicals?expiryStatus=low", icon: (
+    { label: "Critical Stock", value: dbStats.lowStock.toString().padStart(2, '0'), sub: "Reorder Required", color: "red", path: user?.role === "Admin" ? "#" : "/chemicals?expiryStatus=low", icon: (
       <svg className="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
     )},
      { label: "Safety Audit", value: dbStats.auditScore, sub: "Passing Score", color: "green", path: "/logs", icon: (
@@ -149,7 +151,7 @@ const Dashboard = () => {
              <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
              <span className="hidden-mobile">Search SDS</span>
            </button>
-            {hasPermission("create_chemical") && (
+            {hasPermission("create_chemical") && user?.role !== "Admin" && (
               <Link to="/chemicals" className="new-inventory-btn">
                 <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
                 <span className="hidden-mobile">New Inventory</span>
@@ -219,17 +221,19 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {hasPermission("approve_request") ? (
-            <div className="dashboard-section approvals-section">
-               <div className="approvals-bg-glow"></div>
-               <div className="section-header" style={{position: 'relative', zIndex: 10}}>
-                <h2 className="section-title text-white">Pending Approvals</h2>
-                 <span className="stat-label">
-                   {pendingRequests.filter(r => r.status === 'Pending').length} Pending
-                 </span>
+          {user?.role === 'Lab Manager' ? (
+            <div className="dashboard-section approvals-section-beautiful">
+               <div className="section-header approvals-header">
+                 <div className="approvals-title-container">
+                   <h2 className="section-title approvals-title">Pending<br/>Approvals</h2>
+                   <span className="approvals-badge">
+                     {pendingRequests.filter(r => r.status === 'Pending').length} Pending
+                   </span>
+                 </div>
                </div>
+               <div className="approvals-divider"></div>
 
-               <div className="approval-list">
+               <div className="approval-list-beautiful">
                   {requestsLoading ? (
                     <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2.5rem 0'}}>
                       <div className="spinner-mini" style={{width: '2rem', height: '2rem'}}></div>
@@ -245,19 +249,25 @@ const Dashboard = () => {
                     </div>
                   ) : (
                     pendingRequests.slice(0, 5).map((req) => (
-                      <div key={req._id} className="approval-card">
+                      <div key={req._id} className="approval-card-beautiful">
                         <div className="approval-info">
-                           <div className="approval-avatar">
+                           <div className="approval-avatar-beautiful">
                               {(req.chemical_name || req.chemical_id?.name || '?')[0].toUpperCase()}
                            </div>
                            <div className="approval-details">
-                              <div className="approval-item-name">{req.chemical_name || req.chemical_id?.name || req.chemical_id}</div>
-                              <div className="approval-meta">
-                                REQ BY {(req.user_name || req.user_id?.name || 'Unknown').toUpperCase()} • {timeAgo(req.created_at)} • QTY: {req.quantity}
+                              <div className="approval-item-name-beautiful">
+                                {req.chemical_name || req.chemical_id?.name || 'Chemical Request'}
+                              </div>
+                              <div className="approval-meta-beautiful">
+                                <span className="req-by">REQ BY {(req.user_name || req.user_id?.name || 'Unknown').toUpperCase()}</span>
+                                <span className="meta-dot">•</span>
+                                <span className="req-time">{timeAgo(req.created_at)}</span>
+                                <span className="meta-dot">•</span>
+                                <span className="req-qty">QTY: {req.quantity}</span>
                               </div>
                            </div>
                         </div>
-                        <div className="approval-actions">
+                        <div className="approval-actions-beautiful">
                            <span className={`status-tag ${
                              req.status === 'Approved' ? 'status-approved' :
                              req.status === 'Rejected' ? 'status-rejected' : 'status-pending'
@@ -282,19 +292,22 @@ const Dashboard = () => {
                                </button>
                              </>
                            )}
-                           <Link to="/requests" className="view-more-arrow">
-                              <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                           <Link to="/requests" className="view-more-arrow-beautiful">
+                              <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
                            </Link>
                         </div>
                       </div>
                     ))
                   )}
                </div>
-               <Link to="/requests" className="request-center-btn">
-                  Go to Request Center
-               </Link>
+               
+               <div className="request-center-footer">
+                 <Link to="/requests" className="request-center-link-beautiful">
+                    Go to Request Center
+                 </Link>
+               </div>
             </div>
-          ) : hasPermission("submit_request") && (
+          ) : hasPermission("submit_request") && user?.role !== "Admin" && (
             <div className="dashboard-section activity-card" style={{ background: 'var(--primary-600)', overflow: 'hidden' }}>
               <div className="approvals-bg-glow" style={{ background: 'radial-gradient(circle at top right, rgba(255,255,255,0.2), transparent)' }}></div>
               <div className="section-header" style={{position: 'relative', zIndex: 10}}>
@@ -355,7 +368,9 @@ const Dashboard = () => {
                 <h2 className="section-title">Inventory Overview</h2>
                 <p className="stat-subtext" style={{fontSize: '0.75rem', marginTop: '0.375rem'}}>Volume distribution across locations</p>
               </div>
-              <Link to="/chemicals" className="section-badge" style={{textDecoration: 'none'}}>View All →</Link>
+              {user?.role !== "Admin" && (
+                <Link to="/chemicals" className="section-badge" style={{textDecoration: 'none'}}>View All →</Link>
+              )}
             </div>
             
             <div className="chart-container">
@@ -499,7 +514,9 @@ const Dashboard = () => {
                     ))
                  )}
               </div>
-              <Link to="/chemicals" className="manage-expiries-link">Manage All Expiries</Link>
+              {user?.role !== "Admin" && (
+                <Link to="/chemicals" className="manage-expiries-link">Manage All Expiries</Link>
+              )}
            </div>
 
             {hasPermission("view_audit_logs") && (

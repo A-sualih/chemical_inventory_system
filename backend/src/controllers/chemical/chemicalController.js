@@ -6,6 +6,18 @@ const { syncContainers } = require('../../services/containerService');
 const { checkChemicalExpiry } = require('../../services/expiryService');
 const { logAudit } = require('../../middleware/authMiddleware');
 
+const cleanChemicalQty = (doc) => {
+  if (!doc) return doc;
+  const obj = typeof doc.toObject === 'function' ? doc.toObject() : doc;
+  if (obj.quantity !== undefined && obj.quantity !== null) {
+    obj.quantity = Number(Number(obj.quantity).toFixed(1));
+  }
+  if (obj.threshold !== undefined && obj.threshold !== null) {
+    obj.threshold = Number(Number(obj.threshold).toFixed(1));
+  }
+  return obj;
+};
+
 exports.getStats = async (req, res) => {
   try {
     const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
@@ -192,7 +204,7 @@ exports.getChemicals = async (req, res) => {
     }
 
     res.json({
-      data: chemicals,
+      data: chemicals.map(cleanChemicalQty),
       total,
       page: p,
       totalPages: Math.ceil(total / l),
@@ -217,7 +229,7 @@ exports.getChemical = async (req, res) => {
 
     const chemical = await Chemical.findOne(query);
     if (!chemical) return res.status(404).json({ error: 'Chemical not found or access denied' });
-    res.json(chemical);
+    res.json(cleanChemicalQty(chemical));
   } catch (err) {
     res.status(500).json({ error: 'Server error fetching chemical details' });
   }
@@ -402,7 +414,7 @@ exports.createChemical = async (req, res) => {
       }
     }
 
-    res.status(201).json({ ...newChem.toJSON(), safety_warnings });
+    res.status(201).json({ ...cleanChemicalQty(newChem), safety_warnings });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
@@ -579,7 +591,7 @@ exports.updateChemical = async (req, res) => {
       }
     }
 
-    res.json({ message: 'Updated successfully', chemical, safety_warnings });
+    res.json({ message: 'Updated successfully', chemical: cleanChemicalQty(chemical), safety_warnings });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
