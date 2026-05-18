@@ -4,6 +4,7 @@ import { NotificationProvider } from "../context/NotificationContext";
 import { SettingsProvider } from "../context/SettingsContext";
 import { Toaster } from "react-hot-toast";
 import Dashboard from "../pages/Dashboard";
+import Landing from "../pages/Landing";
 import Chemicals from "../features/chemicals/Chemicals";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
@@ -70,7 +71,8 @@ function App() {
               <Route path="/reset-password/:token" element={<ResetPassword />} />
               
               {/* Common Protected Routes */}
-              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/" element={<Landing />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/scan" element={<ProtectedRoute><ScanQR /></ProtectedRoute>} />
