@@ -7,6 +7,18 @@ import { HAZARD_CLASSES } from "../constants/hazards.jsx";
 import "../styles/Dashboard.css";
 import toast from 'react-hot-toast';
 
+// Smart utility to format long location strings for compact chart labels
+// e.g. "BLOCK A-ROOM 2-CANINET 2-SHELF 2" -> "CANINET 2 • SHELF 2"
+const formatLocationLabel = (name) => {
+  if (!name) return 'Unknown';
+  const parts = name.split(/[-_/]/).filter(p => p.trim());
+  if (parts.length >= 2) {
+    // Return last two items (e.g. Cabinet & Shelf) for compact display
+    return parts.slice(-2).join(' • ');
+  }
+  return name;
+};
+
 const Dashboard = () => {
   const { user, hasPermission } = useAuth();
   const [dbStats, setDbStats] = useState({ total: 0, flammables: 0, lowStock: 0, auditScore: 'N/A', expirations: [], storageBreakdown: [], lastAuditAgo: 'Never' });
@@ -398,6 +410,9 @@ const Dashboard = () => {
                 return (
                   <div key={i} className="bar-column">
                     <div className="chart-tooltip">
+                      <div className="tooltip-location-path" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '6px', marginBottom: '6px', fontSize: '9px', fontWeight: 'bold', color: '#60a5fa', textTransform: 'uppercase', whiteSpace: 'normal', minWidth: '130px', lineHeight: 1.3 }}>
+                        {unit.name?.replace(/[-_]/g, ' • ')}
+                      </div>
                       <div className="tooltip-val">{unit.totalQty} Units</div>
                       <div className="tooltip-sub">{unit.count} unique items</div>
                       <div className="tooltip-arrow"></div>
@@ -411,7 +426,9 @@ const Dashboard = () => {
                        </div>
                     </div>
 
-                    <span className={`bar-label ${theme.text}`}>{unit.name}</span>
+                    <span className={`bar-label ${theme.text}`} title={unit.name}>
+                      {formatLocationLabel(unit.name)}
+                    </span>
                   </div>
                 );
               })}

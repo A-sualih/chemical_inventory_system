@@ -303,11 +303,21 @@ const Reports = () => {
           </div>
           <div className="chart-container-large">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={usageData?.topChemicals}>
+              <BarChart data={usageData?.topChemicals} margin={{ bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="_id" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
+                <XAxis 
+                  dataKey="_id" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{fontSize: 9, fontWeight: 'bold', fill: 'var(--secondary-500)'}} 
+                  angle={-35} 
+                  textAnchor="end" 
+                  height={65}
+                />
                 <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
-                <Tooltip />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', padding: '12px' }}
+                />
                 <Bar dataKey="totalUsed" fill="#0f172a" radius={[10, 10, 0, 0]} barSize={40} />
               </BarChart>
             </ResponsiveContainer>
