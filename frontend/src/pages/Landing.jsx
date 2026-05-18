@@ -85,7 +85,11 @@ const Landing = () => {
         </div>
         <div className="hero-visual">
           <div className="hero-img-container">
-             <img src="/landing_hero_illustration_v2_1779104886985.png" alt="Chemical Inventory Management System Illustration" />
+             <img 
+               src={settings?.landingHero || "/landing_hero_illustration_v2_1779104886985.png"} 
+               alt={`${systemName} Illustration`} 
+               onError={(e) => e.target.src = "/landing_hero_illustration_v2_1779104886985.png"}
+             />
           </div>
         </div>
       </header>
@@ -111,8 +115,8 @@ const Landing = () => {
       </div>
 
       {/* Key Features Section */}
-      <section id="features" className="section-container">
-        <span className="section-tag">Capabilities</span>
+      <section id="features" className="section-container" style={{ paddingTop: '10rem' }}>
+        <span className="section-tag">Powerful Capabilities</span>
         <h2 className="section-title">Everything you need for precise control</h2>
         <div className="features-grid">
           <FeatureCard 

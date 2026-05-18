@@ -22,6 +22,7 @@ const SystemSettings = () => {
     const [formData, setFormData] = useState({
         systemName: "",
         systemLogo: "",
+        landingHero: "",
         favicon: "",
         orgName: "",
         defaultTheme: "light",
@@ -184,6 +185,16 @@ const SystemSettings = () => {
                                         </div>
                                         <input type="file" className="custom-file-input" onChange={(e) => handleFileUpload(e, "systemLogo")} />
                                     </div>
+                                </div>
+                                <div className="settings-field-group">
+                                    <label className="settings-label">Landing Page Hero Banner</label>
+                                    <div className="file-upload-wrapper" style={{ height: 'auto', minHeight: '80px' }}>
+                                        <div className="preview-image-box" style={{ width: '100%', height: '120px', aspectRatio: 'auto' }}>
+                                            {formData.landingHero ? <img src={formData.landingHero} alt="Hero Banner" style={{ height: '100%', width: '100%', objectFit: 'cover' }} /> : <PaintBrushIcon style={{width: '2rem', color: '#cbd5e1'}} />}
+                                        </div>
+                                        <input type="file" className="custom-file-input" onChange={(e) => handleFileUpload(e, "landingHero")} />
+                                    </div>
+                                    <p className="field-hint" style={{ fontSize: '0.75rem', color: 'var(--slate-400)', marginTop: '0.5rem' }}>Large scientific illustration or lab photo (16:9 recommended).</p>
                                 </div>
                                 <div className="settings-field-group">
                                     <label className="settings-label">Favicon (.ico, .png)</label>
