@@ -19,8 +19,9 @@ initDb().then(() => {
   // runStockCheck();        // Catch any low-stock issues since last server restart
   // runSafetyCheck();       // Catch any safety issues since last server restart
 
-  app.listen(PORT, '127.0.0.1', () => {
-    console.log(`Server running on http://127.0.0.1:${PORT}`);
+  const HOST = process.env.HOST || '0.0.0.0';
+  app.listen(PORT, HOST, () => {
+    console.log(`Server running on http://${HOST}:${PORT}`);
     console.log(`Mode: ${process.env.NODE_ENV || 'development'}`);
     console.log(`Workers: ExpiryWorker (00:00) | StockWorker (06:00) | SafetyWorker (07:00)`);
   });
