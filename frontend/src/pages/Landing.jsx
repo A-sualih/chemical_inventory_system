@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
+import axios from 'axios';
 import { 
   Package, 
   ShieldCheck, 
@@ -11,14 +12,18 @@ import {
   ClipboardList, 
   Bell, 
   FlaskConical,
+  Building,
+  HelpCircle,
+  PhoneCall,
+  AlertTriangle,
+  ChevronDown,
   ArrowRight,
   ShieldAlert,
   Users,
   Database,
   Lock,
   Layers,
-  ArrowUpRight,
-  Building
+  ArrowUpRight
 } from 'lucide-react';
 import '../styles/Landing.css';
 
@@ -26,6 +31,26 @@ const Landing = () => {
   const { user } = useAuth();
   const { settings } = useSettings();
   const navigate = useNavigate();
+  const [stats, setStats] = React.useState({
+    chemicalsTracked: '...',
+    activeLabs: '...',
+    vesselsManaged: '...',
+    safetyCompliance: '...'
+  });
+
+  React.useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await axios.get('/api/public/stats');
+        if (res.data && res.data.success) {
+          setStats(res.data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch landing stats', err);
+      }
+    };
+    fetchStats();
+  }, []);
 
   React.useEffect(() => {
     if (user) {
@@ -97,19 +122,19 @@ const Landing = () => {
       {/* Stats Section */}
       <div className="stats-strip">
         <div className="stat-item">
-          <span className="stat-value">500+</span>
+          <span className="stat-value">{stats.chemicalsTracked}+</span>
           <span className="stat-label">Chemicals Tracked</span>
         </div>
         <div className="stat-item">
-          <span className="stat-value">25</span>
+          <span className="stat-value">{stats.activeLabs}</span>
           <span className="stat-label">Active Laboratories</span>
         </div>
         <div className="stat-item">
-          <span className="stat-value">12k+</span>
+          <span className="stat-value">{stats.vesselsManaged}+</span>
           <span className="stat-label">Vessels Managed</span>
         </div>
         <div className="stat-item">
-          <span className="stat-value">100%</span>
+          <span className="stat-value">{stats.safetyCompliance}</span>
           <span className="stat-label">Safety Compliance</span>
         </div>
       </div>
@@ -154,6 +179,68 @@ const Landing = () => {
             title="Notifications & Alerts"
             desc="Automated warnings for chemical expiry, low-stock levels, and critical safety threshold breaches."
           />
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="section-container" style={{ paddingTop: '5rem' }}>
+        <span className="section-tag">Common Questions</span>
+        <h2 className="section-title">Help Center & FAQ</h2>
+        <div className="faq-grid">
+          <FAQItem 
+            question="How to add chemicals?" 
+            answer="Navigate to the 'Chemicals' tab in your dashboard and click 'Add Chemical'. You can enter details manually or use the Quick Scan feature for supported vendors."
+          />
+          <FAQItem 
+            question="How to scan QR / barcodes?" 
+            answer="Use the 'Scan QR' button on your mobile device or desktop with a camera. This allows for instant identification and movement tracking (check-in/check-out)."
+          />
+          <FAQItem 
+            question="How to dispose chemicals?" 
+            answer="Locate the chemical in your inventory, select 'Dispose', and follow the guided safety workflow to ensure compliant removal and documentation."
+          />
+          <FAQItem 
+            question="How to reset password?" 
+            answer="On the login page, click 'Forgot Password'. Follow the email instructions to securely reset your credentials through our multi-factor authentication system."
+          />
+          <FAQItem 
+            question="How to check inventory logs?" 
+            answer="The 'Audit Logs' section provides a complete, immutable ledger of every movement, adjustment, and disposal event across all laboratories."
+          />
+        </div>
+      </section>
+
+      {/* Emergency Contact Strip */}
+      <section className="section-container">
+        <div className="emergency-strip">
+          <div className="emergency-content">
+            <div className="emergency-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                <AlertTriangle size={40} color="#fff" />
+                <span style={{ color: '#fff', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '2px' }}>Emergency Oversight</span>
+              </div>
+              <h2>Immediate Safety Response</h2>
+              <p>In case of chemical spills, leaks, or medical emergencies, contact these authorized institution numbers immediately.</p>
+            </div>
+            <div className="emergency-contacts">
+               <div className="e-contact-card">
+                  <h4>Campus Security</h4>
+                  <div className="e-contact-value">911 / (555) 123-4567</div>
+               </div>
+               <div className="e-contact-card">
+                  <h4>EHS Support</h4>
+                  <div className="e-contact-value">(555) 987-6543</div>
+               </div>
+               <div className="e-contact-card">
+                  <h4>Poison Control</h4>
+                  <div className="e-contact-value">1-800-222-1222</div>
+               </div>
+               <div className="e-contact-card">
+                  <h4>Medical Facility</h4>
+                  <div className="e-contact-value">(555) 000-1111</div>
+               </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -300,6 +387,16 @@ const RoleCard = ({ name, desc }) => (
     <Users size={24} color="var(--landing-accent)" style={{ marginBottom: '1rem' }} />
     <h4>{name}</h4>
     <p>{desc}</p>
+  </div>
+);
+
+const FAQItem = ({ question, answer }) => (
+  <div className="faq-item">
+    <div className="faq-question">
+      <HelpCircle size={20} />
+      <span>{question}</span>
+    </div>
+    <p className="faq-answer">{answer}</p>
   </div>
 );
 

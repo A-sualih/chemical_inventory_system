@@ -15,6 +15,7 @@ import Support from "../pages/Support";
 import Documentation from "../pages/Documentation";
 import ResetPassword from "../features/auth/ResetPassword";
 import Reports from "../pages/Reports";
+import SupportInbox from "../pages/SupportInbox";
 import AdminOnly from "../features/auth/AdminOnly";
 import ChemicalForm from '../features/chemicals/ChemicalForm';
 import Requests from '../features/requests/Requests';
@@ -112,6 +113,7 @@ function App() {
               <Route path="/logs" element={<ProtectedRoute><InventoryLogs /></ProtectedRoute>} />
               <Route path="/transactions" element={<ProtectedRoute allowedRoles={["Lab Manager", "Safety Officer", "Lab Technician"]}><TransactionSystem /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer / Auditor"]}><Reports /></ProtectedRoute>} />
+              <Route path="/support-inbox" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager"]}><SupportInbox /></ProtectedRoute>} />
               
               {/* Specialized Modules */}
               <Route path="/safety" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer / Auditor"]}><SafetyDashboard /></ProtectedRoute>} />

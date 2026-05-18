@@ -513,3 +513,128 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* FAQ Section */
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.faq-item {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 2.5rem;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s;
+}
+
+.faq-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--landing-accent);
+}
+
+.faq-question {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 800;
+  font-size: 1.15rem;
+  margin-bottom: 1rem;
+  color: var(--landing-accent);
+}
+
+.faq-answer {
+  color: var(--landing-text-muted);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* Emergency Section */
+.emergency-strip {
+  background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%);
+  padding: 4rem 5%;
+  border-radius: 32px;
+  margin-top: 8rem;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+}
+
+.emergency-strip::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 20px,
+    rgba(0,0,0,0.05) 20px,
+    rgba(0,0,0,0.05) 40px
+  );
+}
+
+.emergency-content {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.emergency-header h2 {
+  font-size: 2.5rem;
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.emergency-header p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+}
+
+.emergency-contacts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+}
+
+.e-contact-card {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.e-contact-card h4 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.5rem;
+}
+
+.e-contact-value {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .emergency-content {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .emergency-contacts {
+    grid-template-columns: 1fr;
+  }
+  .faq-grid {
+    grid-template-columns: 1fr;
+  }
+}
