@@ -31,6 +31,7 @@ const Landing = () => {
   const { user } = useAuth();
   const { settings } = useSettings();
   const navigate = useNavigate();
+  const [showDevModal, setShowDevModal] = React.useState(false);
   const [stats, setStats] = React.useState({
     chemicalsTracked: '...',
     activeLabs: '...',
@@ -299,9 +300,62 @@ const Landing = () => {
            <Link to="/privacy" className="nav-link">Privacy Policy</Link>
            <Link to="/terms" className="nav-link">Terms of Service</Link>
            <Link to="/support" className="nav-link">Contact Support</Link>
+           <span className="nav-link" style={{ cursor: 'pointer' }} onClick={() => setShowDevModal(true)}>Developed By</span>
         </div>
         <p className="copyright">© 2026 {systemName}. All rights reserved.</p>
       </footer>
+
+      {showDevModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(10px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999,
+          padding: '1rem'
+        }}>
+          <div style={{
+            background: 'linear-gradient(145deg, #1e293b, #0f172a)',
+            border: '1px solid #334155', borderRadius: '16px', padding: '2.5rem',
+            width: '100%', maxWidth: '700px', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+          }}>
+            <button 
+              onClick={() => setShowDevModal(false)}
+              style={{
+                position: 'absolute', top: '15px', right: '15px', background: 'transparent',
+                border: 'none', color: '#94a3b8', fontSize: '2rem', cursor: 'pointer', lineHeight: 1
+              }}
+            >
+              &times;
+            </button>
+            
+            <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+              <div style={{ display: 'inline-block', background: 'linear-gradient(to right, #6366f1, #a855f7, #ec4899)', borderRadius: '12px', padding: '3px', marginBottom: '1.5rem' }}>
+                <div style={{ background: '#0f172a', padding: '1rem 2rem', borderRadius: '10px' }}>
+                  <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 800, background: 'linear-gradient(to right, #6366f1, #a855f7, #ec4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AppFactory Academy</h2>
+                  <p style={{ margin: '0.5rem 0 0', color: '#cbd5e1', fontSize: '0.9rem', fontWeight: 500 }}>Wollo University • DEMERA Digital Education & Skillsoft</p>
+                </div>
+              </div>
+              <h3 style={{ color: '#f8fafc', fontSize: '1.2rem', margin: 0 }}>Proudly Developed By</h3>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+              {[
+                { name: 'Amir Mesfin', email: 'amir.mesfiin136@gmail.com', phone: '0962945025', color: '#3b82f6' },
+                { name: 'Ahmed Saulih', email: 'saulihahmed26@gmail.com', phone: '0926352943', color: '#10b981' },
+                { name: 'Tsegazeab', email: 'tsegazeab@gmail.com', phone: '0966610048', color: '#f59e0b' }
+              ].map(dev => (
+                <div key={dev.phone} style={{
+                  background: 'rgba(255, 255, 255, 0.03)', border: `1px solid rgba(255,255,255,0.05)`, borderTop: `4px solid ${dev.color}`,
+                  borderRadius: '12px', padding: '1.5rem'
+                }}>
+                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#f1f5f9', fontSize: '1.1rem' }}>{dev.name}</h4>
+                  <p style={{ margin: '0 0 0.3rem 0', color: '#94a3b8', fontSize: '0.85rem' }}>{dev.email}</p>
+                  <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.85rem' }}>📞 {dev.phone}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
