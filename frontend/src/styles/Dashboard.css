@@ -747,15 +747,18 @@
   color: #ef4444;
 }
 
-/* Safety Protocol Card */
 .safety-protocol-card {
-  background-color: #0ea5e9;
-  background-image: linear-gradient(to bottom right, #38bdf8, #0284c7);
-  border-radius: 2.5rem;
-  padding: 2rem;
+  background-color: #0284c7;
+  border-radius: 1.25rem;
+  padding: 1.75rem;
   color: white;
   margin-bottom: 2rem;
-  box-shadow: 0 20px 25px -5px rgba(14, 165, 233, 0.2);
+  box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.15);
+  position: relative;
+  overflow: hidden;
+  /* GPU Composition layers guard to fix WebKit/Blink mobile rendering bugs */
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
 }
 
 .safety-title {
