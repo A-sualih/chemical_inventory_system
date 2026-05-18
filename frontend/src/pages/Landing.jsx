@@ -182,33 +182,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section id="faq" className="section-container" style={{ paddingTop: '5rem' }}>
-        <span className="section-tag">Common Questions</span>
-        <h2 className="section-title">Help Center & FAQ</h2>
-        <div className="faq-grid">
-          <FAQItem 
-            question="How to add chemicals?" 
-            answer="Navigate to the 'Chemicals' tab in your dashboard and click 'Add Chemical'. You can enter details manually or use the Quick Scan feature for supported vendors."
-          />
-          <FAQItem 
-            question="How to scan QR / barcodes?" 
-            answer="Use the 'Scan QR' button on your mobile device or desktop with a camera. This allows for instant identification and movement tracking (check-in/check-out)."
-          />
-          <FAQItem 
-            question="How to dispose chemicals?" 
-            answer="Locate the chemical in your inventory, select 'Dispose', and follow the guided safety workflow to ensure compliant removal and documentation."
-          />
-          <FAQItem 
-            question="How to reset password?" 
-            answer="On the login page, click 'Forgot Password'. Follow the email instructions to securely reset your credentials through our multi-factor authentication system."
-          />
-          <FAQItem 
-            question="How to check inventory logs?" 
-            answer="The 'Audit Logs' section provides a complete, immutable ledger of every movement, adjustment, and disposal event across all laboratories."
-          />
-        </div>
-      </section>
+
 
 
       {/* About Section */}
@@ -325,7 +299,6 @@ const Landing = () => {
            <Link to="/privacy" className="nav-link">Privacy Policy</Link>
            <Link to="/terms" className="nav-link">Terms of Service</Link>
            <Link to="/support" className="nav-link">Contact Support</Link>
-           <Link to="/docs" className="nav-link">Documentation</Link>
         </div>
         <p className="copyright">© 2026 {systemName}. All rights reserved.</p>
       </footer>
@@ -357,14 +330,5 @@ const RoleCard = ({ name, desc }) => (
   </div>
 );
 
-const FAQItem = ({ question, answer }) => (
-  <div className="faq-item">
-    <div className="faq-question">
-      <HelpCircle size={20} />
-      <span>{question}</span>
-    </div>
-    <p className="faq-answer">{answer}</p>
-  </div>
-);
 
 export default Landing;
