@@ -77,6 +77,7 @@ exports.login = async (req, res) => {
       const emailResult = await sendEmail(user.email, "CIMS - Your OTP Code", emailHtml);
       if (!emailResult.success) {
         console.error("MFA OTP Email send failed:", emailResult.error);
+        return res.status(500).json({ error: 'Failed to send verification code. Please try again.' });
       }
       return res.json({ requireMfa: true, mfaType: 'email', userId: user._id });
     }

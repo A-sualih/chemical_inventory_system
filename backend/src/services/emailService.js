@@ -80,7 +80,7 @@ const formatNotificationEmail = (notif) => {
         <div style="background-color: #f9fafb; padding: 16px; border-radius: 8px; font-size: 12px; color: #6b7280; text-align: center;">
           This is an automated safety alert from the Chemical Inventory Management System.
           <br/>
-          <a href="http://localhost:5173/notifications" style="color: ${color}; font-weight: bold; text-decoration: none; display: inline-block; margin-top: 8px;">View in Dashboard</a>
+          <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/notifications" style="color: ${color}; font-weight: bold; text-decoration: none; display: inline-block; margin-top: 8px;">View in Dashboard</a>
         </div>
       </div>
     </div>
