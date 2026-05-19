@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
-const nodemailer = require('nodemailer');
+const { sendEmail } = require('../../services/emailService');
 const otpGenerator = require('otp-generator');
 const crypto = require('crypto');
 const User = require('../../models/User');
@@ -10,18 +10,6 @@ const Lab = require('../../models/Lab');
 const { JWT_SECRET, logAudit, ROLES } = require('../../middleware/authMiddleware');
 const { notifyUnauthorizedAccess } = require('../../services/notificationService');
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
@@ -73,26 +61,22 @@ exports.login = async (req, res) => {
       await user.save();
 
       console.log(`[Email OTP] Sending ${otp} to ${user.email}`);
-      try {
-        await transporter.sendMail({
-          from: process.env.EMAIL_USER,
-          to: user.email,
-          subject: "CIMS - Your OTP Code",
-          html: `
-              <div style="font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 40px 20px; text-align: center;">
-                <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block;">
-                  <h2 style="color: #2c3e50; margin-bottom: 10px;">Login Verification</h2>
-                  <p style="color: #7f8c8d; font-size: 16px; margin-bottom: 30px;">Enter the code below to securely log in to your CIMS account.</p>
-                  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-                    <h1 style="color: #ffffff; font-size: 48px; margin: 0; letter-spacing: 12px;">${otp}</h1>
-                  </div>
-                  <p style="color: #e74c3c; font-size: 14px; font-weight: bold;">This code expires in 5 minutes.</p>
-                </div>
+      const emailHtml = `
+          <div style="font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 40px 20px; text-align: center;">
+            <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block;">
+              <h2 style="color: #2c3e50; margin-bottom: 10px;">Login Verification</h2>
+              <p style="color: #7f8c8d; font-size: 16px; margin-bottom: 30px;">Enter the code below to securely log in to your CIMS account.</p>
+              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <h1 style="color: #ffffff; font-size: 48px; margin: 0; letter-spacing: 12px;">${otp}</h1>
               </div>
-            `
-        });
-      } catch (err) {
-        console.error("Email send failed:", err.message);
+              <p style="color: #e74c3c; font-size: 14px; font-weight: bold;">This code expires in 5 minutes.</p>
+            </div>
+          </div>
+        `;
+      
+      const emailResult = await sendEmail(user.email, "CIMS - Your OTP Code", emailHtml);
+      if (!emailResult.success) {
+        console.error("MFA OTP Email send failed:", emailResult.error);
       }
       return res.json({ requireMfa: true, mfaType: 'email', userId: user._id });
     }
@@ -177,11 +161,7 @@ exports.requestPasswordReset = async (req, res) => {
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
       const resetLink = `${frontendUrl}/reset-password/${token}`;
 
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: user.email,
-        subject: "CIMS - Password Reset Request",
-        html: `
+      const emailHtml = `
           <div style="font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 40px 20px; text-align: center;">
             <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block;">
               <h2 style="color: #2c3e50; margin-bottom: 10px;">Reset Your Password</h2>
@@ -190,11 +170,18 @@ exports.requestPasswordReset = async (req, res) => {
               <p style="color: #e74c3c; font-size: 14px; font-weight: bold;">This link expires in 10 minutes.</p>
             </div>
           </div>
-        `
-      });
+        `;
+
+      console.log(`[Password Reset] Sending reset link to ${user.email}`);
+      const emailResult = await sendEmail(user.email, "CIMS - Password Reset Request", emailHtml);
+      if (!emailResult.success) {
+        console.error("Password reset email send failed:", emailResult.error);
+        return res.status(500).json({ error: 'Failed to send reset email. Please try again later.' });
+      }
     }
     res.json({ message: 'If that email matches an account, we have sent a reset link to it.' });
   } catch (err) {
+    console.error("Password reset request error:", err);
     res.status(500).json({ error: 'Server error' });
   }
 };
