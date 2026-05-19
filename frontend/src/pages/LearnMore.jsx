@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import { 
@@ -24,6 +24,9 @@ import {
 import '../styles/LearnMore.css';
 
 const LearnMore = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const { settings } = useSettings();
   const systemName = settings?.systemName || "CIMS PRO";
   const orgName = settings?.orgName || "Managed Stack";
