@@ -479,6 +479,62 @@
   transform: translateY(0);
 }
 
+/* Premium Danger & Decommission Buttons */
+.btn-decommission-premium {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: white;
+  color: #ef4444;
+  border: 1.5px solid rgba(239, 68, 68, 0.2);
+  border-radius: 1rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-decommission-premium:hover {
+  background: #fef2f2;
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 8px 15px -3px rgba(239, 68, 68, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn-decommission-premium:active {
+  transform: translateY(0);
+}
+
+.btn-danger-premium {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: none;
+  border-radius: 1.25rem;
+  font-weight: 900;
+  font-size: 1.05rem;
+  cursor: pointer;
+  box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-danger-premium:hover {
+  background: linear-gradient(135deg, #f87171, #ef4444);
+  transform: translateY(-2px);
+  box-shadow: 0 15px 25px -3px rgba(239, 68, 68, 0.4);
+}
+
+.btn-danger-premium:active {
+  transform: translateY(0);
+}
+
+
 /* Responsive Refinements */
 @media (max-width: 1200px) {
   .management-sections {

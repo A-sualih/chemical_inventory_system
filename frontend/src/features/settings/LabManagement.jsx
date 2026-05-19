@@ -124,7 +124,7 @@ const LabManagement = () => {
                       </div>
                       {user.role === 'Admin' && (
                         <button 
-                           className="btn-danger-sm" 
+                           className="btn-decommission-premium" 
                            style={{marginTop: '0.5rem', alignSelf: 'flex-start'}}
                            onClick={() => { setLabToDelete(lab); setIsDeleteModalOpen(true); }}
                         >
@@ -270,7 +270,7 @@ const LabManagement = () => {
                 <button className="btn-secondary" onClick={() => { setIsDeleteModalOpen(false); setLabToDelete(null); }}>
                   Cancel
                 </button>
-                <button className="btn-danger" onClick={handleDeleteLab}>
+                <button className="btn-danger-premium" onClick={handleDeleteLab}>
                   Confirm Permanent Deletion
                 </button>
               </div>
