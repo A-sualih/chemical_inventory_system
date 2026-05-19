@@ -109,7 +109,7 @@ const Support = () => {
                   <input 
                     type="text" 
                     name="fullName" 
-                    placeholder="e.g. John Doe"
+                    placeholder="amir mesfin"
                     value={formData.fullName}
                     onChange={handleChange}
                     required 
@@ -120,7 +120,7 @@ const Support = () => {
                   <input 
                     type="email" 
                     name="email" 
-                    placeholder="john@institution.edu"
+                    placeholder="amir.mesfin136@gmail.com"
                     value={formData.email}
                     onChange={handleChange}
                     required 
