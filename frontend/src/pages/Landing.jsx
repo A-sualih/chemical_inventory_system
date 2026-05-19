@@ -339,8 +339,8 @@ const Landing = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
               {[
-                { name: 'Amir Mesfin', email: 'amir.mesfiin136@gmail.com', phone: '0962945025', color: '#3b82f6' },
-                { name: 'Ahmed Saulih', email: 'saulihahmed26@gmail.com', phone: '0926352943', color: '#10b981' },
+                { name: 'Amir Mesfin', email: 'amir.mesfin136@gmail.com', phone: '0962945025', color: '#3b82f6' },
+                { name: 'Ahmed Saulih', email: 'sualihahmed26@gmail.com', phone: '0926352943', color: '#10b981' },
                 { name: 'Tsegazeab', email: 'tsegazeab@gmail.com', phone: '0966610048', color: '#f59e0b' }
               ].map(dev => (
                 <div key={dev.phone} style={{
