@@ -77,7 +77,10 @@ exports.login = async (req, res) => {
       const emailResult = await sendEmail(user.email, "CIMS - Your OTP Code", emailHtml);
       if (!emailResult.success) {
         console.error("MFA OTP Email send failed:", emailResult.error);
-        return res.status(500).json({ error: 'Failed to send verification code. Please try again.' });
+        return res.status(500).json({ 
+          error: 'Failed to send verification code.',
+          details: emailResult.error?.message || 'Unknown email error'
+        });
       }
       return res.json({ requireMfa: true, mfaType: 'email', userId: user._id });
     }
@@ -177,13 +180,16 @@ exports.requestPasswordReset = async (req, res) => {
       const emailResult = await sendEmail(user.email, "CIMS - Password Reset Request", emailHtml);
       if (!emailResult.success) {
         console.error("Password reset email send failed:", emailResult.error);
-        return res.status(500).json({ error: 'Failed to send reset email. Please try again later.' });
+        return res.status(500).json({ 
+          error: 'Failed to send reset email.',
+          details: emailResult.error?.message || 'Unknown email error'
+        });
       }
     }
     res.json({ message: 'If that email matches an account, we have sent a reset link to it.' });
   } catch (err) {
     console.error("Password reset request error:", err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 };
 

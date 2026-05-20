@@ -2,19 +2,24 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const transporter = nodemailer.createTransport({
-  pool: true, // Enable SMTP connection pooling
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // Use STARTTLS
+  service: 'gmail',
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
   tls: {
     rejectUnauthorized: false
-  },
-  maxConnections: 5,
-  maxMessages: 100
+  }
+});
+
+// Verify connection configuration
+transporter.verify(function (error, success) {
+  if (error) {
+    console.error('SMTP Connection Error:', error);
+  } else {
+    console.log('SMTP Server is ready to take our messages');
+  }
 });
 
 
@@ -26,6 +31,10 @@ const transporter = nodemailer.createTransport({
  * @param {string} html - Email body (HTML)
  */
 const sendEmail = async (to, subject, html) => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.error('Email credentials missing in environment variables');
+    return { success: false, error: new Error('Email credentials missing') };
+  }
   try {
     const info = await transporter.sendMail({
       from: `"CIMS Alerts" <${process.env.EMAIL_USER}>`,
