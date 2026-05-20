@@ -5,7 +5,7 @@ const QRCode = QRCodeLib.default || QRCodeLib;
 import axios from "axios";
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { HAZARD_CLASSES, PPE_OPTIONS, NFPA_RATINGS, EXPOSURE_RISKS } from "../../constants/hazards.jsx";
-import { Camera } from 'lucide-react';
+import { Camera, AlertTriangle } from 'lucide-react';
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/ChemicalForm.css";
 
@@ -290,7 +290,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                     {initialData ? (
                       <span className="id-active">CIMS-{initialData.id}</span>
                     ) : (
-                      <span style={{ color: 'var(--secondary-400)', opacity: 0.5 }}>CIMS-YYYY</span>
+                      <span className="id-placeholder">CIMS-YYYY</span>
                     )}
                   </div>
                 </div>
@@ -298,7 +298,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
             </div>
 
             <div className="ghs-section">
-              <label className="badge-label" style={{ display: 'block', marginBottom: '0.75rem' }}>Global Hazard Classification</label>
+              <label className="badge-label badge-label-classification">Global Hazard Classification</label>
               <div className="ghs-grid">
                 {HAZARD_CLASSES.map((item) => (
                   <button
@@ -311,16 +311,16 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                       {item.icon}
                     </div>
                     <div className="ghs-tooltip">
-                      <p style={{ fontWeight: 'bold', marginBottom: '2px' }}>{item.label}</p>
-                      <p style={{ color: 'var(--secondary-400)', lineHeight: '1.1' }}>{item.description}</p>
+                      <p className="ghs-tooltip-title">{item.label}</p>
+                      <p className="ghs-tooltip-desc">{item.description}</p>
                     </div>
                   </button>
                 ))}
               </div>
               {formData.ghs_classes.length > 0 && (
                 <div className="hazard-profiles">
-                  <div className="section-title" style={{ fontSize: '9px', marginBottom: '0.25rem' }}>Active Hazard Profiles</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                  <div className="section-title active-hazard-profiles-title">Active Hazard Profiles</div>
+                  <div className="active-hazard-badges-wrapper">
                     {formData.ghs_classes.map(id => {
                       const h = HAZARD_CLASSES.find(x => x.id === id || x.label === id);
                       return h ? (
@@ -356,7 +356,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
           }}
             className="form-main"
           >
-            <fieldset disabled={user?.role === 'Safety Officer'} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
+            <fieldset disabled={user?.role === 'Safety Officer'} className="form-fieldset">
             {/* SECTION: IDENTIFICATION */}
             <section className="form-section">
               <div className="section-header">
@@ -459,56 +459,42 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                   Bottle & Container Metrics
                 </div>
-                <div className="grid-cols-2-4" style={{ marginBottom: 0 }}>
+                <div className="grid-cols-2-4 metric-group-margin">
                   <div className="form-group">
                     <label className="form-label">Count</label>
-                    <input type="number" value={formData.num_containers} onChange={e => setFormData({ ...formData, num_containers: e.target.value })} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} />
+                    <input type="number" value={formData.num_containers} onChange={e => setFormData({ ...formData, num_containers: e.target.value })} className="form-input metric-input" />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Qty/Container</label>
-                    <input type="number" value={formData.quantity_per_container} onChange={e => setFormData({ ...formData, quantity_per_container: e.target.value })} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} />
+                    <input type="number" value={formData.quantity_per_container} onChange={e => setFormData({ ...formData, quantity_per_container: e.target.value })} className="form-input metric-input" />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Type</label>
-                    <input type="text" value={formData.container_type} onChange={e => setFormData({ ...formData, container_type: e.target.value })} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} />
+                    <input type="text" value={formData.container_type} onChange={e => setFormData({ ...formData, container_type: e.target.value })} className="form-input metric-input" />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Container ID</label>
-                    <input type="text" value={formData.container_id_series} onChange={e => setFormData({ ...formData, container_id_series: e.target.value })} className="form-input font-mono" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} placeholder="CONT-X" />
+                    <input type="text" value={formData.container_id_series} onChange={e => setFormData({ ...formData, container_id_series: e.target.value })} className="form-input font-mono metric-input" placeholder="CONT-X" />
                   </div>
                 </div>
-                <div style={{ marginTop: '1rem' }}>
+                <div className="barcode-section-wrapper">
                   <div className="form-group">
-                    <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <label className="form-label barcode-label">
                       Mfg. Barcode
-                      <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.5rem', background: 'rgba(99,102,241,0.15)', color: '#818cf8', borderRadius: '2rem', fontWeight: 600 }}>OPTIONAL</span>
+                      <span className="optional-badge">OPTIONAL</span>
                     </label>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <div className="barcode-input-container">
                       <input
                         type="text"
                         value={formData.barcode}
                         onChange={e => setFormData({ ...formData, barcode: e.target.value })}
-                        className="form-input font-mono"
-                        style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem', flex: 1 }}
+                        className="form-input font-mono barcode-input"
                         placeholder="Type or scan manufacturer barcode..."
                       />
                       <button
                         type="button"
                         onClick={() => setShowBarcodeScanner(prev => !prev)}
-                        style={{
-                          padding: '0.75rem 1rem',
-                          background: showBarcodeScanner ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)',
-                          border: `1px solid ${showBarcodeScanner ? 'rgba(239,68,68,0.4)' : 'rgba(99,102,241,0.4)'}`,
-                          borderRadius: '0.5rem',
-                          color: showBarcodeScanner ? '#f87171' : '#818cf8',
-                          cursor: 'pointer',
-                          whiteSpace: 'nowrap',
-                          fontWeight: 600,
-                          fontSize: '0.8rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.4rem'
-                        }}
+                        className={`barcode-scanner-btn ${showBarcodeScanner ? 'scanner-active' : ''}`}
                       >
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8H2a2 2 0 00-2 2v10a2 2 0 002 2h3" />
@@ -517,17 +503,17 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                       </button>
                     </div>
                     {showBarcodeScanner && (
-                      <div style={{ marginTop: '0.75rem', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '0.75rem', overflow: 'hidden', background: '#0f172a' }}>
-                        <div style={{ padding: '0.5rem 1rem', background: 'rgba(99,102,241,0.1)', borderBottom: '1px solid rgba(99,102,241,0.2)', fontSize: '0.75rem', color: '#818cf8', fontWeight: 600 }}>
+                      <div className="barcode-scanner-view">
+                        <div className="barcode-scanner-header">
                           <Camera className="w-4 h-4 inline-block mr-2" /> Point camera at the manufacturer barcode on the bottle
                         </div>
-                        <div id="barcode-reader" style={{ width: '100%' }} />
+                        <div id="barcode-reader" className="barcode-scanner-body" />
                       </div>
                     )}
                     {formData.barcode && (
-                      <div style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: '#34d399', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <div className="barcode-capture-msg">
                         <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                        Barcode captured: <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{formData.barcode}</span>
+                        Barcode captured: <span className="barcode-capture-val">{formData.barcode}</span>
                       </div>
                     )}
                   </div>
@@ -541,11 +527,11 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                 <div className="section-title">Facility & Storage Taxonomy</div>
                 <div className="header-line hide-mobile"></div>
               </div>
-              <div className="card-container" style={{ padding: '1.25rem', marginBottom: '1.25rem' }}>
+              <div className="card-container card-container-padded">
                 <div className="card-title">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                   Select Storage Location
-                  {locLoading && <span style={{ marginLeft: 'auto', color: 'var(--primary-500)' }} className="animate-pulse">Loading...</span>}
+                  {locLoading && <span className="loc-loading-indicator animate-pulse">Loading...</span>}
                 </div>
 
                 <div className="location-grid">
@@ -553,14 +539,14 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                     <label className="form-label">Building</label>
                     <div className="select-wrapper">
                       {locHierarchy.buildings.length > 0 ? (
-                        <select value={formData.building} onChange={e => setFormData({ ...formData, building: e.target.value, room: '', cabinet: '', shelf: '' })} className="form-select" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }}>
+                        <select value={formData.building} onChange={e => setFormData({ ...formData, building: e.target.value, room: '', cabinet: '', shelf: '' })} className="form-select location-select">
                           <option value="">-- Select --</option>
                           {locHierarchy.buildings.map(b => <option key={b} value={b}>{b}</option>)}
                         </select>
                       ) : (
-                        <input type="text" value={formData.building} onChange={e => setFormData({ ...formData, building: e.target.value })} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} placeholder="e.g. Block-A" />
+                        <input type="text" value={formData.building} onChange={e => setFormData({ ...formData, building: e.target.value })} className="form-input location-input" placeholder="e.g. Block-A" />
                       )}
-                      {locHierarchy.buildings.length > 0 && <svg className="select-icon" style={{ right: '0.75rem', top: '0.875rem', width: '0.75rem', height: '0.75rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                      {locHierarchy.buildings.length > 0 && <svg className="select-icon location-select-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
                     </div>
                   </div>
 
@@ -568,14 +554,14 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                     <label className="form-label">Room</label>
                     <div className="select-wrapper">
                       {locHierarchy.rooms.length > 0 ? (
-                        <select value={formData.room} onChange={e => setFormData({ ...formData, room: e.target.value, cabinet: '', shelf: '' })} className="form-select" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }}>
+                        <select value={formData.room} onChange={e => setFormData({ ...formData, room: e.target.value, cabinet: '', shelf: '' })} className="form-select location-select">
                           <option value="">-- Select --</option>
                           {locHierarchy.rooms.map(r => <option key={r} value={r}>{r}</option>)}
                         </select>
                       ) : (
-                        <input type="text" value={formData.room} onChange={e => setFormData({ ...formData, room: e.target.value })} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} placeholder="e.g. 102" />
+                        <input type="text" value={formData.room} onChange={e => setFormData({ ...formData, room: e.target.value })} className="form-input location-input" placeholder="e.g. 102" />
                       )}
-                      {locHierarchy.rooms.length > 0 && <svg className="select-icon" style={{ right: '0.75rem', top: '0.875rem', width: '0.75rem', height: '0.75rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                      {locHierarchy.rooms.length > 0 && <svg className="select-icon location-select-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
                     </div>
                   </div>
 
@@ -583,14 +569,14 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                     <label className="form-label">Cabinet</label>
                     <div className="select-wrapper">
                       {locHierarchy.cabinets.length > 0 ? (
-                        <select value={formData.cabinet} onChange={e => setFormData({ ...formData, cabinet: e.target.value, shelf: '' })} className="form-select" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }}>
+                        <select value={formData.cabinet} onChange={e => setFormData({ ...formData, cabinet: e.target.value, shelf: '' })} className="form-select location-select">
                           <option value="">-- Select --</option>
                           {locHierarchy.cabinets.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       ) : (
-                        <input type="text" value={formData.cabinet} onChange={e => setFormData({ ...formData, cabinet: e.target.value })} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} placeholder="e.g. C2" />
+                        <input type="text" value={formData.cabinet} onChange={e => setFormData({ ...formData, cabinet: e.target.value })} className="form-input location-input" placeholder="e.g. C2" />
                       )}
-                      {locHierarchy.cabinets.length > 0 && <svg className="select-icon" style={{ right: '0.75rem', top: '0.875rem', width: '0.75rem', height: '0.75rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                      {locHierarchy.cabinets.length > 0 && <svg className="select-icon location-select-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
                     </div>
                   </div>
 
@@ -600,7 +586,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                       {locHierarchy.shelves.length > 0 ? (
                         <select value={formData.shelf} onChange={e => {
                           setFormData({ ...formData, shelf: e.target.value });
-                        }} className="form-select" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }}>
+                        }} className="form-select location-select">
                           <option value="">-- Select --</option>
                           {locHierarchy.shelves.map(s => (
                             <option key={s._id} value={s.shelf}>
@@ -609,9 +595,9 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                           ))}
                         </select>
                       ) : (
-                        <input type="text" value={formData.shelf} onChange={e => setFormData({ ...formData, shelf: e.target.value })} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} placeholder="e.g. 1" />
+                        <input type="text" value={formData.shelf} onChange={e => setFormData({ ...formData, shelf: e.target.value })} className="form-input location-input" placeholder="e.g. 1" />
                       )}
-                      {locHierarchy.shelves.length > 0 && <svg className="select-icon" style={{ right: '0.75rem', top: '0.875rem', width: '0.75rem', height: '0.75rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
+                      {locHierarchy.shelves.length > 0 && <svg className="select-icon location-select-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>}
                     </div>
                   </div>
                 </div>
@@ -624,29 +610,29 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                     <div className="capacity-indicator">
                       <div className="capacity-header">
                         <span>Shelf Capacity</span>
-                        <span style={{ color: pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#16a34a' }}>{sel.current_load}/{sel.capacity} slots</span>
+                        <span className="capacity-warning-text" data-pct={pct}>{sel.current_load}/{sel.capacity} slots</span>
                       </div>
                       <div className="capacity-bar-bg">
-                        <div className="capacity-bar-fill" style={{ width: `${pct}%`, backgroundColor: pct >= 90 ? '#ef4444' : pct >= 70 ? '#fbbf24' : '#22c55e' }}></div>
+                        <div className="capacity-bar-fill capacity-bar-fill-dynamic" data-pct={pct} style={{ width: `${pct}%` }}></div>
                       </div>
                       {sel.safety_warnings && <p className="safety-warning"><AlertTriangle className="w-4 h-4 inline-block mr-1" /> {sel.safety_warnings}</p>}
                     </div>
                   );
                 })()}
 
-                <div className="location-grid" style={{ marginTop: '1.25rem' }}>
-                  <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                <div className="location-grid location-grid-margin">
+                  <div className="form-group combined-id-wrapper">
                     <label className="form-label">Combined Identifier (Auto)</label>
                     {renderIncompatibilityWarning()}
                     <input type="text" readOnly value={formData.building ? `${formData.building}-${formData.room}-${formData.cabinet}-${formData.shelf}`.replace(/-+$/, '') : formData.location} className="form-input combined-id" />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Temp (°C)</label>
-                    <input type="number" value={formData.storage_temp} onChange={e => setFormData({ ...formData, storage_temp: e.target.value })} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} />
+                    <input type="number" value={formData.storage_temp} onChange={e => setFormData({ ...formData, storage_temp: e.target.value })} className="form-input location-input" />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Humidity (%)</label>
-                    <input type="number" value={formData.storage_humidity} onChange={e => setFormData({ ...formData, storage_humidity: e.target.value })} className="form-input" style={{ backgroundColor: 'var(--secondary-50)', border: '1px solid var(--secondary-100)', padding: '0.75rem' }} />
+                    <input type="number" value={formData.storage_humidity} onChange={e => setFormData({ ...formData, storage_humidity: e.target.value })} className="form-input location-input" />
                   </div>
                 </div>
               </div>
@@ -660,14 +646,14 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                 <div className="header-line hide-mobile"></div>
               </div>
 
-              <fieldset disabled={user?.role === 'Safety Officer'} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
+              <fieldset disabled={user?.role === 'Safety Officer'} className="form-fieldset">
               <div className="grid-cols-1-2">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="procurement-col">
                   <div className="form-group">
                     <label className="form-label">Vendor Name</label>
                     <input type="text" value={formData.supplier} onChange={e => setFormData({ ...formData, supplier: e.target.value })} className="form-input" placeholder="LabChem Supplies" />
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                  <div className="procurement-dates-grid">
                     <div className="form-group">
                       <label className="form-label">Purchase Date</label>
                       <input type="date" value={formData.purchase_date} onChange={e => setFormData({ ...formData, purchase_date: e.target.value })} className="form-input" />
@@ -678,14 +664,14 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                     </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="procurement-col">
                   <div className="form-group">
                     <label className="form-label">Lot / Batch Number</label>
-                    <input type="text" value={formData.batch_number} onChange={e => setFormData({ ...formData, batch_number: e.target.value })} className="form-input font-mono" style={{ fontWeight: 'bold' }} placeholder="LOT-2025-X" />
+                    <input type="text" value={formData.batch_number} onChange={e => setFormData({ ...formData, batch_number: e.target.value })} className="form-input font-mono lot-number-input" placeholder="LOT-2025-X" />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Expiry Date</label>
-                    <input type="date" value={formData.expiry_date} onChange={e => setFormData({ ...formData, expiry_date: e.target.value })} className="form-input" style={{ color: '#dc2626' }} required />
+                    <input type="date" value={formData.expiry_date} onChange={e => setFormData({ ...formData, expiry_date: e.target.value })} className="form-input expiry-date-input" required />
                   </div>
                 </div>
               </div>
@@ -703,9 +689,9 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                 <div className="header-line hide-mobile"></div>
               </div>
 
-              <div className="grid-cols-1-2" style={{ marginBottom: '2rem' }}>
+              <div className="grid-cols-1-2 safety-upper-grid">
                 {/* GHS Details */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="safety-left-col">
                   <div className="ghs-signal-header">
                     <label className="badge-label">GHS Signal Word</label>
                     <div className="signal-word-group">
@@ -718,22 +704,22 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                   </div>
                   <div className="form-group">
                     <label className="form-label">H-Codes (Hazard Statements)</label>
-                    <input type="text" value={formData.ghs_hazards.h_codes.join(', ')} onChange={e => setFormData({ ...formData, ghs_hazards: { ...formData.ghs_hazards, h_codes: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } })} className="form-input" style={{ padding: '0.75rem' }} placeholder="e.g. H225, H319" />
+                    <input type="text" value={formData.ghs_hazards.h_codes.join(', ')} onChange={e => setFormData({ ...formData, ghs_hazards: { ...formData.ghs_hazards, h_codes: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } })} className="form-input hazard-statement-input" placeholder="e.g. H225, H319" />
                   </div>
                   <div className="form-group">
                     <label className="form-label">P-Codes (Precautionary)</label>
-                    <input type="text" value={formData.ghs_hazards.p_codes.join(', ')} onChange={e => setFormData({ ...formData, ghs_hazards: { ...formData.ghs_hazards, p_codes: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } })} className="form-input" style={{ padding: '0.75rem' }} placeholder="e.g. P210, P280" />
+                    <input type="text" value={formData.ghs_hazards.p_codes.join(', ')} onChange={e => setFormData({ ...formData, ghs_hazards: { ...formData.ghs_hazards, p_codes: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } })} className="form-input precautionary-statement-input" placeholder="e.g. P210, P280" />
                   </div>
                 </div>
 
                 {/* NFPA Diamond Logic */}
                 <div className="nfpa-diamond-card">
-                  <div style={{ position: 'absolute', top: 0, right: 0, width: '8rem', height: '8rem', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '9999px', marginRight: '-4rem', marginTop: '-4rem', filter: 'blur(48px)' }}></div>
-                  <label className="badge-label" style={{ color: 'var(--secondary-400)', marginBottom: '1rem', display: 'block' }}>NFPA 704 Diamond Rating</label>
+                  <div className="nfpa-diamond-bg-glow"></div>
+                  <label className="badge-label nfpa-card-title">NFPA 704 Diamond Rating</label>
                   <div className="nfpa-grid">
                     {NFPA_RATINGS.map(rating => (
-                      <div key={rating.label} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <label className="nfpa-label" style={{ color: rating.color === 'red' ? '#f87171' : rating.color === 'blue' ? '#60a5fa' : rating.color === 'yellow' ? '#fbbf24' : 'white' }}>{rating.label}</label>
+                      <div key={rating.label} className="nfpa-rating-grid-item">
+                        <label className={`nfpa-label nfpa-label-${rating.color}`}>{rating.label}</label>
 
                         {rating.label === 'Special' ? (
                           <select
@@ -741,7 +727,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                             onChange={e => setFormData({ ...formData, nfpa_rating: { ...formData.nfpa_rating, special: e.target.value } })}
                             className="nfpa-select"
                           >
-                            {rating.options.map(opt => <option key={opt} value={opt} style={{ color: 'var(--secondary-900)' }}>{opt || "None"}</option>)}
+                            {rating.options.map(opt => <option key={opt} value={opt} className="nfpa-select-option">{opt || "None"}</option>)}
                           </select>
                         ) : (
                           <select
@@ -752,7 +738,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                             }}
                             className="nfpa-select"
                           >
-                            {[0, 1, 2, 3, 4].map(num => <option key={num} value={num} style={{ color: 'var(--secondary-900)' }}>{num} - {rating.levels[num]}</option>)}
+                            {[0, 1, 2, 3, 4].map(num => <option key={num} value={num} className="nfpa-select-option">{num} - {rating.levels[num]}</option>)}
                           </select>
                         )}
                       </div>
@@ -761,9 +747,9 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                 </div>
               </div>
 
-              <div className="grid-cols-1-2" style={{ marginBottom: '2rem' }}>
+              <div className="grid-cols-1-2 safety-middle-grid">
                 {/* PPE Requirements */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="ppe-wrapper-col">
                   <label className="form-label">Mandatory PPE</label>
                   <div className="ppe-grid">
                     {PPE_OPTIONS.map(ppe => (
@@ -776,7 +762,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
 
                 {/* Access & Training */}
                 <div className="access-control-card">
-                  <label className="form-label" style={{ marginBottom: '0.5rem' }}>Access Control</label>
+                  <label className="form-label access-control-title">Access Control</label>
                   <div className="toggle-item">
                     <span className="toggle-label">Restricted Access</span>
                     <input type="checkbox" checked={formData.restricted_access} onChange={e => setFormData({ ...formData, restricted_access: e.target.checked })} className="toggle-checkbox" />
@@ -805,7 +791,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Chemical Family / Compatibility Class</label>
-                  <select value={formData.chemical_family} onChange={e => setFormData({ ...formData, chemical_family: e.target.value })} className="form-select family-select" style={{ height: 'auto' }}>
+                  <select value={formData.chemical_family} onChange={e => setFormData({ ...formData, chemical_family: e.target.value })} className="form-select family-select">
                     <option value="General">General / Non-Reactive</option>
                     <option value="Acid">Acid</option>
                     <option value="Base">Base</option>
@@ -816,7 +802,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                 </div>
               </div>
 
-              <div className="risk-procedures-grid" style={{ marginTop: '1.25rem' }}>
+              <div className="risk-procedures-grid">
                 <div className="form-group">
                   <label className="form-label">Emergency Spill Procedures</label>
                   <textarea value={formData.spill_instructions} onChange={e => setFormData({ ...formData, spill_instructions: e.target.value })} className="textarea-input procedure-textarea" placeholder="e.g. Neutralize with sodium bi-carbonate, ventilate area..."></textarea>
@@ -843,9 +829,8 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
               </div>
               
               <div
-                className={`sds-upload-box ${disposalFile || formData.disposal_file_name ? 'active' : ''}`}
+                className={`sds-upload-box disposal-upload-box ${disposalFile || formData.disposal_file_name ? 'active' : ''}`}
                 onClick={() => document.getElementById('disposal-upload').click()}
-                style={{ marginLeft: '1rem', background: disposalFile || formData.disposal_file_name ? 'rgba(239, 68, 68, 0.1)' : 'var(--secondary-50)', color: disposalFile || formData.disposal_file_name ? '#ef4444' : 'var(--secondary-900)' }}
               >
                 <svg className="sds-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                 <span className="sds-text" title={disposalFile ? disposalFile.name : formData.disposal_file_name}>
@@ -855,12 +840,12 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
               </div>
 
               {formData.disposal_file_url && !disposalFile && (
-                <a href={process.env.NODE_ENV === 'production' ? formData.disposal_file_url : `http://localhost:5001${formData.disposal_file_url}`} target="_blank" rel="noopener noreferrer" className="sds-view-button" style={{ color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)' }} title="View Original Protocol">
+                <a href={process.env.NODE_ENV === 'production' ? formData.disposal_file_url : `http://localhost:5001${formData.disposal_file_url}`} target="_blank" rel="noopener noreferrer" className="sds-view-button disposal-view-button" title="View Original Protocol">
                   <svg className="sds-view-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                 </a>
               )}
 
-              <button type="submit" className="submit-button" style={{ marginLeft: 'auto' }}>
+              <button type="submit" className="submit-button">
                 {initialData ? "Apply Lifecycle Update" : "Authorize System Entry"}
               </button>
             </div>
