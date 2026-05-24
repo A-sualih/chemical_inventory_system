@@ -3,7 +3,7 @@ require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_for_cims';
 
-const { ROLES, ROLE_PERMISSIONS } = require('../config/roles');
+const { ROLES, ROLE_PERMISSIONS, roleHasPermission } = require('../config/roles');
 const AuditLog = require('../models/AuditLog');
 
 function authenticate(req, res, next) {
@@ -13,7 +13,7 @@ function authenticate(req, res, next) {
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded; 
+    req.user = decoded;
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
@@ -24,23 +24,55 @@ function authenticate(req, res, next) {
 }
 
 /**
- * Middleware to check if user has at least one of the specific permissions
+ * Require at least one of the given permissions for the caller's role.
  */
 function authorize(...permissions) {
   return (req, res, next) => {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
 
+    if (!permissions.length) {
+      return res.status(500).json({ error: 'Server misconfiguration: authorize() called without permissions' });
+    }
+
     const userPermissions = ROLE_PERMISSIONS[req.user.role] || [];
-    const hasPermission = permissions.some(p => userPermissions.includes(p));
-    
+    if (!userPermissions.length) {
+      return res.status(403).json({ error: 'Forbidden: Unknown or unprivileged role' });
+    }
+
+    const hasPermission = permissions.some((p) => userPermissions.includes(p));
+
     if (!hasPermission) {
       const { notifyUnauthorizedAccess } = require('../services/notificationService');
-      notifyUnauthorizedAccess(req.user, `Attempted restricted action: ${permissions.join(' OR ')}`, req.ip, req.headers['user-agent']).catch(console.error);
-      return res.status(403).json({ error: `Forbidden: Missing permission [${permissions.join(' OR ')}]` });
+      notifyUnauthorizedAccess(
+        req.user,
+        `Attempted restricted action: ${permissions.join(' OR ')}`,
+        req.ip,
+        req.headers['user-agent']
+      ).catch(console.error);
+      return res.status(403).json({
+        error: `Forbidden: Missing permission [${permissions.join(' OR ')}]`,
+        role: req.user.role
+      });
     }
     next();
   };
 }
+
+/** Require one of the exact role names (e.g. Admin-only destructive ops). */
+function authorizeRoles(...roles) {
+  return (req, res, next) => {
+    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        error: `Forbidden: Requires role [${roles.join(' OR ')}]`,
+        role: req.user.role
+      });
+    }
+    next();
+  };
+}
+
+const requireAdmin = authorizeRoles(ROLES.ADMIN);
 
 /**
  * Utility to log user actions to AuditLog
@@ -75,7 +107,16 @@ async function logAudit(req, { action, targetType, targetId, targetName, details
   }
 }
 
-module.exports = { authenticate, authorize, logAudit, JWT_SECRET, ROLES };
+module.exports = {
+  authenticate,
+  authorize,
+  authorizeRoles,
+  requireAdmin,
+  roleHasPermission,
+  logAudit,
+  JWT_SECRET,
+  ROLES
+};
 
 
 
