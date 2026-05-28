@@ -2,40 +2,47 @@ const Notification = require('../models/Notification');
 const { sendEmail, formatNotificationEmail } = require('../services/emailService');
 const { sendSMS } = require('../services/smsService');
 
+const GLOBAL_TYPES = new Set(['UNAUTHORIZED_ACCESS']);
+
 /**
  * Creates a notification in the system.
- * @param {Object} data - Notification data matching the schema
+ * Lab is required for all types except global security alerts.
+ * Emails are only sent to users assigned to that lab.
  */
 const createNotification = async (data) => {
   try {
+    const resolvedLab = data.lab || null;
+    if (!resolvedLab && !GLOBAL_TYPES.has(data.type)) {
+      console.warn(
+        `[Notification] Refusing to create ${data.type} without lab — cross-lab leak prevented.`
+      );
+      return null;
+    }
+
+    const payload = { ...data, lab: resolvedLab };
+
     let notification;
-    if (data.related?.chemicalId && data.type) {
+    if (payload.related?.chemicalId && payload.type) {
       const matchCriteria = {
-        type: data.type,
-        'related.chemicalId': data.related.chemicalId,
-        ...(data.lab && { lab: data.lab })
+        type: payload.type,
+        'related.chemicalId': payload.related.chemicalId,
+        ...(resolvedLab && { lab: resolvedLab })
       };
 
-      if (data.related?.containerId) {
-        matchCriteria['related.containerId'] = data.related.containerId;
+      if (payload.related?.containerId) {
+        matchCriteria['related.containerId'] = payload.related.containerId;
       }
 
-      // Prevent duplicate notifications for EXPIRY alerts only (since cron runs daily).
-      // LOW_STOCK alerts are real-time and action-triggered, so they must be dispatched immediately.
-      if (data.type === 'EXPIRY') {
+      if (payload.type === 'EXPIRY') {
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
         notification = await Notification.findOne({
           ...matchCriteria,
-          $or: [
-            { status: 'unread' },
-            { createdAt: { $gte: oneDayAgo } }
-          ]
+          $or: [{ status: 'unread' }, { createdAt: { $gte: oneDayAgo } }]
         });
 
         if (notification) {
-          const hasSentEmail = notification.channels.some(c => c.type === 'email' && c.isSent === true);
+          const hasSentEmail = notification.channels.some((c) => c.type === 'email' && c.isSent === true);
           if (hasSentEmail) {
-            // Notification already exists and is active/recent, and email has already been sent successfully.
             return notification;
           }
         }
@@ -43,130 +50,143 @@ const createNotification = async (data) => {
     }
 
     if (!notification) {
+      // Attach lab-scoped recipients for dashboard filtering / audit
+      let recipients = payload.recipients || [];
+      if ((!recipients || recipients.length === 0) && resolvedLab) {
+        try {
+          const User = require('../models/User');
+          const labUsers = await User.find({
+            status: 'Active',
+            labs: resolvedLab
+          })
+            .select('_id role')
+            .lean();
+          recipients = labUsers.map((u) => ({ userId: u._id, role: u.role }));
+        } catch (e) {
+          console.error('[Notification] Failed to resolve lab recipients:', e.message);
+        }
+      }
+
       notification = new Notification({
-        ...data,
+        ...payload,
+        recipients,
         isRead: false,
         status: 'unread',
-        channels: data.channels || [{ type: 'dashboard', isSent: true, sentAt: new Date() }]
+        channels: payload.channels || [{ type: 'dashboard', isSent: true, sentAt: new Date() }]
       });
       await notification.save();
     }
 
-    // TRIGGER EMAIL for high/critical severity, request updates, or disposal alerts
-    if (data.severity === 'high' || data.severity === 'critical' || data.type === 'REQUEST_UPDATE' || data.type === 'DISPOSAL') {
+    if (
+      payload.severity === 'high' ||
+      payload.severity === 'critical' ||
+      payload.type === 'REQUEST_UPDATE' ||
+      payload.type === 'DISPOSAL'
+    ) {
       const User = require('../models/User');
 
-      /**
-       * Role-based email routing map.
-       * Each notification type maps to the roles whose users should receive the email.
-       * Types not explicitly listed fall back to ['Lab Manager'].
-       */
       const TYPE_TO_ROLES = {
-        // Admin only — security & system
-        'UNAUTHORIZED_ACCESS': ['Admin'],
-        'SYSTEM': ['Admin'],
-
-        // Safety Officer (+ Lab Manager as backup) — all hazard & compliance types
-        'HAZARD': ['Safety Officer', 'Lab Manager'],
-        'COMPLIANCE': ['Safety Officer', 'Lab Manager'],
-        // Include Lab Technicians and Laboratory Staff so they are kept in the loop on disposal approvals
-        'DISPOSAL': ['Safety Officer', 'Lab Manager', 'Lab Technician', 'Laboratory Staff'],
-        'INCOMPATIBILITY': ['Safety Officer', 'Lab Manager'],
-        'SPILL_INCIDENT': ['Safety Officer', 'Lab Manager'],
-        'STORAGE_CONDITION': ['Safety Officer', 'Lab Manager'],
-        'MISSING_DOCUMENT': ['Safety Officer', 'Lab Manager'],
-        'EMERGENCY': ['Safety Officer', 'Lab Manager', 'Admin'],
-        'ENVIRONMENTAL_RISK': ['Safety Officer', 'Lab Manager'],
-
-        // Lab Manager & Lab Technicians — operational inventory alerts
-        'LOW_STOCK': ['Lab Manager', 'Lab Technician', 'Lab Technician', 'Technician', 'Lab technician', 'Admin'],
-        'EXPIRY': ['Lab Manager',],
-        'INFO': ['Lab Manager', 'Admin'],
-
-        // REQUEST_UPDATE — email sent directly to the requester, handled separately
-        'REQUEST_UPDATE': [],
+        UNAUTHORIZED_ACCESS: ['Admin'],
+        SYSTEM: ['Admin'],
+        HAZARD: ['Safety Officer', 'Lab Manager'],
+        COMPLIANCE: ['Safety Officer', 'Lab Manager'],
+        DISPOSAL: ['Safety Officer', 'Lab Manager', 'Lab Technician'],
+        INCOMPATIBILITY: ['Safety Officer', 'Lab Manager'],
+        SPILL_INCIDENT: ['Safety Officer', 'Lab Manager'],
+        STORAGE_CONDITION: ['Safety Officer', 'Lab Manager'],
+        MISSING_DOCUMENT: ['Safety Officer', 'Lab Manager'],
+        EMERGENCY: ['Safety Officer', 'Lab Manager', 'Admin'],
+        ENVIRONMENTAL_RISK: ['Safety Officer', 'Lab Manager'],
+        LOW_STOCK: ['Lab Manager', 'Lab Technician', 'Admin'],
+        EXPIRY: ['Lab Manager'],
+        INFO: ['Lab Manager', 'Admin'],
+        REQUEST_UPDATE: []
       };
 
-      const targetRoles = TYPE_TO_ROLES[data.type] ?? ['Lab Manager'];
+      const targetRoles = TYPE_TO_ROLES[payload.type] ?? ['Lab Manager'];
       let recipientEmails = [];
 
-      if (data.type === 'REQUEST_UPDATE') {
-        // Email only the original requester (ObjectId stored in metadata.user)
-        if (data.metadata?.user) {
-          const requester = await User.findById(data.metadata.user).select('email status');
+      if (payload.type === 'REQUEST_UPDATE') {
+        if (payload.metadata?.user) {
+          const requester = await User.findById(payload.metadata.user).select('email status labs');
           if (requester && requester.status === 'Active' && requester.email) {
-            recipientEmails.push(requester.email);
+            // Only email if requester belongs to this notification's lab (when lab set)
+            const inLab =
+              !resolvedLab ||
+              (requester.labs || []).some((id) => String(id) === String(resolvedLab));
+            if (inLab) recipientEmails.push(requester.email);
           }
         }
       } else if (targetRoles.length > 0) {
         const roleQuery = { status: 'Active', role: { $in: targetRoles } };
-        // Scope to the lab that generated the alert — prevent cross-lab email leakage
-        if (data.lab) roleQuery.labs = data.lab;
+        // Hard lab isolation for email — never email users outside the lab
+        if (resolvedLab) {
+          roleQuery.labs = resolvedLab;
+        } else if (!GLOBAL_TYPES.has(payload.type)) {
+          console.warn(`[Notification] Skipping email for ${payload.type}: no lab scope`);
+          return notification;
+        }
 
         const targetedUsers = await User.find(roleQuery).select('email');
-        recipientEmails = targetedUsers.map(u => u.email);
+        recipientEmails = targetedUsers.map((u) => u.email).filter(Boolean);
       }
 
-      // Always CC the action-triggering user (e.g. the technician who submitted a request)
-      if (data.metadata?.triggeredByEmail && !recipientEmails.includes(data.metadata.triggeredByEmail)) {
-        recipientEmails.push(data.metadata.triggeredByEmail);
+      if (
+        payload.metadata?.triggeredByEmail &&
+        !recipientEmails.includes(payload.metadata.triggeredByEmail)
+      ) {
+        recipientEmails.push(payload.metadata.triggeredByEmail);
       }
 
-      // Fallback: if nothing resolved, use the system email
-      if (recipientEmails.length === 0) {
-        recipientEmails = [process.env.EMAIL_USER];
+      if (recipientEmails.length === 0 && GLOBAL_TYPES.has(payload.type)) {
+        recipientEmails = [process.env.EMAIL_USER].filter(Boolean);
       }
 
-      const emailHtml = formatNotificationEmail(data);
+      if (recipientEmails.length > 0) {
+        const emailHtml = formatNotificationEmail(payload);
 
-      // Fire and forget email dispatch so it doesn't block the HTTP response
-      (async () => {
-        let anySuccess = false;
-        let lastError = null;
+        (async () => {
+          let anySuccess = false;
+          let lastError = null;
 
-        for (const email of recipientEmails) {
-          console.log(`[Email] Sending [${data.type}] "${data.title}" → ${email}`);
-          const emailResult = await sendEmail(email, `[CIMS ALERT] ${data.title}`, emailHtml);
-          if (emailResult.success) {
-            console.log(`[Email] Delivered: ${emailResult.messageId} → ${email}`);
-            anySuccess = true;
-          } else {
-            console.error(`[Email] Failed → ${email}:`, emailResult.error);
-            lastError = emailResult.error?.message;
+          for (const email of recipientEmails) {
+            console.log(`[Email] Sending [${payload.type}] "${payload.title}" → ${email} (lab=${resolvedLab})`);
+            const emailResult = await sendEmail(email, `[CIMS ALERT] ${payload.title}`, emailHtml);
+            if (emailResult.success) {
+              anySuccess = true;
+            } else {
+              lastError = emailResult.error?.message;
+            }
           }
-        }
 
-        try {
-          if (anySuccess) {
-            notification.channels.push({ type: 'email', isSent: true, sentAt: new Date() });
-          } else {
-            notification.channels.push({ type: 'email', isSent: false, error: lastError });
+          try {
+            if (anySuccess) {
+              notification.channels.push({ type: 'email', isSent: true, sentAt: new Date() });
+            } else if (lastError) {
+              notification.channels.push({ type: 'email', isSent: false, error: lastError });
+            }
+            await notification.save();
+          } catch (err) {
+            console.error('Failed to update notification channels:', err);
           }
-          await notification.save();
-        } catch (err) {
-          console.error("Failed to update notification channels:", err);
-        }
-      })().catch(console.error);
+        })().catch(console.error);
+      }
     }
 
-    // TRIGGER SMS for critical severity ONLY
-    if (data.severity === 'critical') {
-      const smsMessage = `[CIMS CRITICAL] ${data.title}: ${data.message}`;
-      
-      // Fire and forget SMS dispatch
+    if (payload.severity === 'critical') {
+      const smsMessage = `[CIMS CRITICAL] ${payload.title}: ${payload.message}`;
       (async () => {
         try {
           await sendSMS(null, smsMessage);
           notification.channels.push({ type: 'sms', isSent: true, sentAt: new Date() });
           await notification.save();
         } catch (err) {
-          console.error("Failed to send SMS or update notification channels:", err);
+          console.error('Failed to send SMS or update notification channels:', err);
         }
       })().catch(console.error);
     }
 
     return notification;
-
   } catch (error) {
     console.error('Error creating notification:', error);
   }
@@ -239,10 +259,14 @@ const notifyUnauthorizedAccess = async (user, action, ip, device) => {
     message: `Unauthorized attempt to ${action} by ${user ? user.email : 'Unknown User'}.`,
     severity: 'high',
     priority: 1,
+    // Stamp with user's active lab when known so lab-scoped Admins can see it
+    lab: user?.active_lab || null,
     metadata: {
       ipAddress: ip,
       device: device,
-      attemptedAction: action
+      attemptedAction: action,
+      triggeredByEmail: user?.email,
+      triggeredByName: user?.name
     }
   });
 };

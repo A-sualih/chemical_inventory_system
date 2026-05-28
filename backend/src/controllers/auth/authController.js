@@ -285,8 +285,20 @@ exports.updateUserRole = async (req, res) => {
     return res.status(400).json({ error: 'Invalid role provided.' });
   }
   try {
+    // Only Admins may grant or modify the Admin role
+    if (role === ROLES.ADMIN && req.user.role !== ROLES.ADMIN) {
+      return res.status(403).json({ error: 'Only an Admin can assign the Admin role.' });
+    }
+    if (String(req.params.id) === String(req.user.id) && role !== req.user.role) {
+      return res.status(400).json({ error: 'You cannot change your own role.' });
+    }
+
     const targetUser = await User.findById(req.params.id);
     if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+    if (targetUser.role === ROLES.ADMIN && req.user.role !== ROLES.ADMIN) {
+      return res.status(403).json({ error: 'Only an Admin can modify another Admin.' });
+    }
 
     const oldRole = targetUser.role;
     targetUser.role = role;

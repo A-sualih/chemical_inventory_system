@@ -1,5 +1,5 @@
 const express = require('express');
-const { authenticate, authorize } = require('../middleware/authMiddleware');
+const { authenticate, authorize, requireAdmin } = require('../middleware/authMiddleware');
 const { PERMISSIONS } = require('../config/roles');
 const authController = require('../controllers/auth/authController');
 
@@ -13,7 +13,7 @@ router.post('/reset-password/:token', authController.resetPassword);
 
 router.get('/users', authenticate, authorize(PERMISSIONS.ASSIGN_ROLES), authController.getUsers);
 router.delete('/users/:id', authenticate, authorize(PERMISSIONS.ASSIGN_ROLES), authController.deleteUser);
-router.post('/users/wipe-all', authenticate, authorize(PERMISSIONS.MANAGE_SETTINGS), authController.wipeAllUsers);
+router.post('/users/wipe-all', authenticate, requireAdmin, authController.wipeAllUsers);
 router.put('/users/:id/role', authenticate, authorize(PERMISSIONS.ASSIGN_ROLES), authController.updateUserRole);
 router.put('/users/:id/status', authenticate, authorize(PERMISSIONS.ASSIGN_ROLES), authController.updateUserStatus);
 router.put('/users/:id/reset-password', authenticate, authorize(PERMISSIONS.ASSIGN_ROLES), authController.adminResetPassword);
@@ -23,9 +23,7 @@ router.get('/mfa/setup/totp', authenticate, authController.setupTotp);
 router.post('/mfa/enable', authenticate, authController.enableMfa);
 router.post('/mfa/disable', authenticate, authController.disableMfa);
 
-router.get('/check-admins-temp', authController.checkAdminsTemp);
+// Previously unauthenticated — exposed admin emails. Admin-only now.
+router.get('/check-admins-temp', authenticate, requireAdmin, authController.checkAdminsTemp);
 
 module.exports = router;
-
-
-

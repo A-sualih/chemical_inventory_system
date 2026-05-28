@@ -95,6 +95,8 @@ NotificationSchema.index({ severity: 1 });
 NotificationSchema.index({ createdAt: -1 });
 NotificationSchema.index({ 'recipients.userId': 1 });
 NotificationSchema.index({ isRead: 1 });
+NotificationSchema.index({ lab: 1, createdAt: -1 });
+NotificationSchema.index({ lab: 1, status: 1, type: 1 });
 
 module.exports = mongoose.model('Notification', NotificationSchema);
 
