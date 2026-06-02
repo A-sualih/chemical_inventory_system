@@ -2,10 +2,35 @@ const Transaction = require('../../models/Transaction');
 const mongoose = require('mongoose');
 const Chemical = require('../../models/Chemical');
 const Container = require('../../models/Container');
+const Batch = require('../../models/Batch');
 const AuditLog = require('../../models/AuditLog');
 const Notification = require('../../models/Notification');
 const InventoryLog = require('../../models/InventoryLog');
 const { convertToBase, convertFromBase } = require('../../utils/unitConverter');
+
+/**
+ * Keep Batch.total_quantity in sync with check-in / check-out.
+ * deltaBase: positive = stock in, negative = stock out (in base units).
+ */
+async function adjustBatchQuantity({ batchNumber, chemicalId, deltaBase, labId }) {
+  if (!batchNumber || !deltaBase || Math.abs(deltaBase) < 0.0001) return null;
+
+  const labFilter = labId ? { lab: labId } : {};
+  let batch = await Batch.findOne({ batch_number: batchNumber, chemical_id: chemicalId, ...labFilter });
+  if (!batch) {
+    batch = await Batch.findOne({ batch_number: batchNumber, ...labFilter });
+  }
+  if (!batch) return null;
+
+  const currentBase = convertToBase(batch.total_quantity, batch.unit);
+  const nextBase = Math.max(0, currentBase + deltaBase);
+  batch.total_quantity = convertFromBase(nextBase, batch.unit);
+  if (batch.total_quantity < 0.0001) {
+    batch.total_quantity = 0;
+  }
+  await batch.save();
+  return batch;
+}
 
 /**
  * Instant detection via barcode/QR/RFID
@@ -195,7 +220,7 @@ exports.checkOut = async (req, res) => {
       container_barcode: container.container_id,
       user_id: req.user.id,
       user_name: req.user.name,
-      lab_id: req.user.active_lab,
+      lab_id: req.activeLabId,
       quantity,
       unit,
       safety_verification: safety_verified,
@@ -220,6 +245,15 @@ exports.checkOut = async (req, res) => {
     const chemTotalBase = chemical.base_quantity || convertToBase(chemical.quantity, chemical.unit);
     chemical.base_quantity = Math.max(0, chemTotalBase - requestedQtyBase);
     chemical.quantity = convertFromBase(chemical.base_quantity, chemical.unit);
+
+    // Sync linked batch quantity (Batches page Quantity Status)
+    const batchNumber = container.batch_number || chemical.batch_number;
+    await adjustBatchQuantity({
+      batchNumber,
+      chemicalId: chemical.id,
+      deltaBase: -requestedQtyBase,
+      labId: req.activeLabId,
+    });
 
     await Promise.all([
       transaction.save(),
@@ -345,6 +379,15 @@ exports.checkIn = async (req, res) => {
     const chemTotalBase = chemical.base_quantity || convertToBase(chemical.quantity, chemical.unit);
     chemical.base_quantity = chemTotalBase + returnedQtyBase;
     chemical.quantity = convertFromBase(chemical.base_quantity, chemical.unit);
+
+    // Sync linked batch quantity (Batches page Quantity Status)
+    const batchNumber = container.batch_number || chemical.batch_number;
+    await adjustBatchQuantity({
+      batchNumber,
+      chemicalId: chemical.id,
+      deltaBase: returnedQtyBase,
+      labId: req.activeLabId,
+    });
 
     // If there was an original checkout, mark it completed
     if (originalTransaction) {

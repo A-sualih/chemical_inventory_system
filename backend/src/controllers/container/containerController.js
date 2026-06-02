@@ -8,13 +8,10 @@ exports.getContainers = async (req, res) => {
     const { chemical_id } = req.query;
     let query = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
 
-    // Allow overriding lab if provided (for transfers)
-    if (req.query.lab) {
-      query.lab = req.query.lab;
-    }
+    // Ignore client ?lab= overrides — isolation comes from requireLabScope only
     if (chemical_id) {
       if (mongoose.Types.ObjectId.isValid(chemical_id)) {
-        const chemical = await Chemical.findById(chemical_id);
+        const chemical = await Chemical.findOne({ _id: chemical_id, ...query });
         if (chemical) {
           query.chemical_id = chemical.id;
         } else {

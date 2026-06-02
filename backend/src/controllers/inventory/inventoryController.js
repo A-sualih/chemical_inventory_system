@@ -141,7 +141,7 @@ exports.handleTransaction = async (req, res) => {
         const Location = require('../../models/Location');
         const locationDef = await Location.findOne({ building, room, cabinet, shelf, isActive: true });
         if (locationDef) {
-          const currentCount = await Chemical.countDocuments({ building, room, cabinet, shelf, archived: false });
+          const currentCount = await Chemical.countDocuments({ building, room, cabinet, shelf, archived: false, ...(req.activeLabId ? { lab: req.activeLabId } : {}) });
           if (currentCount >= locationDef.capacity) {
             return res.status(400).json({ error: `Storage Capacity Reached: This slot (${building}/${room}/${cabinet}/Shelf-${shelf}) is full.` });
           }
@@ -158,7 +158,7 @@ exports.handleTransaction = async (req, res) => {
         let isUnique = false;
         while (!isUnique) {
           idValue = `C${String(attempt).padStart(3, '0')}`;
-          const existing = await Chemical.findOne({ id: idValue });
+          const existing = await Chemical.findOne({ id: idValue, ...(req.activeLabId ? { lab: req.activeLabId } : {}) });
           if (!existing) isUnique = true;
           else attempt++;
         }
@@ -235,13 +235,14 @@ exports.handleTransaction = async (req, res) => {
           $or: [
             { _id: mongoose.Types.ObjectId.isValid(cId) ? cId : undefined },
             { container_id: cId }
-          ].filter(q => q._id !== undefined || q.container_id !== undefined)
+          ].filter(q => q._id !== undefined || q.container_id !== undefined),
+          ...(req.activeLabId ? { lab: req.activeLabId } : {})
         });
         if (checkContainer && checkContainer.status === 'Expired' && action === 'OUT') {
           return res.status(403).json({ error: "SAFETY ALERT: Usage of expired chemical container is strictly prohibited. Please use the Disposal process." });
         }
       } else if (batch || chem.batch_number) {
-        const checkBatch = await Batch.findOne({ batch_number: batch || chem.batch_number });
+        const checkBatch = await Batch.findOne({ batch_number: batch || chem.batch_number, ...(req.activeLabId ? { lab: req.activeLabId } : {}) });
         if (checkBatch && checkBatch.status === 'Expired' && action === 'OUT') {
           return res.status(403).json({ error: "SAFETY ALERT: This chemical batch has expired. Please process for proper disposal instead of usage." });
         }
@@ -252,7 +253,8 @@ exports.handleTransaction = async (req, res) => {
         const validContainers = await Container.find({
           chemical_id: targetChem.id,
           status: { $nin: statusFilter },
-          quantity: { $gt: 0 }
+          quantity: { $gt: 0 },
+          ...(req.activeLabId ? { lab: req.activeLabId } : {})
         }).sort({ expiry_date: 1, createdAt: 1 });
 
         let remainingBaseNeeded = changeInBase;
@@ -284,7 +286,7 @@ exports.handleTransaction = async (req, res) => {
           });
 
           if (container.batch_number) {
-            const b = await Batch.findOne({ batch_number: container.batch_number });
+            const b = await Batch.findOne({ batch_number: container.batch_number, ...(req.activeLabId ? { lab: req.activeLabId } : {}) });
             if (b) {
               const bDeduct = convertFromBase(deductBaseAmount, b.unit);
               b.total_quantity -= bDeduct;
@@ -304,7 +306,8 @@ exports.handleTransaction = async (req, res) => {
           req.body.containerId || req.body.container_id,
           quantity_change,
           reason,
-          txUnit
+          txUnit,
+          req.activeLabId
         );
       }
 
@@ -330,7 +333,8 @@ exports.handleTransaction = async (req, res) => {
             room: to_room, 
             cabinet: to_cabinet, 
             shelf: to_shelf, 
-            archived: false 
+            archived: false,
+            ...(req.activeLabId ? { lab: req.activeLabId } : {})
           });
           if (currentCount >= locationDef.capacity) {
             return res.status(400).json({ error: `Storage Capacity Reached: Destination slot is full.` });
@@ -543,12 +547,13 @@ exports.handleFifoUsage = async (req, res) => {
     }
 
     const mongoose = require('mongoose');
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const query = [{ id: chemical_id }];
     if (mongoose.Types.ObjectId.isValid(chemical_id)) {
       query.push({ _id: chemical_id });
     }
 
-    const chem = await Chemical.findOne({ $or: query });
+    const chem = await Chemical.findOne({ $or: query, ...labQuery });
     if (!chem) return res.status(404).json({ error: 'Chemical not found' });
 
     const txUnit = unit || chem.unit;
@@ -557,7 +562,8 @@ exports.handleFifoUsage = async (req, res) => {
     const validBatches = await Batch.find({
       chemical_id: chem.id,
       status: { $nin: ['Expired'] },
-      total_quantity: { $gt: 0 }
+      total_quantity: { $gt: 0 },
+      ...labQuery
     }).sort({ expiry_date: 1, createdAt: 1 });
 
     if (!validBatches.length) {
@@ -577,7 +583,8 @@ exports.handleFifoUsage = async (req, res) => {
         chemical_id: chem.id,
         batch_number: batch.batch_number,
         status: { $nin: ['Expired', 'Empty'] },
-        quantity: { $gt: 0 }
+        quantity: { $gt: 0 },
+        ...labQuery
       }).sort({ expiry_date: 1, createdAt: 1 });
 
       let batchDeductedBase = 0;
@@ -727,13 +734,26 @@ exports.quickScan = async (req, res) => {
         return res.status(400).json({ error: `Insufficient stock for quick check-out. Available: ${chem.quantity} ${chem.unit}` });
       }
 
-      const latestBatch = await Batch.findOne({ chemical_id: chem.id }).sort({ createdAt: -1 });
+      const latestBatch = await Batch.findOne({ chemical_id: chem.id, ...(req.activeLabId ? { lab: req.activeLabId } : {}) }).sort({ createdAt: -1 });
       if (latestBatch && latestBatch.status === 'Expired') {
         return res.status(403).json({ error: "SAFETY ALERT: Latest batch is expired. Use manual disposal protocol." });
       }
 
       chem.base_quantity -= changeInBase;
       chem.quantity = convertFromBase(chem.base_quantity, chem.unit);
+
+      // Keep batch Quantity Status in sync with quick scan
+      const batchRef = latestBatch || await Batch.findOne({
+        chemical_id: chem.id,
+        ...(req.activeLabId ? { lab: req.activeLabId } : {}),
+        total_quantity: { $gt: 0 },
+      }).sort({ expiry_date: 1, createdAt: 1 });
+      if (batchRef) {
+        const batchBase = convertToBase(batchRef.total_quantity, batchRef.unit);
+        batchRef.total_quantity = convertFromBase(Math.max(0, batchBase - changeInBase), batchRef.unit);
+        if (batchRef.total_quantity < 0.0001) batchRef.total_quantity = 0;
+        await batchRef.save();
+      }
       
       const SystemSettings = require('../../models/SystemSettings');
       const settings = await SystemSettings.findOne();
@@ -789,6 +809,16 @@ exports.quickScan = async (req, res) => {
       chem.status = chem.quantity >= 5 ? 'In Stock' : 'Low Stock';
       
       await chem.save();
+
+      const inBatch = await Batch.findOne({
+        chemical_id: chem.id,
+        ...(req.activeLabId ? { lab: req.activeLabId } : {}),
+      }).sort({ createdAt: -1 });
+      if (inBatch) {
+        const batchBase = convertToBase(inBatch.total_quantity, inBatch.unit);
+        inBatch.total_quantity = convertFromBase(batchBase + changeInBase, inBatch.unit);
+        await inBatch.save();
+      }
 
       const log = new InventoryLog({ lab: req.activeLabId, 
         chemical_id: chem.id,

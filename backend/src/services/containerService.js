@@ -73,11 +73,12 @@ const { convertToBase, convertFromBase } = require('../utils/unitConverter');
 /**
  * Automatically updates a specific container's status based on usage.
  */
-const updateContainerStatus = async (containerId, amountRemoved, reason = "", unit = null) => {
+const updateContainerStatus = async (containerId, amountRemoved, reason = "", unit = null, labId = null) => {
   try {
     const query = require('mongoose').Types.ObjectId.isValid(containerId) 
       ? { _id: containerId } 
       : { container_id: containerId };
+    if (labId) query.lab = labId;
       
     const container = await Container.findOne(query);
     if (!container) return;

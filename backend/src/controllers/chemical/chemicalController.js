@@ -110,13 +110,10 @@ exports.getChemicals = async (req, res) => {
     } = req.query;
 
     const baseQuery = { archived: archived === 'true' };
+    // Lab isolation: never honor arbitrary ?lab= overrides here.
+    // Cross-lab browse goes through /api/transfers/lab-chemicals/:labId
     if (!(req.user.role === 'Admin' && !req.activeLabId)) {
-      // Allow overriding lab if provided in query (for transfers)
-      if (req.query.lab) {
-        baseQuery.lab = req.query.lab;
-      } else {
-        baseQuery.lab = req.activeLabId;
-      }
+      baseQuery.lab = req.activeLabId;
     }
 
     const hazardParam = hazard || req.query['hazard[]'];
@@ -374,7 +371,7 @@ exports.createChemical = async (req, res) => {
 
       // Incompatibility check against co-located chemicals
       if (newChem.location && newChem.chemical_family) {
-        const collocated = await Chemical.find({ location: newChem.location, id: { $ne: newChem.id }, archived: false });
+        const collocated = await Chemical.find({ location: newChem.location, id: { $ne: newChem.id }, archived: false, ...(req.activeLabId ? { lab: req.activeLabId } : {}) });
         const incompatiblePairs = [['Acid','Base'],['Flammable','Oxidizer'],['Acid','Oxidizer'],['Base','Oxidizer']];
         for (const co of collocated) {
           if (!co.chemical_family) continue;
@@ -395,7 +392,7 @@ exports.createChemical = async (req, res) => {
 
     let safety_warnings = [];
     if (newChem.location && newChem.chemical_family) {
-      const collocated = await Chemical.find({ location: newChem.location, id: { $ne: newChem.id }, archived: false });
+      const collocated = await Chemical.find({ location: newChem.location, id: { $ne: newChem.id }, archived: false, ...(req.activeLabId ? { lab: req.activeLabId } : {}) });
       const familiesInLocation = [...new Set(collocated.map(c => c.chemical_family).filter(Boolean))];
 
       const incompatiblePairs = [
@@ -435,7 +432,8 @@ exports.updateChemical = async (req, res) => {
   }
 
   try {
-    const chemical = await Chemical.findOne({ id: id });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const chemical = await Chemical.findOne({ id: id, ...labQuery });
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
 
     const oldName = chemical.name;
@@ -527,7 +525,8 @@ exports.updateChemical = async (req, res) => {
       else if (diff <= thresholdDays) newExpStatus = 'Near Expiry';
 
       const Batch = require('../../models/Batch');
-      const batches = await Batch.find({ chemical_id: chemical.id });
+      const chemLab = chemical.lab || req.activeLabId;
+      const batches = await Batch.find({ chemical_id: chemical.id, ...(chemLab ? { lab: chemLab } : {}) });
       for (let b of batches) {
         b.expiry_date = expiryToUse;
         if (newExpStatus) b.status = newExpStatus;
@@ -536,7 +535,7 @@ exports.updateChemical = async (req, res) => {
       }
 
       const Container = require('../../models/Container');
-      const containers = await Container.find({ chemical_id: chemical.id });
+      const containers = await Container.find({ chemical_id: chemical.id, ...(chemLab ? { lab: chemLab } : {}) });
       for (let c of containers) {
         c.expiry_date = expiryToUse;
         if (!['Empty', 'Damaged'].includes(c.status)) {
@@ -561,7 +560,7 @@ exports.updateChemical = async (req, res) => {
     const { notifyIncompatibility, notifyUnsafeStorage } = require('../../services/notificationService');
     let safety_warnings = [];
     if (chemical.location && chemical.chemical_family) {
-      const collocated = await Chemical.find({ location: chemical.location, id: { $ne: chemical.id }, archived: false });
+      const collocated = await Chemical.find({ location: chemical.location, id: { $ne: chemical.id }, archived: false, ...(chemical.lab || req.activeLabId ? { lab: chemical.lab || req.activeLabId } : {}) });
       const familiesInLocation = [...new Set(collocated.map(c => c.chemical_family).filter(Boolean))];
 
       const incompatiblePairs = [
@@ -600,7 +599,8 @@ exports.updateChemical = async (req, res) => {
 
 exports.archiveChemical = async (req, res) => {
   try {
-    const chemical = await Chemical.findOne({ id: req.params.id });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const chemical = await Chemical.findOne({ id: req.params.id, ...labQuery });
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
 
     chemical.archived = true;
@@ -623,7 +623,8 @@ exports.archiveChemical = async (req, res) => {
 
 exports.restoreChemical = async (req, res) => {
   try {
-    const chemical = await Chemical.findOne({ id: req.params.id });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const chemical = await Chemical.findOne({ id: req.params.id, ...labQuery });
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
 
     chemical.archived = false;
@@ -646,7 +647,8 @@ exports.restoreChemical = async (req, res) => {
 
 exports.getQRCode = async (req, res) => {
   try {
-    const chemical = await Chemical.findOne({ id: req.params.id });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const chemical = await Chemical.findOne({ id: req.params.id, ...labQuery });
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
 
     const qrData = chemical.id;
@@ -660,7 +662,8 @@ exports.getQRCode = async (req, res) => {
 
 exports.getLabelData = async (req, res) => {
   try {
-    const chemical = await Chemical.findOne({ id: req.params.id });
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const chemical = await Chemical.findOne({ id: req.params.id, ...labQuery });
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
 
     const qrData = await QRCode.toDataURL(chemical.id);
