@@ -16,13 +16,13 @@ exports.getFifoContainer = async (req, res) => {
 
     let chemStringId = chemical_id;
 
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+
     if (mongoose.Types.ObjectId.isValid(chemical_id)) {
-      const chem = await Chemical.findById(chemical_id);
+      const chem = await Chemical.findOne({ _id: chemical_id, ...labQuery });
       if (!chem) return res.status(404).json({ error: 'Chemical not found' });
       chemStringId = chem.id;
     }
-
-    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const pendingRequests = await Request.find({ status: 'Pending', ...labQuery }).populate('container_id');
 
     const containers = await Container.find({
@@ -284,7 +284,8 @@ exports.approveRequest = async (req, res) => {
       container._id,
       requestQty,
       `Approved usage: ${request.reason}`,
-      request.unit
+      request.unit,
+      req.activeLabId || request.lab
     );
 
     if (chemical.base_quantity === undefined || chemical.base_quantity === null) {

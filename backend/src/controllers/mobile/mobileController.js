@@ -10,7 +10,9 @@ const mongoose = require('mongoose');
 exports.getScanResult = async (req, res) => {
   try {
     const { code } = req.params;
-    const labId = req.user.active_lab;
+    const { labFilter } = require('../../utils/labScope');
+    const labQuery = labFilter(req);
+    const labId = req.activeLabId;
 
     // Normalize function to help with URL-based barcodes
     const normalize = (val) => val ? val.toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '') : val;
@@ -35,7 +37,7 @@ exports.getScanResult = async (req, res) => {
         { barcode: code },
         { barcode: normalizedCode }
       ],
-      lab: labId
+      ...labQuery
     });
 
     let chemical;
@@ -44,7 +46,8 @@ exports.getScanResult = async (req, res) => {
     if (container) {
       foundType = 'container';
       chemical = await Chemical.findOne({ 
-        $or: [{ _id: container.chemical_id }, { id: container.chemical_id }] 
+        $or: [{ _id: container.chemical_id }, { id: container.chemical_id }],
+        ...labQuery
       });
     } else {
       // 3. Secondary Lookup: Chemical Global Record
@@ -55,7 +58,7 @@ exports.getScanResult = async (req, res) => {
           { barcode: code },
           { barcode: normalizedCode }
         ],
-        lab: labId
+        ...labQuery
       });
 
       if (chemical) {
@@ -64,7 +67,7 @@ exports.getScanResult = async (req, res) => {
         container = await Container.findOne({ 
           chemical_id: chemical.id, 
           status: { $ne: 'Empty' },
-          lab: labId 
+          ...labQuery
         });
       }
     }
@@ -98,11 +101,12 @@ exports.getScanResult = async (req, res) => {
           sds_url: chemical.sds_file_url
         },
         container: container ? {
+          _id: container._id,
           id: container.container_id,
           quantity: container.quantity,
           unit: container.unit,
           status: container.status,
-          location: `${container.building} / ${container.room}`
+          location: `${container.building || ''} / ${container.room || ''}`.replace(/^ \/ | \/ $/g, '') || 'Unassigned'
         } : null
       }
     });
@@ -124,7 +128,7 @@ exports.syncHistory = async (req, res) => {
       ...s,
       userId: req.user.id,
       userName: req.user.name,
-      labId: req.user.active_lab
+      labId: req.activeLabId || null
     }));
 
     await ScanHistory.insertMany(processedScans);

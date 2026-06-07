@@ -42,7 +42,8 @@ exports.createDisposalRequest = async (req, res) => {
   try {
     const { chemical_id, batch_id, batch_number, quantity, unit, method, reason, notes, hazard_classification } = req.body;
     
-    const chemical = await Chemical.findById(chemical_id);
+    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
+    const chemical = await Chemical.findOne({ _id: chemical_id, ...labQuery });
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
     
     // Clean up empty batch_id strings to prevent BSON errors
@@ -85,7 +86,6 @@ exports.createDisposalRequest = async (req, res) => {
     }
     
     // 1. Compliance Check: Legal Disposal Limits
-    const labQuery = (req.user.role === 'Admin' && !req.activeLabId) ? {} : { lab: req.activeLabId };
     const permit = await WastePermit.findOne({ status: 'Active', ...labQuery, 'limits.hazard_class': hazard_classification || chemical.hazard_summary?.hazard_class });
     if (permit) {
       const limit = permit.limits.find(l => l.hazard_class === (hazard_classification || chemical.hazard_summary?.hazard_class));
@@ -258,7 +258,7 @@ const depleteContainersForBatch = async (batch, amountToSubtractInBase, targeted
   
   // 1. Target specific container if provided
   if (targetedContainerId) {
-    const targetContainer = await Container.findOne({ container_id: targetedContainerId, batch_number: batch.batch_number });
+    const targetContainer = await Container.findOne({ container_id: targetedContainerId, batch_number: batch.batch_number, ...(batch.lab ? { lab: batch.lab } : {}) });
     if (targetContainer) {
       const cQtyInBase = convertToBase(targetContainer.quantity, targetContainer.unit);
       const cSubtract = Math.min(cQtyInBase, containerRemaining);
@@ -274,7 +274,8 @@ const depleteContainersForBatch = async (batch, amountToSubtractInBase, targeted
     const containers = await Container.find({ 
       batch_number: batch.batch_number, 
       status: { $nin: ['Empty', 'Damaged'] },
-      container_id: { $ne: targetedContainerId } 
+      container_id: { $ne: targetedContainerId },
+      ...(batch.lab ? { lab: batch.lab } : {})
     }).sort({ created_at: 1 });
     
     for (const c of containers) {
@@ -342,7 +343,7 @@ exports.getDisposalFifoPreview = async (req, res) => {
     const disposal = await WasteDisposal.findOne({ _id: id, ...labQuery });
     if (!disposal) return res.status(404).json({ error: 'Disposal record not found' });
     
-    const chemical = await Chemical.findById(disposal.chemical_id);
+    const chemical = await Chemical.findOne({ _id: disposal.chemical_id, ...(disposal.lab ? { lab: disposal.lab } : labQuery) });
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
     
     if (disposal.fifo_impact && disposal.fifo_impact.length > 0) {
@@ -479,7 +480,7 @@ exports.rejectDisposal = async (req, res) => {
     await disposal.save();
 
     // --- RESTORE INVENTORY ON REJECTION ---
-    const chemical = await Chemical.findById(disposal.chemical_id);
+    const chemical = await Chemical.findOne({ _id: disposal.chemical_id, ...(disposal.lab ? { lab: disposal.lab } : labQuery) });
     if (chemical) {
       const amountToAddInBase = convertToBase(disposal.quantity, disposal.unit);
       
@@ -599,7 +600,7 @@ exports.deleteDisposal = async (req, res) => {
 
     // Restore inventory if it was subtracted but not yet finalized
     if (disposal.status === 'Pending Approval' || disposal.status === 'Approved') {
-      const chemical = await Chemical.findById(disposal.chemical_id);
+      const chemical = await Chemical.findOne({ _id: disposal.chemical_id, ...(disposal.lab ? { lab: disposal.lab } : labQuery) });
       if (chemical) {
         const amountToAddInBase = convertToBase(disposal.quantity, disposal.unit);
         chemical.base_quantity = (chemical.base_quantity || convertToBase(chemical.quantity, chemical.unit)) + amountToAddInBase;

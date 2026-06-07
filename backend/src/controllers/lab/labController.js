@@ -16,6 +16,9 @@ const { PERMISSIONS, ROLE_PERMISSIONS } = require('../../config/roles');
 
 exports.createLab = async (req, res) => {
   try {
+    if (req.user.role !== 'Admin') {
+      return res.status(403).json({ error: 'Only administrators can create laboratories.' });
+    }
     const lab = new Lab(req.body);
     await lab.save();
     res.status(201).json(lab);
@@ -52,6 +55,13 @@ exports.getLabs = async (req, res) => {
 
 exports.updateLab = async (req, res) => {
   try {
+    if (req.user.role !== 'Admin') {
+      const user = await User.findById(req.user.id).select('labs');
+      const allowed = (user?.labs || []).map(String);
+      if (!allowed.includes(String(req.params.id))) {
+        return res.status(403).json({ error: 'You can only update laboratories you are assigned to.' });
+      }
+    }
     const lab = await Lab.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!lab) return res.status(404).json({ message: 'Lab not found' });
     res.status(200).json(lab);
@@ -106,6 +116,9 @@ exports.switchActiveLab = async (req, res) => {
 // Admin assigning users to lab
 exports.assignUser = async (req, res) => {
   try {
+    if (req.user.role !== 'Admin') {
+      return res.status(403).json({ error: 'Only administrators can assign users to laboratories.' });
+    }
     const { userId, labs } = req.body; // labs is array of lab IDs
     const targetUser = await User.findById(userId);
     if (!targetUser) return res.status(404).json({ message: 'User not found' });

@@ -53,6 +53,17 @@ exports.createTransfer = async (req, res) => {
 
     if (!chemical_id) return res.status(400).json({ error: 'Chemical selection is required.' });
     if (!sl_id) return res.status(400).json({ error: 'Source laboratory ID is required.' });
+    if (!req.activeLabId) return res.status(400).json({ error: 'Select an active laboratory before requesting a transfer.' });
+
+    const { assertBrowsableLab } = require('../../utils/labScope');
+    try {
+      await assertBrowsableLab(req, sl_id);
+    } catch (e) {
+      return res.status(e.status || 400).json({ error: e.message });
+    }
+    if (String(sl_id) === String(req.activeLabId)) {
+      return res.status(400).json({ error: 'Source laboratory must be different from your active laboratory.' });
+    }
     if (!quantity_moved || quantity_moved <= 0) return res.status(400).json({ error: 'A valid quantity is required.' });
 
     // destination is always user's active lab
@@ -282,7 +293,15 @@ exports.getLabChemicalsForRequisition = async (req, res) => {
     const { labId } = req.params;
     const { search, limit } = req.query;
 
-    let query = { lab: labId, quantity: { $gt: 0 } };
+    const { assertBrowsableLab } = require('../../utils/labScope');
+    let scopedLabId;
+    try {
+      scopedLabId = await assertBrowsableLab(req, labId);
+    } catch (e) {
+      return res.status(e.status || 400).json({ error: e.message });
+    }
+
+    let query = { lab: scopedLabId, quantity: { $gt: 0 } };
 
     if (search) {
       query.$or = [
