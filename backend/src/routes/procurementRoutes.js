@@ -5,40 +5,35 @@ const { authenticate, authorize } = require('../middleware/authMiddleware');
 const { requireLabScope } = require('../middleware/labScope');
 const { PERMISSIONS } = require('../config/roles');
 
-const canEdit = authorize(PERMISSIONS.EDIT_CHEMICAL);
+const canView = authorize(PERMISSIONS.VIEW_CHEMICALS, PERMISSIONS.VIEW_FINANCIALS);
+const canEdit = authorize(PERMISSIONS.EDIT_CHEMICAL, PERMISSIONS.VIEW_FINANCIALS);
 const adminOnly = authorize(PERMISSIONS.MANAGE_USERS);
 
 router.use(authenticate, requireLabScope);
 
-// ─── Supplier Routes ─────────────────────────────────────────────────────────
-router.get('/suppliers',              authenticate, ctrl.getSuppliers);
-router.get('/suppliers/rankings',     authenticate, ctrl.getSupplierRankings);
-router.get('/suppliers/:id',          authenticate, ctrl.getSupplierById);
-router.get('/suppliers/:id/history',  authenticate, ctrl.getSupplierHistory);
-router.post('/suppliers',             authenticate, canEdit, ctrl.createSupplier);
-router.put('/suppliers/:id',          authenticate, canEdit, ctrl.updateSupplier);
-router.put('/suppliers/:id/blacklist',authenticate, adminOnly, ctrl.blacklistSupplier);
-router.delete('/suppliers/:id',       authenticate, adminOnly, ctrl.deleteSupplier);
+router.get('/suppliers', canView, ctrl.getSuppliers);
+router.get('/suppliers/rankings', canView, ctrl.getSupplierRankings);
+router.get('/suppliers/:id', canView, ctrl.getSupplierById);
+router.get('/suppliers/:id/history', canView, ctrl.getSupplierHistory);
+router.post('/suppliers', canEdit, ctrl.createSupplier);
+router.put('/suppliers/:id', canEdit, ctrl.updateSupplier);
+router.put('/suppliers/:id/blacklist', adminOnly, ctrl.blacklistSupplier);
+router.delete('/suppliers/:id', adminOnly, ctrl.deleteSupplier);
 
-// ─── Purchase Order Routes ────────────────────────────────────────────────────
-router.get('/orders',                 authenticate, ctrl.getPurchaseOrders);
-router.get('/orders/:id',             authenticate, ctrl.getPurchaseOrderById);
-router.post('/orders',                authenticate, canEdit, ctrl.createPurchaseOrder);
-router.put('/orders/:id',             authenticate, canEdit, ctrl.updatePurchaseOrder);
-router.put('/orders/:id/status',      authenticate, canEdit, ctrl.updatePurchaseOrderStatus);
-router.delete('/orders/:id',          authenticate, adminOnly, ctrl.deletePurchaseOrder);
+router.get('/orders', canView, ctrl.getPurchaseOrders);
+router.get('/orders/:id', canView, ctrl.getPurchaseOrderById);
+router.post('/orders', canEdit, ctrl.createPurchaseOrder);
+router.put('/orders/:id', canEdit, ctrl.updatePurchaseOrder);
+router.put('/orders/:id/status', canEdit, ctrl.updatePurchaseOrderStatus);
+router.delete('/orders/:id', adminOnly, ctrl.deletePurchaseOrder);
 
-// ─── Shipment Tracking ────────────────────────────────────────────────────────
-router.get('/shipments',              authenticate, ctrl.getShipments);
-router.put('/shipments/:poId',        authenticate, canEdit, ctrl.updateShipment);
+router.get('/shipments', canView, ctrl.getShipments);
+router.put('/shipments/:poId', canEdit, ctrl.updateShipment);
 
-// ─── Vendor Performance ───────────────────────────────────────────────────────
-router.get('/reviews',                authenticate, ctrl.getVendorReviews);
-router.post('/reviews',               authenticate, canEdit, ctrl.createVendorReview);
+router.get('/reviews', canView, ctrl.getVendorReviews);
+router.post('/reviews', canEdit, ctrl.createVendorReview);
 
-// ─── Analytics & Logs ─────────────────────────────────────────────────────────
-router.get('/analytics',              authenticate, ctrl.getProcurementAnalytics);
-router.get('/logs',                   authenticate, ctrl.getProcurementLogs);
+router.get('/analytics', authorize(PERMISSIONS.VIEW_REPORTS, PERMISSIONS.VIEW_FINANCIALS), ctrl.getProcurementAnalytics);
+router.get('/logs', authorize(PERMISSIONS.VIEW_AUDIT_LOGS, PERMISSIONS.VIEW_FINANCIALS), ctrl.getProcurementLogs);
 
 module.exports = router;
-

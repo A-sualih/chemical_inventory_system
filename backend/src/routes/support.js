@@ -1,11 +1,11 @@
 const express = require('express');
-const { authenticate, authorize } = require('../middleware/authMiddleware');
-const { PERMISSIONS } = require('../config/roles');
+const { authenticate, requireAdmin } = require('../middleware/authMiddleware');
 const supportController = require('../controllers/support/supportController');
 
 const router = express.Router();
 
-router.get('/', authenticate, authorize(PERMISSIONS.MANAGE_SUPPORT), supportController.getSupportRequests);
-router.put('/:id/status', authenticate, authorize(PERMISSIONS.MANAGE_SUPPORT), supportController.updateSupportStatus);
+// Support Inbox is Admin-only
+router.get('/', authenticate, requireAdmin, supportController.getSupportRequests);
+router.put('/:id/status', authenticate, requireAdmin, supportController.updateSupportStatus);
 
 module.exports = router;

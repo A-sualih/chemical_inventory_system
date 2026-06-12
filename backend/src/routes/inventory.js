@@ -7,34 +7,13 @@ const inventoryController = require('../controllers/inventory/inventoryControlle
 
 router.use(authenticate, requireLabScope);
 
-// Get all chemicals
-router.get('/chemicals', inventoryController.getChemicals);
-
-// Add new chemical
+router.get('/chemicals', authorize(PERMISSIONS.VIEW_CHEMICALS), inventoryController.getChemicals);
 router.post('/chemicals', authorize(PERMISSIONS.CREATE_CHEMICAL), inventoryController.createChemical);
-
-// Update chemical
 router.put('/chemicals/:id', authorize(PERMISSIONS.EDIT_CHEMICAL), inventoryController.updateChemical);
-
-// Transaction Logic (IN/OUT/TRANSFER/DISPOSAL)
 router.post('/transaction', authorize(PERMISSIONS.UPDATE_STOCK), inventoryController.handleTransaction);
-
-// Get all inventory logs
-router.get('/logs', inventoryController.getLogs);
-
-// Get inventory logs for a specific chemical
-router.get('/logs/:id', inventoryController.getLogsByChemical);
-
-// FIFO Auto-Usage Engine Endpoint
+router.get('/logs', authorize(PERMISSIONS.VIEW_CHEMICALS, PERMISSIONS.VIEW_AUDIT_LOGS), inventoryController.getLogs);
+router.get('/logs/:id', authorize(PERMISSIONS.VIEW_CHEMICALS, PERMISSIONS.VIEW_AUDIT_LOGS), inventoryController.getLogsByChemical);
 router.post('/fifo-usage', authorize(PERMISSIONS.UPDATE_STOCK), inventoryController.handleFifoUsage);
-
-// Quick Scan Action (Fast Check-In/Check-Out)
 router.post('/quick-scan', authorize(PERMISSIONS.UPDATE_STOCK), inventoryController.quickScan);
 
 module.exports = router;
-
-module.exports = router;
-
-
-
-

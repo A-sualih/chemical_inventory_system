@@ -1,29 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require('../middleware/authMiddleware');
+const { authenticate, authorize } = require('../middleware/authMiddleware');
 const { requireLabScope } = require('../middleware/labScope');
+const { PERMISSIONS } = require('../config/roles');
 const safetyController = require('../controllers/safety/safetyController');
 
-// Apply Lab Scope Check to all safety operations
 router.use(authenticate, requireLabScope);
 
-// Get Safety Dashboard Overview
-router.get('/dashboard', safetyController.getSafetyDashboard);
-
-// Check Storage Incompatibility for a specific location
-router.get('/check-incompatibility/:location', safetyController.checkIncompatibility);
-
-// Global Incompatibility Matrix (Rules)
-router.get('/matrix', safetyController.getIncompatibilityMatrix);
-
-// GET: Export SDS PDF
-router.get('/export-sds/:id', safetyController.exportSdsPdf);
-
-// Global Incompatibility Scan — all locations
-router.get('/incompatibility/global', safetyController.globalIncompatibilityScan);
+router.get('/dashboard', authorize(PERMISSIONS.VIEW_SAFETY_INFO), safetyController.getSafetyDashboard);
+router.get('/check-incompatibility/:location', authorize(PERMISSIONS.VIEW_SAFETY_INFO), safetyController.checkIncompatibility);
+router.get('/matrix', authorize(PERMISSIONS.VIEW_SAFETY_INFO), safetyController.getIncompatibilityMatrix);
+router.get('/export-sds/:id', authorize(PERMISSIONS.VIEW_SAFETY_INFO, PERMISSIONS.VIEW_CHEMICALS), safetyController.exportSdsPdf);
+router.get('/incompatibility/global', authorize(PERMISSIONS.VIEW_SAFETY_INFO), safetyController.globalIncompatibilityScan);
 
 module.exports = router;
-
-
-
-

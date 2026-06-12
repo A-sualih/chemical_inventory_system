@@ -8,35 +8,18 @@ const chemicalRequestController = require('../controllers/request/chemicalReques
 
 router.use(authenticate, requireLabScope);
 
-/**
- * Get the FIFO-correct container for a chemical.
- */
-router.get('/fifo-container', requestController.getFifoContainer);
-
-// Submit a request (Technician)
+router.get('/fifo-container', authorize(PERMISSIONS.VIEW_CHEMICALS, PERMISSIONS.SUBMIT_REQUEST), requestController.getFifoContainer);
 router.post('/', authorize(PERMISSIONS.SUBMIT_REQUEST), requestController.submitRequest);
-
-// Get all requests (Admins/Managers see all, Technicians see theirs)
-router.get('/', requestController.getRequests);
-
-// Approve a request
+router.get('/', authorize(PERMISSIONS.VIEW_CHEMICALS, PERMISSIONS.SUBMIT_REQUEST, PERMISSIONS.APPROVE_REQUEST), requestController.getRequests);
 router.patch('/:id/approve', authorize(PERMISSIONS.APPROVE_REQUEST), requestController.approveRequest);
-
-// Reject a request
 router.patch('/:id/reject', authorize(PERMISSIONS.APPROVE_REQUEST), requestController.rejectRequest);
+router.patch('/:id/cancel', authorize(PERMISSIONS.SUBMIT_REQUEST), requestController.cancelRequest);
 
-// Cancel a request (Requester)
-router.patch('/:id/cancel', requestController.cancelRequest);
-
-// --- Non-Existing Chemical Requests (New Feature) ---
-router.post('/inventory-request', chemicalRequestController.submitRequest);
-router.get('/inventory-request', chemicalRequestController.getRequests);
+router.post('/inventory-request', authorize(PERMISSIONS.SUBMIT_REQUEST), chemicalRequestController.submitRequest);
+router.get('/inventory-request', authorize(PERMISSIONS.VIEW_CHEMICALS, PERMISSIONS.SUBMIT_REQUEST, PERMISSIONS.APPROVE_REQUEST), chemicalRequestController.getRequests);
 router.patch('/inventory-request/:id/reject', authorize(PERMISSIONS.APPROVE_REQUEST), chemicalRequestController.rejectRequest);
 router.patch('/inventory-request/:id/buy', authorize(PERMISSIONS.APPROVE_REQUEST), chemicalRequestController.buyRequest);
 router.patch('/inventory-request/:id/transfer', authorize(PERMISSIONS.APPROVE_REQUEST), chemicalRequestController.transferRequest);
-router.patch('/inventory-request/:id/cancel', chemicalRequestController.cancelRequest);
+router.patch('/inventory-request/:id/cancel', authorize(PERMISSIONS.SUBMIT_REQUEST), chemicalRequestController.cancelRequest);
 
 module.exports = router;
-
-
-

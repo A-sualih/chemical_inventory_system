@@ -14,21 +14,26 @@ const upload = multer({ storage });
 
 const router = express.Router();
 
-// authenticate MUST come before requireLabScope (labScope needs req.user.id)
 router.use(authenticate, requireLabScope);
 
-router.get('/stats', chemicalController.getStats);
-router.get('/', authenticate, authorize(PERMISSIONS.VIEW_CHEMICALS), chemicalController.getChemicals);
-router.get('/:id', authenticate, chemicalController.getChemical);
-router.post('/', authenticate, authorize(PERMISSIONS.CREATE_CHEMICAL), upload.fields([{ name: 'sds_file', maxCount: 1 }, { name: 'disposal_file', maxCount: 1 }]), chemicalController.createChemical);
-router.put('/:id', authenticate, authorize(PERMISSIONS.EDIT_CHEMICAL), upload.fields([{ name: 'sds_file', maxCount: 1 }, { name: 'disposal_file', maxCount: 1 }]), chemicalController.updateChemical);
-router.delete('/:id', authenticate, authorize(PERMISSIONS.DELETE_CHEMICAL), chemicalController.archiveChemical);
-router.put('/:id/restore', authenticate, authorize(PERMISSIONS.DELETE_CHEMICAL), chemicalController.restoreChemical);
-router.get('/:id/qrcode', authenticate, chemicalController.getQRCode);
-router.get('/:id/label', authenticate, chemicalController.getLabelData);
+router.get('/stats', authorize(PERMISSIONS.VIEW_CHEMICALS), chemicalController.getStats);
+router.get('/', authorize(PERMISSIONS.VIEW_CHEMICALS), chemicalController.getChemicals);
+router.get('/:id', authorize(PERMISSIONS.VIEW_CHEMICALS), chemicalController.getChemical);
+router.post(
+  '/',
+  authorize(PERMISSIONS.CREATE_CHEMICAL),
+  upload.fields([{ name: 'sds_file', maxCount: 1 }, { name: 'disposal_file', maxCount: 1 }]),
+  chemicalController.createChemical
+);
+router.put(
+  '/:id',
+  authorize(PERMISSIONS.EDIT_CHEMICAL),
+  upload.fields([{ name: 'sds_file', maxCount: 1 }, { name: 'disposal_file', maxCount: 1 }]),
+  chemicalController.updateChemical
+);
+router.delete('/:id', authorize(PERMISSIONS.DELETE_CHEMICAL), chemicalController.archiveChemical);
+router.put('/:id/restore', authorize(PERMISSIONS.DELETE_CHEMICAL), chemicalController.restoreChemical);
+router.get('/:id/qrcode', authorize(PERMISSIONS.VIEW_CHEMICALS), chemicalController.getQRCode);
+router.get('/:id/label', authorize(PERMISSIONS.VIEW_CHEMICALS), chemicalController.getLabelData);
 
 module.exports = router;
-
-
-
-
