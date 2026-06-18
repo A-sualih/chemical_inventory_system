@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "../context/AuthContext";
 import { runKeepAliveService } from "../services/keepAliveService";
 import { NotificationProvider } from "../context/NotificationContext";
 import { SettingsProvider } from "../context/SettingsContext";
+import { ThemeProvider } from "../context/ThemeContext";
 import { Toaster } from "react-hot-toast";
 import Dashboard from "../pages/Dashboard";
 import Landing from "../pages/Landing";
@@ -62,6 +63,7 @@ function App() {
   }, []);
 
   return (
+    <ThemeProvider>
     <AuthProvider>
       <SettingsProvider>
         <NotificationProvider>
@@ -70,9 +72,10 @@ function App() {
             toastOptions={{
               duration: 10000,
               style: {
-                background: '#333',
-                color: '#fff',
+                background: 'var(--surface)',
+                color: 'var(--text)',
                 borderRadius: '10px',
+                border: '1px solid var(--border)',
               },
             }}
           />
@@ -121,7 +124,7 @@ function App() {
               <Route path="/logs" element={<ProtectedRoute><InventoryLogs /></ProtectedRoute>} />
               <Route path="/transactions" element={<ProtectedRoute allowedRoles={["Lab Manager", "Safety Officer", "Lab Technician"]}><TransactionSystem /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer / Auditor"]}><Reports /></ProtectedRoute>} />
-              <Route path="/support-inbox" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager"]}><SupportInbox /></ProtectedRoute>} />
+              <Route path="/support-inbox" element={<ProtectedRoute allowedRoles={["Admin"]}><SupportInbox /></ProtectedRoute>} />
               
               {/* Specialized Modules */}
               <Route path="/safety" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer / Auditor"]}><SafetyDashboard /></ProtectedRoute>} />
@@ -143,6 +146,7 @@ function App() {
         </NotificationProvider>
       </SettingsProvider>
     </AuthProvider>
+    </ThemeProvider>
   );
 }
 

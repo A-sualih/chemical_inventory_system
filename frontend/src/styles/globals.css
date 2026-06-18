@@ -8,17 +8,32 @@ html, body {
   height: 100%;
 }
 
-body {
-  font-family: var(--font-sans);
-  background-color: var(--secondary-50);
-  color: var(--secondary-900);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+html {
+  background: var(--bg);
 }
 
-/* Transitions */
-* {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg);
+  background-image: var(--pattern);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.35s ease, color 0.28s ease;
+}
+
+#root {
+  min-height: 100vh;
+  background: transparent;
+}
+
+/* Transitions — scoped, avoid transition: all */
+a, button, input, select, textarea, .stat-card, .dashboard-section {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 input:focus {
@@ -289,15 +304,15 @@ h1, h2 {
 }
 
 .toast-success {
-  background-color: #d1fae5;
-  color: #065f46;
-  border-left: 4px solid #10b981;
+  background-color: color-mix(in srgb, var(--success) 16%, var(--card-bg));
+  color: var(--success);
+  border-left: 4px solid var(--success);
 }
 
 .toast-error {
-  background-color: #fee2e2;
-  color: #991b1b;
-  border-left: 4px solid #ef4444;
+  background-color: color-mix(in srgb, var(--danger) 16%, var(--card-bg));
+  color: var(--danger);
+  border-left: 4px solid var(--danger);
 }
 
 @keyframes slideInBottom {
@@ -310,3 +325,380 @@ h1, h2 {
     opacity: 1;
   }
 }
+
+/* ── Dark mode: remap leftover light-only whites in app pages ─────── */
+html[data-theme='ink'] {
+  color-scheme: dark;
+}
+
+html[data-theme='ink'] .app-wrapper,
+html[data-theme='ink'] .main-wrapper,
+html[data-theme='ink'] .content-area {
+  color: var(--text);
+}
+
+html[data-theme='ink'] .top-header {
+  background: var(--nav-bg);
+  border-bottom-color: var(--border);
+}
+
+html[data-theme='ink'] .stat-card,
+html[data-theme='ink'] .dashboard-section,
+html[data-theme='ink'] .approvals-section-beautiful {
+  background: var(--card-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+}
+
+html[data-theme='ink'] input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme='ink'] select,
+html[data-theme='ink'] textarea {
+  background-color: var(--input-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme='ink'] input::placeholder,
+html[data-theme='ink'] textarea::placeholder {
+  color: var(--muted) !important;
+}
+
+html[data-theme='ink'] option {
+  background: var(--surface);
+  color: var(--text);
+}
+
+html[data-theme='ink'] table,
+html[data-theme='ink'] .table,
+html[data-theme='ink'] .data-table {
+  color: var(--text);
+}
+
+html[data-theme='ink'] thead th {
+  background: var(--surface2) !important;
+  color: var(--muted) !important;
+  border-color: var(--border) !important;
+}
+
+html[data-theme='ink'] tbody td,
+html[data-theme='ink'] tbody tr {
+  border-color: var(--border) !important;
+  background-color: transparent;
+}
+
+html[data-theme='ink'] tbody tr:hover {
+  background-color: color-mix(in srgb, var(--accent) 8%, transparent) !important;
+}
+
+html[data-theme='ink'] .modal,
+html[data-theme='ink'] .modal-content,
+html[data-theme='ink'] .dialog,
+html[data-theme='ink'] .panel,
+html[data-theme='ink'] .card,
+html[data-theme='ink'] .content-card,
+html[data-theme='ink'] .page-card,
+html[data-theme='ink'] .filter-bar,
+html[data-theme='ink'] .toolbar,
+html[data-theme='ink'] .search-bar {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme='ink'] .modal-header,
+html[data-theme='ink'] .modal-footer {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme='ink'] .modal-title {
+  color: var(--text) !important;
+}
+
+html[data-theme='ink'] .modal-subtitle {
+  color: var(--muted) !important;
+}
+
+html[data-theme='ink'] .form-label {
+  color: var(--muted) !important;
+}
+
+html[data-theme='ink'] .form-input,
+html[data-theme='ink'] .form-textarea,
+html[data-theme='ink'] select.form-input {
+  background: var(--input-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme='ink'] .form-input::placeholder {
+  color: var(--muted) !important;
+}
+
+html[data-theme='ink'] .btn-modal-secondary {
+  background: transparent !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+html[data-theme='ink'] .sidebar-container {
+  background: linear-gradient(180deg, #0d1520 0%, #0a1017 100%);
+  border-right-color: rgba(148, 163, 184, 0.12);
+}
+
+html[data-theme='ink'] .nav-item-active {
+  background: linear-gradient(90deg, rgba(45, 212, 191, 0.22), rgba(45, 212, 191, 0.08));
+  border-right-color: var(--accent);
+}
+
+html[data-theme='ink'] .user-profile-card-bg {
+  background: linear-gradient(to bottom, rgba(45, 212, 191, 0.08), transparent);
+  border-color: rgba(148, 163, 184, 0.12);
+}
+
+html[data-theme='ink'] .search-sds-btn {
+  background: var(--surface2);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+html[data-theme='ink'] .new-inventory-btn {
+  background: var(--accent);
+  color: var(--btn-text);
+}
+
+/* Buttons that used secondary-900 as "dark" bg become white in ink — force accent */
+html[data-theme='ink'] .audit-refresh-btn,
+html[data-theme='ink'] .pagination-btn,
+html[data-theme='ink'] .purge-btn,
+html[data-theme='ink'] .refresh-btn,
+html[data-theme='ink'] .export-btn,
+html[data-theme='ink'] button.audit-refresh-btn {
+  background-color: var(--accent) !important;
+  color: var(--btn-text) !important;
+  border-color: transparent !important;
+}
+
+html[data-theme='ink'] .audit-refresh-btn svg,
+html[data-theme='ink'] .pagination-btn svg,
+html[data-theme='ink'] .refresh-btn svg {
+  color: var(--btn-text) !important;
+  stroke: currentColor !important;
+}
+
+html[data-theme='ink'] .user-card,
+html[data-theme='ink'] .profile-card,
+html[data-theme='ink'] .settings-section-card,
+html[data-theme='ink'] .section-card,
+html[data-theme='ink'] .procurement-header-bar,
+html[data-theme='ink'] .procurement-table-card,
+html[data-theme='ink'] .header-actions {
+  background: var(--card-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme='ink'] .user-name,
+html[data-theme='ink'] .procurement-title,
+html[data-theme='ink'] .audit-title,
+html[data-theme='ink'] .settings-header h1,
+html[data-theme='ink'] .profile-header-premium h1,
+html[data-theme='ink'] .profile-section-heading h2,
+html[data-theme='ink'] .section-card h2,
+html[data-theme='ink'] .header-actions h1 {
+  color: var(--text) !important;
+}
+
+html[data-theme='ink'] .role-select,
+html[data-theme='ink'] .audit-search-input,
+html[data-theme='ink'] .audit-filter-select,
+html[data-theme='ink'] .search-input,
+html[data-theme='ink'] .filter-select {
+  background: var(--input-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme='ink'] .btn-add,
+html[data-theme='ink'] .btn-modal-primary,
+html[data-theme='ink'] .btn-primary-glow {
+  background: linear-gradient(135deg, var(--accent), var(--accent2)) !important;
+  color: var(--btn-text) !important;
+}
+
+html[data-theme='ink'] .page-container,
+html[data-theme='ink'] .dashboard-container,
+html[data-theme='ink'] .chemicals-container,
+html[data-theme='ink'] .batches-container,
+html[data-theme='ink'] .expiry-container,
+html[data-theme='ink'] .reports-container,
+html[data-theme='ink'] .admin-container,
+html[data-theme='ink'] .safety-container,
+html[data-theme='ink'] .containers-container,
+html[data-theme='ink'] .locations-container,
+html[data-theme='ink'] .notifications-container,
+html[data-theme='ink'] .scan-container {
+  background: transparent !important;
+  color: var(--text);
+}
+
+
+/* ── Dark mode: page surfaces & inverted secondary-900 buttons ── */
+html[data-theme='ink'] {
+  --waste-surface: var(--card-bg);
+  --waste-border: var(--border);
+  --waste-shadow-sm: var(--shadow);
+  --bg-card: var(--card-bg);
+  --bg-app: transparent;
+  --text-main: var(--text);
+  --text-muted: var(--muted);
+  --glass-bg: rgba(23, 30, 39, 0.88);
+}
+
+/* Never use inverted secondary-900 as a "dark button" fill */
+html[data-theme='ink'] .btn-cleanup,
+html[data-theme='ink'] .archive-active,
+html[data-theme='ink'] .status-filter-btn.active,
+html[data-theme='ink'] .filter-tag-btn.active,
+html[data-theme='ink'] .waste-tab.active {
+  background: var(--accent) !important;
+  color: var(--btn-text) !important;
+  border-color: transparent !important;
+}
+
+html[data-theme='ink'] .batches-header-bar,
+html[data-theme='ink'] .containers-header-sticky,
+html[data-theme='ink'] .batch-stat-card,
+html[data-theme='ink'] .container-stat-card,
+html[data-theme='ink'] .waste-stat-card,
+html[data-theme='ink'] .repository-card,
+html[data-theme='ink'] .filter-panel,
+html[data-theme='ink'] .notif-filters-col > *,
+html[data-theme='ink'] .transactions-container,
+html[data-theme='ink'] .transactions-container .card,
+html[data-theme='ink'] .transactions-container [class*="panel"],
+html[data-theme='ink'] .form-content-area,
+html[data-theme='ink'] .storage-hierarchy-box,
+html[data-theme='ink'] .waste-table-card,
+html[data-theme='ink'] .waste-content-card,
+html[data-theme='ink'] .report-card,
+html[data-theme='ink'] .chemical-form-container,
+html[data-theme='ink'] .card-container,
+html[data-theme='ink'] .access-control-card {
+  background: var(--card-bg) !important;
+  background-color: var(--card-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme='ink'] .card-container {
+  background: var(--surface2) !important;
+  background-color: var(--surface2) !important;
+}
+
+html[data-theme='ink'] .report-card {
+  background: var(--sidebar-bg) !important;
+  color: var(--sidebar-text) !important;
+}
+
+html[data-theme='ink'] .report-card-title,
+html[data-theme='ink'] .batch-stat-value,
+html[data-theme='ink'] .container-stat-value,
+html[data-theme='ink'] .batches-header-bar h1,
+html[data-theme='ink'] .containers-header-sticky h1,
+html[data-theme='ink'] .header-title-section h1,
+html[data-theme='ink'] .notif-title,
+html[data-theme='ink'] .section-title,
+html[data-theme='ink'] .filter-section-title,
+html[data-theme='ink'] .filter-checkbox-label,
+html[data-theme='ink'] .storage-header {
+  color: var(--text) !important;
+}
+
+html[data-theme='ink'] .report-card-title {
+  color: var(--sidebar-text) !important;
+}
+
+html[data-theme='ink'] .batch-stat-label,
+html[data-theme='ink'] .container-stat-label,
+html[data-theme='ink'] .header-subtitle,
+html[data-theme='ink'] .report-card-desc,
+html[data-theme='ink'] .filter-tag-btn:not(.active) {
+  color: var(--muted) !important;
+}
+
+html[data-theme='ink'] .report-card-desc {
+  color: var(--sidebar-muted) !important;
+}
+
+html[data-theme='ink'] .search-bar-container,
+html[data-theme='ink'] .batches-header-bar input,
+html[data-theme='ink'] .containers-header-sticky input {
+  background: transparent !important;
+}
+
+html[data-theme='ink'] .waste-tab:hover {
+  background: var(--surface2) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme='ink'] .waste-tab.active {
+  background: var(--surface) !important;
+  color: var(--accent) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='ink'] .empty-state-icon,
+html[data-theme='ink'] .waste-empty-state,
+html[data-theme='ink'] .empty-state-icon {
+  background: var(--surface2) !important;
+  color: var(--muted) !important;
+  border-color: var(--border) !important;
+}
+
+html[data-theme='ink'] .expiry-table tr:hover {
+  background-color: color-mix(in srgb, var(--accent) 8%, transparent) !important;
+}
+
+html[data-theme='ink'] .form-content-area .section-title {
+  color: var(--muted) !important;
+}
+
+html[data-theme='ink'] .form-content-area label,
+html[data-theme='ink'] .form-content-area .field-label,
+html[data-theme='ink'] .form-content-area .input-label {
+  color: var(--muted) !important;
+}
+
+html[data-theme='ink'] .transactions-container,
+html[data-theme='ink'] .transactions-container * {
+  --bg-card: var(--card-bg);
+  --text-main: var(--text);
+}
+
+html[data-theme='ink'] .transactions-container {
+  background: transparent !important;
+  color: var(--text) !important;
+}
+
+html[data-theme='ink'] .transactions-container [class*="card"],
+html[data-theme='ink'] .transactions-container [class*="panel"],
+html[data-theme='ink'] .transactions-container [class*="dashboard"],
+html[data-theme='ink'] .transactions-container [class*="telemetry"],
+html[data-theme='ink'] .transactions-container [class*="scanner"] {
+  background-color: var(--card-bg) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+/* Safety net: secondary-900-as-fill becomes white in ink — force dark chrome */
+html[data-theme='ink'] .id-badge,
+html[data-theme='ink'] .bg-normal-avatar,
+html[data-theme='ink'] .icon-default,
+html[data-theme='ink'] .pagination-active,
+html[data-theme='ink'] .chip-dark {
+  background-color: var(--surface2) !important;
+  color: var(--text) !important;
+}
+

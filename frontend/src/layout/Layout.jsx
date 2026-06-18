@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import NotificationBell from "../components/feedback/NotificationBell";
 import LabSwitcher from "../components/common/LabSwitcher";
+import ThemeToggle from "../components/common/ThemeToggle";
 import { useAuth } from "../context/AuthContext";
 import "../styles/Layout.css";
 
@@ -15,11 +16,9 @@ const Layout = ({ children }) => {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="main-wrapper">
-        {/* Top Header */}
         <header className="top-header">
           <div className="header-inner">
             <div className="header-left">
-              {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setSidebarOpen(true)}
                 className="mobile-toggle"
@@ -29,8 +28,7 @@ const Layout = ({ children }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
-              
-              {/* Desktop Greeting */}
+
               <div className="user-greeting">
                 <p className="greeting-text">Welcome back,</p>
                 <p className="user-name-text">{user?.name || 'User'}</p>
@@ -38,6 +36,7 @@ const Layout = ({ children }) => {
             </div>
 
             <div className="header-right">
+              <ThemeToggle />
               <LabSwitcher />
               {user?.role !== "Viewer / Auditor" && <NotificationBell />}
               <div className="vertical-divider"></div>
@@ -54,7 +53,6 @@ const Layout = ({ children }) => {
           </div>
         </header>
 
-        {/* Main Content */}
         <main className="content-area">
           <div className="content-inner">
             {children}
@@ -65,4 +63,4 @@ const Layout = ({ children }) => {
   );
 };
 
-export default Layout;
+export default Layout;
