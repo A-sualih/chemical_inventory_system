@@ -25,7 +25,7 @@
   backdrop-filter: blur(10px);
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .mobile-backdrop {
     display: none;
   }
@@ -38,28 +38,27 @@
   z-index: 50;
   height: 100vh;
   width: 18rem;
-  background-color: var(--secondary-950);
-  color: white;
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+  border-right: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, background-color 0.28s ease;
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .sidebar-container {
     position: sticky;
     transform: translateX(0);
     z-index: auto;
     flex-shrink: 0;
-    /* Narrower sidebar = more room for content */
     width: 15rem;
   }
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .sidebar-container { width: 16rem; }
 }
 
@@ -79,7 +78,7 @@
   transform: translateX(-100%);
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .sidebar-closed {
     transform: translateX(0);
   }
@@ -103,12 +102,12 @@
 .logo-box {
   width: 2.5rem;
   height: 2.5rem;
-  background-color: var(--primary-600);
+  background: linear-gradient(145deg, var(--accent), var(--accent2));
   border-radius: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow);
 }
 
 .logo-text-area h2 {
@@ -128,30 +127,30 @@
   text-transform: uppercase;
   letter-spacing: 0.2em;
   font-weight: 700;
-  color: var(--secondary-500);
+  color: var(--sidebar-muted);
 }
 
 .close-sidebar-mobile {
   width: 2rem;
   height: 2rem;
   border-radius: 0.5rem;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--sidebar-hover);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--secondary-400);
-  transition: all 0.2s;
+  color: var(--sidebar-muted);
+  transition: background-color 0.2s, color 0.2s;
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .close-sidebar-mobile {
     display: none;
   }
 }
 
 .close-sidebar-mobile:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
+  background-color: var(--sidebar-active);
+  color: var(--sidebar-text);
 }
 
 .sidebar-nav {
@@ -168,7 +167,7 @@
   text-transform: uppercase;
   letter-spacing: 0.2em;
   font-weight: 700;
-  color: var(--secondary-600);
+  color: var(--sidebar-muted);
   padding: 0 1.5rem;
   margin-bottom: 0.75rem;
 }
@@ -178,37 +177,38 @@
   align-items: center;
   gap: 1rem;
   padding: 0.875rem 1.5rem;
-  transition: all 0.3s;
+  transition: background-color 0.2s, color 0.2s;
   position: relative;
   text-decoration: none;
-  color: var(--secondary-400);
+  color: var(--sidebar-muted);
 }
 
 .nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: white;
+  background-color: var(--sidebar-hover);
+  color: var(--sidebar-text);
 }
 
 .nav-item-active {
-  background-color: var(--primary-600);
-  color: white;
+  background-color: var(--sidebar-active);
+  color: var(--sidebar-text);
   font-weight: 600;
-  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.3);
-  border-right: 4px solid var(--primary-400);
+  box-shadow: none;
+  border-right: 3px solid var(--accent);
 }
 
 .nav-icon {
-  transition: transform 0.3s;
-  color: var(--secondary-500);
+  transition: transform 0.2s, color 0.2s;
+  color: var(--sidebar-muted);
 }
 
 .nav-item:hover .nav-icon {
-  transform: scale(1.1);
+  transform: scale(1.08);
+  color: var(--accent);
 }
 
 .nav-item-active .nav-icon {
-  transform: scale(1.1);
-  color: white;
+  transform: scale(1.08);
+  color: var(--accent);
 }
 
 .nav-text {
@@ -260,9 +260,9 @@
   right: -0.125rem;
   width: 0.75rem;
   height: 0.75rem;
-  background-color: #22c55e;
+  background-color: var(--success);
   border-radius: 50%;
-  border: 2px solid var(--secondary-950);
+  border: 2px solid var(--sidebar-bg);
 }
 
 .profile-info {
@@ -273,7 +273,7 @@
 .profile-name {
   font-size: 0.875rem;
   font-weight: 700;
-  color: white;
+  color: var(--sidebar-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { Navigate } from "react-router-dom";
 import axios from "axios";
 import "../../styles/AdminOnly.css";
+import { confirmAction, notifyAction } from "../../utils/confirmAction";
 
 const AdminOnlyPage = ({ title, description }) => {
    const { user, hasPermission } = useAuth();
@@ -24,6 +25,9 @@ const AdminOnlyPage = ({ title, description }) => {
    if (!hasPermission("assign_roles") && !hasPermission("view_audit_logs")) {
       return <Navigate to="/" replace />;
    }
+
+   const myId = String(user?.id || user?._id || "");
+   const iAmAdmin = String(user?.role || "").toLowerCase() === "admin";
 
    const fetchData = async () => {
       setLoading(true);
@@ -61,14 +65,48 @@ const AdminOnlyPage = ({ title, description }) => {
       if (e.key === 'Enter') fetchData();
    };
 
-   const handleRoleChange = async (userId, newRole) => {
+   const handleRoleChange = async (targetUser, newRole) => {
+      const targetId = String(targetUser._id || targetUser.id || "");
+      if (targetId && myId && targetId === myId) {
+         notifyAction("You cannot change your own role. Ask another Admin.", { success: false });
+         fetchData();
+         return;
+      }
+      if (targetUser.role === "Admin" && !iAmAdmin) {
+         notifyAction("Only an Admin can modify another Admin.", { success: false });
+         fetchData();
+         return;
+      }
+      if (newRole === "Admin" && !iAmAdmin) {
+         notifyAction("Only an Admin can assign the Admin role.", { success: false });
+         fetchData();
+         return;
+      }
+
+      const ok = await confirmAction({
+         message: `Change authority for ${targetUser.name} to ${newRole}?`,
+         confirmLabel: "Change role",
+         cancelLabel: "Cancel",
+         danger: newRole === "Admin" || targetUser.role === "Admin",
+      });
+      if (!ok) {
+         fetchData();
+         return;
+      }
+
       try {
-         await axios.put(`/api/auth/users/${userId}/role`, { role: newRole });
+         await axios.put(`/api/auth/users/${targetUser._id}/role`, { role: newRole });
+         notifyAction(`Role updated to ${newRole}`);
          fetchData();
       } catch (err) {
-         alert("Error updating role");
+         notifyAction(err.response?.data?.error || "Error updating role", { success: false });
+         fetchData();
       }
    };
+
+   const isProtectedMaster = (u) => u.email === 'chemicalinventorysystem@gmail.com';
+   const isSelf = (u) => String(u._id || u.id || "") === myId;
+   const roleLocked = (u) => isProtectedMaster(u) || isSelf(u) || (u.role === "Admin" && !iAmAdmin);
 
    const renderChanges = (changes) => {
       return null;
@@ -146,9 +184,9 @@ const AdminOnlyPage = ({ title, description }) => {
                                        <div className="role-select-wrapper">
                                           <select
                                              value={u.role}
-                                             onChange={(e) => handleRoleChange(u._id, e.target.value)}
+                                             onChange={(e) => handleRoleChange(u, e.target.value)}
                                              className="role-select"
-                                             disabled={u.email === 'chemicalinventorysystem@gmail.com'}
+                                             disabled={roleLocked(u)}
                                           >
                                              <option value="Admin">System Administrator</option>
                                              <option value="Lab Manager">Operations Manager</option>
@@ -164,13 +202,18 @@ const AdminOnlyPage = ({ title, description }) => {
                                     <div className="action-buttons">
                                        <button
                                           onClick={async () => {
-                                             if (window.confirm(`Reset password for ${u.name}?`)) {
-                                                try {
-                                                   const { data } = await axios.put(`/api/auth/users/${u._id}/reset-password`);
-                                                   alert(`RESTORE SUCCESSFUL\n\nTemporary Password: ${data.tempPassword}\n\nSecurity notice: User must change this upon next login.`);
-                                                } catch (err) {
-                                                   alert(err.response?.data?.error || "Reset failed");
-                                                }
+                                             const ok = await confirmAction({
+                                                message: `Reset password for ${u.name}?`,
+                                                confirmLabel: 'Reset',
+                                                cancelLabel: 'Cancel',
+                                                danger: true,
+                                             });
+                                             if (!ok) return;
+                                             try {
+                                                const { data } = await axios.put(`/api/auth/users/${u._id}/reset-password`);
+                                                notifyAction(`Temporary password: ${data.tempPassword}`);
+                                             } catch (err) {
+                                                notifyAction(err.response?.data?.error || "Reset failed", { success: false });
                                              }
                                           }}
                                           className="action-btn btn-reset"
@@ -180,35 +223,63 @@ const AdminOnlyPage = ({ title, description }) => {
                                        </button>
                                        <button
                                           onClick={async () => {
+                                             if (isSelf(u)) {
+                                                notifyAction("You cannot suspend your own account.", { success: false });
+                                                return;
+                                             }
+                                             if (u.role === "Admin" && !iAmAdmin) {
+                                                notifyAction("Only an Admin can modify another Admin.", { success: false });
+                                                return;
+                                             }
                                              const newStatus = u.status === 'Active' ? 'Inactive' : 'Active';
-                                             if (window.confirm(`${newStatus === 'Inactive' ? 'Suspend' : 'Heal'} credentials for ${u.name}?`)) {
-                                                try {
-                                                   await axios.put(`/api/auth/users/${u._id}/status`, { status: newStatus });
-                                                   fetchData();
-                                                } catch (err) {
-                                                   alert(err.response?.data?.error || "Status update failed");
-                                                }
+                                             const ok = await confirmAction({
+                                                message: `${newStatus === 'Inactive' ? 'Suspend' : 'Heal'} credentials for ${u.name}?`,
+                                                confirmLabel: newStatus === 'Inactive' ? 'Suspend' : 'Heal',
+                                                cancelLabel: 'Cancel',
+                                                danger: newStatus === 'Inactive',
+                                             });
+                                             if (!ok) return;
+                                             try {
+                                                await axios.put(`/api/auth/users/${u._id}/status`, { status: newStatus });
+                                                notifyAction(`Status set to ${newStatus}`);
+                                                fetchData();
+                                             } catch (err) {
+                                                notifyAction(err.response?.data?.error || "Status update failed", { success: false });
                                              }
                                           }}
                                           className={`action-btn ${u.status === 'Active' ? 'btn-suspend' : 'btn-verify'}`}
-                                          disabled={u.email === 'chemicalinventorysystem@gmail.com'}
+                                          disabled={isProtectedMaster(u) || isSelf(u)}
                                        >
                                            <svg className="btn-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d={u.status === 'Active' ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"} /></svg>
                                           <span className="btn-label">{u.status === 'Active' ? 'Suspend' : 'Verify'}</span>
                                        </button>
                                        <button
                                           onClick={async () => {
-                                             if (window.confirm(`PERMANENTLY OVERWRITE: This will scrub ${u.name} from the user registry. Confirm destructive action.`)) {
-                                                try {
-                                                   await axios.delete(`/api/auth/users/${u._id}`);
-                                                   fetchData();
-                                                } catch (err) {
-                                                   alert(err.response?.data?.error || "Scrub failed");
-                                                }
+                                             if (isSelf(u)) {
+                                                notifyAction("You cannot scrub your own account.", { success: false });
+                                                return;
+                                             }
+                                             if (u.role === "Admin" && !iAmAdmin) {
+                                                notifyAction("Only an Admin can modify another Admin.", { success: false });
+                                                return;
+                                             }
+                                             const ok = await confirmAction({
+                                                message: `Permanently remove ${u.name} from the user registry?`,
+                                                confirmLabel: 'Scrub',
+                                                cancelLabel: 'Cancel',
+                                                danger: true,
+                                             });
+                                             if (!ok) return;
+                                             try {
+                                                await axios.delete(`/api/auth/users/${u._id}`);
+                                                notifyAction(`${u.name} removed`);
+                                                fetchData();
+                                             } catch (err) {
+                                                notifyAction(err.response?.data?.error || "Scrub failed", { success: false });
                                              }
                                           }}
                                           className="action-btn btn-scrub"
-                                          disabled={u.email === 'chemicalinventorysystem@gmail.com'}
+                                          disabled={isProtectedMaster(u) || isSelf(u)}
                                        >
                                            <svg className="btn-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                           <span className="btn-label">Scrub</span>
@@ -451,14 +522,19 @@ const AdminOnlyPage = ({ title, description }) => {
                   </p>
                   <button
                      onClick={async () => {
-                        if (window.confirm("FATAL ACTION: This will purge all users and audit logs. Proceed with complete wipe?")) {
-                           try {
-                              await axios.post('/api/auth/users/wipe-all');
-                              alert("SYSTEM PURGE COMPLETED");
-                              fetchData();
-                           } catch (err) {
-                              alert(err.response?.data?.error || "Purge failed");
-                           }
+                        const ok = await confirmAction({
+                           message: 'FATAL ACTION: This will purge all users and audit logs. Proceed with complete wipe?',
+                           confirmLabel: 'Wipe all',
+                           cancelLabel: 'Cancel',
+                           danger: true,
+                        });
+                        if (!ok) return;
+                        try {
+                           await axios.post('/api/auth/users/wipe-all');
+                           notifyAction('System purge completed');
+                           fetchData();
+                        } catch (err) {
+                           notifyAction(err.response?.data?.error || "Purge failed", { success: false });
                         }
                      }}
                      className="purge-btn"

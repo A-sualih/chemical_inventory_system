@@ -80,7 +80,7 @@
 }
 
 .admin-tab.active {
-  background-color: white;
+  background-color: var(--card-bg);
   color: var(--secondary-900);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
@@ -106,7 +106,7 @@
 }
 
 .admin-panel {
-  background-color: white;
+  background-color: var(--card-bg);
   padding: 1.5rem;
   border-radius: 2rem;
   border: 1px solid var(--secondary-100);
@@ -186,18 +186,19 @@
 
 .user-card {
   padding: 1.5rem;
-  background-color: rgba(248, 250, 252, 0.5); /* secondary-50/50 */
-  border: 1px solid var(--secondary-100);
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
   border-radius: 2.5rem;
   transition: all 0.3s;
   position: relative;
   overflow: hidden;
+  color: var(--text);
 }
 
 .user-card:hover {
-  background-color: white;
-  border-color: var(--primary-200);
-  box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.1);
+  background-color: var(--surface2);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  box-shadow: var(--shadow);
 }
 
 .user-card-bg-effect {
@@ -230,14 +231,14 @@
   width: 3.5rem;
   height: 3.5rem;
   border-radius: 1rem;
-  background-color: var(--secondary-900);
-  color: white;
+  background: linear-gradient(145deg, var(--accent), var(--accent2));
+  color: var(--btn-text);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 900;
   font-size: 1.125rem;
-  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.2);
+  box-shadow: var(--shadow);
   transition: transform 0.3s;
 }
 
@@ -252,7 +253,7 @@
 
 .user-name {
   font-weight: 900;
-  color: #020617; /* secondary-950 */
+  color: var(--text);
   font-size: 1rem;
   line-height: 1.25;
   white-space: nowrap;
@@ -283,8 +284,16 @@
   border: 1px solid;
 }
 
-.status-active { color: #16a34a; background-color: #f0fdf4; border-color: #dcfce7; }
-.status-inactive { color: #dc2626; background-color: #fef2f2; border-color: #fee2e2; }
+.status-active {
+  color: var(--success);
+  background-color: color-mix(in srgb, var(--success) 14%, transparent);
+  border-color: color-mix(in srgb, var(--success) 28%, transparent);
+}
+.status-inactive {
+  color: var(--danger);
+  background-color: color-mix(in srgb, var(--danger) 14%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 28%, transparent);
+}
 
 .user-card-body {
   position: relative;
@@ -311,22 +320,28 @@
 
 .role-select {
   width: 100%;
-  background-color: white;
-  border: 2px solid var(--secondary-100);
+  background-color: var(--input-bg);
+  border: 2px solid var(--border);
   border-radius: 1rem;
   padding: 1rem;
   font-size: 0.75rem;
   font-weight: 900;
-  color: var(--secondary-700);
+  color: var(--text);
   outline: none;
   cursor: pointer;
   transition: all 0.2s;
   appearance: none;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 }
 
 .role-select:focus {
-  border-color: var(--primary-500);
+  border-color: var(--accent);
+  background-color: var(--surface);
+}
+
+.role-select option {
+  background: var(--surface);
+  color: var(--text);
 }
 
 .role-select:disabled {
@@ -366,32 +381,32 @@
 .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-reset {
-  border-color: #ffedd5;
-  background-color: rgba(255, 247, 237, 0.3);
-  color: #ea580c;
+  border-color: color-mix(in srgb, var(--warn) 25%, transparent);
+  background-color: color-mix(in srgb, var(--warn) 12%, transparent);
+  color: var(--warn);
 }
-.btn-reset:hover:not(:disabled) { background-color: #f97316; color: white; }
+.btn-reset:hover:not(:disabled) { background-color: var(--warn); color: var(--btn-text); }
 
 .btn-suspend {
-  border-color: var(--secondary-100);
-  background-color: var(--secondary-50);
-  color: var(--secondary-500);
+  border-color: var(--border);
+  background-color: var(--surface2);
+  color: var(--text);
 }
-.btn-suspend:hover:not(:disabled) { background-color: var(--secondary-900); color: white; }
+.btn-suspend:hover:not(:disabled) { background-color: var(--accent); color: var(--btn-text); }
 
 .btn-verify {
-  border-color: #dcfce7;
-  background-color: #f0fdf4;
-  color: #16a34a;
+  border-color: color-mix(in srgb, var(--success) 25%, transparent);
+  background-color: color-mix(in srgb, var(--success) 12%, transparent);
+  color: var(--success);
 }
-.btn-verify:hover:not(:disabled) { background-color: #16a34a; color: white; }
+.btn-verify:hover:not(:disabled) { background-color: var(--success); color: var(--btn-text); }
 
 .btn-scrub {
-  border-color: #fee2e2;
-  background-color: rgba(254, 242, 242, 0.3);
-  color: #dc2626;
+  border-color: color-mix(in srgb, var(--danger) 25%, transparent);
+  background-color: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
 }
-.btn-scrub:hover:not(:disabled) { background-color: #dc2626; color: white; }
+.btn-scrub:hover:not(:disabled) { background-color: var(--danger); color: #fff; }
 
 .btn-icon { margin-bottom: 0.25rem; }
 .btn-label { font-size: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.05em; }
@@ -458,17 +473,19 @@
 
 .audit-search-input {
   padding: 0.75rem 1rem 0.75rem 2.5rem;
-  background-color: var(--secondary-50);
-  border: 2px solid var(--secondary-100);
+  background-color: var(--input-bg);
+  border: 2px solid var(--border);
   border-radius: 1rem;
   font-size: 11px;
   font-weight: 900;
   outline: none;
   width: 100%;
   transition: all 0.2s;
+  color: var(--text);
 }
 
-.audit-search-input:focus { border-color: var(--primary-500); background-color: white; }
+.audit-search-input:focus { border-color: var(--accent); background-color: var(--surface); }
+.audit-search-input::placeholder { color: var(--muted); }
 .audit-search-icon {
   position: absolute;
   left: 1rem;
@@ -481,8 +498,8 @@
 
 .audit-filter-select {
   padding: 0.75rem 1rem;
-  background-color: var(--secondary-50);
-  border: 2px solid var(--secondary-100);
+  background-color: var(--input-bg);
+  border: 2px solid var(--border);
   border-radius: 1rem;
   font-size: 10px;
   font-weight: 900;
@@ -491,20 +508,34 @@
   outline: none;
   cursor: pointer;
   transition: all 0.2s;
+  color: var(--text);
 }
-.audit-filter-select:focus { border-color: var(--primary-500); }
+.audit-filter-select:focus { border-color: var(--accent); }
+.audit-filter-select option {
+  background: var(--surface);
+  color: var(--text);
+}
 
 .audit-refresh-btn {
   padding: 0.75rem;
-  background-color: var(--secondary-900);
-  color: white;
+  background-color: var(--accent);
+  color: var(--btn-text);
   border-radius: 1rem;
   border: none;
   cursor: pointer;
   transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
 }
-.audit-refresh-btn:hover { background-color: var(--primary-600); }
+.audit-refresh-btn:hover { background-color: var(--primary-600); filter: brightness(1.05); }
 .audit-refresh-btn:active { transform: scale(0.9); }
+.audit-refresh-btn svg {
+  color: inherit;
+  stroke: currentColor;
+}
 
 .audit-empty {
   padding: 6rem 0;
@@ -543,7 +574,7 @@
 }
 
 .audit-log-item:hover {
-  background-color: white;
+  background-color: var(--card-bg);
   border-color: var(--primary-200);
   box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.05);
 }
@@ -595,7 +626,7 @@
   gap: 0.5rem;
 }
 
-.audit-log-action { font-size: 0.75rem; font-weight: 900; color: #020617; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+.audit-log-action { font-size: 0.75rem; font-weight: 900; color: var(--text); text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
 .audit-log-fail { padding: 0.125rem 0.5rem; border-radius: 9999px; background-color: #fee2e2; color: #dc2626; font-size: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; border: 1px solid #fecaca; }
 .audit-log-time { font-size: 10px; font-weight: 900; color: var(--secondary-400); text-transform: uppercase; letter-spacing: 0.2em; margin: 0.125rem 0 0 0; }
 
@@ -608,7 +639,7 @@
 
 .audit-tag {
   padding: 0.375rem 0.75rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border: 1px solid var(--secondary-100);
   border-radius: 0.75rem;
   font-size: 10px;
@@ -643,7 +674,7 @@
 
 .audit-meta-card {
   padding: 0.75rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border: 1px solid var(--secondary-100);
   border-radius: 1rem;
   display: flex;
@@ -661,7 +692,7 @@
   font-weight: 900;
   font-size: 10px;
 }
-.icon-user { background-color: #020617; color: white; }
+.icon-user { background-color: var(--text); color: white; }
 .icon-role { background-color: var(--primary-50); color: var(--primary-600); border-radius: 0.75rem; }
 .icon-ip { background-color: #fff7ed; color: #ea580c; border-radius: 0.75rem; }
 
@@ -697,8 +728,8 @@
 .pagination-btn {
   padding: 0.75rem 1.5rem;
   border-radius: 1rem;
-  background-color: var(--secondary-900);
-  color: white;
+  background-color: var(--accent);
+  color: var(--btn-text);
   font-size: 10px;
   font-weight: 900;
   text-transform: uppercase;
@@ -724,7 +755,7 @@
 @media (min-width: 640px) { .sidebar-panels { gap: 2rem; } }
 
 .authority-panel {
-  background-color: #020617; /* secondary-950 */
+  background-color: var(--bg-deep);
   padding: 1.5rem;
   border-radius: 2.5rem;
   color: white;
@@ -809,7 +840,7 @@
 .enforcement-desc { font-size: 11px; color: var(--secondary-300); font-weight: 500; font-style: italic; line-height: 1.625; margin: 0; }
 
 .purge-panel {
-  background-color: white;
+  background-color: var(--card-bg);
   padding: 1.5rem;
   border-radius: 2.5rem;
   border: 1px solid #fee2e2;
@@ -836,12 +867,12 @@
 
 .purge-panel:hover .purge-icon { transform: rotate(15deg); }
 
-.purge-title { font-size: 1.25rem; font-weight: 900; margin: 0 0 0.75rem 0; color: #020617; text-transform: uppercase; letter-spacing: -0.025em; }
+.purge-title { font-size: 1.25rem; font-weight: 900; margin: 0 0 0.75rem 0; color: var(--text); text-transform: uppercase; letter-spacing: -0.025em; }
 .purge-desc { color: var(--secondary-500); font-size: 0.75rem; font-weight: 600; line-height: 1.625; margin: 0 0 2rem 0; }
 
 .purge-btn {
   width: 100%;
-  background-color: #020617;
+  background-color: var(--text);
   color: white;
   padding: 1rem;
   border-radius: 1rem;

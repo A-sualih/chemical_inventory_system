@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
 import "../styles/Sidebar.css";
-import toast from 'react-hot-toast';
+import { confirmAction } from "../utils/confirmAction";
 
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
@@ -10,61 +10,16 @@ const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
   const { settings } = useSettings();
 
-  const handleLogout = () => {
-    toast((t) => (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 500, color: '#ffffff' }}>
-          Confirm system logout?
-        </p>
-        <div style={{ display: 'flex', gap: '8px', alignSelf: 'flex-end' }}>
-          <button 
-            onClick={() => {
-              toast.dismiss(t.id);
-              logout();
-              navigate("/");
-            }} 
-            style={{ 
-              background: '#ef4444', 
-              color: 'white', 
-              border: 'none', 
-              padding: '6px 12px', 
-              borderRadius: '6px', 
-              cursor: 'pointer',
-              fontSize: '0.75rem',
-              fontWeight: 600
-            }}
-          >
-            Logout
-          </button>
-          <button 
-            onClick={() => toast.dismiss(t.id)} 
-            style={{ 
-              background: '#374151', 
-              color: 'white', 
-              border: 'none', 
-              padding: '6px 12px', 
-              borderRadius: '6px', 
-              cursor: 'pointer',
-              fontSize: '0.75rem',
-              fontWeight: 600
-            }}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    ), {
-      duration: 10000,
-      position: 'top-center',
-      style: {
-        background: '#1f2937',
-        border: '1px solid #374151',
-        padding: '16px',
-        color: '#ffffff',
-        borderRadius: '12px',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2)'
-      },
+  const handleLogout = async () => {
+    const ok = await confirmAction({
+      message: 'Confirm system logout?',
+      confirmLabel: 'Logout',
+      cancelLabel: 'Cancel',
+      danger: true,
     });
+    if (!ok) return;
+    logout();
+    navigate("/");
   };
 
   const handleNavClick = () => {
@@ -95,7 +50,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { 
       name: "Support Inbox", 
       path: "/support-inbox", 
-      roles: ["Admin", "Lab Manager"],
+      roles: ["Admin"],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="icon-nav" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
