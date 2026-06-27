@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
+import ThemeToggle from "../components/common/ThemeToggle";
 import "../styles/Login.css";
 
 const Login = () => {
@@ -343,6 +344,7 @@ const Login = () => {
 
       {/* Top Right Toggle Buttons */}
       <div className="top-actions-wrapper">
+        <ThemeToggle />
         <button
           onClick={() => setView("login")}
           className="portal-toggle-btn"

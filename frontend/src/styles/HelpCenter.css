@@ -1,14 +1,24 @@
 .help-center-layout {
   min-height: 100vh;
-  background-color: var(--bg-main, #f8fafc);
+  background: var(--pattern);
+  background-color: var(--bg);
   display: flex;
   flex-direction: column;
+  color: var(--text);
+}
+
+.help-center-layout .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 5%;
+  width: 100%;
 }
 
 .help-header {
-  background: var(--bg-elevated, #fff);
-  border-bottom: 1px solid var(--border-light, #e2e8f0);
-  padding: 1.5rem 0;
+  background: var(--nav-bg);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 0;
   position: sticky;
   top: 0;
   z-index: 50;
@@ -29,7 +39,7 @@
 }
 
 .back-link-help {
-  color: var(--secondary-500, #64748b);
+  color: var(--muted);
   text-decoration: none;
   font-weight: 600;
   font-size: 0.9rem;
@@ -37,33 +47,36 @@
 }
 
 .back-link-help:hover {
-  color: var(--landing-accent, #3b82f6);
+  color: var(--accent);
 }
 
 .header-brand h1 {
-  font-size: 1.75rem;
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
   font-weight: 800;
   margin: 0;
-  color: var(--text-main, #0f172a);
+  color: var(--text);
+  font-family: var(--font-display);
 }
 
 .header-brand h1 span {
-  color: var(--landing-teal, #14b8a6);
+  color: var(--accent);
 }
 
 .help-search {
   display: flex;
   align-items: center;
-  background: transparent;
-  border: none;
-  padding: 0.5rem 1rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.55rem 1rem;
   width: 100%;
   max-width: 400px;
 }
 
 .search-icon {
-  color: var(--secondary-400, #94a3b8);
+  color: var(--muted);
   margin-right: 0.75rem;
+  flex-shrink: 0;
 }
 
 .help-search input {
@@ -71,8 +84,12 @@
   background: transparent;
   width: 100%;
   font-size: 0.95rem;
-  color: var(--text-main, #1e293b);
+  color: var(--text);
   outline: none;
+}
+
+.help-search input::placeholder {
+  color: var(--muted);
 }
 
 .help-main {
@@ -91,7 +108,7 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--secondary-500, #64748b);
+  color: var(--muted);
   margin-bottom: 1rem;
   font-weight: 700;
 }
@@ -107,8 +124,8 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  border-radius: 8px;
-  color: var(--secondary-600, #475569);
+  border-radius: 10px;
+  color: var(--muted);
   cursor: pointer;
   font-weight: 500;
   transition: background 0.2s, color 0.2s;
@@ -116,39 +133,41 @@
 }
 
 .help-sidebar li:hover {
-  background: var(--bg-hover, #f1f5f9);
-  color: var(--text-main, #0f172a);
+  background: var(--surface2);
+  color: var(--text);
 }
 
 .help-sidebar li.active {
-  background: rgba(20, 184, 166, 0.1);
-  color: var(--landing-teal, #14b8a6);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
   font-weight: 600;
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 .help-content {
   flex: 1;
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 16px;
-  border: 1px solid var(--border-light, #e2e8f0);
-  padding: 2.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  border: 1px solid var(--border);
+  padding: clamp(1.35rem, 3vw, 2.5rem);
+  box-shadow: var(--shadow);
+  min-width: 0;
 }
 
 .help-intro {
   margin-bottom: 3rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid var(--border-light, #f1f5f9);
+  border-bottom: 1px solid var(--border);
 }
 
 .help-intro h2 {
   font-size: 1.5rem;
-  color: #1e293b;
+  color: var(--text);
   margin-bottom: 1rem;
 }
 
 .help-intro p {
-  color: #475569;
+  color: var(--muted);
   line-height: 1.6;
   font-size: 1.05rem;
 }
@@ -162,16 +181,16 @@
   align-items: center;
   gap: 0.75rem;
   font-size: 1.25rem;
-  color: #0f172a;
+  color: var(--text);
   margin-bottom: 1.5rem;
 }
 
 .section-icon {
-  color: var(--landing-accent, #3b82f6);
+  color: var(--accent);
 }
 
 .section-icon.text-red {
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .guide-list {
@@ -185,12 +204,13 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-bottom: none;
-  color: #334155;
+  color: var(--text);
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, color 0.2s;
+  background: var(--surface);
 }
 
 .guide-list li:first-child {
@@ -199,28 +219,29 @@
 }
 
 .guide-list li:last-child {
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border);
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
 }
 
 .guide-list li:hover {
-  background: #f8fafc;
-  color: #2563eb;
+  background: var(--surface2);
+  color: var(--accent);
 }
 
 .guide-list.troubleshooting li {
   cursor: default;
-  background: #f8fafc;
+  background: var(--surface2);
   margin-bottom: 0.5rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: 8px;
   display: block;
+  color: var(--muted);
 }
 
 .guide-list.troubleshooting li strong {
   display: block;
-  color: #ef4444;
+  color: var(--danger);
   margin-bottom: 0.25rem;
 }
 
@@ -231,9 +252,9 @@
 }
 
 .faq-row {
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
   overflow: hidden;
 }
 
@@ -244,40 +265,53 @@
   padding: 1rem 1.25rem;
   cursor: pointer;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text);
   transition: background 0.2s;
+  gap: 1rem;
 }
 
 .faq-question:hover {
-  background: #f8fafc;
+  background: var(--surface2);
 }
 
 .faq-chevron {
   transition: transform 0.3s ease;
-  color: #94a3b8;
+  color: var(--muted);
+  flex-shrink: 0;
 }
 
 .faq-row.open .faq-chevron {
   transform: rotate(180deg);
+  color: var(--accent);
 }
 
 .faq-answer {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease, padding 0.3s ease;
-  background: #f8fafc;
+  background: var(--surface2);
 }
 
 .faq-row.open .faq-answer {
-  max-height: 200px; /* arbitrary height for animation */
+  max-height: 320px;
   padding: 1rem 1.25rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border);
 }
 
-.faq-answer p {
+.faq-answer,
+.faq-answer p,
+.faq-answer div,
+.faq-answer-text {
   margin: 0;
-  color: #475569;
+  color: var(--muted) !important;
   line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.guide-step-title {
+  margin: 0 0 0.5rem 0;
+  color: var(--text);
+  font-weight: 700;
 }
 
 .safety-cards {
@@ -289,25 +323,25 @@
 .safety-card {
   padding: 1.5rem;
   border-radius: 12px;
-  background: rgba(239, 68, 68, 0.05);
-  border: 1px solid rgba(239, 68, 68, 0.1);
+  background: color-mix(in srgb, var(--danger) 10%, var(--card-bg));
+  border: 1px solid color-mix(in srgb, var(--danger) 22%, transparent);
 }
 
 .safety-card h4 {
   margin: 0 0 0.75rem 0;
-  color: #b91c1c;
+  color: var(--danger);
   font-size: 1.05rem;
 }
 
 .safety-card p {
   margin: 0;
-  color: #475569;
+  color: var(--muted);
   font-size: 0.95rem;
   line-height: 1.5;
 }
 
 .coming-soon-text {
-  color: #64748b;
+  color: var(--muted);
   margin-bottom: 1.5rem;
 }
 
@@ -321,40 +355,59 @@
   flex: 1;
   min-width: 250px;
   height: 160px;
-  background: #f1f5f9;
-  border: 2px dashed #cbd5e1;
+  background: var(--surface2);
+  border: 2px dashed var(--border);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  color: #94a3b8;
+  color: var(--muted);
   gap: 0.75rem;
 }
 
-/* Responsive constraints */
+.overview-section-block {
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px dashed var(--border);
+}
+
+.overview-section-block:last-child {
+  border-bottom: none;
+}
+
 @media (max-width: 900px) {
   .help-main {
     flex-direction: column;
   }
-  
+
   .help-sidebar {
     width: 100%;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .help-sidebar ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .help-sidebar li {
+    margin-bottom: 0;
   }
 }
 
 @media (max-width: 600px) {
   .help-header-inner {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
   }
-  
+
   .help-search {
     max-width: none;
   }
-  
+
   .help-content {
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
 }

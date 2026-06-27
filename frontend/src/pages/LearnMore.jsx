@@ -22,6 +22,7 @@ import {
   Globe
 } from 'lucide-react';
 import '../styles/LearnMore.css';
+import ThemeToggle from '../components/common/ThemeToggle';
 
 const LearnMore = () => {
   useEffect(() => {
@@ -33,10 +34,13 @@ const LearnMore = () => {
 
   return (
     <div className="learn-more-container">
+      <div className="learn-more-topbar">
+        <Link to="/" className="back-link">← Back to Home</Link>
+        <ThemeToggle />
+      </div>
       {/* Hero Section */}
       <section className="learn-hero">
         <div className="learn-content">
-          <Link to="/" className="back-link">← Back to Home</Link>
           <h1>Deep Dive into <span>{systemName}</span></h1>
           <p className="hero-sub">
             The standard for modern laboratory chemical management and safety compliance.

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import axios from 'axios';
@@ -26,11 +26,13 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import '../styles/Landing.css';
+import ThemeToggle from '../components/common/ThemeToggle';
 
 const Landing = () => {
   const { user } = useAuth();
   const { settings } = useSettings();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showDevModal, setShowDevModal] = React.useState(false);
   const [stats, setStats] = React.useState({
     chemicalsTracked: '...',
@@ -52,6 +54,23 @@ const Landing = () => {
     };
     fetchStats();
   }, []);
+
+  // Return visitors from Privacy/Terms/Support to the footer, not the hero
+  React.useEffect(() => {
+    const hash = location.hash?.replace('#', '');
+    if (!hash) return;
+
+    const scrollToHash = () => {
+      const el = document.getElementById(hash);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+
+    // Wait a tick so landing layout/stats paint first
+    const t = window.setTimeout(scrollToHash, 50);
+    return () => window.clearTimeout(t);
+  }, [location.hash, location.key]);
 
   React.useEffect(() => {
     if (user) {
@@ -82,10 +101,11 @@ const Landing = () => {
           <a href="#features" className="nav-link">Features</a>
           <a href="#about" className="nav-link">About</a>
           <a href="#workflow" className="nav-link">Workflow</a>
+          <ThemeToggle />
           {user ? (
             <Link to="/dashboard" className="btn-nav-login">Go to Dashboard</Link>
           ) : (
-            <Link to="/login" className="btn-nav-login" style={{ background: 'var(--primary-600)', color: 'white', border: 'none' }}>Sign In</Link>
+            <Link to="/login" className="btn-nav-login" style={{ background: 'var(--accent)', color: 'var(--btn-text)', border: 'none' }}>Sign In</Link>
           )}
         </div>
       </nav>
@@ -287,7 +307,7 @@ const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="landing-footer">
+      <footer id="landing-footer" className="landing-footer">
         <div className="footer-logo">
           {systemLogo ? (
             <img src={systemLogo} alt="Logo" style={{ height: '24px', width: 'auto', marginRight: '0.5rem', display: 'inline-block', verticalAlign: 'middle' }} />
@@ -297,61 +317,46 @@ const Landing = () => {
           {systemName}
         </div>
         <div className="footer-links">
-           <Link to="/privacy" className="nav-link">Privacy Policy</Link>
-           <Link to="/terms" className="nav-link">Terms of Service</Link>
-           <Link to="/support" className="nav-link">Contact Support</Link>
+           <Link to="/privacy" state={{ fromFooter: true }} className="nav-link">Privacy Policy</Link>
+           <Link to="/terms" state={{ fromFooter: true }} className="nav-link">Terms of Service</Link>
+           <Link to="/support" state={{ fromFooter: true }} className="nav-link">Contact Support</Link>
            <span className="nav-link" style={{ cursor: 'pointer' }} onClick={() => setShowDevModal(true)}>Developed By</span>
         </div>
         <p className="copyright">© 2026 {systemName}. All rights reserved.</p>
       </footer>
 
       {showDevModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(10px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999,
-          padding: '1rem'
-        }}>
-          <div style={{
-            background: '#ffffff',
-            border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '24px', padding: '3rem',
-            width: '100%', maxWidth: '750px', position: 'relative', 
-            boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.12)'
-          }}>
-            <button 
+        <div className="dev-modal-overlay" onClick={() => setShowDevModal(false)}>
+          <div className="dev-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="dev-modal-title">
+            <button
+              type="button"
+              className="dev-modal-close"
               onClick={() => setShowDevModal(false)}
-              style={{
-                position: 'absolute', top: '20px', right: '20px', background: 'transparent',
-                border: 'none', color: '#64748b', fontSize: '2rem', cursor: 'pointer', lineHeight: 1,
-                transition: 'color 0.2s'
-              }}
+              aria-label="Close"
             >
               &times;
             </button>
-            
-            <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-              <div style={{ display: 'inline-block', background: 'linear-gradient(to right, #6366f1, #a855f7, #ec4899)', borderRadius: '16px', padding: '3px', marginBottom: '1.5rem' }}>
-                <div style={{ background: '#ffffff', padding: '1rem 2.5rem', borderRadius: '13px' }}>
-                  <h2 style={{ margin: 0, fontSize: '2.2rem', fontWeight: 800, background: 'linear-gradient(to right, #6366f1, #a855f7, #ec4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AppFactory Academy</h2>
-                  <p style={{ margin: '0.5rem 0 0', color: '#475569', fontSize: '0.95rem', fontWeight: 600 }}>Wollo University</p>
+
+            <div className="dev-modal-header">
+              <div className="dev-modal-brand-ring">
+                <div className="dev-modal-brand-inner">
+                  <h2>AppFactory Academy</h2>
+                  <p>Wollo University</p>
                 </div>
               </div>
-              <h3 style={{ color: '#0f172a', fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>Proudly Developed By</h3>
+              <h3 id="dev-modal-title">Proudly Developed By</h3>
             </div>
- 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+
+            <div className="dev-modal-grid">
               {[
-                { name: 'Amir Mesfin', email: 'amir.mesfin136@gmail.com', phone: '0962945025', color: '#3b82f6' },
-                { name: 'Ahmed Saulih', email: 'sualihahmed26@gmail.com', phone: '0926352943', color: '#10b981' },
-                { name: 'Tsegazeab', email: 'tsegazeab@gmail.com', phone: '0966610048', color: '#f59e0b' }
-              ].map(dev => (
-                <div key={dev.phone} style={{
-                  background: '#f8fafc', border: `1px solid rgba(15, 23, 42, 0.05)`, borderTop: `4px solid ${dev.color}`,
-                  borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 12px rgba(15, 23, 42, 0.02)'
-                }}>
-                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.1rem', fontWeight: 700 }}>{dev.name}</h4>
-                  <p style={{ margin: '0 0 0.3rem 0', color: '#475569', fontSize: '0.85rem', fontWeight: 500 }}>{dev.email}</p>
-                  <p style={{ margin: 0, color: '#475569', fontSize: '0.85rem', fontWeight: 500 }}>📞 {dev.phone}</p>
+                { name: 'Amir Mesfin', email: 'amir.mesfin136@gmail.com', phone: '0962945025', accent: 'blue' },
+                { name: 'Ahmed Saulih', email: 'sualihahmed26@gmail.com', phone: '0926352943', accent: 'green' },
+                { name: 'Tsegazeab', email: 'tsegazeab@gmail.com', phone: '0966610048', accent: 'amber' }
+              ].map((dev) => (
+                <div key={dev.phone} className={`dev-card dev-card-${dev.accent}`}>
+                  <h4>{dev.name}</h4>
+                  <p>{dev.email}</p>
+                  <p>📞 {dev.phone}</p>
                 </div>
               ))}
             </div>

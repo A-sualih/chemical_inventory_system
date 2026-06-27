@@ -1,35 +1,35 @@
 .support-form-container {
-  background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  padding: 4rem;
-  border-radius: 32px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  border-radius: 28px;
   max-width: 800px;
-  margin: 4rem auto;
+  margin: 2rem auto 4rem;
   backdrop-filter: blur(20px);
-  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--shadow);
 }
 
 .support-form {
   display: grid;
-  gap: 2rem;
+  gap: 1.75rem;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
 .form-group label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: var(--landing-accent);
+  color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -37,47 +37,61 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
-  background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  padding: 1rem 1.25rem;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  padding: 1rem 1.15rem;
   border-radius: 12px;
-  color: var(--landing-text-main);
+  color: var(--text);
   font-size: 1rem;
-  transition: all 0.3s;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
   font-family: inherit;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.8;
+}
+
+.form-group select option {
+  background: var(--surface);
+  color: var(--text);
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  background: #ffffff;
-  border-color: var(--landing-accent);
-  box-shadow: 0 0 15px var(--landing-accent-glow);
+  background: var(--surface);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .form-actions {
   display: flex;
-  gap: 1.5rem;
-  margin-top: 1rem;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .btn-send {
-  background: var(--landing-accent);
-  color: #fff;
+  background: var(--accent);
+  color: var(--btn-text);
   border: none;
-  padding: 1.2rem 3rem;
+  padding: 1.1rem 2.5rem;
   border-radius: 14px;
   font-weight: 800;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
   flex: 2;
+  min-width: 140px;
 }
 
 .btn-send:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px var(--landing-accent-glow);
+  filter: brightness(1.05);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 .btn-send:disabled {
@@ -86,27 +100,40 @@
 }
 
 .btn-clear {
-  background: rgba(15, 23, 42, 0.04);
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  color: var(--landing-text-main);
-  padding: 1.2rem 2rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 1.1rem 2rem;
   border-radius: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: background 0.2s ease, border-color 0.2s ease;
   flex: 1;
+  min-width: 120px;
 }
 
 .btn-clear:hover {
-  background: rgba(15, 23, 42, 0.08);
-  border-color: rgba(15, 23, 42, 0.2);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface2));
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
 }
 
 @media (max-width: 600px) {
   .form-row {
     grid-template-columns: 1fr;
   }
+
   .support-form-container {
-    padding: 2rem;
+    padding: 1.35rem;
+    margin: 1rem auto 3rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn-send,
+  .btn-clear {
+    width: 100%;
+    flex: none;
   }
 }

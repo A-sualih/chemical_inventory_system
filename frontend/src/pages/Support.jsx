@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Mail, HelpCircle, Phone, MessageSquare, Send, Trash2, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import '../styles/LearnMore.css';
 import '../styles/Support.css';
+import ThemeToggle from '../components/common/ThemeToggle';
+
+const HOME_FOOTER = '/#landing-footer';
 
 const Support = () => {
+  const location = useLocation();
+  const backTo = location.state?.fromFooter ? HOME_FOOTER : '/';
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -17,6 +22,10 @@ const Support = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,14 +65,18 @@ const Support = () => {
   if (submitted) {
     return (
       <div className="learn-more-container">
-        <section className="learn-hero" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center' }}>
+        <div className="learn-more-topbar">
+          <Link to={backTo} className="back-link">← Home</Link>
+          <ThemeToggle />
+        </div>
+        <section className="learn-hero" style={{ minHeight: '70vh', display: 'flex', alignItems: 'center' }}>
           <div className="container">
-            <CheckCircle2 size={80} color="var(--landing-teal)" style={{ marginBottom: '2rem' }} />
+            <CheckCircle2 size={80} color="var(--accent)" style={{ marginBottom: '2rem' }} />
             <h1>Request <span>Received</span></h1>
             <p className="hero-sub">Thank you for contacting us. Our support team will review your request and get back to you shortly.</p>
-            <div style={{ marginTop: '3rem' }}>
-              <button onClick={() => setSubmitted(false)} className="btn-hero-primary" style={{ marginRight: '1rem' }}>Send Another Message</button>
-              <Link to="/" className="btn-hero-secondary">Back to Home</Link>
+            <div style={{ marginTop: '3rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <button onClick={() => setSubmitted(false)} className="btn-hero-primary">Send Another Message</button>
+              <Link to={backTo} className="btn-hero-secondary">Back to Home</Link>
             </div>
           </div>
         </section>
@@ -73,9 +86,12 @@ const Support = () => {
 
   return (
     <div className="learn-more-container">
+      <div className="learn-more-topbar">
+        <Link to={backTo} className="back-link">← Home</Link>
+        <ThemeToggle />
+      </div>
       <section className="learn-hero">
         <div className="container">
-          <Link to="/" className="back-link">← Home</Link>
           <h1>Contact <span>Support</span></h1>
           <p className="hero-sub">We're here to help you maintain a safe and organized lab. Submit a request below or reach out via our direct channels.</p>
         </div>
@@ -85,17 +101,17 @@ const Support = () => {
         <div className="container">
           <div className="tech-grid" style={{ marginBottom: '4rem' }}>
             <div className="tech-card">
-              <Mail size={32} color="var(--landing-accent)" />
+              <Mail size={32} color="var(--accent)" />
               <h3>Email Us</h3>
               <p>amir.mesfin136@gmail.com</p>
             </div>
             <Link to="/help-center" className="tech-card" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <HelpCircle size={32} color="var(--landing-teal)" />
+              <HelpCircle size={32} color="var(--accent2)" />
               <h3>Help Center</h3>
               <p>Search our knowledge base</p>
             </Link>
             <div className="tech-card">
-              <Phone size={32} color="#f87171" />
+              <Phone size={32} color="var(--danger)" />
               <h3>Hotline</h3>
               <p>(+251) 962945025</p>
             </div>

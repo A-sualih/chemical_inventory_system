@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
+import ThemeToggle from "../components/common/ThemeToggle";
 import "../styles/Login.css";
 
 const Register = () => {
@@ -54,12 +55,14 @@ const Register = () => {
 
   return (
     <div className="login-page-container">
-      {/* Background Decorative Gradient Blobs */}
       <div className="bg-blob blob-1"></div>
       <div className="bg-blob blob-2"></div>
       <div className="bg-blob blob-3"></div>
 
-      {/* Glassmorph Card */}
+      <div className="top-actions-wrapper">
+        <ThemeToggle />
+      </div>
+
       <div className="login-card">
         <div className="login-view-wrapper">
           <div className="logo-header-wrapper" style={{marginBottom: '2.5rem'}}>
@@ -92,7 +95,7 @@ const Register = () => {
           </div>
 
           {success ? (
-            <div className="login-text-center" style={{padding: '1.5rem', backgroundColor: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.2)', borderRadius: '1rem', animation: 'zoom-in 0.3s'}}>
+            <div className="login-text-center" className="auth-success-box">
               <div style={{width: '3rem', height: '3rem', backgroundColor: 'rgba(34, 197, 94, 0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem'}}>
                 <svg xmlns="http://www.w3.org/2000/svg" style={{width: '1.5rem', height: '1.5rem', color: '#22c55e'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -154,9 +157,9 @@ const Register = () => {
                     onChange={(e) => setLabId(e.target.value)}
                     required
                   >
-                    <option value="" disabled style={{backgroundColor: '#ffffff'}}>Select Laboratory</option>
+                    <option value="" disabled >Select Laboratory</option>
                     {labs.map(lab => (
-                      <option key={lab._id} value={lab._id} style={{backgroundColor: '#ffffff'}}>
+                      <option key={lab._id} value={lab._id} >
                         {lab.name}
                       </option>
                     ))}

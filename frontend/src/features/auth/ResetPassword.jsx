@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useSettings } from "../../context/SettingsContext";
+import ThemeToggle from "../../components/common/ThemeToggle";
 import "../../styles/Login.css";
 
 const ResetPassword = () => {
@@ -38,11 +39,13 @@ const ResetPassword = () => {
 
   return (
     <div className="login-page-container">
-      {/* Background Gradient Blobs */}
       <div className="bg-blob blob-1"></div>
       <div className="bg-blob blob-2"></div>
 
-      {/* Glass Card */}
+      <div className="top-actions-wrapper">
+        <ThemeToggle />
+      </div>
+
       <div className="login-card" style={{ maxWidth: '28rem' }}>
         <div className="login-view-wrapper">
           <div className="logo-header-wrapper">
@@ -61,12 +64,12 @@ const ResetPassword = () => {
 
           {message ? (
             <div className="login-text-center">
-              <div className="locked-icon-wrapper" style={{ backgroundColor: 'rgba(34,197,94,0.2)' }}>
-                <svg className="locked-icon" style={{ color: '#4ade80' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="locked-icon-wrapper" className="locked-icon-wrapper" style={{ backgroundColor: 'color-mix(in srgb, var(--success) 18%, transparent)' }}>
+                <svg className="locked-icon" style={{ color: 'var(--success)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <p style={{ color: '#4ade80', fontWeight: 700, marginBottom: '1rem' }}>{message}</p>
+              <p className="auth-success-text">{message}</p>
               <p className="login-subtitle">Redirecting to login page...</p>
             </div>
           ) : (

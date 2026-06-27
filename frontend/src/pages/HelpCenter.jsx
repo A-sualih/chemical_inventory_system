@@ -11,6 +11,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import '../styles/HelpCenter.css';
+import ThemeToggle from '../components/common/ThemeToggle';
 
 const HelpCenter = () => {
   const [activeSection, setActiveSection] = useState('overview');
@@ -35,7 +36,7 @@ const HelpCenter = () => {
     { id: 'disposal_requests', title: 'Disposal Requests', desc: 'Waste & compliance', icon: <ShieldAlert size={18} /> },
     { id: 'reports_pdfs', title: 'Reports & PDFs', desc: 'Data exports', icon: <BookOpen size={18} /> },
     { id: 'account_settings', title: 'Account Settings', desc: 'Profile & preferences', icon: <Wrench size={18} /> },
-    { id: 'emergency_support', title: 'Emergency Support', desc: 'Immediate assistance', icon: <ShieldAlert size={18} color="#ef4444" /> }
+    { id: 'emergency_support', title: 'Emergency Support', desc: 'Immediate assistance', icon: <ShieldAlert size={18} color="var(--danger)" /> }
   ];
 
   const renderSectionContent = (sectionId) => {
@@ -64,7 +65,7 @@ const HelpCenter = () => {
                       <ChevronDown size={18} className="faq-chevron" />
                     </div>
                     <div className="faq-answer">
-                      <div style={{ color: '#475569', lineHeight: '1.6', fontSize: '0.95rem' }}>{faq.a}</div>
+                      <div className="faq-answer-text">{faq.a}</div>
                     </div>
                   </div>
                 ))}
@@ -114,7 +115,7 @@ const HelpCenter = () => {
                     q: 'How to Check In / Check Out Chemicals',
                     a: (
                       <div>
-                        <h5 style={{ margin: '0 0 0.5rem 0', color: '#1e293b' }}>Check In</h5>
+                        <h5 className="guide-step-title">Check In</h5>
                         <p style={{ margin: '0 0 0.5rem 0' }}><em>Used when adding or returning chemicals to storage.</em></p>
                         <ol style={{ paddingLeft: '1.5rem', marginBottom: '1.5rem' }}>
                           <li>Scan or search for the chemical/container.</li>
@@ -122,7 +123,7 @@ const HelpCenter = () => {
                           <li>Enter: Quantity added, Storage location, and Notes or reason.</li>
                           <li>Confirm the operation. Inventory quantity updates automatically.</li>
                         </ol>
-                        <h5 style={{ margin: '0 0 0.5rem 0', color: '#1e293b' }}>Check Out</h5>
+                        <h5 className="guide-step-title">Check Out</h5>
                         <p style={{ margin: '0 0 0.5rem 0' }}><em>Used when chemicals are taken for experiments or use.</em></p>
                         <ol style={{ paddingLeft: '1.5rem', margin: 0 }}>
                           <li>Scan or search for the chemical/container.</li>
@@ -140,7 +141,7 @@ const HelpCenter = () => {
                       <ChevronDown size={18} className="faq-chevron" />
                     </div>
                     <div className="faq-answer">
-                      <div style={{ color: '#475569', lineHeight: '1.6', fontSize: '0.95rem' }}>{guide.a}</div>
+                      <div className="faq-answer-text">{guide.a}</div>
                     </div>
                   </div>
                 ))}
@@ -195,7 +196,7 @@ const HelpCenter = () => {
                       <ChevronDown size={18} className="faq-chevron" />
                     </div>
                     <div className="faq-answer">
-                      <div style={{ color: '#475569', lineHeight: '1.6', fontSize: '0.95rem' }}>{guide.a}</div>
+                      <div className="faq-answer-text">{guide.a}</div>
                     </div>
                   </div>
                 ))}
@@ -243,7 +244,7 @@ const HelpCenter = () => {
                       <ChevronDown size={18} className="faq-chevron" />
                     </div>
                     <div className="faq-answer">
-                      <div style={{ color: '#475569', lineHeight: '1.6', fontSize: '0.95rem' }}>{guide.a}</div>
+                      <div className="faq-answer-text">{guide.a}</div>
                     </div>
                   </div>
                 ))}
@@ -284,7 +285,7 @@ const HelpCenter = () => {
                       <ChevronDown size={18} className="faq-chevron" />
                     </div>
                     <div className="faq-answer">
-                      <div style={{ color: '#475569', lineHeight: '1.6', fontSize: '0.95rem' }}>{guide.a}</div>
+                      <div className="faq-answer-text">{guide.a}</div>
                     </div>
                   </div>
                 ))}
@@ -340,7 +341,7 @@ const HelpCenter = () => {
                       <ChevronDown size={18} className="faq-chevron" />
                     </div>
                     <div className="faq-answer">
-                      <div style={{ color: '#475569', lineHeight: '1.6', fontSize: '0.95rem' }}>{guide.a}</div>
+                      <div className="faq-answer-text">{guide.a}</div>
                     </div>
                   </div>
                 ))}
@@ -396,7 +397,7 @@ const HelpCenter = () => {
                       <ChevronDown size={18} className="faq-chevron" />
                     </div>
                     <div className="faq-answer">
-                      <div style={{ color: '#475569', lineHeight: '1.6', fontSize: '0.95rem' }}>{guide.a}</div>
+                      <div className="faq-answer-text">{guide.a}</div>
                     </div>
                   </div>
                 ))}
@@ -428,7 +429,7 @@ const HelpCenter = () => {
       return (
         <div className="help-overview-container">
           {categories.filter(c => c.id !== 'overview').map(cat => (
-            <div key={cat.id} className="overview-section-block" style={{ marginBottom: '4rem', paddingBottom: '2rem', borderBottom: '2px dashed #cbd5e1' }}>
+            <div key={cat.id} className="overview-section-block">
               {renderSectionContent(cat.id)}
             </div>
           ))}
@@ -444,9 +445,10 @@ const HelpCenter = () => {
       <header className="help-header">
         <div className="container help-header-inner">
           <div className="header-brand">
-             <Link to="/" className="back-link-help">← Back</Link>
+             <Link to="/support" className="back-link-help">← Support</Link>
              <h1>Help <span>Center</span></h1>
           </div>
+          <ThemeToggle />
         </div>
       </header>
 

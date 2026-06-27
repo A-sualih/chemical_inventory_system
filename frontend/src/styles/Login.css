@@ -1,4 +1,4 @@
-/* Login.css */
+/* Login / Register / Reset — theme-aware */
 
 .login-page-container {
   min-height: 100vh;
@@ -8,7 +8,10 @@
   justify-content: center;
   padding: 1rem;
   overflow: hidden;
-  background-color: #F8FAFC;
+  background-color: var(--bg);
+  background-image: var(--pattern);
+  background-attachment: fixed;
+  color: var(--text);
 }
 
 .bg-blob {
@@ -16,6 +19,7 @@
   border-radius: 50%;
   filter: blur(140px);
   z-index: 0;
+  pointer-events: none;
 }
 
 .blob-1 {
@@ -23,7 +27,7 @@
   left: -10%;
   width: 50%;
   height: 50%;
-  background-color: rgba(2, 132, 199, 0.06);
+  background-color: color-mix(in srgb, var(--accent) 14%, transparent);
   animation: details-pulse 4s infinite;
 }
 
@@ -32,7 +36,7 @@
   right: -10%;
   width: 50%;
   height: 50%;
-  background-color: rgba(99, 102, 241, 0.05);
+  background-color: color-mix(in srgb, var(--accent2) 12%, transparent);
   animation: details-pulse 4s infinite;
   animation-delay: 0.7s;
 }
@@ -43,46 +47,61 @@
   transform: translate(-50%, -50%);
   width: 60%;
   height: 60%;
-  background-color: rgba(168, 85, 247, 0.03);
+  background-color: color-mix(in srgb, var(--accent) 6%, transparent);
   filter: blur(160px);
 }
 
 .top-actions-wrapper {
   position: absolute;
-  top: 2rem;
-  right: 2rem;
+  top: 1.25rem;
+  right: 1.25rem;
   z-index: 20;
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (min-width: 640px) {
+  .top-actions-wrapper {
+    top: 2rem;
+    right: 2rem;
+  }
 }
 
 .portal-toggle-btn {
-  padding: 0.5rem 1.5rem;
+  padding: 0.5rem 1.25rem;
   border-radius: 9999px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  transition: all 0.2s;
-  background-color: rgba(255, 255, 255, 0.95);
-  color: var(--secondary-950);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  border: none;
+  letter-spacing: 0.08em;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+  background-color: var(--card-bg);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
   cursor: pointer;
+}
+
+.portal-toggle-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--card-bg));
 }
 
 .login-card {
   width: 100%;
-  max-width: 28rem; /* md approx */
+  max-width: 28rem;
   padding: 2rem;
-  border-radius: 2rem;
+  border-radius: 1.75rem;
   position: relative;
   z-index: 10;
-  border: 1px solid rgba(15, 23, 42, 0.07);
-  background: #ffffff;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
   backdrop-filter: blur(20px);
-  box-shadow: 0 20px 50px -15px rgba(15, 23, 42, 0.08);
-  transition: all 0.5s;
+  box-shadow: var(--shadow);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 @media (min-width: 768px) {
@@ -103,24 +122,25 @@
 .mfa-icon-box {
   width: 4rem;
   height: 4rem;
-  background-color: rgba(234, 179, 8, 0.2);
+  background-color: color-mix(in srgb, var(--warn) 18%, transparent);
   border-radius: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
 }
 
 .mfa-icon {
   width: 2rem;
   height: 2rem;
-  color: #eab308;
+  color: var(--warn);
 }
 
 .login-title-h1 {
   font-size: 1.875rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text);
   margin-bottom: 0.5rem;
   font-family: var(--font-display);
   text-align: center;
@@ -129,14 +149,14 @@
 .login-title-h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text);
   margin-bottom: 0.5rem;
   font-family: var(--font-display);
   text-align: center;
 }
 
 .login-subtitle {
-  color: #64748b;
+  color: var(--muted);
   font-size: 0.875rem;
   margin-bottom: 2rem;
   text-align: center;
@@ -144,26 +164,27 @@
 
 .otp-input {
   width: 100%;
-  background-color: #f8fafc;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  background-color: var(--input-bg);
+  border: 1px solid var(--border);
   border-radius: 1rem;
   padding: 1rem;
   text-align: center;
   font-size: 1.875rem;
   letter-spacing: 0.5em;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text);
   outline: none;
-  transition: all 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .otp-input:focus {
-  border-color: var(--primary-500);
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .login-error-text {
-  color: #f87171;
+  color: var(--danger);
   font-size: 0.75rem;
   text-align: center;
   font-weight: 500;
@@ -172,23 +193,23 @@
 
 .submit-btn {
   width: 100%;
-  background-color: var(--primary-600);
-  color: white;
+  background-color: var(--accent);
+  color: var(--btn-text);
   padding: 1rem;
   border-radius: 1rem;
   font-weight: 700;
   border: none;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+  transition: filter 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 10px 20px color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 .submit-btn:hover {
-  background-color: var(--primary-500);
+  filter: brightness(1.06);
 }
 
 .submit-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.98);
 }
 
 .submit-btn:disabled {
@@ -201,7 +222,7 @@
   width: 100%;
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--muted);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -209,34 +230,35 @@
 }
 
 .back-btn:hover {
-  color: #0f172a;
+  color: var(--text);
 }
 
 .locked-icon-wrapper {
   width: 5rem;
   height: 5rem;
-  background-color: rgba(239, 68, 68, 0.2);
+  background-color: color-mix(in srgb, var(--danger) 18%, transparent);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 1.5rem;
   animation: details-pulse 2s infinite;
+  border: 1px solid color-mix(in srgb, var(--danger) 28%, transparent);
 }
 
 .timer-box {
-  background-color: #f8fafc;
+  background-color: var(--surface2);
   border-radius: 1rem;
   padding: 1.5rem;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--border);
   margin-bottom: 2rem;
 }
 
 .timer-text {
   font-size: 2.25rem;
   font-weight: 700;
-  color: #0f172a;
-  font-family: var(--font-mono);
+  color: var(--text);
+  font-family: var(--font-mono, ui-monospace, monospace);
 }
 
 .logo-header-wrapper {
@@ -249,19 +271,19 @@
 .app-logo-box {
   width: 4rem;
   height: 4rem;
-  background-color: var(--primary-500);
+  background: linear-gradient(145deg, var(--accent), var(--accent2));
   border-radius: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 1.5rem;
-  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow);
   transition: transform 0.3s;
   cursor: pointer;
 }
 
 .app-logo-box:hover {
-  transform: rotate(12deg);
+  transform: rotate(8deg);
 }
 
 .login-form-group {
@@ -272,7 +294,7 @@
   display: block;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 0.5rem;
@@ -284,27 +306,30 @@
 }
 
 .input-wrapper:focus-within {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
 }
 
 .login-input {
   width: 100%;
-  background-color: #f8fafc;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  background-color: var(--input-bg);
+  border: 1px solid var(--border);
   border-radius: 1rem;
   padding: 1rem;
-  color: #0f172a;
+  color: var(--text);
   outline: none;
-  transition: all 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  font-family: inherit;
 }
 
 .login-input::placeholder {
-  color: #94a3b8;
+  color: var(--muted);
+  opacity: 0.85;
 }
 
 .login-input:focus {
-  border-color: var(--primary-500);
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .login-select {
@@ -317,12 +342,19 @@
   cursor: pointer;
 }
 
+.login-select option {
+  background: var(--surface);
+  color: var(--text);
+}
+
 .form-footer-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 0.25rem;
   margin-bottom: 1.5rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .remember-me-label {
@@ -330,7 +362,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--muted);
   cursor: pointer;
 }
 
@@ -338,49 +370,55 @@
   width: 1rem;
   height: 1rem;
   border-radius: 0.25rem;
-  background-color: #f8fafc;
-  border: 1px solid rgba(15, 23, 42, 0.15);
+  background-color: var(--input-bg);
+  border: 1px solid var(--border);
+  accent-color: var(--accent);
 }
 
 .forgot-password-link {
   font-size: 0.875rem;
-  color: var(--primary-400);
+  color: var(--accent);
   background: none;
   border: none;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.2s, filter 0.2s;
+  font-weight: 600;
 }
 
 .forgot-password-link:hover {
-  color: var(--primary-300);
+  filter: brightness(1.1);
 }
 
 .register-prompt {
   margin-top: 2rem;
   text-align: center;
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--muted);
   font-weight: 500;
 }
 
 .register-link {
-  color: var(--primary-600);
+  color: var(--accent);
   text-decoration: none;
-  transition: color 0.2s;
+  font-weight: 700;
+  transition: filter 0.2s;
 }
 
 .register-link:hover {
-  color: var(--primary-500);
+  filter: brightness(1.1);
 }
 
 .page-footer-tag {
   position: absolute;
-  bottom: 2rem;
-  color: #94a3b8;
+  bottom: 1.5rem;
+  color: var(--muted);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.2em;
   font-weight: 700;
+  z-index: 10;
+  text-align: center;
+  padding: 0 1rem;
 }
 
 .form-spacing {
@@ -409,9 +447,28 @@
 }
 
 .icon-danger {
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .icon-white {
-  color: white;
+  color: var(--btn-text);
+}
+
+.auth-success-box {
+  padding: 1.5rem;
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success) 28%, transparent);
+  border-radius: 1rem;
+  animation: view-slide-up 0.3s ease-out;
+}
+
+.auth-success-text {
+  color: var(--success);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes details-pulse {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
 }

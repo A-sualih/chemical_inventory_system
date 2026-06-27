@@ -13,16 +13,16 @@ export const AuthProvider = ({ children }) => {
   // Role-Permission mapping synchronized with backend roles.js
   const rolePermissions = {
     "Admin": [
-      "create_chemical", "edit_chemical", "delete_chemical", "approve_request",
       "view_reports", "view_audit_logs", "assign_roles", "view_chemicals",
-      "submit_request", "update_stock", "view_safety_info", "manage_settings",
+      "view_safety_info", "manage_settings",
       "manage_waste", "approve_disposal", "perform_backup", "perform_restore",
       "manage_security", "view_financials", "MANAGE_LABS", "approve_cross_lab_transfer"
     ],
     "Lab Manager": [
-      "create_chemical", "edit_chemical", "approve_request", "view_reports",
+      "create_chemical", "edit_chemical", "delete_chemical", "approve_request", "view_reports",
       "view_audit_logs", "view_chemicals", "submit_request", "update_stock",
-      "view_safety_info", "manage_waste", "approve_disposal", "approve_cross_lab_transfer"
+      "view_safety_info", "manage_waste", "approve_disposal", "approve_cross_lab_transfer",
+      "MANAGE_LABS", "manage_locations", "view_financials"
     ],
     "Lab Technician": [
       "view_chemicals", "update_stock", "submit_request", "view_safety_info"
