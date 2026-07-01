@@ -69,7 +69,7 @@
 }
 
 .back-button:hover {
-    background: white;
+    background: var(--card-bg);
     color: var(--accent-primary);
     transform: translateX(-5px);
     box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
@@ -136,33 +136,113 @@
     text-align: center;
 }
 
+.code-view-toggle {
+    display: inline-flex;
+    gap: 0.35rem;
+    padding: 0.25rem;
+    margin-bottom: 1rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface2) 90%, transparent);
+    border: 1px solid var(--border);
+}
+
+.code-view-btn {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.code-view-btn.active {
+    background: color-mix(in srgb, var(--accent) 18%, var(--surface));
+    color: var(--accent);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
 .qr-glow-container {
-    background: white;
+    background: var(--card-bg, var(--surface));
     padding: 1.5rem;
-    border-radius: 32px;
-    box-shadow: 0 0 40px var(--glow-blue);
-    margin-bottom: 2rem;
+    border-radius: 24px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+    margin-bottom: 1.5rem;
     position: relative;
-    border: 1px solid #f1f5f9;
+    border: 1px solid var(--border);
+    min-width: 220px;
+}
+
+.qr-glow-container.barcode-mode {
+    min-width: 260px;
+    padding: 1.25rem 1.5rem 1rem;
+}
+
+.barcode-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+}
+
+.barcode-bars {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 1px;
+    height: 72px;
+    width: 100%;
+    padding: 0.5rem 0.25rem;
+    background: #fff;
+    border-radius: 8px;
+}
+
+.barcode-bars span {
+    display: block;
+    height: 100%;
+    background: #0f172a;
+    border-radius: 1px;
+}
+
+.barcode-value {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--text);
+}
+
+.qr-label {
+    margin-top: 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
 }
 
 .qr-glow-container::after {
     content: '';
     position: absolute;
     inset: -2px;
-    background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+    background: linear-gradient(45deg, var(--accent-primary, var(--accent)), var(--accent-secondary, var(--accent2, #6366f1)));
     z-index: -1;
-    border-radius: 34px;
-    opacity: 0.1;
+    border-radius: 26px;
+    opacity: 0.12;
 }
 
 .chemical-display-title {
     font-size: clamp(1.75rem, 4vw, 2.5rem);
     font-weight: 900;
     letter-spacing: -0.04em;
-    background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--text);
+    background: none;
+    -webkit-text-fill-color: unset;
     margin-bottom: 1rem;
     line-height: 1.1;
 }
@@ -172,6 +252,7 @@
     gap: 0.75rem;
     justify-content: center;
     margin-bottom: 2rem;
+    flex-wrap: wrap;
 }
 
 .meta-badge {
@@ -183,8 +264,17 @@
     letter-spacing: 0.05em;
 }
 
-.badge-cas { background: #f1f5f9; color: #475569; }
-.badge-formula { background: #e0e7ff; color: #4f46e5; }
+.badge-cas {
+    background: color-mix(in srgb, var(--surface2) 100%, transparent);
+    color: var(--muted);
+    border: 1px solid var(--border);
+}
+
+.badge-formula {
+    background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border));
+}
 
 /* Status Analytics */
 .status-analytics-card {
@@ -241,7 +331,7 @@
 
 /* Location Visualization */
 .location-visual-card {
-    background: #ffffff;
+    background: var(--card-bg);
 }
 
 .location-hierarchy {
@@ -264,7 +354,7 @@
 .step-icon {
     width: 40px;
     height: 40px;
-    background: white;
+    background: var(--card-bg);
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -290,7 +380,7 @@
 
 .protocol-mini-card {
     padding: 1.5rem;
-    background: white;
+    background: var(--card-bg);
     border-radius: 20px;
     border: 1px solid #f1f5f9;
     transition: all 0.3s ease;
@@ -423,7 +513,7 @@
 }
 
 .hazard-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; }
-.hazard-warning { background: #fffbeb; color: #d97706; border: 1px solid #fef3c7; }
+.hazard-warning { background: color-mix(in srgb, var(--warn) 12%, var(--card-bg)); color: #d97706; border: 1px solid #fef3c7; }
 
 /* Ledger Tables Premium */
 .ledger-scroll-area {

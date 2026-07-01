@@ -38,6 +38,7 @@ import "../../styles/ChemicalDetails.css";
 const ChemicalDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [codeView, setCodeView] = useState('qr'); // qr | barcode
   const [chemical, setChemical] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -179,16 +180,63 @@ const ChemicalDetails = () => {
             <div className="column-left">
               
               <div className="premium-card identity-header">
-                <div className="qr-glow-container">
-                   <QRCode value={`${window.location.origin}/chemicals/details/${chemical.id}`} size={180} level="H" />
-                   <div className="qr-label">REG-{chemical.id}</div>
+                <div className="code-view-toggle" role="group" aria-label="Code type">
+                  <button
+                    type="button"
+                    className={`code-view-btn ${codeView === 'qr' ? 'active' : ''}`}
+                    onClick={() => setCodeView('qr')}
+                  >
+                    QR Code
+                  </button>
+                  <button
+                    type="button"
+                    className={`code-view-btn ${codeView === 'barcode' ? 'active' : ''}`}
+                    onClick={() => setCodeView('barcode')}
+                  >
+                    Barcode
+                  </button>
+                </div>
+
+                <div className={`qr-glow-container ${codeView === 'barcode' ? 'barcode-mode' : ''}`}>
+                  {codeView === 'qr' ? (
+                    <>
+                      <QRCode
+                        value={`${window.location.origin}/chemicals/details/${chemical.id}`}
+                        size={180}
+                        level="H"
+                      />
+                      <div className="qr-label">REG-{chemical.id}</div>
+                    </>
+                  ) : (
+                    <div className="barcode-panel">
+                      <div className="barcode-bars" aria-hidden="true">
+                        {(chemical.barcode || chemical.id || 'CIMS').split('').map((ch, i) => (
+                          <span
+                            key={`${ch}-${i}`}
+                            style={{
+                              width: 2 + (ch.charCodeAt(0) % 3),
+                              opacity: 0.55 + ((ch.charCodeAt(0) % 5) * 0.08),
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <div className="barcode-value">
+                        {chemical.barcode || chemical.id || 'NO BARCODE'}
+                      </div>
+                      <div className="qr-label">
+                        {chemical.barcode ? 'MFG BARCODE' : 'REGISTRY ID'}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <h1 className="chemical-display-title">{chemical.name}</h1>
                 
                 <div className="meta-badges">
                    <span className="meta-badge badge-cas">CAS {chemical.cas_number || 'N/A'}</span>
-                   <span className="meta-badge badge-formula">{chemical.formula || 'UNSPECIFIED'}</span>
+                   <span className="meta-badge badge-formula">
+                     {chemical.formula ? chemical.formula : 'No formula'}
+                   </span>
                 </div>
 
                 <div className={`status-indicator ${

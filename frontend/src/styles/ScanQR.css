@@ -8,7 +8,7 @@
 
 /* Header Card */
 .scan-header-card {
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 2.5rem;
   padding: 2rem;
   box-shadow: 0 20px 25px -5px rgba(203, 213, 225, 0.5);
@@ -86,7 +86,7 @@
 }
 
 .scan-mode-btn:not(.active):hover {
-  background-color: white;
+  background-color: var(--card-bg);
   border-color: var(--primary-200);
 }
 
@@ -249,12 +249,12 @@
 }
 
 .scan-result-card.success {
-  background-color: white;
+  background-color: var(--card-bg);
   border-color: #22c55e;
 }
 
 .scan-result-card.error {
-  background-color: white;
+  background-color: var(--card-bg);
   border-color: #ef4444;
 }
 
@@ -429,7 +429,7 @@
 .scan-reader-wrap {
   width: 100%;
   max-width: 28rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 2.5rem;
   padding: 1rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
@@ -504,7 +504,7 @@
 .scan-status-icon {
   width: 2.5rem;
   height: 2.5rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 0.75rem;
   display: flex;
   align-items: center;

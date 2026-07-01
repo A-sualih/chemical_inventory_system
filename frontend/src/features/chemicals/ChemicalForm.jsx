@@ -3,7 +3,8 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import QRCodeLib from "react-qr-code";
 const QRCode = QRCodeLib.default || QRCodeLib;
 import axios from "axios";
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
+import { getScannerConfig } from '../../utils/scannerConfig';
 import { HAZARD_CLASSES, PPE_OPTIONS, NFPA_RATINGS, EXPOSURE_RISKS } from "../../constants/hazards.jsx";
 import { Camera, AlertTriangle } from 'lucide-react';
 import { useAuth } from "../../context/AuthContext";
@@ -119,41 +120,49 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
   const [qrCodeData, setQrCodeData] = useState("");
   const [incompatibilityWarning, setIncompatibilityWarning] = useState(null);
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  const [enrollScanFormat, setEnrollScanFormat] = useState('auto');
   const barcodeScannerRef = useRef(null);
 
   const [locHierarchy, setLocHierarchy] = useState({ buildings: [], rooms: [], cabinets: [], shelves: [] });
   const [locLoading, setLocLoading] = useState(false);
 
-  // Barcode scanner lifecycle
+  // Barcode / QR scanner lifecycle (same engine as Fast Check-In/Out)
   useEffect(() => {
-    let scanner = null;
+    let html5QrCode = null;
     if (showBarcodeScanner) {
-      // Small delay to ensure the DOM div is mounted before initializing
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
         try {
-          scanner = new Html5QrcodeScanner("barcode-reader", {
-            fps: 15,
-            qrbox: { width: 350, height: 120 }, // Wide rectangle for 1D barcodes
-            aspectRatio: 3.5,
-            rememberLastUsedCamera: true,
-            supportedScanTypes: [0] // 0 = CAMERA (only), allows both QR and barcodes
-          });
-          scanner.render((decodedText) => {
-            setFormData(prev => ({ ...prev, barcode: decodedText }));
-            setShowBarcodeScanner(false);
-            scanner.clear().catch(() => { });
-          }, () => { });
-          barcodeScannerRef.current = scanner;
+          const element = document.getElementById('barcode-reader');
+          if (!element) return;
+          html5QrCode = new Html5Qrcode('barcode-reader');
+          barcodeScannerRef.current = html5QrCode;
+          await html5QrCode.start(
+            { facingMode: 'environment' },
+            getScannerConfig(enrollScanFormat),
+            (decodedText) => {
+              setFormData((prev) => ({ ...prev, barcode: decodedText }));
+              setShowBarcodeScanner(false);
+              html5QrCode.stop().catch(() => {});
+            },
+            () => {}
+          );
         } catch (e) {
           console.error('Barcode scanner init error:', e);
         }
       }, 100);
       return () => {
         clearTimeout(timer);
-        if (barcodeScannerRef.current) barcodeScannerRef.current.clear().catch(() => { });
+        if (barcodeScannerRef.current?.isScanning) {
+          barcodeScannerRef.current.stop().catch(() => {});
+        }
       };
     }
-  }, [showBarcodeScanner]);
+    return () => {
+      if (barcodeScannerRef.current?.isScanning) {
+        barcodeScannerRef.current.stop().catch(() => {});
+      }
+    };
+  }, [showBarcodeScanner, enrollScanFormat]);
 
   useEffect(() => {
     axios.get('/api/locations/hierarchy').then(res => setLocHierarchy(prev => ({ ...prev, buildings: res.data.buildings })));
@@ -480,7 +489,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                 <div className="barcode-section-wrapper">
                   <div className="form-group">
                     <label className="form-label barcode-label">
-                      Mfg. Barcode
+                      Mfg. Barcode / QR
                       <span className="optional-badge">OPTIONAL</span>
                     </label>
                     <div className="barcode-input-container">
@@ -489,7 +498,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                         value={formData.barcode}
                         onChange={e => setFormData({ ...formData, barcode: e.target.value })}
                         className="form-input font-mono barcode-input"
-                        placeholder="Type or scan manufacturer barcode..."
+                        placeholder="Type or scan QR / manufacturer barcode..."
                       />
                       <button
                         type="button"
@@ -499,21 +508,42 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8H2a2 2 0 00-2 2v10a2 2 0 002 2h3" />
                         </svg>
-                        {showBarcodeScanner ? 'Close Camera' : 'Scan Barcode'}
+                        {showBarcodeScanner ? 'Close Camera' : 'Scan Code'}
                       </button>
                     </div>
                     {showBarcodeScanner && (
                       <div className="barcode-scanner-view">
                         <div className="barcode-scanner-header">
-                          <Camera className="w-4 h-4 inline-block mr-2" /> Point camera at the manufacturer barcode on the bottle
+                          <Camera className="w-4 h-4 inline-block mr-2" />
+                          Point camera at a QR label or bottle barcode
                         </div>
-                        <div id="barcode-reader" className="barcode-scanner-body" />
+                        <div className="scan-format-toggle enroll-scan-toggle" role="group" aria-label="Scan format">
+                          {[
+                            { id: 'auto', label: 'Auto' },
+                            { id: 'qr', label: 'QR' },
+                            { id: 'barcode', label: 'Barcode' },
+                          ].map((opt) => (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              className={`scan-format-btn ${enrollScanFormat === opt.id ? 'active' : ''}`}
+                              onClick={() => {
+                                setEnrollScanFormat(opt.id);
+                                setShowBarcodeScanner(false);
+                                setTimeout(() => setShowBarcodeScanner(true), 80);
+                              }}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                        <div id="barcode-reader" className={`barcode-scanner-body scan-mode-${enrollScanFormat}`} />
                       </div>
                     )}
                     {formData.barcode && (
                       <div className="barcode-capture-msg">
                         <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                        Barcode captured: <span className="barcode-capture-val">{formData.barcode}</span>
+                        Code captured: <span className="barcode-capture-val">{formData.barcode}</span>
                       </div>
                     )}
                   </div>

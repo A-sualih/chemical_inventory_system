@@ -25,12 +25,13 @@ import { fmtQty } from '../../utils/formatQuantity';
 import './Transactions.css';
 
 import { Html5Qrcode } from 'html5-qrcode';
+import { getScannerConfig } from '../../utils/scannerConfig';
 
 const TransactionSystem = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const isViewer = user?.role?.toLowerCase() === 'viewer / auditor' || user?.role === 'Safety Officer';
-    const isLabStaff = user?.role?.toLowerCase() === 'laboratory staff';
+    const isLabStaff = user?.role?.toLowerCase() === 'laboratory staff' || user?.role === 'Lab Technician';
     const [activeTab, setActiveTab] = useState('checkout');
     const [barcode, setBarcode] = useState('');
     const [scannedData, setScannedData] = useState(null);
@@ -38,6 +39,7 @@ const TransactionSystem = () => {
     const [submitting, setSubmitting] = useState(false);
     const [history, setHistory] = useState([]);
     const [showCamera, setShowCamera] = useState(false);
+    const [scanFormat, setScanFormat] = useState('auto'); // auto | qr | barcode
     const [showEnrollForm, setShowEnrollForm] = useState(false);
     const [enrollSuccess, setEnrollSuccess] = useState(null);
     const [scanError, setScanError] = useState(null);      // friendly scan-not-found state
@@ -96,11 +98,7 @@ const TransactionSystem = () => {
 
                     await html5QrCode.start(
                         { facingMode: "environment" },
-                        {
-                            fps: 30,
-                            qrbox: { width: 300, height: 300 },
-                            aspectRatio: 1.0
-                        },
+                        getScannerConfig(scanFormat),
                         (decodedText) => {
                             html5QrCode.stop().then(() => {
                                 setShowCamera(false);
@@ -126,7 +124,7 @@ const TransactionSystem = () => {
                 scannerRef.current.stop().catch(e => console.warn(e));
             }
         };
-    }, [showCamera, scannedData]);
+    }, [showCamera, scannedData, scanFormat]);
 
     const autoScan = async (code) => {
         if (!code || String(code).trim() === '') return; // Guard against empty barcode calls
@@ -303,29 +301,33 @@ const TransactionSystem = () => {
             <div className={`scanner-dashboard-split ${scannedData ? 'mode-scanned' : 'mode-prescan'}`}>
 
                 <div className="dashboard-camera-zone">
-                    <div className={`scanner-viewport ${showCamera ? 'camera-active premium-scanner-active' : ''}`} style={{ display: (showCamera || scannedData) ? 'flex' : 'none' }}>
+                    <div className={`scanner-viewport scan-mode-${scanFormat} ${showCamera ? 'camera-active premium-scanner-active' : ''}`} style={{ display: (showCamera || scannedData) ? 'flex' : 'none' }}>
                         <div id="reader" style={{ width: '100%' }}></div>
                         {showCamera && !scannedData && (
-                            <div className="scanner-hud-overlay">
-                                <div className="hud-corner top-left"></div>
-                                <div className="hud-corner top-right"></div>
-                                <div className="hud-corner bottom-left"></div>
-                                <div className="hud-corner bottom-right"></div>
-                                <div className="scanner-laser"></div>
+                            <div className={`scanner-hud-overlay hud-mode-${scanFormat}`}>
+                                <div className="hud-frame-guide" aria-hidden="true">
+                                    <div className="hud-corner top-left"></div>
+                                    <div className="hud-corner top-right"></div>
+                                    <div className="hud-corner bottom-left"></div>
+                                    <div className="hud-corner bottom-right"></div>
+                                    <div className="scanner-laser"></div>
+                                </div>
 
                                 <div className="hud-status-banner">
                                     <div className="status-indicator">
                                         <span className="pulse-dot active"></span>
                                         Scanner Active
                                     </div>
-                                    <div className="status-subtext">Waiting for QR / Barcode...</div>
+                                    <div className="status-subtext">
+                                        {scanFormat === 'qr'
+                                          ? 'Align QR code in the square'
+                                          : scanFormat === 'barcode'
+                                            ? 'Align barcode in the wide band'
+                                            : 'QR labels & bottle barcodes supported'}
+                                    </div>
                                 </div>
                                 <div className="hud-camera-status">
                                     Camera: <span style={{ color: 'var(--success)' }}>Authorized</span>
-                                </div>
-
-                                <div className="hud-target-reticle">
-                                    <QrCodeIcon style={{ width: '2rem', color: 'rgba(255,255,255,0.7)', strokeWidth: 1 }} />
                                 </div>
                             </div>
                         )}
@@ -339,6 +341,28 @@ const TransactionSystem = () => {
 
                     {!scannedData && (
                         <div className="scanner-controls-container">
+                            <div className="scan-format-toggle" role="group" aria-label="Scan format">
+                                {[
+                                  { id: 'auto', label: 'Auto (QR + Barcode)' },
+                                  { id: 'qr', label: 'QR Code' },
+                                  { id: 'barcode', label: 'Barcode' },
+                                ].map((opt) => (
+                                  <button
+                                    key={opt.id}
+                                    type="button"
+                                    className={`scan-format-btn ${scanFormat === opt.id ? 'active' : ''}`}
+                                    onClick={() => {
+                                      setScanFormat(opt.id);
+                                      if (showCamera) {
+                                        setShowCamera(false);
+                                        setTimeout(() => setShowCamera(true), 120);
+                                      }
+                                    }}
+                                  >
+                                    {opt.label}
+                                  </button>
+                                ))}
+                            </div>
                             <div className="scanner-actions-bar">
                                 <button
                                     onClick={() => { setShowCamera(!showCamera); setScanError(null); }}

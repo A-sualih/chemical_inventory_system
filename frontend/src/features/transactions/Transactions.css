@@ -15,6 +15,19 @@
     --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 }
 
+html[data-theme='ink'] {
+    --bg-app: transparent;
+    --bg-card: var(--card-bg);
+    --text-main: var(--text);
+    --text-muted: var(--muted);
+    --primary: var(--accent);
+    --primary-light: color-mix(in srgb, var(--accent) 18%, transparent);
+    --border-color: var(--border);
+    --shadow-sm: var(--shadow);
+    --shadow-md: var(--shadow);
+    --shadow-lg: var(--shadow);
+}
+
 .transactions-container {
     padding: 2.5rem;
     max-width: 1400px;
@@ -44,7 +57,7 @@
 
 .transactions-tabs {
     display: flex;
-    background: #f1f5f9;
+    background: var(--surface2, var(--bg-card));
     padding: 0.35rem;
     border-radius: 0.75rem;
     gap: 0.25rem;
@@ -67,11 +80,11 @@
 
 .transaction-tab-btn:hover {
     color: var(--text-main);
-    background: rgba(255, 255, 255, 0.5);
+    background: var(--surface2, var(--bg-card));
 }
 
 .transaction-tab-btn.active {
-    background: #fff;
+    background: var(--bg-card);
     color: var(--primary);
     box-shadow: var(--shadow-sm);
 }
@@ -114,8 +127,86 @@
 }
 
 .mode-prescan .scanner-viewport {
-    aspect-ratio: 4 / 3;
-    max-height: 460px;
+    aspect-ratio: 16 / 10;
+    max-height: 520px;
+    min-height: 320px;
+}
+
+.mode-prescan .scanner-viewport.scan-mode-qr {
+    aspect-ratio: 1 / 1;
+    max-height: 420px;
+}
+
+.mode-prescan .scanner-viewport.scan-mode-barcode {
+    aspect-ratio: 16 / 9;
+    max-height: 360px;
+}
+
+.scan-format-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
+}
+
+.scan-format-btn {
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(15, 23, 42, 0.55);
+    color: #cbd5e1;
+    border-radius: 999px;
+    padding: 0.45rem 0.9rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.scan-format-btn:hover {
+    border-color: rgba(45, 212, 191, 0.5);
+    color: #fff;
+}
+
+.scan-format-btn.active {
+    background: linear-gradient(135deg, #0d9488, #0f766e);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(13, 148, 136, 0.28);
+}
+
+.hud-frame-guide {
+    position: absolute;
+    inset: 18% 12%;
+    pointer-events: none;
+}
+
+.hud-mode-qr .hud-frame-guide {
+    inset: 16% 16%;
+}
+
+.hud-mode-barcode .hud-frame-guide {
+    inset: 32% 8%;
+}
+
+.hud-frame-guide .hud-corner {
+    width: 28px;
+    height: 28px;
+}
+
+.hud-frame-guide .scanner-laser {
+    left: 4%;
+    width: 92%;
+}
+
+[data-theme="paper"] .scan-format-btn {
+    background: #f8fafc;
+    color: #334155;
+    border-color: rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="paper"] .scan-format-btn.active {
+    background: #0f766e;
+    color: #fff;
 }
 
 .premium-scanner-active {
@@ -198,7 +289,7 @@
     bottom: 2rem;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--bg-card);
     color: var(--text-main);
     padding: 0.5rem 1.5rem;
     border-radius: 2rem;
@@ -212,13 +303,13 @@
 
 /* Professional Viewer Layout Styles */
 .chemical-identity-card {
-    background: #fff;
+    background: var(--bg-card);
     border-radius: 1.5rem;
     padding: 2.5rem;
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-md);
     margin-bottom: 2.5rem;
-    background: linear-gradient(to bottom right, #ffffff, #f8fafc);
+    background: linear-gradient(to bottom right, var(--bg-card), var(--surface2, var(--bg-card)));
 }
 
 .card-header-main {
@@ -312,7 +403,7 @@
 .ppe-badge-modern {
     padding: 0.4rem 1rem;
     border-radius: 0.5rem;
-    background: #f1f5f9;
+    background: var(--surface2, var(--bg-card));
     color: #475569;
     font-size: 0.85rem;
     font-weight: 600;
@@ -345,7 +436,7 @@
 }
 
 .glass-card {
-    background: rgba(255, 255, 255, 0.7);
+    background: var(--bg-card);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.5);
@@ -353,7 +444,7 @@
 }
 
 .glass-item {
-    background: rgba(255, 255, 255, 0.4);
+    background: var(--surface2, var(--bg-card));
     border-radius: 0.5rem;
     padding: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.6);
@@ -515,7 +606,7 @@
     padding: 1.1rem 1.6rem;
     border-radius: 1rem;
     border: 1px solid var(--border-color);
-    background: #fff;
+    background: var(--bg-card);
     font-size: 1rem;
     font-weight: 500;
     color: var(--text-main);
@@ -526,7 +617,7 @@
 .input-neon:focus {
     outline: none;
     border-color: var(--primary);
-    background: #fff;
+    background: var(--bg-card);
     box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1), 0 4px 12px rgba(79, 70, 229, 0.05);
     transform: translateY(-1px);
 }
@@ -580,7 +671,7 @@
 
 /* Manual Form Container */
 .manual-scan-form {
-    background: rgba(255, 255, 255, 0.4);
+    background: var(--surface2, var(--bg-card));
     backdrop-filter: blur(8px);
     border-radius: 1.5rem;
     padding: 2.5rem;
@@ -608,7 +699,7 @@
 }
 
 .search-result-item:hover {
-    background: #f8fafc !important;
+    background: var(--bg-card) !important;
     padding-left: 1.75rem !important;
 }
 
@@ -662,7 +753,7 @@
     top: calc(100% + 0.75rem);
     left: 0;
     right: 0;
-    background: white;
+    background: var(--bg-card);
     z-index: 100;
     border-radius: 1.25rem;
     box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
@@ -716,7 +807,7 @@
 .scan-error-callout {
     max-width: 650px;
     margin: 0 auto 3.5rem;
-    background: #fff;
+    background: var(--bg-card);
     border: 1px solid #fee2e2;
     border-left: 5px solid var(--danger);
     border-radius: 1.25rem;
@@ -746,7 +837,7 @@
 }
 
 .error-code-badge {
-    background: #f8fafc;
+    background: var(--bg-card);
     border: 1px solid #e2e8f0;
     padding: 0.75rem 1.25rem;
     border-radius: 0.75rem;
@@ -807,7 +898,7 @@
     display: flex;
     align-items: center;
     gap: 1rem;
-    background: rgba(255, 255, 255, 0.6);
+    background: var(--bg-card);
     border: 1px solid rgba(0, 0, 0, 0.05);
     padding: 1rem 1.25rem;
     border-radius: 0.75rem;
@@ -817,7 +908,7 @@
 }
 
 .safety-check-card:hover {
-    background: white;
+    background: var(--bg-card);
     border-color: var(--primary);
     transform: translateX(4px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
@@ -902,10 +993,10 @@
 .nfpa-diamond .nfpa-top { background: #ef4444; color: white; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.1); }
 .nfpa-diamond .nfpa-left { background: #3b82f6; color: white; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.1); }
 .nfpa-diamond .nfpa-right { background: #eab308; color: #1e293b; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.1); }
-.nfpa-diamond .nfpa-bottom { background: #ffffff; color: #1e293b; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.1); font-size: 0.9rem; }
+.nfpa-diamond .nfpa-bottom { background: var(--bg-card); color: #1e293b; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.1); font-size: 0.9rem; }
 
 .emergency-prep-item {
-    background: rgba(255, 255, 255, 0.6);
+    background: var(--bg-card);
     padding: 0.75rem;
     border-radius: 0.5rem;
     border-left: 3px solid var(--primary);
@@ -992,7 +1083,7 @@
     margin-bottom: 0.5rem;
 }
 
-.metric-value {
+.transactions-container .metric-value {
     font-size: 1rem;
     font-weight: 700;
     color: var(--text-main);

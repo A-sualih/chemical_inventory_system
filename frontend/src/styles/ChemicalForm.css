@@ -61,17 +61,18 @@
   z-index: 10;
   width: 100%;
   max-width: 68rem; /* Elevated layout size */
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--card-bg);
   backdrop-filter: blur(20px);
   border-top-left-radius: 2rem;
   border-top-right-radius: 2rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 
-              0 0 40px rgba(99, 102, 241, 0.1);
+              0 0 40px color-mix(in srgb, var(--accent) 12%, transparent);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   height: 94vh;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--border);
+  color: var(--text);
   animation: container-slide 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -79,7 +80,7 @@
   .chemical-form-container {
     border-radius: 2rem;
     height: 90vh;
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--border);
   }
 }
 
@@ -239,7 +240,7 @@
 .qr-box svg {
   width: 100% !important;
   height: 100% !important;
-  background: #ffffff;
+  background: var(--card-bg);
   padding: 0.5rem;
   border-radius: 0.5rem;
   transition: all 0.3s ease;
@@ -588,7 +589,8 @@
   flex: 1;
   overflow-y: auto;
   position: relative;
-  background-color: #f8fafc;
+  background-color: var(--surface);
+  color: var(--text);
 }
 
 .form-main {
@@ -645,7 +647,7 @@
 .section-title {
   font-size: 11px;
   font-weight: 800;
-  color: var(--secondary-600);
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   display: flex;
@@ -711,7 +713,7 @@
 .form-label {
   font-size: 9px;
   font-weight: 800;
-  color: #64748b;
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-left: 0.25rem;
@@ -724,45 +726,45 @@
 .optional-badge {
   font-size: 7px;
   font-weight: 900;
-  color: #94a3b8;
-  background: #e2e8f0;
+  color: var(--muted);
+  background: var(--surface2);
   border-radius: 3px;
   padding: 0.1rem 0.3rem;
   letter-spacing: 0.05em;
 }
 
 .form-group:focus-within .form-label {
-  color: var(--secondary-600);
+  color: var(--accent);
 }
 
 /* INPUT BOXES: Frosted Clean Glass Look */
 .form-input {
   width: 100%;
-  background: #ffffff;
-  border: 1px solid rgba(165, 180, 252, 0.4);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
   border-radius: 0.85rem;
   padding: 0.875rem 1rem;
   font-size: 0.875rem;
   outline: none;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   font-weight: 500;
-  color: var(--secondary-900);
+  color: var(--text);
   box-shadow: 0 1px 3px rgba(99, 102, 241, 0.04);
 }
 
 .form-input::placeholder {
-  color: #94a3b8;
+  color: var(--muted);
 }
 
 .form-input:hover {
-  border-color: rgba(99, 102, 241, 0.6);
-  box-shadow: 0 2px 5px rgba(99, 102, 241, 0.08);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  box-shadow: 0 2px 5px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .form-input:focus {
-  border-color: var(--secondary-500);
-  background-color: #ffffff;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 4px 6px -1px rgba(99, 102, 241, 0.05);
+  border-color: var(--accent);
+  background-color: var(--surface);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .form-input.font-mono {
@@ -773,7 +775,7 @@
 /* Error States */
 .form-input.error {
   border-color: #f87171;
-  background-color: #fff8f8;
+  background-color: color-mix(in srgb, var(--danger) 8%, var(--card-bg));
 }
 
 .form-input.error:focus {
@@ -800,27 +802,28 @@
 
 .form-select {
   width: 100%;
-  background: #ffffff;
-  border: 1px solid rgba(165, 180, 252, 0.4);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
   border-radius: 0.85rem;
   padding: 0.875rem 2.5rem 0.875rem 1rem;
   font-size: 0.875rem;
   outline: none;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   font-weight: 500;
-  color: var(--secondary-900);
+  color: var(--text);
   appearance: none;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(99, 102, 241, 0.04);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--accent) 6%, transparent);
 }
 
 .form-select:hover {
-  border-color: rgba(99, 102, 241, 0.6);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
 }
 
 .form-select:focus {
-  border-color: var(--secondary-500);
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .select-icon {
@@ -836,45 +839,46 @@
 
 /* Quantity Special Highlight Fields */
 .qty-input {
-  background-color: #f5f8ff;
-  color: var(--primary-700);
+  background-color: color-mix(in srgb, var(--accent) 10%, var(--input-bg));
+  color: var(--accent);
   font-weight: 700;
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
 }
 
 .qty-input:focus {
-  border-color: var(--primary-500);
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .threshold-input {
-  background-color: #fffbeb;
-  color: #d97706;
+  background-color: color-mix(in srgb, var(--warn) 12%, var(--input-bg));
+  color: var(--warn);
   font-weight: 700;
-  border-color: rgba(245, 158, 11, 0.3);
+  border-color: color-mix(in srgb, var(--warn) 35%, var(--border));
 }
 
 .threshold-input:focus {
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15);
+  border-color: var(--warn);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--warn) 18%, transparent);
 }
 
 /* ELEGANT PODS / Frosted Card Containers */
 .card-container {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(99, 102, 241, 0.12);
+  background: var(--surface2);
+  border: 1px solid var(--border);
   border-radius: 1.5rem;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 20px -2px rgba(99, 102, 241, 0.03);
+  box-shadow: var(--shadow);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text);
 }
 
 .card-container:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px -4px rgba(99, 102, 241, 0.06);
-  border-color: rgba(99, 102, 241, 0.25);
-  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 8px 30px -4px color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, var(--surface2));
 }
 
 .card-container-padded {
@@ -884,14 +888,14 @@
 .card-title {
   font-size: 10px;
   font-weight: 800;
-  color: var(--secondary-400);
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border-bottom: 1px solid rgba(99, 102, 241, 0.06);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 0.75rem;
 }
 
@@ -904,7 +908,7 @@
 }
 
 .metric-input {
-  background-color: #fafbff;
+  background-color: var(--input-bg);
 }
 
 /* Barcode scanner layouts */
@@ -962,27 +966,81 @@
 
 .barcode-scanner-view {
   margin-top: 1rem;
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(15, 118, 110, 0.25);
   border-radius: 1.25rem;
   overflow: hidden;
-  background: #090b14;
+  background: #0b1220;
+  box-shadow: 0 16px 40px rgba(2, 6, 23, 0.28);
 }
 
 .barcode-scanner-header {
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(15, 118, 110, 0.14);
   padding: 0.75rem 1rem;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  color: #c7d2fe;
+  color: #99f6e4;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+  border-bottom: 1px solid rgba(45, 212, 191, 0.18);
+}
+
+.enroll-scan-toggle {
+  padding: 0.65rem 0.85rem 0.25rem;
+  margin-bottom: 0;
+  background: rgba(2, 6, 23, 0.35);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.scan-format-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.scan-format-btn {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.55);
+  color: #cbd5e1;
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.scan-format-btn.active {
+  background: linear-gradient(135deg, #0d9488, #0f766e);
+  border-color: transparent;
+  color: #fff;
 }
 
 .barcode-scanner-body {
   width: 100%;
-  padding: 0.75rem;
+  min-height: 280px;
+  max-height: 420px;
+  padding: 0.5rem;
   background: #0d0f1a;
+  aspect-ratio: 16 / 10;
+}
+
+.barcode-scanner-body.scan-mode-qr {
+  aspect-ratio: 1 / 1;
+  max-height: 360px;
+}
+
+.barcode-scanner-body.scan-mode-barcode {
+  aspect-ratio: 16 / 9;
+  max-height: 300px;
+}
+
+.barcode-scanner-body video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 0.75rem;
 }
 
 .barcode-capture-msg {
@@ -1027,7 +1085,7 @@
 }
 
 .location-input {
-  background-color: #ffffff;
+  background-color: var(--card-bg);
 }
 
 .loc-loading-indicator {
@@ -1111,7 +1169,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  background: #fffbeb;
+  background: color-mix(in srgb, var(--warn) 12%, var(--card-bg));
   border: 1px solid #fef3c7;
   padding: 0.35rem 0.75rem;
   border-radius: 0.5rem;
@@ -1127,11 +1185,11 @@
 }
 
 .combined-id {
-  background-color: #f1f5f9;
-  border-color: rgba(148, 163, 184, 0.25);
+  background-color: var(--input-bg);
+  border-color: var(--border);
   font-size: 0.825rem;
   font-family: var(--font-mono, monospace);
-  color: #475569;
+  color: var(--muted);
   font-weight: 700;
   letter-spacing: 0.05em;
 }
@@ -1139,27 +1197,28 @@
 /* Safety Remarks & Spill textareas */
 .textarea-input {
   width: 100%;
-  background: #ffffff;
-  border: 1px solid rgba(165, 180, 252, 0.4);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
   border-radius: 1rem;
   padding: 1rem;
   font-size: 0.875rem;
   font-weight: 500;
-  box-shadow: 0 1px 3px rgba(99, 102, 241, 0.04);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--accent) 6%, transparent);
   height: 6rem;
   resize: none;
   outline: none;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  color: var(--secondary-900);
+  color: var(--text);
 }
 
 .textarea-input:hover {
-  border-color: rgba(99, 102, 241, 0.6);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
 }
 
 .textarea-input:focus {
-  border-color: var(--secondary-500);
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 /* Expiry Date red alert highlight */
@@ -1167,7 +1226,7 @@
   color: #dc2626;
   font-weight: 700;
   border-color: rgba(239, 68, 68, 0.25);
-  background-color: #fffafb;
+  background-color: color-mix(in srgb, var(--danger) 8%, var(--card-bg));
 }
 
 .expiry-date-input:focus {
@@ -1289,14 +1348,14 @@
 }
 
 .nfpa-select:focus {
-  background-color: #ffffff;
+  background-color: var(--card-bg);
   color: var(--secondary-900);
   border-color: #ffffff;
 }
 
 .nfpa-select-option {
   color: var(--secondary-900);
-  background-color: #ffffff;
+  background-color: var(--card-bg);
 }
 
 /* PPE Requirements Buttons Grid */
@@ -1321,30 +1380,30 @@
   font-size: 10px;
   font-weight: 700;
   border-radius: 0.75rem;
-  border: 1px solid rgba(165, 180, 252, 0.3);
-  background-color: #ffffff;
-  color: var(--secondary-600);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(99, 102, 241, 0.03);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--accent) 4%, transparent);
 }
 
 .ppe-button:hover {
-  border-color: var(--secondary-400);
-  background-color: var(--secondary-50);
+  border-color: var(--accent);
+  background-color: color-mix(in srgb, var(--accent) 10%, var(--surface));
 }
 
 .ppe-button.active {
-  background-color: var(--secondary-600);
-  color: #ffffff;
-  border-color: var(--secondary-600);
-  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+  background-color: var(--accent);
+  color: var(--btn-text);
+  border-color: var(--accent);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--accent) 30%, transparent);
   transform: translateY(-1px);
 }
 
 /* Access Control Pod */
 .access-control-card {
-  background: #ffffff;
+  background: var(--card-bg);
   border: 1px solid rgba(99, 102, 241, 0.12);
   border-radius: 1.5rem;
   padding: 1.5rem;
@@ -1363,21 +1422,21 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
-  background-color: #fafbff;
-  border: 1px solid rgba(99, 102, 241, 0.04);
+  background-color: var(--surface2);
+  border: 1px solid var(--border);
   border-radius: 0.85rem;
   transition: all 0.2s ease;
 }
 
 .toggle-item:hover {
-  background-color: #f5f8ff;
-  border-color: rgba(99, 102, 241, 0.1);
+  background-color: color-mix(in srgb, var(--accent) 8%, var(--surface2));
+  border-color: color-mix(in srgb, var(--accent) 25%, var(--border));
 }
 
 .toggle-label {
   font-size: 11px;
   font-weight: 700;
-  color: var(--secondary-700);
+  color: var(--text);
 }
 
 .toggle-checkbox {
@@ -1396,15 +1455,15 @@
   letter-spacing: 0.08em;
   border-radius: 0.75rem;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(165, 180, 252, 0.3);
-  background-color: #ffffff;
-  color: var(--secondary-600);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text);
   cursor: pointer;
 }
 
 .risk-button:hover {
   border-color: #fca5a5;
-  background-color: #fff5f5;
+  background-color: color-mix(in srgb, var(--danger) 10%, var(--card-bg));
 }
 
 .risk-button.active {
@@ -1427,7 +1486,7 @@
 
 /* Emergency procedures */
 .procedure-textarea {
-  background-color: #fffafb;
+  background-color: color-mix(in srgb, var(--danger) 8%, var(--card-bg));
   border-color: rgba(239, 68, 68, 0.12);
   outline: none;
   height: 7rem;
@@ -1439,7 +1498,7 @@
 
 .procedure-textarea:focus {
   border-color: #f87171;
-  background-color: #ffffff;
+  background-color: var(--card-bg);
   box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
 }
 
@@ -1473,7 +1532,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  background: #ffffff;
+  background: var(--card-bg);
   color: var(--secondary-500);
   box-shadow: 0 2px 4px rgba(99, 102, 241, 0.02);
 }
@@ -1494,17 +1553,17 @@
 .disposal-upload-box {
   border-color: rgba(239, 68, 68, 0.2);
   color: #ef4444;
-  background-color: #fffafb;
+  background-color: color-mix(in srgb, var(--danger) 8%, var(--card-bg));
 }
 
 .disposal-upload-box:hover {
   border-color: #ef4444;
   color: #dc2626;
-  background-color: #fff1f2;
+  background-color: color-mix(in srgb, var(--danger) 12%, var(--card-bg));
 }
 
 .disposal-upload-box.active {
-  background-color: #fff1f2;
+  background-color: color-mix(in srgb, var(--danger) 12%, var(--card-bg));
   border-color: #ef4444;
   color: #b91c1c;
   border-style: solid;
@@ -1541,7 +1600,7 @@
   justify-content: center;
   padding: 0 1.25rem;
   border-radius: 1rem;
-  background-color: #ffffff;
+  background-color: var(--card-bg);
   color: var(--secondary-700);
   border: 1px solid rgba(165, 180, 252, 0.3);
   transition: all 0.2s ease;
@@ -1556,12 +1615,12 @@
 
 .disposal-view-button {
   color: #ef4444 !important;
-  background-color: #fffafb !important;
+  background-color: color-mix(in srgb, var(--danger) 8%, var(--card-bg)) !important;
   border-color: rgba(239, 68, 68, 0.2) !important;
 }
 
 .disposal-view-button:hover {
-  background-color: #fff1f2 !important;
+  background-color: color-mix(in srgb, var(--danger) 12%, var(--card-bg)) !important;
   border-color: #ef4444 !important;
   color: #b91c1c !important;
 }
@@ -1619,14 +1678,14 @@
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;
   padding: 1rem 1.25rem;
-  background: linear-gradient(to right, #fff5f5, #fff8f8);
-  border: 1px solid #feb2b2;
-  border-left: 4px solid #f56565;
+  background: color-mix(in srgb, var(--danger) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--border));
+  border-left: 4px solid var(--danger);
   border-radius: 0.85rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  box-shadow: 0 4px 12px rgba(245, 101, 101, 0.08);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--danger) 12%, transparent);
 }
 
 .warning-header {
