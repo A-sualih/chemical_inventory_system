@@ -9,6 +9,13 @@
   --cont-shadow-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
 }
 
+html[data-theme='ink'] {
+  --cont-glass-bg: rgba(23, 30, 39, 0.92);
+  --cont-glass-border: rgba(148, 163, 184, 0.14);
+  --cont-shadow-subtle: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+  --cont-shadow-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.45);
+}
+
 .containers-wrapper {
   padding-bottom: 5rem;
 }
@@ -103,7 +110,7 @@
 }
 
 .containers-search-input:focus {
-  background-color: white;
+  background-color: var(--card-bg);
   border-color: var(--cont-primary);
   box-shadow: 0 10px 25px -10px rgba(99, 102, 241, 0.2);
   transform: translateY(-1px);
@@ -166,7 +173,7 @@
 .container-stat-card:hover {
   transform: translateY(-8px) scale(1.03);
   box-shadow: var(--cont-shadow-hover);
-  background: white;
+  background: var(--card-bg);
 }
 
 .border-primary {
@@ -281,14 +288,14 @@
 }
 
 .status-filter-btn.active {
-  background: var(--secondary-900);
-  color: white;
+  background: var(--accent);
+  color: var(--btn-text);
   transform: translateY(-2px);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
 }
 
 .status-filter-btn:not(.active) {
-  background: white;
+  background: var(--card-bg);
   border-color: var(--secondary-100);
   color: var(--secondary-500);
 }
@@ -342,7 +349,7 @@
 .container-icon-box {
   width: 3rem;
   height: 3rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border: 1px solid var(--secondary-100);
   border-radius: 1rem;
   display: flex;
@@ -479,7 +486,7 @@ tr:hover .container-icon-box {
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 0.75rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border: 1px solid var(--secondary-200);
   color: var(--secondary-500);
   cursor: pointer;
@@ -614,7 +621,7 @@ tr:hover .container-icon-box {
 }
 
 .containers-modal {
-  background: #ffffff;
+  background: var(--card-bg);
   width: 100%;
   max-width: 52rem;
   border-radius: 32px;
@@ -749,7 +756,7 @@ tr:hover .container-icon-box {
 }
 
 .form-input-standard:focus {
-  background: #ffffff;
+  background: var(--card-bg);
   border-color: #4f46e5;
   box-shadow: 0 10px 25px -10px rgba(79, 70, 229, 0.2),
     0 0 0 4px rgba(79, 70, 229, 0.05);
@@ -767,17 +774,17 @@ select.form-input-standard {
 
 /* Storage Hierarchy Box - Blueprint Style */
 .storage-hierarchy-box {
-  background: #f1f5f9;
+  background: var(--surface2);
   padding: 2rem;
   border-radius: 24px;
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed var(--border);
   position: relative;
 }
 
 .storage-header {
   font-size: 0.75rem;
   font-weight: 900;
-  color: #475569;
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   display: flex;
@@ -796,7 +803,7 @@ select.form-input-standard {
   padding: 0.75rem;
   font-size: 0.8125rem;
   text-align: center;
-  background: #ffffff;
+  background: var(--card-bg);
 }
 
 /* Date Grid */
@@ -830,7 +837,7 @@ select.form-input-standard {
   display: flex;
   justify-content: flex-end;
   gap: 1.25rem;
-  background: white;
+  background: var(--card-bg);
   border-top: 1px solid #f1f5f9;
 }
 

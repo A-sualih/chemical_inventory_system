@@ -287,11 +287,7 @@ const InventoryLogs = () => {
                 </div>
               </div>
 
-              <div className="system-results-scroller" style={{ 
-                maxHeight: '220px', overflowY: 'auto', background: '#f8fafc', 
-                borderRadius: '1.5rem', border: '1px solid var(--secondary-100)',
-                padding: '0.5rem'
-              }}>
+              <div className="system-results-scroller">
                 {chemicals.filter(c => 
                   c.name.toLowerCase().includes(modalSearchTerm.toLowerCase()) || 
                   c.id.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
@@ -304,22 +300,14 @@ const InventoryLogs = () => {
                       setSelectedChemical(c);
                       setModalSearchTerm(c.name);
                     }}
-                    style={{
-                      padding: '1rem', borderRadius: '1rem', cursor: 'pointer',
-                      marginBottom: '0.5rem', transition: 'all 0.2s',
-                      background: selectedChemical?.id === c.id ? 'var(--primary-600)' : 'white',
-                      color: selectedChemical?.id === c.id ? 'white' : 'inherit',
-                      border: '1px solid var(--secondary-50)',
-                      boxShadow: selectedChemical?.id === c.id ? '0 10px 15px -3px rgba(99, 102, 241, 0.2)' : 'none'
-                    }}
                   >
-                    <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>{c.name}</div>
-                    <div style={{ fontSize: '0.7rem', opacity: selectedChemical?.id === c.id ? 0.8 : 0.5, fontWeight: 700, marginTop: '0.2rem' }}>
+                    <div className="system-item-name">{c.name}</div>
+                    <div className="system-item-meta">
                       LOT: {c.batch_number || 'N/A'} • ID: {c.id}
                     </div>
                   </div>
                 ))}
-                {chemicals.length === 0 && <p style={{ textAlign: 'center', padding: '1rem', fontSize: '0.8rem', color: 'var(--secondary-400)' }}>No chemical systems active</p>}
+                {chemicals.length === 0 && <p className="system-results-empty">No chemical systems active</p>}
               </div>
 
               {!selectedChemical && (
@@ -346,14 +334,7 @@ const InventoryLogs = () => {
                     setIsPickerOpen(false);
                     setIsActionModalOpen(true);
                   }}
-                  className="btn-primary-picker"
-                  style={{
-                    background: selectedChemical ? 'var(--primary-600)' : 'var(--secondary-200)',
-                    color: 'white',
-                    cursor: selectedChemical ? 'pointer' : 'not-allowed',
-                    border: 'none',
-                    transition: 'all 0.3s'
-                  }}
+                  className={`btn-primary-picker ${selectedChemical ? 'is-ready' : 'is-disabled'}`}
                 >
                   Confirm & Proceed
                 </button>

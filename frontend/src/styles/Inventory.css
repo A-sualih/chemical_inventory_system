@@ -97,7 +97,7 @@
 .inventory-action-btn {
   position: relative;
   padding: 0.75rem 1.5rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border: 1px solid var(--secondary-200);
   border-radius: 1rem;
   font-weight: 900;
@@ -147,7 +147,7 @@
 
 /* Ledger Card */
 .ledger-card {
-  background-color: white;
+  background-color: var(--card-bg);
   padding: 1.5rem;
   border-radius: 3rem;
   border: 1px solid var(--secondary-100);
@@ -194,7 +194,7 @@
 
 .ledger-input:focus {
   outline: none;
-  background: white !important;
+  background: var(--card-bg) !important;
   border-color: var(--primary-400) !important;
   box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.1), 0 4px 6px -2px rgba(99, 102, 241, 0.05) !important;
 }
@@ -290,7 +290,7 @@
   padding: 1rem 1rem 1rem 3.5rem;
   border-radius: 1.25rem;
   border: 1px solid var(--secondary-100);
-  background: white;
+  background: var(--card-bg);
   font-weight: 600;
   font-size: 0.9rem;
   outline: none;
@@ -325,7 +325,7 @@
 }
 
 .filter-pill-btn.active {
-  background: white;
+  background: var(--card-bg);
   color: var(--primary-600);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
@@ -429,7 +429,7 @@
 
   .table-row {
     margin-bottom: 1.5rem;
-    background: white;
+    background: var(--card-bg);
     border-radius: 1.5rem;
     border: 1px solid var(--secondary-100);
     box-shadow: 0 4px 15px rgba(0,0,0,0.03);
@@ -777,7 +777,7 @@
 }
 
 .picker-content {
-  background-color: white;
+  background-color: var(--card-bg);
   width: 100%;
   max-width: 36rem;
   /* xl */
@@ -785,6 +785,8 @@
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   padding: 2.5rem;
   animation: zoom-in 0.3s ease-out;
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 @keyframes zoom-in {
@@ -809,14 +811,14 @@
 .picker-title {
   font-size: 1.875rem;
   font-weight: 900;
-  color: var(--secondary-950);
+  color: var(--text);
   font-family: var(--font-display);
   letter-spacing: -0.025em;
 }
 
 .picker-subtitle {
   font-size: 11px;
-  color: var(--secondary-500);
+  color: var(--muted);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -827,16 +829,18 @@
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 1rem;
-  background-color: var(--secondary-50);
-  color: var(--secondary-400);
+  background-color: var(--surface2);
+  color: var(--muted);
   transition: all 0.2s;
   font-weight: 700;
   font-size: 1.25rem;
+  border: 1px solid var(--border);
 }
 
 .close-btn-round:hover {
-  background-color: #fef2f2;
-  color: #ef4444;
+  background-color: color-mix(in srgb, var(--danger) 15%, var(--surface));
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, var(--border));
 }
 
 .picker-form {
@@ -848,7 +852,7 @@
 .picker-label {
   font-size: 11px;
   font-weight: 900;
-  color: var(--secondary-500);
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   display: block;
@@ -862,12 +866,13 @@
 
 .picker-select {
   width: 100%;
-  background-color: var(--secondary-50);
-  border: 2px solid var(--secondary-100);
+  background-color: var(--input-bg);
+  border: 2px solid var(--border);
   border-radius: 2rem;
   padding: 1.25rem;
   font-size: 1rem;
   font-weight: 900;
+  color: var(--text);
   appearance: none;
   cursor: pointer;
   transition: all 0.2s;
@@ -876,7 +881,12 @@
 }
 
 .picker-select:focus {
-  border-color: var(--primary-500);
+  border-color: var(--accent);
+}
+
+.picker-select::placeholder {
+  color: var(--muted);
+  font-weight: 600;
 }
 
 .select-icon-absolute {
@@ -888,15 +898,71 @@
   color: var(--secondary-400);
 }
 
+.system-results-scroller {
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--surface2);
+  border-radius: 1.5rem;
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+}
+
+.system-item-card {
+  padding: 1rem;
+  border-radius: 1rem;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.system-item-card:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.system-item-card.selected {
+  background: var(--accent);
+  color: var(--btn-text);
+  border-color: var(--accent);
+  box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.system-item-name {
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.system-item-meta {
+  font-size: 0.7rem;
+  opacity: 0.55;
+  font-weight: 700;
+  margin-top: 0.2rem;
+}
+
+.system-item-card.selected .system-item-meta {
+  opacity: 0.8;
+}
+
+.system-results-empty {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0;
+}
+
 .waiting-card {
-  background-color: rgba(248, 250, 252, 0.5);
+  background-color: color-mix(in srgb, var(--surface2) 80%, transparent);
   padding: 2.5rem;
   border-radius: 2rem;
-  border: 2px dashed var(--secondary-200);
+  border: 2px dashed var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.6;
+  opacity: 0.85;
 }
 
 .waiting-content {
@@ -906,7 +972,7 @@
 .waiting-icon-box {
   width: 3rem;
   height: 3rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -919,7 +985,7 @@
 .waiting-text {
   font-size: 10px;
   font-weight: 900;
-  color: var(--secondary-400);
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -936,13 +1002,15 @@
   border-radius: 2rem;
   font-weight: 900;
   font-size: 0.875rem;
-  color: var(--secondary-500);
-  background-color: var(--secondary-50);
+  color: var(--text);
+  background-color: transparent;
+  border: 1px solid var(--border);
   transition: all 0.2s;
 }
 
 .btn-secondary-picker:hover {
-  background-color: var(--secondary-100);
+  background-color: var(--surface2);
+  border-color: var(--muted);
 }
 
 .btn-primary-picker {
@@ -951,11 +1019,22 @@
   border-radius: 2rem;
   font-weight: 900;
   font-size: 0.875rem;
-  color: white;
-  background-color: var(--secondary-300);
+  color: var(--btn-text);
+  border: none;
+  transition: all 0.3s;
+}
+
+.btn-primary-picker.is-ready {
+  background: var(--accent);
+  cursor: pointer;
+  box-shadow: 0 10px 20px -8px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.btn-primary-picker.is-disabled {
+  background: var(--secondary-200);
+  color: var(--muted);
   cursor: not-allowed;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  box-shadow: none;
 }
 
 /* Stock Action Modal */
@@ -979,7 +1058,7 @@
 .stock-modal-container {
   position: relative;
   width: 100%;
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 2.5rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   overflow: hidden;
@@ -1004,7 +1083,7 @@
 .stock-modal-header {
   padding: 2rem;
   border-bottom: 1px solid var(--secondary-50);
-  background-color: white;
+  background-color: var(--card-bg);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -1020,7 +1099,7 @@
   font-size: 1.875rem;
   font-weight: 900;
   font-family: var(--font-display);
-  color: var(--secondary-900);
+  color: var(--text);
   letter-spacing: -0.025em;
 }
 
@@ -1122,7 +1201,7 @@
 }
 
 .strip-btn.active {
-  background-color: white;
+  background-color: var(--card-bg);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   border: 1px solid var(--secondary-200);
 }
@@ -1384,7 +1463,7 @@
 }
 
 .stock-input-white {
-  background-color: white;
+  background-color: var(--card-bg);
   border-color: var(--secondary-100);
 }
 
@@ -1415,7 +1494,7 @@
 
 .warning-alert-box {
   padding: 1rem;
-  background-color: #fffbeb;
+  background-color: color-mix(in srgb, var(--warn) 12%, var(--card-bg));
   border: 1px solid #fef3c7;
   border-radius: 1rem;
   display: flex;
@@ -1446,7 +1525,7 @@
 
 .compliance-panel {
   padding: 1.25rem;
-  background-color: #fffbeb;
+  background-color: color-mix(in srgb, var(--warn) 12%, var(--card-bg));
   border: 1px solid #fef3c7;
   border-radius: 1.5rem;
   display: flex;
@@ -1501,7 +1580,7 @@
 }
 
 .compliance-checkbox-label:hover {
-  background-color: white;
+  background-color: var(--card-bg);
 }
 
 .compliance-checkbox {

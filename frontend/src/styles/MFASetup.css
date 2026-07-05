@@ -32,15 +32,15 @@
 }
 
 .mfa-alert-success {
-  background-color: #f0fdf4; /* green-50 */
-  border: 1px solid #bbf7d0; /* green-200 */
-  color: #15803d; /* green-700 */
+  background-color: color-mix(in srgb, var(--success) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success) 28%, transparent);
+  color: var(--success);
 }
 
 .mfa-alert-error {
-  background-color: #fef2f2; /* red-50 */
-  border: 1px solid #fecaca; /* red-200 */
-  color: #b91c1c; /* red-700 */
+  background-color: color-mix(in srgb, var(--danger) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 28%, transparent);
+  color: var(--danger);
 }
 
 .mfa-alert-icon {
@@ -56,8 +56,8 @@
 }
 
 .mfa-method-card {
-  background-color: white;
-  border: 1px solid var(--secondary-100);
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
   border-radius: 2.5rem;
   padding: 2rem;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -95,8 +95,8 @@
 }
 
 .mfa-method-icon-box.orange {
-  background-color: #ffedd5; /* orange-100 */
-  color: #ea580c; /* orange-600 */
+  background-color: color-mix(in srgb, var(--warn) 14%, transparent);
+  color: var(--warn);
 }
 
 .mfa-method-icon {
@@ -126,8 +126,8 @@
 }
 
 .mfa-btn-primary {
-  background-color: var(--primary-600);
-  color: white;
+  background-color: var(--accent);
+  color: var(--btn-text);
   border: none;
 }
 
@@ -136,16 +136,16 @@
 .mfa-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .mfa-btn-secondary {
-  background-color: white;
-  color: var(--secondary-900);
-  border: 1px solid var(--secondary-200);
+  background-color: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
 .mfa-btn-secondary:hover { background-color: var(--secondary-50); }
 .mfa-btn-secondary:active { transform: scale(0.95); }
 
 .mfa-disable-btn {
-  color: #ef4444; /* red-500 */
+  color: var(--danger);
   font-weight: 700;
   font-size: 0.875rem;
   background: none;
@@ -159,8 +159,8 @@
 
 /* Setup Panels */
 .mfa-setup-panel {
-  background-color: white;
-  border: 1px solid var(--secondary-100);
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
   border-radius: 2.5rem;
   padding: 2.5rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -271,7 +271,7 @@
 .mfa-submit-btn {
   width: 100%;
   background-color: var(--primary-600);
-  color: white;
+  color: var(--btn-text);
   padding: 1rem;
   border-radius: 1rem;
   font-weight: 700;

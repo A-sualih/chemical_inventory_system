@@ -35,7 +35,7 @@
   margin-bottom: 2.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--secondary-100);
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--card-bg);
   backdrop-filter: blur(10px);
   padding: 2rem;
   border-radius: 1.5rem;
@@ -71,10 +71,10 @@
 }
 
 .section-card {
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--card-bg);
   backdrop-filter: blur(20px);
   border-radius: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border);
   box-shadow: 0 20px 40px -10px rgba(0,0,0,0.05);
   overflow: hidden;
   display: flex;
@@ -85,7 +85,7 @@
   font-size: 1.25rem;
   margin: 0;
   padding: 1.5rem 2rem;
-  background: linear-gradient(to right, rgba(248, 250, 252, 0.9), rgba(255, 255, 255, 0));
+  background: var(--surface2);
   color: var(--secondary-800);
   border-bottom: 1px solid var(--secondary-100);
   font-weight: 800;
@@ -125,7 +125,7 @@
 }
 
 .lab-card:hover {
-  background: white;
+  background: var(--card-bg);
   border-color: var(--primary-200);
   box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.1);
   transform: translateY(-2px);
@@ -174,7 +174,7 @@
 }
 
 .user-assignment-card {
-  background: white;
+  background: var(--card-bg);
   border: 1px solid var(--secondary-200);
   border-radius: 1.5rem;
   padding: 1.5rem;
@@ -267,7 +267,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem 0.5rem 0.5rem 0.75rem;
-  background: white;
+  background: var(--card-bg);
   border-radius: 0.75rem;
   border: 1px solid var(--secondary-200);
   color: var(--secondary-700);
@@ -304,7 +304,7 @@
 .switch-circle {
   width: 1rem;
   height: 1rem;
-  background: white;
+  background: var(--card-bg);
   border-radius: 50%;
   position: absolute;
   top: 0.125rem;
@@ -341,7 +341,7 @@
 /* Premium Registration Modal */
 .lab-registration-modal {
   max-width: 30rem !important;
-  background: rgba(255, 255, 255, 0.9) !important;
+  background: var(--card-bg) !important;
   backdrop-filter: blur(24px) !important;
   border: 1px solid rgba(255, 255, 255, 0.8) !important;
   padding: 0 !important; /* Reset padding for internal layout */
@@ -357,7 +357,7 @@
 .modal-icon-glow {
   width: 4rem;
   height: 4rem;
-  background: white;
+  background: var(--card-bg);
   border-radius: 1.25rem;
   display: flex;
   align-items: center;
@@ -411,7 +411,7 @@
 
 .field-input-premium {
   width: 100%;
-  background: white;
+  background: var(--card-bg);
   border: 2px solid var(--secondary-100);
   border-radius: 1.25rem;
   padding: 1rem 1.25rem;
@@ -424,7 +424,7 @@
 
 .field-input-premium:focus {
   border-color: var(--primary-400);
-  background: white;
+  background: var(--card-bg);
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
@@ -485,7 +485,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1.25rem;
-  background: white;
+  background: var(--card-bg);
   color: #ef4444;
   border: 1.5px solid rgba(239, 68, 68, 0.2);
   border-radius: 1rem;
@@ -608,4 +608,32 @@
     align-items: flex-start;
     text-align: left;
   }
+}
+
+
+html[data-theme='ink'] .header-actions {
+  background: var(--card-bg);
+  border-color: var(--border);
+}
+html[data-theme='ink'] .header-actions h1,
+html[data-theme='ink'] .section-card h2 {
+  color: var(--text);
+}
+html[data-theme='ink'] .section-card {
+  background: var(--card-bg);
+  border-color: var(--border);
+}
+html[data-theme='ink'] .btn-decommission-premium {
+  background: color-mix(in srgb, var(--danger) 12%, var(--card-bg));
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
+}
+html[data-theme='ink'] .btn-decommission-premium:hover {
+  background: color-mix(in srgb, var(--danger) 22%, var(--card-bg));
+}
+html[data-theme='ink'] .lab-toggle,
+html[data-theme='ink'] .user-assignment-card {
+  background: var(--surface2);
+  border-color: var(--border);
+  color: var(--text);
 }

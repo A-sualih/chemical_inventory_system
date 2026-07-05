@@ -78,7 +78,7 @@
 }
 
 .settings-section-card {
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 2rem;
   border: 1px solid var(--secondary-100);
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -104,7 +104,7 @@
 .settings-section-icon {
   width: 2.5rem;
   height: 2.5rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 0.75rem;
   display: flex;
   align-items: center;
@@ -173,7 +173,7 @@
 .settings-select:focus {
   outline: none;
   border-color: var(--primary-100);
-  background-color: white;
+  background-color: var(--card-bg);
   box-shadow: 0 0 0 4px var(--primary-50);
 }
 
@@ -191,7 +191,7 @@
   width: 4rem;
   height: 4rem;
   border-radius: 1rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border: 1px solid var(--secondary-200);
   display: flex;
   align-items: center;
@@ -231,12 +231,12 @@
 }
 
 .checkbox-card:hover {
-  background-color: white;
+  background-color: var(--card-bg);
   border-color: var(--primary-100);
 }
 
 .checkbox-card.active {
-  background-color: white;
+  background-color: var(--card-bg);
   border-color: var(--primary-600);
   box-shadow: 0 4px 10px rgba(37, 99, 235, 0.1);
 }
@@ -328,4 +328,29 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+
+html[data-theme='ink'] .settings-section-card {
+  background: var(--card-bg);
+  border-color: var(--border);
+}
+html[data-theme='ink'] .settings-section-header {
+  background: var(--surface2);
+  border-bottom-color: var(--border);
+}
+html[data-theme='ink'] .settings-section-header h2,
+html[data-theme='ink'] .settings-header h1 {
+  color: var(--text);
+}
+html[data-theme='ink'] .settings-section-card input,
+html[data-theme='ink'] .settings-section-card select,
+html[data-theme='ink'] .settings-section-card textarea {
+  background: var(--input-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+html[data-theme='ink'] .btn-primary-glow {
+  background: var(--accent);
+  color: var(--btn-text);
 }

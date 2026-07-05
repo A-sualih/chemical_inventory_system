@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { fmtQty } from '../utils/formatQuantity';
+import { notifyAction } from '../utils/confirmAction';
 import '../styles/Reports.css';
 
 const COLORS = ['#0f172a', '#3b82f6', '#f59e0b', '#ef4444', '#10b981', '#6366f1'];
@@ -36,9 +37,11 @@ const Reports = () => {
   const [usageData, setUsageData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [loadError, setLoadError] = useState('');
 
   const fetchData = async () => {
     setLoading(true);
+    setLoadError('');
     try {
       const [invRes, usageRes] = await Promise.all([
         axios.get('/api/reports/inventory'),
@@ -48,7 +51,11 @@ const Reports = () => {
       setUsageData(usageRes.data);
     } catch (err) {
       console.error("Error fetching report data", err);
-      alert("Failed to load analytics data. Please ensure you have sufficient permissions and the server is reachable.");
+      const msg =
+        err.response?.data?.error ||
+        'Could not load analytics. Check permissions or try again.';
+      setLoadError(msg);
+      notifyAction(msg, { success: false });
     } finally {
       setLoading(false);
     }
@@ -73,7 +80,7 @@ const Reports = () => {
       link.remove();
     } catch (err) {
       console.error(`Error exporting ${type}`, err);
-      alert(`Failed to export ${type}.`);
+      notifyAction(`Failed to export ${type}.`, { success: false });
     }
   };
 
@@ -82,6 +89,20 @@ const Reports = () => {
       <Layout>
         <div className="loading-container">
           <div className="spinner-lg"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (loadError && !inventoryData) {
+    return (
+      <Layout>
+        <div className="reports-error-panel">
+          <h2>Analytics unavailable</h2>
+          <p>{loadError}</p>
+          <button type="button" className="reports-retry-btn" onClick={() => void fetchData()}>
+            Try again
+          </button>
         </div>
       </Layout>
     );

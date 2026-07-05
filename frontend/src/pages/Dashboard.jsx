@@ -320,11 +320,11 @@ const Dashboard = () => {
                </div>
             </div>
           ) : hasPermission("submit_request") && user?.role !== "Admin" && (
-            <div className="dashboard-section activity-card" style={{ background: 'var(--primary-600)', overflow: 'hidden' }}>
-              <div className="approvals-bg-glow" style={{ background: 'radial-gradient(circle at top right, rgba(255,255,255,0.2), transparent)' }}></div>
+            <div className="dashboard-section my-requests-panel" style={{ overflow: 'hidden' }}>
+              <div className="approvals-bg-glow"></div>
               <div className="section-header" style={{position: 'relative', zIndex: 10}}>
-                <h2 className="section-title text-white">My Requests</h2>
-                <span className="stat-label" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                <h2 className="section-title" style={{ color: 'var(--btn-text)' }}>My Requests</h2>
+                <span className="stat-label" style={{ color: 'color-mix(in srgb, var(--btn-text) 80%, transparent)' }}>
                   {pendingRequests.filter(r => r.status === 'Pending').length} Active
                 </span>
               </div>

@@ -284,7 +284,7 @@
 
 .mfa-btn-success {
   display: inline-block;
-  background-color: white;
+  background-color: var(--card-bg);
   color: #020617; /* secondary-950 */
   padding: 1rem 2.5rem;
   border-radius: 1rem;

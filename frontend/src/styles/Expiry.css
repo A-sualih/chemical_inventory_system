@@ -127,8 +127,8 @@
 }
 
 .expiry-filter-pill.active {
-  background-color: var(--secondary-900);
-  color: white;
+  background-color: var(--accent);
+  color: var(--btn-text);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
@@ -141,7 +141,7 @@
 }
 
 .expiry-stat-card {
-  background-color: white;
+  background-color: var(--card-bg);
   padding: 2rem;
   border-radius: 2rem;
   border: 1px solid transparent;
@@ -193,7 +193,7 @@
 
 /* Ledger Card */
 .expiry-ledger-card {
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 2.5rem;
   border: 1px solid var(--secondary-200);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
@@ -257,7 +257,7 @@
 
 .expiry-table th {
   padding: 1.25rem 2rem;
-  background-color: white;
+  background-color: var(--card-bg);
   font-size: 0.7rem;
   font-weight: 900;
   color: var(--secondary-400);
@@ -371,7 +371,7 @@
   }
 
   .expiry-table tr {
-    background: white;
+    background: var(--card-bg);
     margin-bottom: 1.5rem;
     border-radius: 2rem;
     border: 1px solid var(--secondary-100);
@@ -429,20 +429,57 @@
 }
 
 .report-card {
-  background-color: var(--secondary-900);
+  background-color: var(--sidebar-bg);
   padding: 3rem;
   border-radius: 2.5rem;
-  color: white;
+  color: var(--sidebar-text);
+  border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-.report-card-title { font-size: 1.75rem; font-weight: 900; margin-bottom: 1rem; letter-spacing: -0.02em; }
-.report-card-desc { color: var(--secondary-400); font-size: 0.9375rem; line-height: 1.6; margin-bottom: 2rem; }
+.report-card-title { font-size: 1.75rem; font-weight: 900; margin-bottom: 1rem; letter-spacing: -0.02em; color: var(--sidebar-text); }
+.report-card-desc { color: var(--sidebar-muted); font-size: 0.9375rem; line-height: 1.6; margin-bottom: 2rem; }
+
+.btn-dispatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.9rem 1.5rem;
+  border: none;
+  border-radius: 0.9rem;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  color: var(--btn-text);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 12px 28px -8px color-mix(in srgb, var(--accent) 55%, transparent);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.btn-dispatch:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow: 0 16px 32px -10px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.btn-dispatch:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-dispatch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
 
 .info-card {
-  background-color: white;
+  background-color: var(--card-bg);
   padding: 3rem;
   border-radius: 2.5rem;
   border: 1px solid var(--secondary-200);

@@ -10,15 +10,20 @@
   --out-color: #B45309;
   --success-color: #059669;
   --danger-color: #DC2626;
-  --glass-bg: rgba(255, 255, 255, 0.88);
-  --glass-border: rgba(255, 255, 255, 0.6);
-  --surface: #F8FAFC;
-  --border: #E2E8F0;
   --text-main: #1E293B;
   --text-muted: #64748B;
   --text-faint: #94A3B8;
   --indigo: #6366F1;
   --indigo-dark: #4338CA;
+}
+
+html[data-theme='ink'] {
+  --primary-glow: linear-gradient(135deg, #2dd4bf 0%, #7aa2ff 100%);
+  --text-main: var(--text);
+  --text-muted: var(--muted);
+  --text-faint: #94A3B8;
+  --indigo: #2dd4bf;
+  --indigo-dark: #5eead4;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -115,12 +120,13 @@
   align-items: center;
   margin-bottom: 1.25rem;
   padding: 1rem 1.5rem;
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 1.25rem;
   border: 1px solid var(--border);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  box-shadow: var(--shadow);
   font-size: 0.8125rem;
   box-sizing: border-box;
+  color: var(--text);
 }
 
 .legend-item {
@@ -186,7 +192,7 @@
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   border-radius: 1.5rem;
-  background: #fff;
+  background: var(--card-bg);
 }
 .table-scroll-container::-webkit-scrollbar { height: 5px; }
 .table-scroll-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -369,9 +375,9 @@
   font-size: 0.75rem;
   font-weight: 800;
   border-radius: 1rem;
-  border: 1px solid var(--secondary-200, #E2E8F0);
-  background: white;
-  color: var(--secondary-600, #475569);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: inline-flex;
   align-items: center;
@@ -411,16 +417,17 @@
 }
 
 .transfer-mobile-card {
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 1.5rem;
   border: 1px solid var(--border);
   padding: 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  box-shadow: 0 6px 20px -6px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow);
   box-sizing: border-box;
   transition: transform 0.25s;
+  color: var(--text);
 }
 .transfer-mobile-card:hover { transform: translateY(-3px); }
 
@@ -568,7 +575,7 @@
    14. MODAL BOX
    ══════════════════════════════════════════════════════════ */
 .transfer-modal {
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 2.5rem;
   width: min(640px, 100%);
   max-height: calc(100vh - 2rem);
@@ -577,6 +584,8 @@
   overflow: hidden;
   box-shadow: 0 60px 120px -30px rgba(0,0,0,0.4);
   animation: modalPop 0.4s cubic-bezier(0.19, 1, 0.22, 1) both;
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 @keyframes modalPop {
@@ -672,7 +681,7 @@
 .form-group label {
   font-size: 0.625rem;
   font-weight: 950;
-  color: var(--text-muted);
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.14em;
   margin-bottom: 0.625rem;
@@ -683,13 +692,13 @@
 .transfer-modal input[type="text"],
 .transfer-modal input[type="number"] {
   width: 100%;
-  background: var(--surface);
-  border: 2px solid #E2E8F0;
+  background: var(--input-bg);
+  border: 2px solid var(--border);
   padding: 0.875rem 1.25rem;
   border-radius: 1.25rem;
   font-weight: 700;
   font-size: 0.9375rem;
-  color: var(--text-main);
+  color: var(--text);
   transition: border-color 0.25s, box-shadow 0.25s;
   box-sizing: border-box;
   appearance: auto;
@@ -697,9 +706,9 @@
 .transfer-modal select:focus,
 .transfer-modal input:focus {
   outline: none;
-  border-color: var(--indigo);
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -719,11 +728,11 @@
    ══════════════════════════════════════════════════════════ */
 .chem-search-hint {
   padding: 0.875rem 1.25rem;
-  background: var(--surface);
+  background: var(--surface2);
   border-radius: 1rem;
   border: 2px dashed var(--border);
   font-size: 0.8125rem;
-  color: var(--text-faint);
+  color: var(--muted);
   font-weight: 700;
   text-align: center;
 }
@@ -806,7 +815,7 @@
   top: calc(100% + 0.5rem);
   left: 0;
   right: 0;
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 1.5rem;
   box-shadow: 0 24px 60px rgba(0,0,0,0.18);
   max-height: 280px;
@@ -814,6 +823,7 @@
   padding: 0.75rem;
   z-index: 100;
   box-sizing: border-box;
+  border: 1px solid var(--border);
 }
 .chem-dropdown::-webkit-scrollbar { width: 4px; }
 .chem-dropdown::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -849,12 +859,12 @@
 .chem-cas-badge,
 .chem-formula-badge,
 .chem-qty-badge {
-  background: #F1F5F9;
+  background: var(--surface2);
   padding: 0.175rem 0.5rem;
   border-radius: 0.5rem;
   font-size: 0.625rem;
   font-weight: 800;
-  color: #475569;
+  color: var(--muted);
   text-transform: uppercase;
 }
 .chem-status-dot {
@@ -882,12 +892,12 @@
    ══════════════════════════════════════════════════════════ */
 .transfer-form textarea {
   width: 100% !important;
-  background: var(--surface) !important;
-  border: 2px solid #E2E8F0 !important;
+  background: var(--input-bg) !important;
+  border: 2px solid var(--border) !important;
   border-radius: 1.25rem !important;
   padding: 0.875rem 1.25rem !important;
   font-size: 0.9375rem !important;
-  color: var(--text-main) !important;
+  color: var(--text) !important;
   resize: vertical;
   outline: none;
   font-family: inherit;
@@ -895,9 +905,9 @@
   transition: border-color 0.25s, box-shadow 0.25s;
 }
 .transfer-form textarea:focus {
-  border-color: var(--indigo) !important;
-  background: #fff !important;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important;
+  border-color: var(--accent) !important;
+  background: var(--surface) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent) !important;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -929,15 +939,18 @@
   gap: 0.5rem;
   padding: 0.875rem 1.75rem;
   border-radius: 1.25rem;
-  background: #F1F5F9;
-  color: var(--text-muted);
+  background: transparent;
+  color: var(--text);
   font-weight: 800;
   font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  border: none;
+  border: 1px solid var(--border);
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.2s;
+  transition: background 0.2s, border-color 0.2s;
 }
-.btn-form-secondary:hover { background: #E2E8F0; }
+.btn-form-secondary:hover {
+  background: var(--surface2);
+  border-color: var(--muted);
+}

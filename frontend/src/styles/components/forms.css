@@ -1,14 +1,15 @@
 /* forms.css */
 
 .filter-panel {
-  background-color: white;
+  background-color: var(--card-bg);
   padding: 1.5rem;
   border-radius: 2rem;
-  border: 1px solid var(--secondary-100);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  color: var(--text);
 }
 
 .filter-section-header {
@@ -21,7 +22,7 @@
 .filter-section-title {
   font-size: 0.75rem;
   font-weight: 900;
-  color: var(--secondary-400);
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -29,7 +30,7 @@
 .filter-reset-btn {
   font-size: 10px;
   font-weight: 700;
-  color: var(--primary-600);
+  color: var(--accent);
   background: none;
   border: none;
   cursor: pointer;
@@ -52,19 +53,20 @@
   font-weight: 900;
   text-transform: uppercase;
   transition: all 0.2s;
-  border: 1px solid var(--secondary-100);
-  background-color: white;
-  color: var(--secondary-500);
+  border: 1px solid var(--border);
+  background-color: var(--surface2);
+  color: var(--muted);
 }
 
 .filter-tag-btn:hover {
-  border-color: var(--secondary-300);
+  border-color: var(--accent);
+  color: var(--text);
 }
 
 .filter-tag-btn.active {
-  background-color: var(--secondary-900);
-  color: white;
-  border-color: var(--secondary-900);
+  background-color: var(--accent);
+  color: var(--btn-text);
+  border-color: var(--accent);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
@@ -85,19 +87,19 @@
   width: 1rem;
   height: 1rem;
   border-radius: 0.25rem;
-  border: 1px solid var(--secondary-300);
-  accent-color: var(--primary-600);
+  border: 1px solid var(--border);
+  accent-color: var(--accent);
 }
 
 .filter-checkbox-label {
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--secondary-600);
+  color: var(--text);
   transition: color 0.2s;
 }
 
 .filter-checkbox-item:hover .filter-checkbox-label {
-  color: var(--secondary-900);
+  color: var(--accent);
 }
 
 .filter-input-group {

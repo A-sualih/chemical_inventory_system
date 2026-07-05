@@ -7,7 +7,7 @@ import "../../styles/LocationManager.css";
 
 const LocationManager = () => {
   const { user } = useAuth();
-  const isAdmin = user?.role === "Admin" || user?.role === "Lab Manager";
+  const canCreateLocations = user?.role === "Lab Manager";
 
   const [hierarchy, setHierarchy] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -102,7 +102,7 @@ const LocationManager = () => {
           <h1 className="loc-title">Hierarchical Storage</h1>
           <p className="loc-subtitle">Manage Building (Block) → Room → Cabinet → Shelf Hierarchy</p>
         </div>
-        {isAdmin && (
+        {canCreateLocations && (
           <button onClick={() => openModal('block')} className="add-loc-btn">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
             Add Block
@@ -120,7 +120,7 @@ const LocationManager = () => {
           <div className="empty-state">
             <h3 className="empty-title">No Blocks Configured</h3>
             <p className="empty-desc">Begin by adding your first building block.</p>
-            {isAdmin && <button onClick={() => openModal('block')} className="add-loc-btn mx-auto">Add Block</button>}
+            {canCreateLocations && <button onClick={() => openModal('block')} className="add-loc-btn mx-auto">Add Block</button>}
           </div>
         ) : (
           <div className="tree-view">
@@ -130,7 +130,7 @@ const LocationManager = () => {
                   <span className={`expand-icon ${expanded[block._id] ? 'expanded' : ''}`}>▶</span>
                   <span className="item-icon"><Building2 className="w-4 h-4 inline-block mr-1" /></span>
                   <span className="item-name">{block.name}</span>
-                  {isAdmin && (
+                  {canCreateLocations && (
                     <button className="tree-add-btn" onClick={(e) => { e.stopPropagation(); openModal('room', block._id); }}>+ Add Room</button>
                   )}
                 </div>
@@ -144,7 +144,7 @@ const LocationManager = () => {
                             <span className={`expand-icon ${expanded[room._id] ? 'expanded' : ''}`}>▶</span>
                             <span className="item-icon"><DoorOpen className="w-4 h-4 inline-block mr-1" /></span>
                             <span className="item-name">{room.name}</span>
-                            {isAdmin && (
+                            {canCreateLocations && (
                               <button className="tree-add-btn" onClick={(e) => { e.stopPropagation(); openModal('cabinet', room._id); }}>+ Add Cabinet</button>
                             )}
                           </div>
@@ -158,7 +158,7 @@ const LocationManager = () => {
                                       <span className={`expand-icon ${expanded[cabinet._id] ? 'expanded' : ''}`}>▶</span>
                                       <span className="item-icon"><Archive className="w-4 h-4 inline-block mr-1" /></span>
                                       <span className="item-name">{cabinet.name}</span>
-                                      {isAdmin && (
+                                      {canCreateLocations && (
                                         <button className="tree-add-btn" onClick={(e) => { e.stopPropagation(); openModal('shelf', cabinet._id); }}>+ Add Shelf</button>
                                       )}
                                     </div>

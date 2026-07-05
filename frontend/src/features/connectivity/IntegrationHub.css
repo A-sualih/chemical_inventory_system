@@ -59,15 +59,16 @@
 }
 
 .integration-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 2rem;
   padding: 1.75rem;
-  border: 1px solid var(--secondary-100);
+  border: 1px solid var(--border);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+  box-shadow: var(--shadow);
+  color: var(--text);
 }
 
 .integration-card:hover {
@@ -135,13 +136,13 @@
 .card-info h3 {
   font-size: 1.125rem;
   font-weight: 800;
-  color: var(--secondary-900);
+  color: var(--text);
   margin-bottom: 0.25rem;
 }
 
 .card-info p {
   font-size: 0.875rem;
-  color: var(--secondary-500);
+  color: var(--muted);
   line-height: 1.5;
 }
 
@@ -171,11 +172,12 @@
 
 /* Data Exchange Panel */
 .data-exchange-panel {
-  background: white;
+  background: var(--card-bg);
   border-radius: 2.5rem;
   padding: 2.5rem;
-  border: 1px solid var(--secondary-100);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  color: var(--text);
 }
 
 .exchange-header {
@@ -235,11 +237,11 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 1.25rem;
-  background: white;
-  border: 1px solid var(--secondary-200);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 1.25rem;
   font-weight: 800;
-  color: var(--secondary-700);
+  color: var(--text);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -340,6 +342,20 @@
 
 .file-type-icon { color: #94a3b8; }
 .file-name { font-size: 0.875rem; font-weight: 600; }
+
+.recent-transfers-title {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+  font-weight: 800;
+}
+
+.file-meta {
+  font-size: 0.65rem;
+  color: #94a3b8;
+}
 
 .sync-status {
   display: flex;

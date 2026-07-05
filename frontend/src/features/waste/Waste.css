@@ -20,6 +20,16 @@
   --waste-border: rgba(255, 255, 255, 0.3);
 }
 
+html[data-theme='ink'] {
+  --waste-glass-bg: rgba(23, 30, 39, 0.92);
+  --waste-glass-border: rgba(148, 163, 184, 0.14);
+  --waste-surface: var(--card-bg);
+  --waste-border: var(--border);
+  --waste-shadow-sm: var(--shadow);
+  --waste-shadow-lg: var(--shadow);
+  --waste-shadow-premium: var(--shadow);
+}
+
 .waste-container {
   padding: 2.5rem;
   max-width: 100vw;
@@ -120,15 +130,16 @@
 }
 
 .waste-tab:hover {
-  color: var(--secondary-900);
-  background: rgba(255, 255, 255, 0.5);
+  color: var(--text);
+  background: var(--surface2);
 }
 
 .waste-tab.active {
-  background: white;
+  background: var(--card-bg);
   color: var(--waste-primary);
-  box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.2);
+  box-shadow: var(--shadow);
   transform: scale(1.02);
+  border-color: var(--border);
 }
 
 /* Dynamic Stats Grid */
@@ -242,7 +253,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 2rem;
-  background: rgba(255, 255, 255, 0.3);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
 }
 
 .waste-table {
@@ -265,7 +276,7 @@
 
 .waste-table td {
   padding: 1.5rem 2rem;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface2);
   transition: all 0.3s ease;
   border-top: 1px solid var(--secondary-50);
   border-bottom: 1px solid var(--secondary-50);
@@ -284,7 +295,7 @@
 }
 
 .waste-table tr:hover td {
-  background: white;
+  background: var(--card-bg);
   transform: translateY(-2px);
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
   border-color: var(--secondary-100);
@@ -504,7 +515,7 @@
 .waste-empty-state {
   padding: 6rem 2rem;
   text-align: center;
-  background: rgba(255, 255, 255, 0.3);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
   border-radius: 2.5rem;
   border: 2px dashed var(--secondary-100);
   margin: 2rem 0;
@@ -517,7 +528,7 @@
 .empty-state-icon {
   width: 5rem;
   height: 5rem;
-  background: white;
+  background: var(--card-bg);
   border-radius: 1.5rem;
   display: flex;
   align-items: center;
@@ -760,7 +771,7 @@
   font-weight: 800;
   border-radius: 1rem;
   border: 1px solid var(--secondary-200);
-  background: white;
+  background: var(--card-bg);
   color: var(--secondary-600);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: inline-flex;
@@ -859,7 +870,7 @@
 }
 
 .waste-modal-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--card-bg);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-radius: 2.5rem;
@@ -882,7 +893,7 @@
 }
 
 .procurement-input {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface2);
   border: 1.5px solid var(--secondary-100);
   border-radius: 1.25rem;
   padding: 1rem 1.25rem;
@@ -894,7 +905,7 @@
 }
 
 .procurement-input:focus {
-  background: white;
+  background: var(--card-bg);
   border-color: var(--waste-primary);
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
   outline: none;
@@ -1033,7 +1044,7 @@
 /* Premium Form Redesign */
 .premium-form-container {
   margin: auto;
-  background: white;
+  background: var(--card-bg);
   border-radius: 2.5rem;
   box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.3);
   overflow: hidden;
@@ -1066,7 +1077,7 @@
 
 .premium-form-header {
   padding: 1.5rem 2.5rem;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface2);
   border-bottom: 1px solid rgba(226, 232, 240, 0.6);
   display: flex;
   justify-content: space-between;
@@ -1165,7 +1176,7 @@
 
 .premium-form-input {
   width: 100%;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--card-bg);
   border: 1.5px solid var(--secondary-100);
   border-radius: 1rem;
   padding: 0.75rem 1.25rem;
@@ -1185,12 +1196,12 @@ textarea.premium-form-input {
 }
 
 .premium-form-input:hover {
-  background: white;
+  background: var(--card-bg);
   border-color: var(--secondary-300);
 }
 
 .premium-form-input:focus {
-  background: white;
+  background: var(--card-bg);
   border-color: var(--waste-primary);
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.02);
   outline: none;
@@ -1245,7 +1256,7 @@ textarea.premium-form-input {
 
 .chem-select-card {
   border: 1px solid var(--secondary-100);
-  background: white;
+  background: var(--card-bg);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   padding: 1.25rem;
   border-radius: 1.25rem;

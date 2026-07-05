@@ -26,7 +26,7 @@
 .security-header-title {
   font-size: clamp(1.5rem, 5vw, 2.25rem);
   font-weight: 900;
-  color: var(--secondary-900);
+  color: var(--text);
   letter-spacing: -0.05em;
   text-transform: uppercase;
   font-style: italic;
@@ -100,7 +100,7 @@
 }
 
 .metric-card {
-  background-color: white;
+  background-color: var(--card-bg);
   padding: clamp(1.25rem, 3vw, 1.5rem);
   border-radius: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
@@ -139,10 +139,10 @@
 .icon-orange { color: #ea580c; }
 .icon-purple { color: #7e22ce; }
 
-.metric-label {
+.security-dashboard-container .metric-label {
   font-size: 0.7rem;
   font-weight: 800;
-  color: var(--secondary-500);
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   white-space: nowrap;
@@ -150,22 +150,22 @@
   text-overflow: ellipsis;
 }
 
-.metric-value {
+.security-dashboard-container .metric-value {
   font-size: clamp(1.75rem, 4vw, 2.25rem);
   font-weight: 900;
-  color: var(--secondary-900);
+  color: var(--text);
   line-height: 1;
   font-family: var(--font-display);
 }
 
-.metric-footer {
+.security-dashboard-container .metric-footer {
   font-size: 0.75rem;
   margin-top: 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
-  color: var(--secondary-400);
+  color: var(--muted);
 }
 
 .pulse-dot {
@@ -195,7 +195,7 @@
 }
 
 .dashboard-section {
-  background-color: white;
+  background-color: var(--card-bg);
   border: 1px solid var(--secondary-100);
   border-radius: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
@@ -215,7 +215,7 @@
 .section-title {
   font-size: 1.125rem;
   font-weight: 900;
-  color: var(--secondary-900);
+  color: var(--text);
   text-transform: uppercase;
   letter-spacing: -0.01em;
 }
@@ -252,7 +252,7 @@
 }
 
 .table-row:hover {
-  background-color: #fafafa;
+  background-color: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 .table-row td {
@@ -275,7 +275,7 @@
 }
 
 .restore-btn {
-  background-color: white;
+  background-color: var(--card-bg);
   border: 2px solid var(--primary-100);
   color: var(--primary-600);
   padding: 0.5rem 1rem;
@@ -325,7 +325,7 @@
 .activity-action {
   font-size: 0.8125rem;
   font-weight: 800;
-  color: var(--secondary-900);
+  color: var(--text);
 }
 
 .activity-time {
@@ -352,8 +352,8 @@
 /* Side Protocol Box */
 .protocol-box {
   padding: 2rem;
-  background-color: var(--secondary-900);
-  color: white;
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
   border-radius: 1.5rem;
   box-shadow: 0 10px 25px -5px rgba(30, 27, 75, 0.2);
   position: relative;
@@ -496,7 +496,7 @@
 
   .restore-table tr {
     padding: 1.25rem;
-    background: white;
+    background: var(--card-bg);
     margin-bottom: 1.25rem;
     border-radius: 1.25rem;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
@@ -578,7 +578,7 @@
     padding: 1.25rem;
   }
   
-  .metric-value {
+  .security-dashboard-container .metric-value {
     font-size: 1.75rem;
   }
 

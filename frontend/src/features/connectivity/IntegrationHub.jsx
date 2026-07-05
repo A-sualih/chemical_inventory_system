@@ -265,7 +265,7 @@ const IntegrationHub = () => {
               </div>
 
               <div className="sync-list">
-                <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Recent Transfers</h4>
+                <h4 className="recent-transfers-title">Recent Transfers</h4>
                 {[
                   { name: 'Ethanol_SDS_v2.pdf', time: '2m ago', size: '1.2MB' },
                   { name: 'Lab_Asset_Registry.xlsx', time: '1h ago', size: '450KB' },
@@ -276,7 +276,7 @@ const IntegrationHub = () => {
                       <FileText size={16} className="file-type-icon" />
                       <div>
                         <div className="file-name">{file.name}</div>
-                        <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{file.size} • {file.time}</div>
+                        <div className="file-meta">{file.size} • {file.time}</div>
                       </div>
                     </div>
                     <div className="sync-status">

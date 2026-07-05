@@ -54,7 +54,7 @@
 
 .btn-refresh {
   padding: 0.75rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border: 1px solid var(--secondary-200);
   border-radius: 0.75rem;
   color: var(--secondary-600);
@@ -67,21 +67,25 @@
 
 .btn-cleanup {
   padding: 0.75rem 1.5rem;
-  background-color: var(--secondary-900);
-  color: white;
+  background-color: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: 0.75rem;
   font-weight: 900;
   font-size: 0.875rem;
-  border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.2);
+  box-shadow: var(--shadow);
   transition: all 0.2s;
 }
 
-.btn-cleanup:hover:not(:disabled) { background-color: black; }
+.btn-cleanup:hover:not(:disabled) {
+  background-color: var(--accent);
+  color: var(--btn-text);
+  border-color: transparent;
+}
 .btn-cleanup:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .notif-layout {
@@ -105,7 +109,7 @@
 }
 
 .filter-card {
-  background-color: white;
+  background-color: var(--card-bg);
   padding: 1.5rem;
   border-radius: 2rem;
   border: 1px solid var(--secondary-100);
@@ -152,7 +156,7 @@
 }
 
 .list-container {
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 2.5rem;
   border: 1px solid var(--secondary-100);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -223,7 +227,7 @@
   gap: 1.25rem;
   align-items: flex-start;
   border-bottom: 1px solid var(--secondary-100);
-  background-color: white;
+  background-color: var(--card-bg);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }
@@ -318,8 +322,8 @@
 .sev-critical-badge { background-color: #fef2f2; color: #b91c1c; border-color: #fecaca; }
 
 /* HIGH -> Amber/Yellow */
-.sev-high { background-color: #fffbeb; color: #f59e0b; border: 1px solid #fef3c7; }
-.sev-high-badge { background-color: #fffbeb; color: #b45309; border-color: #fde68a; }
+.sev-high { background-color: color-mix(in srgb, var(--warn) 12%, var(--card-bg)); color: #f59e0b; border: 1px solid #fef3c7; }
+.sev-high-badge { background-color: color-mix(in srgb, var(--warn) 12%, var(--card-bg)); color: #b45309; border-color: #fde68a; }
 
 /* WARNING -> Orange */
 .sev-warning { background-color: #fff7ed; color: #f97316; border: 1px solid #ffedd5; }

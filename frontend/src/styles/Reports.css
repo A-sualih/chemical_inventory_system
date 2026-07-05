@@ -30,6 +30,44 @@
   margin-top: 0.25rem;
 }
 
+.reports-error-panel {
+  max-width: 28rem;
+  margin: 4rem auto;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.reports-error-panel h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.reports-error-panel p {
+  margin: 0 0 1.25rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.reports-retry-btn {
+  border: none;
+  border-radius: 0.75rem;
+  background: var(--accent);
+  color: var(--btn-text, #fff);
+  font-weight: 800;
+  padding: 0.7rem 1.25rem;
+  cursor: pointer;
+}
+
+.reports-retry-btn:hover {
+  filter: brightness(1.05);
+}
+
 .reports-actions-group {
   display: flex;
   flex-wrap: wrap;
@@ -45,7 +83,7 @@
 
 .date-picker-range {
   display: flex;
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 1rem;
   border: 1px solid var(--secondary-100);
   padding: 0.25rem;
@@ -95,7 +133,7 @@
 }
 
 .export-btn {
-  background-color: white;
+  background-color: var(--card-bg);
   color: var(--secondary-900);
   border: 1px solid var(--secondary-200);
   padding: 0.75rem 1.5rem;
@@ -133,7 +171,7 @@
 }
 
 .report-card {
-  background-color: white;
+  background-color: var(--card-bg);
   padding: 1.5rem;
   border-radius: 2rem;
   border: 1px solid var(--secondary-100);
@@ -200,7 +238,7 @@
 }
 
 .status-list-card {
-  background-color: white;
+  background-color: var(--card-bg);
   padding: 1.5rem;
   border-radius: 2.5rem;
   border: 1px solid transparent;
@@ -283,7 +321,7 @@
   font-weight: 900;
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
-  background-color: white;
+  background-color: var(--card-bg);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
 }
@@ -305,7 +343,7 @@
 }
 
 .chart-section-card {
-  background-color: white;
+  background-color: var(--card-bg);
   padding: 2rem;
   border-radius: 2.5rem;
   border: 1px solid var(--secondary-100);

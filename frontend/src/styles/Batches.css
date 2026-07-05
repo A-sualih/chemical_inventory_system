@@ -9,6 +9,13 @@
   --batch-shadow-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
 }
 
+html[data-theme='ink'] {
+  --batch-glass-bg: rgba(23, 30, 39, 0.92);
+  --batch-glass-border: rgba(148, 163, 184, 0.14);
+  --batch-shadow-subtle: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+  --batch-shadow-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.45);
+}
+
 .batches-container {
   padding-bottom: 5rem;
 }
@@ -117,7 +124,7 @@
 }
 
 .batches-search-input:focus {
-  background-color: white;
+  background-color: var(--card-bg);
   border-color: #6366f1;
   box-shadow: 0 10px 25px -10px rgba(99, 102, 241, 0.2);
   transform: translateY(-1px);
@@ -174,7 +181,7 @@
 .batch-stat-card:hover {
   transform: translateY(-8px) scale(1.03);
   box-shadow: var(--batch-shadow-hover);
-  background: white;
+  background: var(--card-bg);
 }
 
 .batch-stat-icon {
@@ -292,7 +299,7 @@
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 0.875rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border: 1px solid var(--secondary-100);
   display: flex;
   align-items: center;
@@ -396,7 +403,7 @@ tr:hover .batch-id-icon {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 0.875rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border: 1px solid var(--secondary-200);
   color: var(--secondary-500);
   cursor: pointer;
@@ -417,7 +424,7 @@ tr:hover .batch-id-icon {
 
 .action-delete {
   color: #ef4444;
-  background-color: #fff1f2;
+  background-color: color-mix(in srgb, var(--danger) 12%, var(--card-bg));
 }
 
 .action-delete:hover {
@@ -517,7 +524,7 @@ tr:hover .batch-id-icon {
 }
 
 .batch-modal-card {
-  background: #ffffff;
+  background: var(--card-bg);
   width: 100%;
   max-width: 50rem;
   border-radius: 32px;
@@ -622,7 +629,7 @@ tr:hover .batch-id-icon {
 }
 
 .form-field-input:focus {
-  background: #ffffff;
+  background: var(--card-bg);
   border-color: #6366f1;
   box-shadow: 0 10px 25px -10px rgba(99, 102, 241, 0.2);
   transform: translateY(-1px);
@@ -657,7 +664,7 @@ select.form-field-input {
   display: flex;
   justify-content: flex-end;
   gap: 1.25rem;
-  background: white;
+  background: var(--card-bg);
   border-top: 1px solid #f1f5f9;
 }
 
@@ -717,12 +724,12 @@ select.form-field-input {
 }
 
 .stat-icon-rose {
-  background-color: #fff1f2;
+  background-color: color-mix(in srgb, var(--danger) 12%, var(--card-bg));
   color: #e11d48;
 }
 
 .stat-icon-amber {
-  background-color: #fffbeb;
+  background-color: color-mix(in srgb, var(--warn) 12%, var(--card-bg));
   color: #d97706;
 }
 

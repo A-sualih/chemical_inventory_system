@@ -67,7 +67,7 @@
 
 /* Hierarchy Tree Styles */
 .hierarchy-tree-container {
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 2rem;
   border: 1px solid var(--secondary-100);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
@@ -103,8 +103,8 @@
 }
 
 .block-item { background-color: var(--secondary-50); }
-.room-item { background-color: white; border-bottom: 1px solid var(--secondary-50); margin-left: 1rem; border-radius: 0.75rem; }
-.cabinet-item { background-color: white; border-bottom: 1px solid var(--secondary-50); margin-left: 2.5rem; border-radius: 0.75rem; }
+.room-item { background-color: var(--card-bg); border-bottom: 1px solid var(--secondary-50); margin-left: 1rem; border-radius: 0.75rem; }
+.cabinet-item { background-color: var(--card-bg); border-bottom: 1px solid var(--secondary-50); margin-left: 2.5rem; border-radius: 0.75rem; }
 
 .expand-icon {
   font-size: 10px;
@@ -170,7 +170,7 @@
   flex-direction: column;
   gap: 0.75rem;
   transition: transform 0.2s, box-shadow 0.2s;
-  background-color: white;
+  background-color: var(--card-bg);
 }
 
 .shelf-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
@@ -215,7 +215,7 @@
   position: relative;
   width: 100%;
   max-width: 28rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 2rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   padding: 2.5rem;
@@ -245,7 +245,7 @@
   transition: all 0.2s;
 }
 
-.field-input:focus { border-color: #3b82f6; background-color: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+.field-input:focus { border-color: #3b82f6; background-color: var(--card-bg); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
 
 .modal-err {
   padding: 1rem;
@@ -265,7 +265,7 @@
   padding: 0.875rem;
   border: 2px solid var(--secondary-100);
   border-radius: 1.25rem;
-  background: white;
+  background: var(--card-bg);
   color: var(--secondary-500);
   font-weight: 700;
   cursor: pointer;

@@ -90,7 +90,7 @@ const Requests = () => {
     }
     try {
       // 1. Fetch containers for this chemical
-      const { data: containerData } = await axios.get(`/api/containers?chemical_id=${chemId}&lab=${user?.active_lab || ''}`);
+      const { data: containerData } = await axios.get(`/api/containers?chemical_id=${chemId}`);
 
       // 2. Fetch all requests to check for pending ones
       const { data: requestData } = await axios.get('/api/requests');
@@ -311,7 +311,7 @@ const Requests = () => {
 
   useEffect(() => {
     if (selectedTargetLab) {
-      axios.get(`/api/chemicals?lab=${selectedTargetLab}`)
+      axios.get(`/api/transfers/lab-chemicals/${selectedTargetLab}`)
         .then(res => setOtherLabChemicals(res.data.data || res.data))
         .catch(err => console.error(err));
     }

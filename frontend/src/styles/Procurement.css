@@ -1,15 +1,26 @@
 /* Procurement.css - Clean, Modernized, and Responsive */
 
 /* --- ROOT VARIABLES --- */
-:root {
-  --proc-primary: #6366f1;
-  --proc-primary-hover: #4f46e5;
-  --proc-glass-bg: rgba(255, 255, 255, 0.8);
-  --proc-glass-border: rgba(255, 255, 255, 0.5);
-  --proc-shadow-subtle: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
-  --proc-shadow-hover: 0 40px 80px -15px rgba(99, 102, 241, 0.15);
+:root,
+html[data-theme='paper'] {
+  --proc-primary: var(--accent);
+  --proc-primary-hover: var(--primary-700);
+  --proc-glass-bg: var(--card-bg);
+  --proc-glass-border: var(--border);
+  --proc-shadow-subtle: var(--shadow);
+  --proc-shadow-hover: 0 40px 80px -15px color-mix(in srgb, var(--accent) 18%, transparent);
   --proc-card-radius: 2.25rem;
-  --proc-grad: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  --proc-grad: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+}
+
+html[data-theme='ink'] {
+  --proc-primary: var(--accent);
+  --proc-primary-hover: var(--primary-600);
+  --proc-glass-bg: var(--card-bg);
+  --proc-glass-border: var(--border);
+  --proc-shadow-subtle: var(--shadow);
+  --proc-shadow-hover: 0 40px 80px -15px rgba(0, 0, 0, 0.45);
+  --proc-grad: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
 }
 
 /* --- HEADER SECTION --- */
@@ -48,7 +59,7 @@
 .procurement-icon-box {
   width: 3.5rem;
   height: 3.5rem;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: var(--proc-grad);
   border-radius: 1.25rem;
   display: flex;
   align-items: center;
@@ -79,11 +90,11 @@
 /* --- TAB NAVIGATION --- */
 .procurement-tabs {
   display: flex;
-  background-color: rgba(241, 245, 249, 0.6);
+  background-color: var(--surface2);
   backdrop-filter: blur(8px);
   padding: 0.5rem;
   border-radius: 1.5rem;
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid var(--border);
   margin-bottom: 2rem;
   gap: 0.5rem;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
@@ -139,14 +150,14 @@
 }
 
 .procurement-tab.active {
-  background-color: white;
-  color: var(--proc-primary);
-  box-shadow: 0 8px 20px -6px rgba(99, 102, 241, 0.25), 0 4px 8px -4px rgba(0, 0, 0, 0.06);
+  background-color: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow);
   transform: translateY(-2px);
 }
 
 .procurement-tab:not(.active):hover {
-  color: var(--secondary-800);
+  color: var(--text);
   transform: translateY(-2px);
 }
 
@@ -191,7 +202,7 @@
 .procurement-stat-card:hover {
   transform: translateY(-10px) scale(1.02);
   box-shadow: var(--proc-shadow-hover);
-  background: white;
+  background: var(--card-bg);
   border-color: var(--proc-primary);
 }
 
@@ -206,27 +217,27 @@
 }
 
 .variant-violet {
-  background: linear-gradient(135deg, #f5f3ff 0%, #ddd6fe 100%);
+  background: color-mix(in srgb, var(--accent2) 14%, var(--card-bg));
   color: #7c3aed;
 }
 
 .variant-blue {
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  background: color-mix(in srgb, var(--info) 14%, var(--card-bg));
   color: #2563eb;
 }
 
 .variant-emerald {
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  background: color-mix(in srgb, var(--success) 14%, var(--card-bg));
   color: #059669;
 }
 
 .variant-amber {
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  background: color-mix(in srgb, var(--warn) 14%, var(--card-bg));
   color: #d97706;
 }
 
 .variant-rose {
-  background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+  background: color-mix(in srgb, var(--danger) 14%, var(--card-bg));
   color: #e11d48;
 }
 
@@ -280,7 +291,7 @@
 .search-input {
   width: 100%;
   padding: 0.875rem 1.25rem 0.875rem 2.75rem;
-  background-color: white;
+  background-color: var(--card-bg);
   border: 1.5px solid var(--secondary-100);
   border-radius: 1.25rem;
   font-size: 0.9375rem;
@@ -293,13 +304,13 @@
 
 .search-input:focus {
   border-color: var(--proc-primary);
-  background: white;
+  background: var(--card-bg);
   box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .filter-select {
   padding: 0.75rem 2.5rem 0.75rem 1.25rem;
-  background: white;
+  background: var(--card-bg);
   border: 1px solid var(--secondary-200);
   border-radius: 0.75rem;
   font-size: 0.875rem;
@@ -316,7 +327,7 @@
 }
 
 .btn-add {
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+  background: var(--proc-grad);
   background-size: 200% 200%;
   color: white;
   padding: 0.875rem 1.75rem;
@@ -364,7 +375,7 @@
 }
 
 .btn-filter-delayed {
-  background: #fff7ed;
+  background: color-mix(in srgb, var(--warn) 14%, var(--card-bg));
   color: #ea580c;
   border: 1px solid #ffedd5;
   padding: 0.75rem 1.25rem;
@@ -397,7 +408,7 @@
 
 /* --- DATA TABLES --- */
 .procurement-table-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 1.5rem;
   border: 1px solid var(--secondary-100);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -463,7 +474,7 @@
     border: 1px solid var(--secondary-100);
     border-radius: 1.5rem;
     margin-bottom: 1.5rem;
-    background: white;
+    background: var(--card-bg);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     overflow: hidden;
   }
@@ -560,7 +571,7 @@
 }
 
 .badge-partial {
-  background: #fffbeb;
+  background: color-mix(in srgb, var(--warn) 12%, var(--card-bg));
   color: #d97706;
   border-color: #fef3c7;
 }
@@ -613,7 +624,7 @@
 }
 
 .procurement-modal-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--card-bg);
   backdrop-filter: blur(20px);
   width: 100%;
   max-width: 48rem;
@@ -623,42 +634,57 @@
   display: flex;
   flex-direction: column;
   max-height: 92vh;
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .procurement-modal-header {
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid var(--secondary-100);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .procurement-modal-title {
   font-size: 1.5rem;
   font-weight: 950;
-  color: var(--secondary-900);
+  color: var(--text);
   margin: 0;
   letter-spacing: -0.02em;
+}
+
+.procurement-modal-header .modal-subtitle {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  color: var(--muted);
+  font-weight: 500;
 }
 
 .procurement-modal-body {
   padding: 2rem;
   overflow-y: auto;
+  background: var(--card-bg);
 }
 
 .procurement-input {
   width: 100%;
   padding: 0.875rem 1.25rem;
-  background: var(--secondary-50);
-  border: 1px solid var(--secondary-200);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
   border-radius: 1rem;
   font-size: 1rem;
+  color: var(--text);
   outline: none;
   transition: all 0.2s;
 }
 
 .procurement-input:focus {
   border-color: var(--proc-primary);
-  background: white;
-  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--proc-primary) 18%, transparent);
+}
+
+.procurement-input::placeholder {
+  color: var(--muted);
 }
 
 /* --- SUPPLIER CARDS --- */
@@ -684,7 +710,7 @@
 .supplier-card:hover {
   transform: translateY(-10px) scale(1.02);
   box-shadow: var(--proc-shadow-hover);
-  background: white;
+  background: var(--card-bg);
 }
 
 /* --- TRACKING CARDS --- */
@@ -695,7 +721,7 @@
 }
 
 .tracking-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--card-bg);
   backdrop-filter: blur(10px);
   border-radius: 2.25rem;
   border: 1px solid var(--secondary-100);
@@ -727,11 +753,12 @@
   gap: 1rem;
   justify-content: flex-end;
   padding: 1.5rem 2rem;
-  border-top: 1px solid var(--secondary-100);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .btn-modal-primary {
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+  background: var(--proc-grad);
   background-size: 200% 200%;
   color: white;
   padding: 0.875rem 2rem;
@@ -770,21 +797,21 @@
 }
 
 .btn-modal-secondary {
-  background: var(--secondary-50);
-  color: var(--secondary-600);
+  background: transparent;
+  color: var(--text);
   padding: 0.875rem 2rem;
   border-radius: 1rem;
   font-size: 0.9375rem;
   font-weight: 800;
-  border: 1px solid var(--secondary-200);
+  border: 1px solid var(--border);
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .btn-modal-secondary:hover {
-  background: var(--secondary-100);
-  color: var(--secondary-900);
-  border-color: var(--secondary-300);
+  background: var(--surface2);
+  color: var(--text);
+  border-color: var(--muted);
 }
 
 .tracking-card.delayed {
@@ -882,7 +909,7 @@
 }
 
 .vendor-subtab.active {
-  background: white;
+  background: var(--card-bg);
   color: var(--proc-primary);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
@@ -931,7 +958,7 @@
 }
 
 .reliability-mid {
-  background: #fffbeb;
+  background: color-mix(in srgb, var(--warn) 12%, var(--card-bg));
   color: #92400e;
 }
 
@@ -941,7 +968,7 @@
 }
 
 .scoring-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 1.5rem;
   padding: 1.5rem;
   border: 1px solid var(--secondary-100);
@@ -1026,7 +1053,7 @@
 }
 
 .checkbox-pill:hover {
-  background: white;
+  background: var(--card-bg);
   border-color: var(--secondary-200);
 }
 
@@ -1077,7 +1104,7 @@
 }
 
 .po-item-row {
-  background: white;
+  background: var(--card-bg);
   border-radius: 1.25rem;
   padding: 1.25rem;
   border: 1px solid var(--secondary-100);
@@ -1111,7 +1138,7 @@
 
 .po-totals-card {
   margin-top: 2rem;
-  background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 100%);
+  background: var(--surface2);
   border-radius: 1.5rem;
   padding: 1.5rem;
   border: 1px solid #ddd6fe;
@@ -1188,7 +1215,7 @@
 }
 
 .metric-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 2rem;
   padding: 1.75rem;
   border: 1px solid var(--secondary-100);
@@ -1250,7 +1277,7 @@
 }
 
 .analytics-chart-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 2.25rem;
   padding: 2rem;
   border: 1px solid var(--secondary-100);
@@ -1419,7 +1446,7 @@
 }
 
 .top-item-card:hover {
-  background: white;
+  background: var(--card-bg);
   border-color: var(--proc-primary);
   transform: translateY(-3px);
   box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
@@ -1502,5 +1529,83 @@
   }
   .status-count-val {
     margin-left: auto;
+  }
+}
+
+/* ── Shared modal classes used by Suppliers / POs (theme-aware) ── */
+.modal-overlay .modal-content {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+}
+
+.modal-overlay .modal-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem 2rem;
+}
+
+.modal-overlay .modal-title {
+  color: var(--text);
+  font-size: 1.5rem;
+  font-weight: 950;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.modal-overlay .modal-subtitle {
+  color: var(--muted);
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.modal-overlay .modal-body {
+  padding: 1.5rem 2rem;
+}
+
+.modal-overlay .form-label {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.modal-overlay .form-input,
+.modal-overlay .form-textarea {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 0.875rem 1.25rem;
+  color: var(--text);
+  outline: none;
+  font-size: 0.95rem;
+}
+
+.modal-overlay .form-input:focus,
+.modal-overlay .form-textarea:focus {
+  border-color: var(--proc-primary);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--proc-primary) 18%, transparent);
+}
+
+.modal-overlay .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.25rem;
+}
+
+.modal-overlay .form-col-full {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 640px) {
+  .modal-overlay .form-grid {
+    grid-template-columns: 1fr;
   }
 }
