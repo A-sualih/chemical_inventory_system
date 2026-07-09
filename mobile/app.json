@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "CIMS Mobile",
+    "slug": "cims-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0e141b"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cims.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Scan chemical barcodes and QR codes for inventory lookup and stock actions."
+      }
+    },
+    "android": {
+      "package": "com.cims.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#0e141b",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "CAMERA"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow CIMS to scan barcodes and QR codes."
+        }
+      ],
+      "expo-secure-store",
+      "expo-font"
+    ]
+  }
+}
