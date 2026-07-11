@@ -8,7 +8,7 @@
   justify-content: center;
   padding: 1rem;
   overflow: hidden;
-  background-color: var(--secondary-950);
+  background-color: #F8FAFC;
 }
 
 .bg-blob {
@@ -23,7 +23,7 @@
   left: -10%;
   width: 50%;
   height: 50%;
-  background-color: rgba(37, 99, 235, 0.3); /* blue-600/30 */
+  background-color: rgba(2, 132, 199, 0.06);
   animation: details-pulse 4s infinite;
 }
 
@@ -32,7 +32,7 @@
   right: -10%;
   width: 50%;
   height: 50%;
-  background-color: rgba(67, 56, 202, 0.4); /* indigo-700/40 */
+  background-color: rgba(99, 102, 241, 0.05);
   animation: details-pulse 4s infinite;
   animation-delay: 0.7s;
 }
@@ -43,7 +43,7 @@
   transform: translate(-50%, -50%);
   width: 60%;
   height: 60%;
-  background-color: rgba(124, 58, 237, 0.1); /* violet-600/10 */
+  background-color: rgba(168, 85, 247, 0.03);
   filter: blur(160px);
 }
 
@@ -78,10 +78,10 @@
   border-radius: 2rem;
   position: relative;
   z-index: 10;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(15, 23, 42, 0.6); /* secondary-900/60 approx */
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  background: #ffffff;
   backdrop-filter: blur(20px);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 50px -15px rgba(15, 23, 42, 0.08);
   transition: all 0.5s;
 }
 
@@ -120,7 +120,7 @@
 .login-title-h1 {
   font-size: 1.875rem;
   font-weight: 700;
-  color: white;
+  color: #0f172a;
   margin-bottom: 0.5rem;
   font-family: var(--font-display);
   text-align: center;
@@ -129,14 +129,14 @@
 .login-title-h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: white;
+  color: #0f172a;
   margin-bottom: 0.5rem;
   font-family: var(--font-display);
   text-align: center;
 }
 
 .login-subtitle {
-  color: var(--secondary-400);
+  color: #64748b;
   font-size: 0.875rem;
   margin-bottom: 2rem;
   text-align: center;
@@ -144,15 +144,15 @@
 
 .otp-input {
   width: 100%;
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 1rem;
   padding: 1rem;
   text-align: center;
   font-size: 1.875rem;
   letter-spacing: 0.5em;
   font-weight: 700;
-  color: white;
+  color: #0f172a;
   outline: none;
   transition: all 0.2s;
 }
@@ -201,7 +201,7 @@
   width: 100%;
   background: none;
   border: none;
-  color: var(--secondary-500);
+  color: #64748b;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -209,7 +209,7 @@
 }
 
 .back-btn:hover {
-  color: white;
+  color: #0f172a;
 }
 
 .locked-icon-wrapper {
@@ -225,17 +225,17 @@
 }
 
 .timer-box {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: #f8fafc;
   border-radius: 1rem;
   padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   margin-bottom: 2rem;
 }
 
 .timer-text {
   font-size: 2.25rem;
   font-weight: 700;
-  color: white;
+  color: #0f172a;
   font-family: var(--font-mono);
 }
 
@@ -272,7 +272,7 @@
   display: block;
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--secondary-400);
+  color: #475569;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 0.5rem;
@@ -289,17 +289,17 @@
 
 .login-input {
   width: 100%;
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 1rem;
   padding: 1rem;
-  color: white;
+  color: #0f172a;
   outline: none;
   transition: all 0.2s;
 }
 
 .login-input::placeholder {
-  color: var(--secondary-600);
+  color: #94a3b8;
 }
 
 .login-input:focus {
@@ -330,7 +330,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: var(--secondary-400);
+  color: #64748b;
   cursor: pointer;
 }
 
@@ -338,8 +338,8 @@
   width: 1rem;
   height: 1rem;
   border-radius: 0.25rem;
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.15);
 }
 
 .forgot-password-link {
@@ -359,24 +359,24 @@
   margin-top: 2rem;
   text-align: center;
   font-size: 0.875rem;
-  color: var(--secondary-400);
+  color: #64748b;
   font-weight: 500;
 }
 
 .register-link {
-  color: var(--primary-400);
+  color: var(--primary-600);
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .register-link:hover {
-  color: var(--primary-300);
+  color: var(--primary-500);
 }
 
 .page-footer-tag {
   position: absolute;
   bottom: 2rem;
-  color: var(--secondary-600);
+  color: #94a3b8;
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.2em;

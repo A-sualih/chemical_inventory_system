@@ -308,48 +308,50 @@ const Landing = () => {
       {showDevModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(10px)',
+          background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(10px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999,
           padding: '1rem'
         }}>
           <div style={{
-            background: 'linear-gradient(145deg, #1e293b, #0f172a)',
-            border: '1px solid #334155', borderRadius: '16px', padding: '2.5rem',
-            width: '100%', maxWidth: '700px', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+            background: '#ffffff',
+            border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '24px', padding: '3rem',
+            width: '100%', maxWidth: '750px', position: 'relative', 
+            boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.12)'
           }}>
             <button 
               onClick={() => setShowDevModal(false)}
               style={{
-                position: 'absolute', top: '15px', right: '15px', background: 'transparent',
-                border: 'none', color: '#94a3b8', fontSize: '2rem', cursor: 'pointer', lineHeight: 1
+                position: 'absolute', top: '20px', right: '20px', background: 'transparent',
+                border: 'none', color: '#64748b', fontSize: '2rem', cursor: 'pointer', lineHeight: 1,
+                transition: 'color 0.2s'
               }}
             >
               &times;
             </button>
             
             <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-              <div style={{ display: 'inline-block', background: 'linear-gradient(to right, #6366f1, #a855f7, #ec4899)', borderRadius: '12px', padding: '3px', marginBottom: '1.5rem' }}>
-                <div style={{ background: '#0f172a', padding: '1rem 2rem', borderRadius: '10px' }}>
-                  <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 800, background: 'linear-gradient(to right, #6366f1, #a855f7, #ec4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AppFactory Academy</h2>
-                  <p style={{ margin: '0.5rem 0 0', color: '#cbd5e1', fontSize: '0.9rem', fontWeight: 500 }}>Wollo University • DEMERA Digital Education & Skillsoft</p>
+              <div style={{ display: 'inline-block', background: 'linear-gradient(to right, #6366f1, #a855f7, #ec4899)', borderRadius: '16px', padding: '3px', marginBottom: '1.5rem' }}>
+                <div style={{ background: '#ffffff', padding: '1rem 2.5rem', borderRadius: '13px' }}>
+                  <h2 style={{ margin: 0, fontSize: '2.2rem', fontWeight: 800, background: 'linear-gradient(to right, #6366f1, #a855f7, #ec4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AppFactory Academy</h2>
+                  <p style={{ margin: '0.5rem 0 0', color: '#475569', fontSize: '0.95rem', fontWeight: 600 }}>Wollo University</p>
                 </div>
               </div>
-              <h3 style={{ color: '#f8fafc', fontSize: '1.2rem', margin: 0 }}>Proudly Developed By</h3>
+              <h3 style={{ color: '#0f172a', fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>Proudly Developed By</h3>
             </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+ 
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
               {[
                 { name: 'Amir Mesfin', email: 'amir.mesfin136@gmail.com', phone: '0962945025', color: '#3b82f6' },
                 { name: 'Ahmed Saulih', email: 'sualihahmed26@gmail.com', phone: '0926352943', color: '#10b981' },
                 { name: 'Tsegazeab', email: 'tsegazeab@gmail.com', phone: '0966610048', color: '#f59e0b' }
               ].map(dev => (
                 <div key={dev.phone} style={{
-                  background: 'rgba(255, 255, 255, 0.03)', border: `1px solid rgba(255,255,255,0.05)`, borderTop: `4px solid ${dev.color}`,
-                  borderRadius: '12px', padding: '1.5rem'
+                  background: '#f8fafc', border: `1px solid rgba(15, 23, 42, 0.05)`, borderTop: `4px solid ${dev.color}`,
+                  borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 12px rgba(15, 23, 42, 0.02)'
                 }}>
-                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#f1f5f9', fontSize: '1.1rem' }}>{dev.name}</h4>
-                  <p style={{ margin: '0 0 0.3rem 0', color: '#94a3b8', fontSize: '0.85rem' }}>{dev.email}</p>
-                  <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.85rem' }}>📞 {dev.phone}</p>
+                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.1rem', fontWeight: 700 }}>{dev.name}</h4>
+                  <p style={{ margin: '0 0 0.3rem 0', color: '#475569', fontSize: '0.85rem', fontWeight: 500 }}>{dev.email}</p>
+                  <p style={{ margin: 0, color: '#475569', fontSize: '0.85rem', fontWeight: 500 }}>📞 {dev.phone}</p>
                 </div>
               ))}
             </div>

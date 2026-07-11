@@ -34,3 +34,26 @@ exports.getPublicStats = async (req, res) => {
     });
   }
 };
+
+exports.keepAlive = async (req, res) => {
+  try {
+    // Run a lightweight database query to keep connection active
+    const chemicalCount = await Chemical.countDocuments({ archived: false });
+    res.json({
+      success: true,
+      message: 'Keep-alive database query successful',
+      schemaStatus: 'online',
+      data: {
+        activeCount: chemicalCount
+      },
+      timestamp: new Date()
+    });
+  } catch (error) {
+    console.error('Keep-alive database query failed:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Keep-alive database query failed',
+      error: error.message
+    });
+  }
+};

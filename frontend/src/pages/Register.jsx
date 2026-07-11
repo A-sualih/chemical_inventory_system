@@ -153,9 +153,9 @@ const Register = () => {
                     onChange={(e) => setLabId(e.target.value)}
                     required
                   >
-                    <option value="" disabled style={{backgroundColor: '#1e293b'}}>Select Laboratory</option>
+                    <option value="" disabled style={{backgroundColor: '#ffffff'}}>Select Laboratory</option>
                     {labs.map(lab => (
-                      <option key={lab._id} value={lab._id} style={{backgroundColor: '#1e293b'}}>
+                      <option key={lab._id} value={lab._id} style={{backgroundColor: '#ffffff'}}>
                         {lab.name}
                       </option>
                     ))}

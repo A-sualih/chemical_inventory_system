@@ -1,6 +1,6 @@
 .learn-more-container {
   background: var(--landing-primary);
-  color: #fff;
+  color: var(--landing-text-main);
   min-height: 100vh;
   font-family: 'Inter', system-ui, sans-serif;
 }
@@ -14,7 +14,7 @@
 /* Hero */
 .learn-hero {
   padding: 6rem 5% 4rem;
-  background: linear-gradient(to bottom, #080e1e, var(--landing-primary));
+  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.03), var(--landing-primary));
   text-align: center;
 }
 
@@ -73,7 +73,7 @@
 .badge-accent { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
 
 .intro-bg {
-  background: rgba(255,255,255,0.01);
+  background: rgba(15, 23, 42, 0.01);
 }
 
 .text-content p {
@@ -94,10 +94,11 @@
 }
 
 .challenge-item {
-  background: rgba(255,255,255,0.03);
+  background: #ffffff;
   padding: 2.5rem;
   border-radius: 24px;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02);
 }
 
 .challenge-item h4 {
@@ -181,7 +182,9 @@
 
 /* Roles */
 .dark-section {
-  background: #000;
+  background: #ffffff;
+  border-top: 1px solid rgba(15, 23, 42, 0.04);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.04);
 }
 
 .roles-table {
@@ -193,7 +196,7 @@
 .roles-table th {
   text-align: left;
   padding: 1.5rem;
-  border-bottom: 2px solid rgba(255,255,255,0.1);
+  border-bottom: 2px solid rgba(15, 23, 42, 0.08);
   color: var(--landing-accent);
   text-transform: uppercase;
   font-size: 0.75rem;
@@ -202,7 +205,7 @@
 
 .roles-table td {
   padding: 1.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.04);
 }
 
 /* Workflow */
@@ -215,12 +218,13 @@
 
 .w-step {
   padding: 1.5rem 3rem;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 50px;
   font-weight: 700;
   min-width: 300px;
   text-align: center;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02);
 }
 
 .w-arrow {
@@ -238,9 +242,10 @@
 .tech-card {
   text-align: center;
   padding: 3rem;
-  background: rgba(255,255,255,0.02);
+  background: #ffffff;
   border-radius: 24px;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02);
 }
 
 .tech-card h3 {
@@ -284,7 +289,7 @@
 
 .brand-side p {
   max-width: 400px;
-  color: var(--landing-text-muted);
+  color: #94a3b8;
 }
 
 .social-links {
@@ -294,7 +299,11 @@
 }
 
 .social-links a {
-  color: var(--landing-text-muted);
+  color: #94a3b8;
+}
+
+.social-links a:hover {
+  color: #fff;
 }
 
 .links-side {
@@ -310,8 +319,12 @@
 .link-col a {
   display: block;
   margin-bottom: 0.75rem;
-  color: var(--landing-text-muted);
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
+}
+
+.link-col a:hover {
+  color: #fff;
 }
 
 .footer-bottom {
@@ -319,7 +332,7 @@
   padding-top: 2rem;
   text-align: center;
   font-size: 0.8rem;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.5);
 }
 
 @media (max-width: 1024px) {

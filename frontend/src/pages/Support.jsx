@@ -87,7 +87,7 @@ const Support = () => {
             <div className="tech-card">
               <Mail size={32} color="var(--landing-accent)" />
               <h3>Email Us</h3>
-              <p>support@labsystem.edu</p>
+              <p>amir.mesfin136@gmail.com</p>
             </div>
             <Link to="/help-center" className="tech-card" style={{ textDecoration: 'none', color: 'inherit' }}>
               <HelpCircle size={32} color="var(--landing-teal)" />
@@ -97,7 +97,7 @@ const Support = () => {
             <div className="tech-card">
               <Phone size={32} color="#f87171" />
               <h3>Hotline</h3>
-              <p>(555) 999-SUPPORT</p>
+              <p>(+251) 962945025</p>
             </div>
           </div>
 

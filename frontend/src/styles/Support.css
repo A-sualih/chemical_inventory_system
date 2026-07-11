@@ -1,12 +1,12 @@
 .support-form-container {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
   padding: 4rem;
   border-radius: 32px;
   max-width: 800px;
   margin: 4rem auto;
   backdrop-filter: blur(20px);
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.04);
 }
 
 .support-form {
@@ -37,11 +37,11 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
   padding: 1rem 1.25rem;
   border-radius: 12px;
-  color: #fff;
+  color: var(--landing-text-main);
   font-size: 1rem;
   transition: all 0.3s;
   font-family: inherit;
@@ -51,7 +51,7 @@
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  background: rgba(255, 255, 255, 0.08);
+  background: #ffffff;
   border-color: var(--landing-accent);
   box-shadow: 0 0 15px var(--landing-accent-glow);
 }
@@ -64,7 +64,7 @@
 
 .btn-send {
   background: var(--landing-accent);
-  color: var(--landing-primary);
+  color: #fff;
   border: none;
   padding: 1.2rem 3rem;
   border-radius: 14px;
@@ -86,9 +86,9 @@
 }
 
 .btn-clear {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  color: var(--landing-text-main);
   padding: 1.2rem 2rem;
   border-radius: 14px;
   font-weight: 700;
@@ -98,8 +98,8 @@
 }
 
 .btn-clear:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(15, 23, 42, 0.08);
+  border-color: rgba(15, 23, 42, 0.2);
 }
 
 @media (max-width: 600px) {

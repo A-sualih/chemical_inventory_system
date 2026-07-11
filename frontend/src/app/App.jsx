@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "../context/AuthContext";
+import { runKeepAliveService } from "../services/keepAliveService";
 import { NotificationProvider } from "../context/NotificationContext";
 import { SettingsProvider } from "../context/SettingsContext";
 import { Toaster } from "react-hot-toast";
@@ -55,6 +57,10 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 };
 
 function App() {
+  useEffect(() => {
+    runKeepAliveService();
+  }, []);
+
   return (
     <AuthProvider>
       <SettingsProvider>
