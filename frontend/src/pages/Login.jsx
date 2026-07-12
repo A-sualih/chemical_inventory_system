@@ -15,6 +15,7 @@ const Login = () => {
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resetMsg, setResetMsg] = useState({ type: "", text: "" });
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [lockTimer, setLockTimer] = useState(0);
 
@@ -105,14 +106,14 @@ const Login = () => {
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setResetMsg({ type: "", text: "" });
     try {
       const { data } = await axios.post('/api/auth/reset-password', { email });
       setIsLoading(false);
-      alert(data.message);
-      setView("login");
+      setResetMsg({ type: "success", text: data.message || "If that email matches an account, we have sent a reset link to it." });
     } catch {
       setIsLoading(false);
-      alert("Error sending reset password link");
+      setResetMsg({ type: "error", text: "Something went wrong. Please try again." });
     }
   };
 
@@ -185,11 +186,36 @@ const Login = () => {
                   />
                 </div>
               </div>
+              {resetMsg.text && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '0.625rem',
+                  padding: '0.875rem 1rem',
+                  borderRadius: '0.75rem',
+                  background: resetMsg.type === 'success' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
+                  border: `1px solid ${resetMsg.type === 'success' ? 'rgba(16,185,129,0.35)' : 'rgba(239,68,68,0.35)'}`,
+                  marginTop: '0.25rem',
+                }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                    style={{ width: '1.1rem', height: '1.1rem', flexShrink: 0, marginTop: '0.1rem',
+                      color: resetMsg.type === 'success' ? '#10b981' : '#ef4444' }}>
+                    {resetMsg.type === 'success'
+                      ? <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      : <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    }
+                  </svg>
+                  <p style={{ margin: 0, fontSize: '0.8125rem', lineHeight: '1.5',
+                    color: resetMsg.type === 'success' ? '#065f46' : '#991b1b', fontWeight: 500 }}>
+                    {resetMsg.text}
+                  </p>
+                </div>
+              )}
               <button type="submit" disabled={isLoading} className="submit-btn">
                 {isLoading ? "Sending..." : "Send Reset Link"}
               </button>
             </form>
-            <button onClick={() => setView("login")} className="back-btn">Back to sign in</button>
+            <button onClick={() => { setView("login"); setResetMsg({ type: "", text: "" }); }} className="back-btn">Back to sign in</button>
           </div>
         );
 
