@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import { 
   ShieldCheckIcon, 
   ArchiveBoxIcon, 
@@ -20,6 +21,8 @@ const SecurityDashboard = () => {
   const [backingUp, setBackingUp] = useState(false);
   const [restoring, setRestoring] = useState(null);
   const [error, setError] = useState(null);
+  const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
+  const [backupToRestore, setBackupToRestore] = useState(null);
 
   const fetchSecurityData = async () => {
     try {
@@ -45,24 +48,29 @@ const SecurityDashboard = () => {
     try {
       await axios.post('/api/security/backups');
       await fetchSecurityData();
-      alert('System backup completed successfully.');
+      toast.success('System backup completed successfully.');
     } catch (err) {
-      alert('Backup failed: ' + err.message);
+      toast.error('Backup failed: ' + err.message);
     } finally {
       setBackingUp(false);
     }
   };
 
-  const handleRestore = async (fileName) => {
-    if (!window.confirm(`WARNING: You are about to restore the system from backup: ${fileName}. This will overwrite all current data. Continue?`)) return;
-    
+  const handleRestore = (fileName) => {
+    setBackupToRestore(fileName);
+    setShowRestoreConfirm(true);
+  };
+
+  const executeRestore = async (fileName) => {
     setRestoring(fileName);
     try {
       await axios.post('/api/security/restore', { fileName });
-      alert('System restored successfully. The application will now reload.');
-      window.location.reload();
+      toast.success('System restored successfully. The application will now reload.');
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } catch (err) {
-      alert('Restore failed: ' + err.message);
+      toast.error('Restore failed: ' + err.message);
     } finally {
       setRestoring(null);
     }
@@ -240,6 +248,33 @@ const SecurityDashboard = () => {
           </div>
         </div>
       </div>
+      {showRestoreConfirm && (
+        <div className="custom-modal-overlay">
+          <div className="custom-modal-backdrop" onClick={() => setShowRestoreConfirm(false)}></div>
+          <div className="custom-modal-content">
+            <p className="custom-modal-text">
+              WARNING: You are about to restore the system from backup: <strong>{backupToRestore}</strong>. This will overwrite all current data. Continue?
+            </p>
+            <div className="custom-modal-actions">
+              <button 
+                onClick={() => {
+                  setShowRestoreConfirm(false);
+                  executeRestore(backupToRestore);
+                }}
+                className="custom-modal-btn-confirm"
+              >
+                Restore
+              </button>
+              <button 
+                onClick={() => setShowRestoreConfirm(false)}
+                className="custom-modal-btn-cancel"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

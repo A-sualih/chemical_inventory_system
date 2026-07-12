@@ -22,7 +22,7 @@
   inset: 0;
   z-index: 40;
   background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(10px);
 }
 
 @media (min-width: 1280px) {

@@ -26,7 +26,8 @@ const Register = () => {
     const fetchLabs = async () => {
       try {
         const res = await axios.get('/api/auth/labs');
-        setLabs(res.data);
+        const payload = res.data;
+        setLabs(Array.isArray(payload) ? payload : Array.isArray(payload?.labs) ? payload.labs : []);
       } catch (err) {
         console.error("Failed to fetch labs", err);
       }

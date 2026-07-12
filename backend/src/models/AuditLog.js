@@ -14,7 +14,7 @@ const auditLogSchema = new mongoose.Schema({
     enum: ['CREATE', 'UPDATE', 'DELETE', 'APPROVE', 'REJECT', 'TRANSFER', 'DISPOSAL', 'LOGIN', 'LOGOUT']
   },
   target: {
-    type: { type: String, required: true, enum: ['chemical', 'batch', 'stock', 'request', 'user', 'location', 'container', 'transaction'] },
+    type: { type: String, required: true, enum: ['chemical', 'batch', 'stock', 'request', 'user', 'location', 'container', 'transaction', 'system'] },
     id: { type: String }, // This can be the internal _id or a human-readable ID
     name: { type: String }
   },
