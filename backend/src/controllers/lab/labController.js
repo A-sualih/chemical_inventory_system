@@ -105,7 +105,8 @@ exports.switchActiveLab = async (req, res) => {
         email: userToUpdate.email,
         role: userToUpdate.role,
         active_lab: userToUpdate.active_lab,
-        labs: userToUpdate.labs
+        labs: userToUpdate.labs,
+        profile_photo: userToUpdate.profile_photo || '',
       }
     });
   } catch (err) {

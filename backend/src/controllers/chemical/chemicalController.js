@@ -234,8 +234,17 @@ exports.getChemical = async (req, res) => {
 
 exports.createChemical = async (req, res) => {
   const data = req.body;
+  if (!data?.name || !String(data.name).trim()) {
+    return res.status(400).json({
+      error:
+        'Name is required. If this came from mobile, the multipart body may not have been parsed — retry after updating the app.',
+    });
+  }
   const casRegex = /^\d{2,7}-\d{2}-\d$/;
   if (data.cas && !casRegex.test(data.cas)) {
+    return res.status(400).json({ error: 'Invalid CAS number format.' });
+  }
+  if (data.cas_number && !casRegex.test(data.cas_number)) {
     return res.status(400).json({ error: 'Invalid CAS number format.' });
   }
 
@@ -268,6 +277,8 @@ exports.createChemical = async (req, res) => {
     const disposalFileName = hasDisposalFile ? disposalFile.originalname : undefined;
     const disposalFileUrl = hasDisposalFile ? `/api/uploads/${disposalFile.filename}` : undefined;
 
+    const emptyToUndef = (v) => (v === '' || v === null || v === undefined ? undefined : v);
+
     const newChem = new Chemical({
       id: idValue,
       name: data.name,
@@ -285,14 +296,14 @@ exports.createChemical = async (req, res) => {
       storage_humidity: data.storage_humidity || data.storageHumidity,
       supplier: data.supplier,
       batch_number: data.batch_number || data.batch,
-      manufacturing_date: data.manufacturing_date || data.mfgDate,
-      purchase_date: data.purchase_date || data.purchaseDate,
-      expiry_date: data.expiry_date || data.expiry,
+      manufacturing_date: emptyToUndef(data.manufacturing_date || data.mfgDate),
+      purchase_date: emptyToUndef(data.purchase_date || data.purchaseDate),
+      expiry_date: emptyToUndef(data.expiry_date || data.expiry),
       num_containers: Number(data.num_containers || data.numContainers) || 1,
-      quantity_per_container: Number(data.quantity_per_container || data.qtyPerContainer),
+      quantity_per_container: Number(data.quantity_per_container || data.qtyPerContainer) || 0,
       container_type: data.container_type || data.containerType,
       container_id_series: data.container_id_series || data.containerId,
-      barcode: data.barcode || undefined,
+      barcode: emptyToUndef(data.barcode),
       building: data.building,
       room: data.room,
       cabinet: data.cabinet,
@@ -311,10 +322,11 @@ exports.createChemical = async (req, res) => {
       incompatibility: (() => { try { return typeof data.incompatibility === 'string' ? JSON.parse(data.incompatibility) : (data.incompatibility || []); } catch (e) { return []; } })(),
       emergency_response: (() => { try { return typeof data.emergency_response === 'string' ? JSON.parse(data.emergency_response) : (data.emergency_response || {}); } catch (e) { return {}; } })(),
       exposure_details: (() => { try { return typeof data.exposure_details === 'string' ? JSON.parse(data.exposure_details) : (data.exposure_details || {}); } catch (e) { return {}; } })(),
-      restricted_access: data.restricted_access === 'true',
-      training_required: data.training_required === 'true',
+      restricted_access: data.restricted_access === true || data.restricted_access === 'true',
+      training_required: data.training_required === true || data.training_required === 'true',
+      threshold: Number(data.threshold) || 5,
 
-      sds_attached: hasSdsFile || data.sdsAttached === 'true',
+      sds_attached: hasSdsFile || data.sds_attached === 'true' || data.sdsAttached === 'true',
       sds_file_name: sdsFileName,
       sds_file_url: sdsFileUrl,
       disposal_file_name: disposalFileName,
@@ -413,8 +425,12 @@ exports.createChemical = async (req, res) => {
 
     res.status(201).json({ ...cleanChemicalQty(newChem), safety_warnings });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('createChemical error:', err);
+    const message =
+      err?.name === 'ValidationError'
+        ? Object.values(err.errors || {}).map((e) => e.message).join('; ') || err.message
+        : err?.message || 'Server error';
+    res.status(500).json({ error: message });
   }
 };
 
