@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Chemical = require('../../models/Chemical');
 const Lab = require('../../models/Lab');
 const Container = require('../../models/Container');
@@ -35,25 +36,30 @@ exports.getPublicStats = async (req, res) => {
   }
 };
 
+/** Read-only MongoDB ping — no insert/update/delete */
 exports.keepAlive = async (req, res) => {
   try {
-    // Run a lightweight database query to keep connection active
-    const chemicalCount = await Chemical.countDocuments({ archived: false });
+    if (mongoose.connection.readyState !== 1 || !mongoose.connection.db) {
+      return res.status(503).json({
+        success: false,
+        message: 'MongoDB is not connected',
+        timestamp: new Date(),
+      });
+    }
+
+    const result = await mongoose.connection.db.admin().command({ ping: 1 });
     res.json({
-      success: true,
-      message: 'Keep-alive database query successful',
+      success: result?.ok === 1,
+      message: 'Keep-alive ping successful (no data changed)',
       schemaStatus: 'online',
-      data: {
-        activeCount: chemicalCount
-      },
-      timestamp: new Date()
+      timestamp: new Date(),
     });
   } catch (error) {
-    console.error('Keep-alive database query failed:', error);
+    console.error('Keep-alive database ping failed:', error);
     res.status(500).json({
       success: false,
-      message: 'Keep-alive database query failed',
-      error: error.message
+      message: 'Keep-alive database ping failed',
+      error: error.message,
     });
   }
 };

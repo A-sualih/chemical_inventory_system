@@ -95,7 +95,18 @@ exports.login = async (req, res) => {
       { expiresIn: '1h' }
     );
 
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, active_lab: user.active_lab, labs: user.labs } });
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        active_lab: user.active_lab,
+        labs: user.labs,
+        profile_photo: user.profile_photo || '',
+      },
+    });
 
     logAudit({ user, ip: req.ip, headers: req.headers }, {
       action: 'LOGIN',
@@ -413,7 +424,18 @@ exports.verifyMfa = async (req, res) => {
     user.last_mfa_verified_at = new Date();
     await user.save();
 
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, active_lab: user.active_lab, labs: user.labs } });
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        active_lab: user.active_lab,
+        labs: user.labs,
+        profile_photo: user.profile_photo || '',
+      },
+    });
   } catch (err) {
     res.status(500).json({ error: 'Server error during MFA verification' });
   }
