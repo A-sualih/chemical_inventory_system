@@ -3,6 +3,7 @@ const { initDb } = require('./config/db');
 const { initExpirySchedule, runExpiryCheck } = require('./jobs/expiryWorker');
 const { initStockSchedule, runStockCheck }   = require('./jobs/stockWorker');
 const { initSafetySchedule, runSafetyCheck } = require('./jobs/safetyWorker');
+const { initDbKeepAliveSchedule } = require('./jobs/dbKeepAliveWorker');
 
 const PORT = process.env.PORT || 5001;
 
@@ -13,6 +14,7 @@ initDb().then(() => {
   initExpirySchedule();   // Runs daily at 00:00 — expiry/near-expiry checks
   initStockSchedule();    // Runs daily at 06:00 — low stock checks
   initSafetySchedule();   // Runs daily at 07:00 — missing SDS, incompatibility, env risk
+  initDbKeepAliveSchedule(); // Runs daily at 03:00 — read-only MongoDB ping (no data changes)
 
   // ── Immediate startup checks ───────────────────────────────────────────────
   // runExpiryCheck();       // Catch any expiry issues since last server restart
@@ -23,7 +25,9 @@ initDb().then(() => {
   app.listen(PORT, HOST, () => {
     console.log(`Server running on http://${HOST}:${PORT}`);
     console.log(`Mode: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`Workers: ExpiryWorker (00:00) | StockWorker (06:00) | SafetyWorker (07:00)`);
+    console.log(
+      'Workers: ExpiryWorker (00:00) | DbKeepAlive (03:00) | StockWorker (06:00) | SafetyWorker (07:00)'
+    );
   });
 }).catch(err => {
   console.error('CRITICAL: Database initialization failed. Server not started.');
