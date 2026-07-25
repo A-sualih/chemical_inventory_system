@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const ctrl = require('../controllers/procurement/procurementController');
-const { authenticate, authorize } = require('../middleware/authMiddleware');
+const { authenticate, authorize, authorizeRoles } = require('../middleware/authMiddleware');
 const { requireLabScope } = require('../middleware/labScope');
-const { PERMISSIONS } = require('../config/roles');
+const { PERMISSIONS, ROLES } = require('../config/roles');
 
+const labManagerOnly = authorizeRoles(ROLES.LAB_MANAGER);
 const canView = authorize(PERMISSIONS.VIEW_CHEMICALS, PERMISSIONS.VIEW_FINANCIALS);
 const canEdit = authorize(PERMISSIONS.EDIT_CHEMICAL, PERMISSIONS.VIEW_FINANCIALS);
-const adminOnly = authorize(PERMISSIONS.MANAGE_USERS);
 
-router.use(authenticate, requireLabScope);
+router.use(authenticate, requireLabScope, labManagerOnly);
 
 router.get('/suppliers', canView, ctrl.getSuppliers);
 router.get('/suppliers/rankings', canView, ctrl.getSupplierRankings);
@@ -17,15 +17,15 @@ router.get('/suppliers/:id', canView, ctrl.getSupplierById);
 router.get('/suppliers/:id/history', canView, ctrl.getSupplierHistory);
 router.post('/suppliers', canEdit, ctrl.createSupplier);
 router.put('/suppliers/:id', canEdit, ctrl.updateSupplier);
-router.put('/suppliers/:id/blacklist', adminOnly, ctrl.blacklistSupplier);
-router.delete('/suppliers/:id', adminOnly, ctrl.deleteSupplier);
+router.put('/suppliers/:id/blacklist', canEdit, ctrl.blacklistSupplier);
+router.delete('/suppliers/:id', canEdit, ctrl.deleteSupplier);
 
 router.get('/orders', canView, ctrl.getPurchaseOrders);
 router.get('/orders/:id', canView, ctrl.getPurchaseOrderById);
 router.post('/orders', canEdit, ctrl.createPurchaseOrder);
 router.put('/orders/:id', canEdit, ctrl.updatePurchaseOrder);
 router.put('/orders/:id/status', canEdit, ctrl.updatePurchaseOrderStatus);
-router.delete('/orders/:id', adminOnly, ctrl.deletePurchaseOrder);
+router.delete('/orders/:id', canEdit, ctrl.deletePurchaseOrder);
 
 router.get('/shipments', canView, ctrl.getShipments);
 router.put('/shipments/:poId', canEdit, ctrl.updateShipment);
