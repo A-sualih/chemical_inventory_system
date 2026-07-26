@@ -60,6 +60,23 @@ export const AuthProvider = ({ children }) => {
           setToken(savedToken);
           setUser(JSON.parse(savedUser));
           axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
+          // Hydrate profile_photo (and other fields) — login payload historically omitted it
+          axios.get('/api/profile/me').then((res) => {
+            const data = res.data;
+            if (!data) return;
+            setUser((prev) => {
+              const updated = {
+                ...prev,
+                name: data.name ?? prev?.name,
+                email: data.email ?? prev?.email,
+                phone: data.phone ?? prev?.phone,
+                profile_photo: data.profile_photo || '',
+                role: data.role ?? prev?.role,
+              };
+              localStorage.setItem('cims_user', JSON.stringify(updated));
+              return updated;
+            });
+          }).catch(() => {});
         }
       } catch (err) {
         logout();
