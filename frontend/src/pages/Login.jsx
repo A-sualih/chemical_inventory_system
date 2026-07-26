@@ -6,10 +6,35 @@ import { useSettings } from "../context/SettingsContext";
 import ThemeToggle from "../components/common/ThemeToggle";
 import "../styles/Login.css";
 
+function BrandMark({ settings, settingsLoaded, className = "app-logo icon-white" }) {
+  if (settings?.systemLogo) {
+    return (
+      <img
+        src={settings.systemLogo}
+        alt="Logo"
+        style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '1rem' }}
+      />
+    );
+  }
+  if (!settingsLoaded) {
+    return <div aria-hidden style={{ width: '2rem', height: '2rem', borderRadius: '0.5rem', background: 'rgba(148,163,184,0.35)' }} />;
+  }
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '2.5rem', height: '2.5rem' }}>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" />
+    </svg>
+  );
+}
+
 const Login = () => {
   const { login, user: currentUser } = useAuth();
-  const { settings } = useSettings();
+  const { settings, settingsLoaded } = useSettings();
   const orgName = settings?.orgName || "Chemical Inventory Management";
+  const logoBoxStyle = {
+    backgroundColor: settings?.systemLogo ? 'transparent' : '',
+    boxShadow: settings?.systemLogo ? 'none' : '',
+  };
   const [view, setView] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -125,14 +150,8 @@ const Login = () => {
         return (
           <div className="login-view-wrapper">
             <div className="logo-header-wrapper">
-              <div className="app-logo-box" style={{ backgroundColor: settings?.systemLogo ? 'transparent' : '', boxShadow: settings?.systemLogo ? 'none' : '' }}>
-                {settings?.systemLogo ? (
-                  <img src={settings.systemLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '1rem' }} />
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="mfa-icon app-logo icon-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                )}
+              <div className="app-logo-box" style={logoBoxStyle}>
+                <BrandMark settings={settings} settingsLoaded={settingsLoaded} className="mfa-icon app-logo icon-white" />
               </div>
             </div>
             <h2 className="login-title-h2">Verify Identity</h2>
@@ -160,15 +179,8 @@ const Login = () => {
         return (
           <div className="login-view-wrapper">
             <div className="logo-header-wrapper">
-              <div className="app-logo-box" style={{ backgroundColor: settings?.systemLogo ? 'transparent' : '', boxShadow: settings?.systemLogo ? 'none' : '' }}>
-                {settings?.systemLogo ? (
-                  <img src={settings.systemLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '1rem' }} />
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="app-logo icon-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" />
-                  </svg>
-                )}
+              <div className="app-logo-box" style={logoBoxStyle}>
+                <BrandMark settings={settings} settingsLoaded={settingsLoaded} />
               </div>
             </div>
             <h2 className="login-title-h2">Reset Password</h2>
@@ -242,18 +254,8 @@ const Login = () => {
         return (
           <div className="login-view-wrapper">
             <div className="logo-header-wrapper">
-              <div className="app-logo-box" style={{ 
-                backgroundColor: settings?.systemLogo ? 'transparent' : '',
-                boxShadow: settings?.systemLogo ? 'none' : ''
-              }}>
-                {settings?.systemLogo ? (
-                  <img src={settings.systemLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '1rem' }} />
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="app-logo icon-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.642.257a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l1.166 1.166a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l.144-.144a1 1 0 011.414 0l.144.144a2 2 0 002.828 0l1.166-1.166z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" />
-                  </svg>
-                )}
+              <div className="app-logo-box" style={logoBoxStyle}>
+                <BrandMark settings={settings} settingsLoaded={settingsLoaded} />
               </div>
               <h1 className="login-title-h1">
                 {settings?.systemName || "CIMS Portal"}

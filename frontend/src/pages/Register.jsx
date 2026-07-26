@@ -8,7 +8,7 @@ import "../styles/Login.css";
 
 const Register = () => {
   const { user: currentUser } = useAuth();
-  const { settings } = useSettings();
+  const { settings, settingsLoaded } = useSettings();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -80,6 +80,8 @@ const Register = () => {
             >
               {settings?.systemLogo ? (
                 <img src={settings.systemLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '1rem' }} />
+              ) : !settingsLoaded ? (
+                <div aria-hidden style={{ width: '2rem', height: '2rem', borderRadius: '0.5rem', background: 'rgba(148,163,184,0.35)' }} />
               ) : (
                 <svg xmlns="http://www.w3.org/2000/svg" className="app-logo icon-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{width: '2.5rem', height: '2.5rem'}}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />

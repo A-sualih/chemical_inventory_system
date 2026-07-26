@@ -30,7 +30,7 @@ import ThemeToggle from '../components/common/ThemeToggle';
 
 const Landing = () => {
   const { user } = useAuth();
-  const { settings } = useSettings();
+  const { settings, settingsLoaded } = useSettings();
   const navigate = useNavigate();
   const location = useLocation();
   const [showDevModal, setShowDevModal] = React.useState(false);
@@ -81,6 +81,8 @@ const Landing = () => {
   const systemName = settings?.systemName || "CIMS PRO";
   const systemLogo = settings?.systemLogo;
   const orgName = settings?.orgName || "Managed Stack";
+  const heroSrc = settings?.landingHero
+    || (settingsLoaded ? "/landing_hero_illustration_v2_1779104886985.png" : null);
   return (
     <div className="landing-container">
       {/* Background Decor */}
@@ -92,8 +94,10 @@ const Landing = () => {
         <div className="nav-logo">
           {systemLogo ? (
             <img src={systemLogo} alt="Logo" style={{ height: '32px', width: 'auto', borderRadius: '6px' }} />
-          ) : (
+          ) : settingsLoaded ? (
             <FlaskConical size={32} />
+          ) : (
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--secondary-100, #e2e8f0)' }} aria-hidden />
           )}
           <span>{systemName}</span>
         </div>
@@ -131,11 +135,15 @@ const Landing = () => {
         </div>
         <div className="hero-visual">
           <div className="hero-img-container">
-             <img 
-               src={settings?.landingHero || "/landing_hero_illustration_v2_1779104886985.png"} 
-               alt={`${systemName} Illustration`} 
-               onError={(e) => e.target.src = "/landing_hero_illustration_v2_1779104886985.png"}
-             />
+             {heroSrc ? (
+               <img
+                 src={heroSrc}
+                 alt={`${systemName} Illustration`}
+                 onError={(e) => { e.target.src = "/landing_hero_illustration_v2_1779104886985.png"; }}
+               />
+             ) : (
+               <div aria-hidden style={{ width: '100%', minHeight: 220, borderRadius: 16, background: 'var(--secondary-100, #e2e8f0)' }} />
+             )}
           </div>
         </div>
       </header>
@@ -311,8 +319,10 @@ const Landing = () => {
         <div className="footer-logo">
           {systemLogo ? (
             <img src={systemLogo} alt="Logo" style={{ height: '24px', width: 'auto', marginRight: '0.5rem', display: 'inline-block', verticalAlign: 'middle' }} />
-          ) : (
+          ) : settingsLoaded ? (
             <FlaskConical size={24} className="inline mr-2" />
+          ) : (
+            <div style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--secondary-100, #e2e8f0)', display: 'inline-block', marginRight: '0.5rem', verticalAlign: 'middle' }} aria-hidden />
           )}
           {systemName}
         </div>
