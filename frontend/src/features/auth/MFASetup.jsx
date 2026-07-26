@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Layout from "../../layout/Layout";
 import { useAuth } from "../../context/AuthContext";
+import { confirmAction } from "../../utils/confirmAction";
 import "../../styles/MFASetup.css";
 
 const MFASetup = () => {
@@ -56,7 +57,13 @@ const MFASetup = () => {
   };
 
   const disableMfa = async () => {
-    if (!window.confirm("Are you sure you want to disable MFA? This reduces your account security.")) return;
+    const ok = await confirmAction({
+      message: 'Are you sure you want to disable MFA? This reduces your account security.',
+      confirmLabel: 'Disable MFA',
+      cancelLabel: 'Cancel',
+      danger: true,
+    });
+    if (!ok) return;
     setLoading(true);
     try {
       await axios.post('/api/auth/mfa/disable', {}, {

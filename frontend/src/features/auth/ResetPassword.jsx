@@ -8,7 +8,7 @@ import "../../styles/Login.css";
 const ResetPassword = () => {
   const { token } = useParams();
   const navigate = useNavigate();
-  const { settings } = useSettings();
+  const { settings, settingsLoaded } = useSettings();
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -52,6 +52,8 @@ const ResetPassword = () => {
             <div className="app-logo-box" style={{ backgroundColor: settings?.systemLogo ? 'transparent' : '', boxShadow: settings?.systemLogo ? 'none' : '' }}>
               {settings?.systemLogo ? (
                 <img src={settings.systemLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '1rem' }} />
+              ) : !settingsLoaded ? (
+                <div aria-hidden style={{ width: '2rem', height: '2rem', borderRadius: '0.5rem', background: 'rgba(148,163,184,0.35)' }} />
               ) : (
                 <svg className="app-logo icon-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" />
