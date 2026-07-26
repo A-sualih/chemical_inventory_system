@@ -122,21 +122,21 @@ function App() {
               <Route path="/requests" element={<ProtectedRoute allowedRoles={["Lab Manager", "Safety Officer", "Lab Technician"]}><Requests /></ProtectedRoute>} />
               <Route path="/transfers" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer"]}><TransferDashboard /></ProtectedRoute>} />
               <Route path="/logs" element={<ProtectedRoute><InventoryLogs /></ProtectedRoute>} />
-              <Route path="/transactions" element={<ProtectedRoute allowedRoles={["Lab Manager", "Safety Officer", "Lab Technician"]}><TransactionSystem /></ProtectedRoute>} />
+              <Route path="/transactions" element={<ProtectedRoute allowedRoles={["Lab Manager", "Safety Officer", "Lab Technician", "Viewer / Auditor"]}><TransactionSystem /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer / Auditor"]}><Reports /></ProtectedRoute>} />
               <Route path="/support-inbox" element={<ProtectedRoute allowedRoles={["Admin"]}><SupportInbox /></ProtectedRoute>} />
               
               {/* Specialized Modules */}
               <Route path="/safety" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Viewer / Auditor"]}><SafetyDashboard /></ProtectedRoute>} />
-              <Route path="/procurement" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager"]}><ProcurementDashboard /></ProtectedRoute>} />
+              <Route path="/procurement" element={<ProtectedRoute allowedRoles={["Lab Manager"]}><ProcurementDashboard /></ProtectedRoute>} />
               <Route path="/waste" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager", "Safety Officer", "Lab Technician"]}><WasteDashboard /></ProtectedRoute>} />
 
               {/* Admin & Security Command Center */}
               <Route path="/settings" element={<ProtectedRoute allowedRoles={["Admin"]}><SystemSettings /></ProtectedRoute>} />
               <Route path="/security" element={<ProtectedRoute allowedRoles={["Admin"]}><SecurityDashboard /></ProtectedRoute>} />
               <Route path="/lab-management" element={<ProtectedRoute allowedRoles={["Admin"]}><LabManagement /></ProtectedRoute>} />
-              <Route path="/audit" element={<ProtectedRoute allowedRoles={["Admin"]}><AdminOnly title="Master Audit Logs" description="Review all security events." /></ProtectedRoute>} />
-              <Route path="/roles" element={<ProtectedRoute allowedRoles={["Admin"]}><AdminOnly title="Role Management" description="Configure permissions." /></ProtectedRoute>} />
+              <Route path="/audit" element={<ProtectedRoute allowedRoles={["Admin"]}><AdminOnly key="audit" title="Master Audit Logs" description="Review all security events." /></ProtectedRoute>} />
+              <Route path="/roles" element={<ProtectedRoute allowedRoles={["Admin"]}><AdminOnly key="roles" title="Role Management" description="Configure permissions." /></ProtectedRoute>} />
               <Route path="/integrations" element={<ProtectedRoute allowedRoles={["Admin", "Lab Manager"]}><IntegrationHub /></ProtectedRoute>} />
 
               {/* Fallback */}

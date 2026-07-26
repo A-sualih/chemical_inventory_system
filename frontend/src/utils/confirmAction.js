@@ -74,22 +74,6 @@ export function confirmAction({
                 type: 'button',
                 onClick: () => {
                   toast.dismiss(t.id);
-                  finish(true);
-                },
-                style: {
-                  ...btnBase,
-                  background: danger ? '#ef4444' : '#0d9488',
-                  color: 'white',
-                },
-              },
-              confirmLabel
-            ),
-            createElement(
-              'button',
-              {
-                type: 'button',
-                onClick: () => {
-                  toast.dismiss(t.id);
                   finish(false);
                 },
                 style: {
@@ -99,6 +83,22 @@ export function confirmAction({
                 },
               },
               cancelLabel
+            ),
+            createElement(
+              'button',
+              {
+                type: 'button',
+                onClick: () => {
+                  toast.dismiss(t.id);
+                  finish(true);
+                },
+                style: {
+                  ...btnBase,
+                  background: danger ? '#ef4444' : '#0d9488',
+                  color: 'white',
+                },
+              },
+              confirmLabel
             )
           )
         ),
