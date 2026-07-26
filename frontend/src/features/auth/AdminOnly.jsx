@@ -1,18 +1,54 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Layout from "../../layout/Layout";
 import { useAuth } from "../../context/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../../styles/AdminOnly.css";
 import { confirmAction, notifyAction } from "../../utils/confirmAction";
 
+function formatAuditWhen(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return { relative: 'Unknown', absolute: '' };
+
+  const mins = Math.floor((Date.now() - d.getTime()) / 60000);
+  let relative = 'Just now';
+  if (mins >= 1 && mins < 60) relative = `${mins}m ago`;
+  else if (mins >= 60 && mins < 1440) relative = `${Math.floor(mins / 60)}h ago`;
+  else if (mins >= 1440 && mins < 10080) relative = `${Math.floor(mins / 1440)}d ago`;
+  else if (mins >= 10080) {
+    relative = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  const absolute = d.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+  return { relative, absolute };
+}
+
+function tabFromPath(pathname, title) {
+  if (pathname.includes('/audit')) return 'audit';
+  if (pathname.includes('/roles')) return 'roles';
+  return title?.includes('Audit') ? 'audit' : 'roles';
+}
+
 const AdminOnlyPage = ({ title, description }) => {
    const { user, hasPermission } = useAuth();
+   const location = useLocation();
+   const navigate = useNavigate();
    const [users, setUsers] = useState([]);
    const [auditLogs, setAuditLogs] = useState([]);
    const [totalLogs, setTotalLogs] = useState(0);
    const [loading, setLoading] = useState(true);
-   const [activeTab, setActiveTab] = useState(title.includes("Audit") ? "audit" : "roles");
+   // Drive content from the URL so Role Manager ↔ Master Audit actually switches
+   const activeTab = useMemo(
+      () => tabFromPath(location.pathname, title),
+      [location.pathname, title]
+   );
    const [selectedLog, setSelectedLog] = useState(null);
    
    // Pagination & Filters
@@ -21,6 +57,10 @@ const AdminOnlyPage = ({ title, description }) => {
    const [filterTarget, setFilterTarget] = useState("");
    const [filterAction, setFilterAction] = useState("");
    const [dateRange, setDateRange] = useState({ start: "", end: "" });
+
+   const goToTab = (tab) => {
+      navigate(tab === 'audit' ? '/audit' : '/roles');
+   };
 
    if (!hasPermission("assign_roles") && !hasPermission("view_audit_logs")) {
       return <Navigate to="/" replace />;
@@ -55,6 +95,11 @@ const AdminOnlyPage = ({ title, description }) => {
          setLoading(false);
       }
    };
+
+   useEffect(() => {
+      setPage(1);
+      setSelectedLog(null);
+   }, [activeTab]);
 
    useEffect(() => {
       fetchData();
@@ -125,13 +170,13 @@ const AdminOnlyPage = ({ title, description }) => {
 
             <div className="admin-tabs">
                <button
-                  onClick={() => setActiveTab("roles")}
+                  onClick={() => goToTab("roles")}
                   className={`admin-tab ${activeTab === 'roles' ? 'active' : ''}`}
                >
                   User Roles
                </button>
                <button
-                  onClick={() => setActiveTab("audit")}
+                  onClick={() => goToTab("audit")}
                   className={`admin-tab ${activeTab === 'audit' ? 'active' : ''}`}
                >
                   Master Audit
@@ -368,7 +413,9 @@ const AdminOnlyPage = ({ title, description }) => {
                                  <p className="audit-empty-subtitle">Refine your search parameters</p>
                               </div>
                            )}
-                           {auditLogs.map(log => (
+                           {auditLogs.map(log => {
+                              const when = formatAuditWhen(log.timestamp);
+                              return (
                               <div 
                                  key={log._id || Math.random()} 
                                  className={`audit-log-item ${selectedLog === log._id ? 'selected' : ''}`}
@@ -396,7 +443,15 @@ const AdminOnlyPage = ({ title, description }) => {
                                                 <span className="audit-log-fail">Failure</span>
                                              )}
                                           </div>
-                                          <p className="audit-log-time">{new Date(log.timestamp).toLocaleString()}</p>
+                                          <p className="audit-log-time" title={when.absolute}>
+                                             <span className="time-relative">{when.relative}</span>
+                                             {when.absolute ? (
+                                               <>
+                                                 <span className="time-sep">·</span>
+                                                 <span>{when.absolute}</span>
+                                               </>
+                                             ) : null}
+                                          </p>
                                        </div>
                                     </div>
                                     
@@ -453,7 +508,8 @@ const AdminOnlyPage = ({ title, description }) => {
                                     )}
                                  </div>
                               </div>
-                           ))}
+                           );
+                           })}
 
                            {/* Pagination */}
                            {totalLogs > 20 && (

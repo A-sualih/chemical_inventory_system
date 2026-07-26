@@ -5,12 +5,12 @@ import { useAuth } from '../../context/AuthContext';
 import {
   Inbox, Box, AlertTriangle, Lock, Info, ShieldAlert, Trash2,
   FlaskConical, Droplets, Thermometer, FileWarning, Siren,
-  Leaf, Bell, CheckCheck, RefreshCw, ChevronDown
+  Leaf, Bell, CheckCheck, RefreshCw
 } from 'lucide-react';
 import axios from 'axios';
+import { confirmAction } from '../../utils/confirmAction';
 import '../../styles/Notifications.css';
 
-// ── Static config ──────────────────────────────────────────────────────────────
 const TYPE_CONFIG = {
   LOW_STOCK:           { label: 'Low Stock',              icon: Box,           color: 'sev-high' },
   EXPIRY:              { label: 'Expiry Warning',         icon: AlertTriangle, color: 'sev-warning' },
@@ -29,7 +29,6 @@ const TYPE_CONFIG = {
   INFO:                { label: 'Info',                   icon: Info,          color: 'sev-info' },
 };
 
-// Types visible per role (mirrors backend applyRoleFilters)
 const ROLE_TYPES = {
   'Admin':              ['UNAUTHORIZED_ACCESS', 'SYSTEM'],
   'Lab Manager':        ['LOW_STOCK', 'EXPIRY', 'COMPLIANCE', 'SYSTEM'],
@@ -37,6 +36,30 @@ const ROLE_TYPES = {
   'Lab Technician':     ['LOW_STOCK', 'EXPIRY', 'REQUEST_UPDATE', 'SYSTEM'],
   'Technician':         ['LOW_STOCK', 'EXPIRY', 'REQUEST_UPDATE', 'SYSTEM'],
 };
+
+function formatAlertWhen(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return { relative: 'Unknown', absolute: '' };
+
+  const mins = Math.floor((Date.now() - d.getTime()) / 60000);
+  let relative = 'Just now';
+  if (mins >= 1 && mins < 60) relative = `${mins}m ago`;
+  else if (mins >= 60 && mins < 1440) relative = `${Math.floor(mins / 60)}h ago`;
+  else if (mins >= 1440 && mins < 10080) relative = `${Math.floor(mins / 1440)}d ago`;
+  else if (mins >= 10080) {
+    relative = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  const absolute = d.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+  return { relative, absolute };
+}
 
 const Notifications = () => {
   const { notifications, loading, markAsRead, dismissNotification, refresh } = useNotifications();
@@ -52,7 +75,6 @@ const Notifications = () => {
     setTimeout(() => setToastMsg(null), 3500);
   };
 
-  // Role-aware type options for the filter
   const roleTypes = ROLE_TYPES[user?.role] || Object.keys(TYPE_CONFIG);
 
   const handleTestAlert = async () => {
@@ -69,7 +91,13 @@ const Notifications = () => {
   };
 
   const handleCleanup = async () => {
-    if (!window.confirm('Delete all read and dismissed notifications older than 30 days?')) return;
+    const ok = await confirmAction({
+      message: 'Delete all read and dismissed notifications older than 30 days?',
+      confirmLabel: 'Cleanup',
+      cancelLabel: 'Cancel',
+      danger: true,
+    });
+    if (!ok) return;
     setCleaning(true);
     try {
       await axios.delete('/api/notifications/cleanup');
@@ -84,7 +112,6 @@ const Notifications = () => {
 
   return (
     <Layout>
-      {/* Toast */}
       {toastMsg && (
         <div style={{
           position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 9999,
@@ -108,23 +135,18 @@ const Notifications = () => {
           </div>
         </div>
         <div className="notif-actions">
-          {/* Typed test selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="notif-test-group">
             <select
               value={testType}
               onChange={e => setTestType(e.target.value)}
               className="filter-select"
-              style={{ minWidth: '160px', fontSize: '0.8rem' }}
+              aria-label="Test alert type"
             >
               {roleTypes.map(t => (
                 <option key={t} value={t}>{TYPE_CONFIG[t]?.label || t}</option>
               ))}
             </select>
-            <button
-              onClick={handleTestAlert}
-              disabled={sendingTest}
-              className="btn-test"
-            >
+            <button onClick={handleTestAlert} disabled={sendingTest} className="btn-test">
               {sendingTest ? 'Sending…' : 'Test Alert'}
             </button>
           </div>
@@ -138,18 +160,16 @@ const Notifications = () => {
       </div>
 
       <div className="notif-layout">
-        {/* Filters */}
         <div className="notif-filters-col">
           <div className="filter-card">
             <h3 className="filter-title">Filters</h3>
-
-            <div>
+            <div className="filter-fields">
               <div className="filter-group">
                 <label className="filter-label">Alert Type</label>
                 <select
                   className="filter-select"
                   value={filter.type}
-                  onChange={(e) => setFilter({...filter, type: e.target.value})}
+                  onChange={(e) => setFilter({ ...filter, type: e.target.value })}
                 >
                   <option value="">All Types</option>
                   {roleTypes.map(t => (
@@ -160,10 +180,10 @@ const Notifications = () => {
 
               <div className="filter-group">
                 <label className="filter-label">Severity</label>
-                <select 
+                <select
                   className="filter-select"
                   value={filter.severity}
-                  onChange={(e) => setFilter({...filter, severity: e.target.value})}
+                  onChange={(e) => setFilter({ ...filter, severity: e.target.value })}
                 >
                   <option value="">All Severities</option>
                   <option value="critical">Critical</option>
@@ -175,10 +195,10 @@ const Notifications = () => {
 
               <div className="filter-group">
                 <label className="filter-label">Status</label>
-                <select 
+                <select
                   className="filter-select"
                   value={filter.status}
-                  onChange={(e) => setFilter({...filter, status: e.target.value})}
+                  onChange={(e) => setFilter({ ...filter, status: e.target.value })}
                 >
                   <option value="">All Status</option>
                   <option value="unread">Unread Only</option>
@@ -190,7 +210,6 @@ const Notifications = () => {
           </div>
         </div>
 
-        {/* Notifications List */}
         <div className="notif-list-col">
           <div className="list-container">
             {loading ? (
@@ -219,60 +238,55 @@ const Notifications = () => {
               return (
                 <div className="notif-cards-wrapper">
                   {filteredNotifications.map((notif) => {
-                    
-                    // Resolve type config
                     const tc = TYPE_CONFIG[notif.type] || TYPE_CONFIG.INFO;
                     const IconComp = tc.icon;
 
-                    // Severity colour class
                     let sevClass = tc.color;
                     if (notif.severity === 'critical') sevClass = 'sev-critical';
                     else if (notif.severity === 'high') sevClass = 'sev-high';
                     else if (notif.severity === 'medium') sevClass = 'sev-warning';
+
+                    const when = formatAlertWhen(notif.createdAt);
 
                     return (
                       <div key={notif._id} className={`notif-item ${notif.status === 'unread' ? 'unread' : ''}`}>
                         <div className={`icon-box ${sevClass}`}>
                           <IconComp className="notif-svg-icon" />
                         </div>
-                        
+
                         <div className="notif-content">
                           <div className="notif-top-row">
-                            <div>
+                            <div style={{ minWidth: 0, flex: 1 }}>
                               <h3 className="notif-heading">{notif.title}</h3>
                               <div className="notif-meta">
                                 <span className={`severity-badge ${sevClass}-badge`}>
                                   {notif.severity}
                                 </span>
-                                <span className="related-tag" style={{ fontSize: '0.7rem', fontWeight: 700, opacity: 0.85 }}>
-                                  {tc.label}
-                                </span>
-                                <span className="time-badge">
-                                  {new Date(notif.createdAt).toLocaleString()}
+                                <span className="related-tag">{tc.label}</span>
+                                <span className="time-badge" title={when.absolute}>
+                                  <span className="time-relative">{when.relative}</span>
+                                  {when.absolute ? (
+                                    <>
+                                      <span className="time-sep">·</span>
+                                      <span>{when.absolute}</span>
+                                    </>
+                                  ) : null}
                                 </span>
                               </div>
                             </div>
                             <div className="notif-actions-btns">
                               {notif.status === 'unread' && (
-                                <button 
-                                  onClick={() => markAsRead(notif._id)}
-                                  className="btn-mark-read"
-                                >
+                                <button onClick={() => markAsRead(notif._id)} className="btn-mark-read">
                                   Mark Read
                                 </button>
                               )}
-                              <button 
-                                onClick={() => dismissNotification(notif._id)}
-                                className="btn-dismiss"
-                              >
+                              <button onClick={() => dismissNotification(notif._id)} className="btn-dismiss">
                                 Dismiss
                               </button>
                             </div>
                           </div>
-                          <p className="notif-message">
-                            {notif.message}
-                          </p>
-                          
+                          <p className="notif-message">{notif.message}</p>
+
                           {notif.related && (
                             <div className="notif-related">
                               {notif.related.chemicalName && (
@@ -302,6 +316,3 @@ const Notifications = () => {
 };
 
 export default Notifications;
-
-
-
