@@ -4,6 +4,7 @@ import {
   User, Factory, MapPin, Receipt, Check, X, ShieldCheck, AlertTriangle
 } from 'lucide-react';
 import axios from 'axios';
+import { confirmAction } from '../../utils/confirmAction';
 import '../../styles/Procurement.css';
 
 const CATEGORIES = ['Chemical Manufacturer','Distributor','Wholesaler','Laboratory Supplier','Specialty Chemical','Raw Materials','Other'];
@@ -140,7 +141,13 @@ export default function SuppliersTab() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this supplier? This action cannot be undone.')) return;
+    const ok = await confirmAction({
+      message: 'Delete this supplier? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await axios.delete(`/api/procurement/suppliers/${id}`);
       showToast('Supplier deleted');

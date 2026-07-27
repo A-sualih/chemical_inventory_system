@@ -92,7 +92,13 @@ const UserProfile = () => {
                 headers: { "Content-Type": "multipart/form-data" }
             });
             if (res.data.url) {
-                setFormData(prev => ({ ...prev, profile_photo: res.data.url }));
+                const url = res.data.url;
+                setFormData(prev => ({ ...prev, profile_photo: url }));
+                // Persist immediately so header/sidebar avatars update without a separate Save click
+                await axios.put("/api/profile/me", { profile_photo: url });
+                if (updateUserContext) {
+                    updateUserContext({ profile_photo: url });
+                }
                 setAlert({ type: "success", message: "Identity photo updated successfully." });
             }
         } catch (err) {

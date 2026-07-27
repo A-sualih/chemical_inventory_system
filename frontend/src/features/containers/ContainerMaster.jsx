@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../layout/Layout';
+import { confirmAction } from '../../utils/confirmAction';
 import '../../styles/Containers.css';
 import useUnits from '../../hooks/useUnits';
 
@@ -121,13 +122,18 @@ const Containers = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this container?")) {
-      try {
-        await axios.delete(`/api/containers/${id}`);
-        fetchData();
-      } catch (err) {
-        alert("Error deleting container");
-      }
+    const ok = await confirmAction({
+      message: 'Are you sure you want to delete this container?',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await axios.delete(`/api/containers/${id}`);
+      fetchData();
+    } catch (err) {
+      alert("Error deleting container");
     }
   };
 
