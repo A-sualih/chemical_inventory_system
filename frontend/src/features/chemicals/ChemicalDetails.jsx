@@ -6,6 +6,7 @@ import HazardBadge from "../../components/feedback/HazardBadge";
 import QRCodeLib from "react-qr-code";
 const QRCode = QRCodeLib.default || QRCodeLib;
 import NFPADiamond from "../../components/feedback/NFPADiamond";
+import { confirmAction } from "../../utils/confirmAction";
 import { 
     Shield, 
     AlertTriangle, 
@@ -118,7 +119,14 @@ const ChemicalDetails = () => {
   };
 
   const toggleArchive = async () => {
-    if (!window.confirm(chemical.archived ? "Restore asset?" : "Archive this asset for safety compliance?")) return;
+    const archived = chemical.archived;
+    const ok = await confirmAction({
+      message: archived ? "Restore this chemical to active inventory?" : "Archive this chemical for compliance? (Soft delete)",
+      confirmLabel: archived ? 'Restore' : 'Archive',
+      cancelLabel: 'Cancel',
+      danger: !archived,
+    });
+    if (!ok) return;
     try {
       if (chemical.archived) await axios.put(`/api/chemicals/${chemical.id}/restore`);
       else await axios.delete(`/api/chemicals/${chemical.id}`);

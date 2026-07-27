@@ -14,6 +14,7 @@ import useUnits from "../../hooks/useUnits";
 import axios from "axios";
 import { debounce } from "lodash-es";
 import { fmtQty } from "../../utils/formatQuantity";
+import { confirmAction } from "../../utils/confirmAction";
 import "../../styles/Chemicals.css";
 
 const Chemicals = () => {
@@ -105,7 +106,13 @@ const Chemicals = () => {
 
   const toggleArchive = async (id, isCurrentlyArchived) => {
     const msg = isCurrentlyArchived ? "Restore this chemical to active inventory?" : "Archive this chemical for compliance? (Soft delete)";
-    if (!window.confirm(msg)) return;
+    const ok = await confirmAction({
+      message: msg,
+      confirmLabel: isCurrentlyArchived ? 'Restore' : 'Archive',
+      cancelLabel: 'Cancel',
+      danger: !isCurrentlyArchived,
+    });
+    if (!ok) return;
     try {
       if (isCurrentlyArchived) {
         await axios.put(`/api/chemicals/${id}/restore`);
