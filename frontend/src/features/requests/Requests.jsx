@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import { Calendar as CalendarIcon, Clock, Package as PackageIcon, CheckCircle2, ChevronRight, Hash, FlaskConical, CircleDot, AlertTriangle, Ban, PlusCircle as PlusCircleIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { confirmAction } from "../../utils/confirmAction";
 import "../../styles/Requests.css";
 
 const Requests = () => {
@@ -232,7 +233,13 @@ const Requests = () => {
   };
 
   const handleCancelRequest = async (id) => {
-    if (!window.confirm("Are you sure you want to cancel this request?")) return;
+    const ok = await confirmAction({
+      message: 'Are you sure you want to cancel this request?',
+      confirmLabel: 'Cancel request',
+      cancelLabel: 'Keep',
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await axios.patch(`/api/requests/${id}/cancel`);
       toast.success("Request cancelled successfully.", { duration: 10000 });
@@ -299,7 +306,13 @@ const Requests = () => {
   };
 
   const handleCancelInventoryRequest = async (id) => {
-    if (!window.confirm("Are you sure you want to cancel this request?")) return;
+    const ok = await confirmAction({
+      message: 'Are you sure you want to cancel this request?',
+      confirmLabel: 'Cancel request',
+      cancelLabel: 'Keep',
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await axios.patch(`/api/requests/inventory-request/${id}/cancel`);
       toast.success("Request cancelled successfully.", { duration: 10000 });
@@ -607,11 +620,16 @@ const Requests = () => {
                         />
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
                           <button
-                            onClick={() => {
-                              if (window.confirm("Approve this usage request? Stock will be reduced.")) {
-                                handleAction(req._id, 'Approved', notes);
-                                setNotes("");
-                              }
+                            onClick={async () => {
+                              const ok = await confirmAction({
+                                message: 'Approve this usage request? Stock will be reduced.',
+                                confirmLabel: 'Approve',
+                                cancelLabel: 'Cancel',
+                                danger: false,
+                              });
+                              if (!ok) return;
+                              handleAction(req._id, 'Approved', notes);
+                              setNotes("");
                             }}
                             className="btn-approve"
                             title="Approve Request"
@@ -620,11 +638,16 @@ const Requests = () => {
                             <span style={{ marginLeft: '0.25rem', fontSize: '0.75rem', fontWeight: 700 }} className="hide-on-mobile">Approve</span>
                           </button>
                           <button
-                            onClick={() => {
-                              if (window.confirm("Reject this request?")) {
-                                handleAction(req._id, 'Rejected', notes);
-                                setNotes("");
-                              }
+                            onClick={async () => {
+                              const ok = await confirmAction({
+                                message: 'Reject this request?',
+                                confirmLabel: 'Reject',
+                                cancelLabel: 'Cancel',
+                                danger: true,
+                              });
+                              if (!ok) return;
+                              handleAction(req._id, 'Rejected', notes);
+                              setNotes("");
                             }}
                             className="btn-reject"
                             title="Reject Request"

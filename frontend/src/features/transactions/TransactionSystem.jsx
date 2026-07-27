@@ -30,8 +30,14 @@ import { getScannerConfig } from '../../utils/scannerConfig';
 const TransactionSystem = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const isViewer = user?.role?.toLowerCase() === 'viewer / auditor' || user?.role === 'Safety Officer';
-    const isLabStaff = user?.role?.toLowerCase() === 'laboratory staff' || user?.role === 'Lab Technician';
+    const role = String(user?.role || '').toLowerCase();
+    const isViewer =
+      role === 'viewer / auditor' ||
+      role === 'viewer' ||
+      role === 'auditor' ||
+      role === 'user' ||
+      user?.role === 'Safety Officer';
+    const isLabStaff = role === 'laboratory staff' || user?.role === 'Lab Technician';
     const [activeTab, setActiveTab] = useState('checkout');
     const [barcode, setBarcode] = useState('');
     const [scannedData, setScannedData] = useState(null);

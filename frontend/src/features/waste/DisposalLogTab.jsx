@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import useUnits from '../../hooks/useUnits';
 import { IconTrash, IconClock, IconPlus, IconX, IconCheckCircle, IconAlertTriangle, IconFileText, IconSearch } from './WasteIcons';
 import { fmtQty } from '../../utils/formatQuantity';
+import { confirmAction } from '../../utils/confirmAction';
 
 const REASONS = ['Expired', 'Contaminated', 'Damaged', 'Excess stock', 'Experimental waste', 'Other'];
 const METHODS = ['Neutralization', 'Incineration', 'Chemical treatment', 'Recycling', 'Waste contractor pickup', 'Secure hazardous storage'];
@@ -497,14 +498,19 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                 <button
                   className="btn-waste-action action-reject"
                   onClick={async () => {
-                    if (window.confirm("FATAL ACTION: This will permanently delete ALL disposal records from the system. This action cannot be undone. Proceed?")) {
-                      try {
-                        await axios.post('/api/waste/disposals/purge');
-                        alert("Disposal registry has been completely purged.");
-                        fetchDisposals();
-                      } catch (err) {
-                        alert("Purge failed: " + (err.response?.data?.error || err.message));
-                      }
+                    const ok = await confirmAction({
+                      message: 'FATAL ACTION: This will permanently delete ALL disposal records from the system. This action cannot be undone. Proceed?',
+                      confirmLabel: 'Purge all',
+                      cancelLabel: 'Cancel',
+                      danger: true,
+                    });
+                    if (!ok) return;
+                    try {
+                      await axios.post('/api/waste/disposals/purge');
+                      alert("Disposal registry has been completely purged.");
+                      fetchDisposals();
+                    } catch (err) {
+                      alert("Purge failed: " + (err.response?.data?.error || err.message));
                     }
                   }}
                   style={{ padding: '0.4rem 0.75rem', fontSize: '0.7rem', height: 'auto', gap: '0.4rem', background: '#fef2f2', border: '1px solid #fee2e2', color: '#dc2626' }}

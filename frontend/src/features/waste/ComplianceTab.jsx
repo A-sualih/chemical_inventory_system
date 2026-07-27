@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { IconFileText, IconPlus, IconX, IconCheckCircle, IconAlertTriangle } from './WasteIcons';
 import { useAuth } from '../../context/AuthContext';
+import { confirmAction } from '../../utils/confirmAction';
 
 const COMPLIANCE_TYPES = ['Manifest', 'Inspection', 'Violation', 'Corrective Action', 'Permit Update', 'Government Report'];
 
@@ -51,7 +52,13 @@ export default function ComplianceTab() {
   };
 
   const handleSign = async (id) => {
-    if (!window.confirm('Electronically sign this compliance log?')) return;
+    const ok = await confirmAction({
+      message: 'Electronically sign this compliance log?',
+      confirmLabel: 'Sign',
+      cancelLabel: 'Cancel',
+      danger: false,
+    });
+    if (!ok) return;
     try {
       await axios.put(`/api/waste/compliance/${id}/sign`);
       fetchData();
