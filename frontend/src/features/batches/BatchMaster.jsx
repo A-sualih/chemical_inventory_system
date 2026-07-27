@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import Layout from '../../layout/Layout';
+import { confirmAction } from '../../utils/confirmAction';
 import '../../styles/Batches.css';
 
 import { 
@@ -100,13 +101,18 @@ const Batches = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Delete this batch record?")) {
-      try {
-        await axios.delete(`/api/batches/${id}`);
-        fetchData();
-      } catch (err) {
-        alert("Error deleting batch");
-      }
+    const ok = await confirmAction({
+      message: 'Delete this batch record?',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await axios.delete(`/api/batches/${id}`);
+      fetchData();
+    } catch (err) {
+      alert("Error deleting batch");
     }
   };
 

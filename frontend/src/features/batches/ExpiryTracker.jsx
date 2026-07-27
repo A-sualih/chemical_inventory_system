@@ -3,6 +3,7 @@ import Layout from "../../layout/Layout";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import { format, differenceInDays } from "date-fns";
+import { confirmAction } from "../../utils/confirmAction";
 import "../../styles/Expiry.css";
 
 const ExpiryTracker = () => {
@@ -50,7 +51,13 @@ const ExpiryTracker = () => {
     }, [statusFilter]);
 
     const handleDeleteSingle = async (item) => {
-        if (!window.confirm(`Permanently delete this expired ${item.type.toLowerCase()} (${item.batchId || item.containerId})? This cannot be undone.`)) return;
+        const ok = await confirmAction({
+            message: `Permanently delete this expired ${item.type.toLowerCase()} (${item.batchId || item.containerId})? This cannot be undone.`,
+            confirmLabel: 'Delete',
+            cancelLabel: 'Cancel',
+            danger: true,
+        });
+        if (!ok) return;
         setDeletingId(item.id);
         try {
             const type = item.type === 'Batch' ? 'batch' : 'container';
@@ -65,7 +72,13 @@ const ExpiryTracker = () => {
     };
 
     const handlePurgeAll = async () => {
-        if (!window.confirm(`⚠️ This will permanently delete ALL ${stats.expired} expired batches and containers, and any parent chemicals that only had expired stock.\n\nThis action is irreversible. Proceed?`)) return;
+        const ok = await confirmAction({
+            message: `This will permanently delete ALL ${stats.expired} expired batches and containers, and any parent chemicals that only had expired stock. This action is irreversible. Proceed?`,
+            confirmLabel: 'Purge all',
+            cancelLabel: 'Cancel',
+            danger: true,
+        });
+        if (!ok) return;
         setPurging(true);
         try {
             const { data } = await axios.delete('/api/expiry/purge-expired');

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import Layout from "../../layout/Layout";
@@ -17,6 +17,33 @@ const ScanQR = () => {
   const navigate = useNavigate();
   const [manualId, setManualId] = useState("");
 
+  const role = String(user?.role || '').toLowerCase();
+  const isViewer =
+    role === 'viewer / auditor' ||
+    role === 'viewer' ||
+    role === 'auditor' ||
+    role === 'user' ||
+    user?.role === 'Safety Officer';
+  const isLabStaff =
+    role === 'laboratory staff' ||
+    user?.role === 'Lab Technician';
+
+  const availableModes = useMemo(() => {
+    const all = [
+      { id: 'view', label: 'Quick View', desc: 'Read details', icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' },
+      { id: 'in', label: 'Check-In', desc: '+1 Container', icon: 'M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z' },
+      { id: 'out', label: 'Check-Out', desc: '-1 Container', icon: 'M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z' },
+    ];
+    if (isViewer) return all.filter((mode) => mode.id === 'view');
+    return all;
+  }, [isViewer]);
+
+  useEffect(() => {
+    if (!availableModes.some((m) => m.id === scanMode)) {
+      setScanMode('view');
+    }
+  }, [availableModes, scanMode]);
+
   const handleProcess = useCallback(async (decodedText) => {
     if (processing) return;
 
@@ -27,10 +54,14 @@ const ScanQR = () => {
       exactId = decodedText.split("|")[0].split(":")[1];
     }
 
-    if (scanMode === "view") {
+    // Viewer / Safety Officer: chemical details only (no stock mutation)
+    if (isViewer || scanMode === "view") {
       setScannerActive(false);
       navigate(`/chemicals/details/${exactId}`);
-    } else if (user?.role === 'Laboratory Staff' && scanMode === 'out') {
+      return;
+    }
+
+    if (isLabStaff && scanMode === 'out') {
       setScannerActive(false);
       // Take to request form with pre-selected chemical
       navigate(`/requests?chemical_id=${exactId}`);
@@ -59,7 +90,7 @@ const ScanQR = () => {
         setProcessing(false);
       }
     }
-  }, [processing, scanMode, navigate]);
+  }, [processing, scanMode, navigate, isViewer, isLabStaff]);
 
   useEffect(() => {
     if (!scannerActive) return;
@@ -81,12 +112,6 @@ const ScanQR = () => {
     };
   }, [scannerActive, handleProcess]);
 
-  const modes = [
-    { id: 'view', label: 'Quick View', desc: 'Read details', icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' },
-    { id: 'in', label: 'Check-In', desc: '+1 Container', icon: 'M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { id: 'out', label: 'Check-Out', desc: '-1 Container', icon: 'M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z' },
-  ];
-
   return (
     <Layout>
       <div className="scan-page-wrapper">
@@ -95,10 +120,14 @@ const ScanQR = () => {
           <div className="scan-header-glow"></div>
           <div className="scan-header-content">
             <h1 className="scan-main-title">Adaptive Scanner</h1>
-            <p className="scan-main-desc">Select operation mode and scan labels for instant processing.</p>
+            <p className="scan-main-desc">
+              {isViewer
+                ? 'Scan labels to open chemical details only (read-only).'
+                : 'Select operation mode and scan labels for instant processing.'}
+            </p>
 
             <div className="scan-mode-grid">
-              {modes.map((mode) => (
+              {availableModes.map((mode) => (
                 <button
                   key={mode.id}
                   onClick={() => { setScanMode(mode.id); setLastScanResult(null); }}
