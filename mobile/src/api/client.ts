@@ -16,6 +16,24 @@ api.interceptors.request.use(async (config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Let the runtime set multipart boundary — forcing Content-Type breaks multer parsing
+  // (common cause of 500s when creating chemicals from Expo web / mobile).
+  const data = config.data as any;
+  const isFormData =
+    (typeof FormData !== 'undefined' && data instanceof FormData) ||
+    (data && typeof data.append === 'function');
+  if (isFormData) {
+    if (config.headers && typeof (config.headers as any).delete === 'function') {
+      (config.headers as any).delete('Content-Type');
+    } else if (config.headers) {
+      delete (config.headers as any)['Content-Type'];
+      delete (config.headers as any)['content-type'];
+    }
+    // File uploads can take longer than JSON calls
+    if (!config.timeout || config.timeout < 60000) {
+      config.timeout = 60000;
+    }
+  }
   return config;
 });
 

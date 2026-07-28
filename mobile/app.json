@@ -15,7 +15,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.cims.mobile",
       "infoPlist": {
-        "NSCameraUsageDescription": "Scan chemical barcodes and QR codes for inventory lookup and stock actions."
+        "NSCameraUsageDescription": "Scan chemical barcodes and QR codes for inventory lookup and stock actions.",
+        "NSPhotoLibraryUsageDescription": "Upload branding images for system settings."
       }
     },
     "android": {
@@ -27,7 +28,9 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "permissions": [
-        "CAMERA"
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "READ_EXTERNAL_STORAGE"
       ]
     },
     "web": {
@@ -40,6 +43,13 @@
           "cameraPermission": "Allow CIMS to scan barcodes and QR codes."
         }
       ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow CIMS to upload branding images for system settings."
+        }
+      ],
+      "expo-document-picker",
       "expo-secure-store",
       "expo-font"
     ]
