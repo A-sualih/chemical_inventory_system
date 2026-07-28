@@ -8,7 +8,17 @@ A premium, enterprise-grade full-stack web application designed for multi-labora
 
 ---
 
-## 🗺️ System Architecture
+## 📱 Mobile app (Expo)
+
+Native field client in `mobile/` — **same JWT backend** as the web SPA.
+
+```bash
+cd mobile && cp .env.example .env && npm install && npm start
+```
+
+See [mobile/README.md](./mobile/README.md) for device API URL setup (emulator vs LAN).
+
+---
 
 ```mermaid
 graph TD
