@@ -15,140 +15,157 @@ type Item = {
   roles?: string[];
 };
 
-/** Mirrors web Sidebar.jsx role classification */
-const OPS: Item[] = [
+/** Exact order + roles from frontend/src/layout/Sidebar.jsx */
+const SIDEBAR_ITEMS: Item[] = [
   {
-    title: 'Inventory',
-    subtitle: 'Chemicals repository',
-    screen: 'ChemicalsTab',
-    icon: 'flask-outline',
-    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician', 'Viewer / Auditor'],
+    title: 'Dashboard',
+    subtitle: 'Lab overview & quick actions',
+    screen: 'HomeTab',
+    icon: 'home-outline',
   },
-  {
-    title: 'Fast Check-In/Out',
-    subtitle: 'Stock transactions',
-    screen: 'Transactions',
-    icon: 'swap-horizontal-outline',
-    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician'],
-  },
-  {
-    title: 'Alerts Center',
-    subtitle: 'Lab notifications',
-    screen: 'Notifications',
-    icon: 'notifications-outline',
-    roles: ['Admin', 'Lab Manager', 'Safety Officer', 'Lab Technician'],
-  },
-  {
-    title: 'Containers',
-    subtitle: 'Physical vessels',
-    screen: 'Containers',
-    icon: 'cube-outline',
-    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician', 'Viewer / Auditor'],
-  },
-  {
-    title: 'Batches',
-    subtitle: 'Lot tracking',
-    screen: 'Batches',
-    icon: 'layers-outline',
-    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician', 'Viewer / Auditor'],
-  },
-  {
-    title: 'Expiry Intelligence',
-    subtitle: 'Near-expiry assets',
-    screen: 'Expiry',
-    icon: 'time-outline',
-    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician'],
-  },
-  {
-    title: 'Master Ledger',
-    subtitle: 'Inventory logs',
-    screen: 'InventoryLogs',
-    icon: 'list-outline',
-    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician'],
-  },
-  {
-    title: 'Requests',
-    subtitle: 'Usage requests',
-    screen: 'RequestsTab',
-    icon: 'document-text-outline',
-    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician'],
-  },
-  {
-    title: 'Transfers',
-    subtitle: 'Cross-lab requisitions',
-    screen: 'Transfers',
-    icon: 'git-compare-outline',
-    roles: ['Lab Manager', 'Safety Officer'],
-  },
-  {
-    title: 'Locations',
-    subtitle: 'Storage hierarchy',
-    screen: 'Locations',
-    icon: 'map-outline',
-    roles: ['Lab Manager', 'Viewer / Auditor'],
-  },
-  {
-    title: 'Procurement',
-    subtitle: 'Suppliers & purchase orders',
-    screen: 'ProcurementHub',
-    icon: 'cart-outline',
-    roles: ['Admin', 'Lab Manager'],
-  },
-  {
-    title: 'Safety Command',
-    subtitle: 'Hazards & conflicts',
-    screen: 'Safety',
-    icon: 'shield-checkmark-outline',
-    roles: ['Lab Manager', 'Safety Officer', 'Viewer / Auditor'],
-  },
-  {
-    title: 'Waste & Disposal',
-    subtitle: 'Disposal workflow',
-    screen: 'Waste',
-    icon: 'trash-outline',
-    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician'],
-  },
-];
-
-const ADMIN: Item[] = [
   {
     title: 'Security & Backup',
-    subtitle: 'System security status',
+    subtitle: 'Backups, MFA, restore',
     screen: 'Security',
     icon: 'lock-closed-outline',
     roles: ['Admin'],
   },
   {
     title: 'Support Inbox',
-    subtitle: 'Public support tickets',
+    subtitle: 'Public contact tickets',
     screen: 'SupportInbox',
     icon: 'mail-outline',
     roles: ['Admin'],
   },
   {
+    title: 'Inventory',
+    subtitle: 'Chemical Repository',
+    screen: 'ChemicalsTab',
+    icon: 'flask-outline',
+    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician', 'Viewer / Auditor'],
+  },
+  {
+    title: 'Fast Check-In/Out',
+    subtitle: 'Scan & stock movements',
+    screen: 'Transactions',
+    icon: 'flash-outline',
+    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician', 'Viewer / Auditor'],
+  },
+  {
+    title: 'Alerts Center',
+    subtitle: 'Notifications & warnings',
+    screen: 'Notifications',
+    icon: 'notifications-outline',
+    roles: ['Admin', 'Lab Manager', 'Safety Officer', 'Lab Technician'],
+  },
+  {
+    title: 'Containers',
+    subtitle: 'Container Mastery',
+    screen: 'Containers',
+    icon: 'cube-outline',
+    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician', 'Viewer / Auditor'],
+  },
+  {
+    title: 'Batches',
+    subtitle: 'Batch Master / lots',
+    screen: 'Batches',
+    icon: 'pricetag-outline',
+    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician', 'Viewer / Auditor'],
+  },
+  {
+    title: 'Expiry Intelligence',
+    subtitle: 'Near-expiry & expired',
+    screen: 'Expiry',
+    icon: 'time-outline',
+    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician'],
+  },
+  {
+    title: 'Master Ledger',
+    subtitle: 'Stock IN / OUT / Transfer / Disposal',
+    screen: 'InventoryLogs',
+    icon: 'clipboard-outline',
+    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician'],
+  },
+  {
+    title: 'Requests',
+    subtitle: 'Request & approval system',
+    screen: 'RequestsTab',
+    icon: 'checkmark-circle-outline',
+    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician'],
+  },
+  {
+    title: 'Transfers',
+    subtitle: 'Chemical requisitions',
+    screen: 'Transfers',
+    icon: 'swap-horizontal-outline',
+    roles: ['Lab Manager', 'Safety Officer'],
+  },
+  {
+    title: 'Connectivity',
+    subtitle: 'Integrations & cloud sync',
+    screen: 'Connectivity',
+    icon: 'git-network-outline',
+    roles: ['Lab Manager'],
+  },
+  {
+    title: 'Compliance',
+    subtitle: 'Intelligence & analytics',
+    screen: 'Compliance',
+    icon: 'bar-chart-outline',
+    roles: ['Lab Manager', 'Safety Officer', 'Viewer / Auditor'],
+  },
+  {
     title: 'Master Audit',
-    subtitle: 'Institutional audit trail',
+    subtitle: 'Security ledger',
     screen: 'Audit',
     icon: 'document-text-outline',
     roles: ['Admin'],
   },
   {
     title: 'Role Manager',
-    subtitle: 'Users & role assignment',
+    subtitle: 'Users & authority levels',
     screen: 'RoleManager',
     icon: 'people-outline',
     roles: ['Admin'],
   },
   {
+    title: 'Locations',
+    subtitle: 'Building → Room → Cabinet → Shelf',
+    screen: 'Locations',
+    icon: 'location-outline',
+    roles: ['Lab Manager', 'Viewer / Auditor'],
+  },
+  {
+    title: 'Procurement',
+    subtitle: 'POs, suppliers, tracking, vendors',
+    screen: 'ProcurementHub',
+    icon: 'cart-outline',
+    roles: ['Lab Manager'],
+  },
+  {
+    title: 'Safety Command',
+    subtitle: 'Hazards & risk profile',
+    screen: 'Safety',
+    icon: 'shield-checkmark-outline',
+    roles: ['Lab Manager', 'Safety Officer', 'Viewer / Auditor'],
+  },
+  {
+    title: 'Waste & Disposal',
+    subtitle: 'Disposal & regulatory logs',
+    screen: 'Waste',
+    icon: 'trash-outline',
+    roles: ['Lab Manager', 'Safety Officer', 'Lab Technician'],
+  },
+  {
     title: 'Labs & Depts',
-    subtitle: 'Laboratory management',
+    subtitle: 'Facilities & Facility Access',
     screen: 'LabManagement',
     icon: 'business-outline',
     roles: ['Admin'],
   },
   {
     title: 'System Settings',
-    subtitle: 'Org name, branding, units',
+    subtitle: 'Branding, units, thresholds',
     screen: 'SystemSettings',
     icon: 'settings-outline',
     roles: ['Admin'],
@@ -166,6 +183,10 @@ export default function MoreScreen() {
   }, [refreshUser]);
 
   const go = (screen: string) => {
+    if (screen === 'HomeTab') {
+      navigation.navigate('Home');
+      return;
+    }
     if (screen === 'ChemicalsTab') {
       navigation.navigate('Chemicals');
       return;
@@ -175,42 +196,29 @@ export default function MoreScreen() {
       return;
     }
     if (screen === 'RoleManager' && adminUser) {
-      // Prefer stack screen so header title is correct
       navigation.getParent()?.navigate('RoleManager');
       return;
     }
     navigation.getParent()?.navigate(screen);
   };
 
-  const visible = (items: Item[]) => items.filter((i) => roleMatches(user?.role, i.roles));
-
-  const ops = visible(OPS);
-  const admin = visible(ADMIN);
+  const navItems = SIDEBAR_ITEMS.filter((i) => roleMatches(user?.role, i.roles));
 
   return (
     <Screen>
-      <ScrollView>
-        <Title>{adminUser ? 'Admin modules' : 'Modules'}</Title>
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+        <Title>Core Navigation</Title>
         <Subtitle>
-          {user?.role || 'User'} · only your role’s tools are listed
+          {user?.role || 'User'} · same modules as the website for your role
         </Subtitle>
 
-        {adminUser && admin.length > 0 ? (
-          <>
-            <SectionLabel>Administration (Admin only)</SectionLabel>
-            {admin.map((m) => (
-              <MenuRow key={m.screen} item={m} onPress={() => go(m.screen)} colors={colors} />
-            ))}
-          </>
-        ) : null}
+        <SectionLabel>Core Navigation</SectionLabel>
+        {navItems.map((m) => (
+          <MenuRow key={m.screen + m.title} item={m} onPress={() => go(m.screen)} colors={colors} />
+        ))}
 
         <SectionLabel>Appearance</SectionLabel>
-        <View
-          style={[
-            styles.row,
-            { backgroundColor: colors.surface, borderColor: colors.border },
-          ]}
-        >
+        <View style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={[styles.iconWrap, { backgroundColor: colors.accentSoft }]}>
             <Ionicons
               name={theme === 'ink' ? 'moon-outline' : 'sunny-outline'}
@@ -236,7 +244,7 @@ export default function MoreScreen() {
         <MenuRow
           item={{
             title: 'Profile & settings',
-            subtitle: 'Name, lab switch, password info, sign out',
+            subtitle: 'Name, photo, MFA, lab switch',
             screen: 'Profile',
             icon: 'person-circle-outline',
           }}
@@ -244,23 +252,14 @@ export default function MoreScreen() {
           colors={colors}
         />
 
-        {ops.length > 0 ? (
-          <>
-            <SectionLabel>Lab operations</SectionLabel>
-            {ops.map((m) => (
-              <MenuRow key={m.screen} item={m} onPress={() => go(m.screen)} colors={colors} />
-            ))}
-          </>
-        ) : null}
-
-        {!adminUser && admin.length > 0 ? (
-          <>
-            <SectionLabel>Administration</SectionLabel>
-            {admin.map((m) => (
-              <MenuRow key={m.screen} item={m} onPress={() => go(m.screen)} colors={colors} />
-            ))}
-          </>
-        ) : null}
+        <SectionLabel>Resources</SectionLabel>
+        {[
+          { title: 'Help Center', subtitle: 'FAQs and user guides', screen: 'HelpCenter', icon: 'help-circle-outline' as const },
+          { title: 'Documentation', subtitle: 'Getting started & API reference', screen: 'Documentation', icon: 'book-outline' as const },
+          { title: 'Contact Support', subtitle: 'Submit a support request', screen: 'Support', icon: 'mail-outline' as const },
+        ].map((m) => (
+          <MenuRow key={m.screen} item={m} onPress={() => go(m.screen)} colors={colors} />
+        ))}
       </ScrollView>
     </Screen>
   );
