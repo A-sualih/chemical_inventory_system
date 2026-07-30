@@ -8,14 +8,17 @@ import {
   View,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
 import { api } from '../api/client';
 import { useTheme } from '../context/ThemeContext';
-import { Button, Input, Screen, Title } from '../components/ui';
+import { useBranding } from '../hooks/useBranding';
+import { AuthBrandHeader, Button, Input, Screen, ThemeToggleButton } from '../components/ui';
 import type { ThemeColors } from '../theme/colors';
 
 export default function ForgotPasswordScreen() {
   const navigation = useNavigation<any>();
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
+  const { orgName, logoUrl, systemName, ready } = useBranding();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
@@ -31,12 +34,13 @@ export default function ForgotPasswordScreen() {
     }
     setLoading(true);
     try {
-      await api.post('/auth/reset-password', { email: email.trim() });
+      const { data } = await api.post('/auth/reset-password', { email: email.trim() });
       setSuccess(
-        'If that email exists, a reset link was sent. Check your inbox, then use Reset with token.'
+        data?.message ||
+          'If that email matches an account, we have sent a reset link to it.'
       );
     } catch (e: any) {
-      setError(e.response?.data?.error || 'Could not send reset email');
+      setError(e.response?.data?.error || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -44,30 +48,39 @@ export default function ForgotPasswordScreen() {
 
   return (
     <Screen style={styles.wrap}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <StatusBar style={theme === 'ink' ? 'light' : 'dark'} />
+      <View style={styles.topBar}>
         <Pressable onPress={() => navigation.goBack()}>
-          <Text style={styles.back}>← Back to Sign In</Text>
+          <Text style={styles.back}>← Back to sign in</Text>
         </Pressable>
-        <Title>Forgot password</Title>
-        <Text style={styles.sub}>We’ll email a reset link — same flow as the website.</Text>
-
+        <ThemeToggleButton />
+      </View>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.form}>
-          <Text style={styles.label}>Email address</Text>
+          <AuthBrandHeader
+            systemName={systemName}
+            logoUrl={logoUrl}
+            ready={ready}
+            title="Reset Password"
+            subtitle="Enter your email for the recovery link."
+          />
+          <Text style={styles.label}>Email Address</Text>
           <Input
             autoCapitalize="none"
             keyboardType="email-address"
             value={email}
             onChangeText={setEmail}
-            placeholder="you@lab.edu"
+            placeholder="name@company.com"
           />
           {error ? <Text style={styles.error}>{error}</Text> : null}
           {success ? <Text style={styles.ok}>{success}</Text> : null}
-          <Button label="Send reset email" onPress={() => void onSubmit()} loading={loading} />
+          <Button label="Send Reset Link" onPress={() => void onSubmit()} loading={loading} />
           <Pressable onPress={() => navigation.navigate('ResetPassword')} style={styles.linkBtn}>
             <Text style={styles.linkText}>I already have a reset token</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+      <Text style={styles.footerTag}>Secure Access Provided by {orgName}</Text>
     </Screen>
   );
 }
@@ -75,8 +88,13 @@ export default function ForgotPasswordScreen() {
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
     wrap: { justifyContent: 'center' },
-    back: { color: colors.muted, fontWeight: '700', marginBottom: 12 },
-    sub: { color: colors.muted, marginBottom: 16, lineHeight: 20 },
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 12,
+    },
+    back: { color: colors.muted, fontWeight: '700' },
     form: {
       backgroundColor: colors.surface,
       borderRadius: 20,
@@ -96,5 +114,12 @@ function makeStyles(colors: ThemeColors) {
     ok: { color: colors.success, marginBottom: 10, fontWeight: '700', lineHeight: 18 },
     linkBtn: { alignItems: 'center', paddingVertical: 14 },
     linkText: { color: colors.accent, fontWeight: '800' },
+    footerTag: {
+      color: colors.muted,
+      textAlign: 'center',
+      marginTop: 20,
+      fontSize: 12,
+      opacity: 0.8,
+    },
   });
 }

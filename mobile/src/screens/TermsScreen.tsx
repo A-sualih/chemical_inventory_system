@@ -1,44 +1,40 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Screen, Title } from '../components/ui';
-import { colors } from '../theme/colors';
+import { PublicPageShell, PublicParagraph, PublicSection } from '../components/PublicPageShell';
 
 export default function TermsScreen() {
-  const navigation = useNavigation<any>();
   return (
-    <Screen>
-      <ScrollView>
-        <Pressable onPress={() => navigation.goBack()}>
-          <Text style={styles.back}>← Back</Text>
-        </Pressable>
-        <Title>Terms of Service</Title>
-        <Text style={styles.p}>
-          By using CIMS PRO you agree to use the system only for authorized laboratory inventory and
-          safety operations within your institution.
-        </Text>
-        <Text style={styles.h}>Accounts</Text>
-        <Text style={styles.p}>
-          You are responsible for protecting your credentials and for actions taken under your
-          account. MFA may be required by policy.
-        </Text>
-        <Text style={styles.h}>Acceptable use</Text>
-        <Text style={styles.p}>
-          Do not attempt to access labs or records outside your assignment, bypass security controls,
-          or misuse hazardous-material workflows.
-        </Text>
-        <Text style={styles.h}>Availability</Text>
-        <Text style={styles.p}>
-          The service is provided as-is for institutional use. Critical lab decisions should follow
-          your organization’s safety policies.
-        </Text>
-      </ScrollView>
-    </Screen>
+    <PublicPageShell
+      title="Terms of"
+      highlight="Service"
+      subtitle="Operating guidelines for institutional chemical management."
+    >
+      <PublicSection title="1. Use of Service">
+        <PublicParagraph>
+          Users must use the system exclusively for authorized laboratory inventory tracking and
+          safety management.
+        </PublicParagraph>
+      </PublicSection>
+
+      <PublicSection title="2. Accountability">
+        <PublicParagraph>
+          Users are responsible for the accuracy of chemical entries, consumption updates, and
+          disposal requisitions.
+        </PublicParagraph>
+      </PublicSection>
+
+      <PublicSection title="3. Prohibited Actions">
+        <PublicParagraph>
+          Circumventing laboratory isolation or attempting unauthorized data extraction is strictly
+          prohibited.
+        </PublicParagraph>
+      </PublicSection>
+
+      <PublicSection title="4. Termination">
+        <PublicParagraph>
+          Institutional administrators reserve the right to revoke access for non-compliance with
+          safety protocols.
+        </PublicParagraph>
+      </PublicSection>
+    </PublicPageShell>
   );
 }
-
-const styles = StyleSheet.create({
-  back: { color: colors.muted, fontWeight: '700', marginBottom: 12 },
-  h: { color: colors.text, fontWeight: '800', fontSize: 16, marginTop: 16, marginBottom: 6 },
-  p: { color: colors.muted, lineHeight: 20, marginBottom: 8 },
-});

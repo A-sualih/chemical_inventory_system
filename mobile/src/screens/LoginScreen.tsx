@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -11,117 +11,169 @@ import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Button, Input, Screen, Title } from '../components/ui';
+import { useBranding } from '../hooks/useBranding';
+import { AuthBrandHeader, Button, Input, Screen, ThemeToggleButton } from '../components/ui';
 import type { ThemeColors } from '../theme/colors';
+
+type LoginView = 'login' | 'mfa' | 'locked';
+
+const LOCK_SECONDS = 15 * 60;
+const MAX_ATTEMPTS = 5;
 
 export default function LoginScreen() {
   const navigation = useNavigation<any>();
   const { login, verifyMfa } = useAuth();
   const { colors, theme } = useTheme();
+  const { systemName, orgName, logoUrl, ready } = useBranding();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+
+  const [view, setView] = useState<LoginView>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [mfaUserId, setMfaUserId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockTimer, setLockTimer] = useState(0);
+
+  useEffect(() => {
+    if (lockTimer <= 0) return;
+    const t = setInterval(() => setLockTimer((prev) => prev - 1), 1000);
+    return () => clearInterval(t);
+  }, [lockTimer]);
+
+  useEffect(() => {
+    if (lockTimer === 0 && view === 'locked') {
+      setView('login');
+      setFailedAttempts(0);
+    }
+  }, [lockTimer, view]);
 
   const onSubmit = async () => {
     setError('');
     setLoading(true);
     try {
-      if (mfaUserId) {
+      if (view === 'mfa' && mfaUserId) {
         const result = await verifyMfa(mfaUserId, otp.trim());
         if (!result.success) setError(result.error);
         return;
       }
+
       const result = await login(email.trim(), password);
       if (result.success) return;
+
       if (result.requireMfa && result.userId) {
         setMfaUserId(result.userId);
-        setError('Enter the verification code sent to your email.');
+        setView('mfa');
+        setError('');
         return;
       }
+
       setError(result.error);
+      const next = failedAttempts + 1;
+      setFailedAttempts(next);
+      if (next >= MAX_ATTEMPTS) {
+        setView('locked');
+        setLockTimer(LOCK_SECONDS);
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const renderLocked = () => (
+    <View style={styles.form}>
+      <AuthBrandHeader systemName={systemName} logoUrl={logoUrl} ready={ready} title="Account Locked" subtitle="For security reasons, your account is temporarily locked." />
+      <View style={styles.timerBox}>
+        <Text style={styles.timerText}>{lockTimer}s</Text>
+        <Text style={styles.timerLabel}>Time remaining</Text>
+      </View>
+      <Text style={styles.hint}>Please contact system administrator if this was an error.</Text>
+    </View>
+  );
+
+  const renderMfa = () => (
+    <View style={styles.form}>
+      <AuthBrandHeader
+        systemName={systemName}
+        logoUrl={logoUrl}
+        ready={ready}
+        title="Verify Identity"
+        subtitle="Enter the 6-digit code sent to your device."
+      />
+      <Text style={styles.label}>Verification code</Text>
+      <Input
+        keyboardType="number-pad"
+        maxLength={6}
+        value={otp}
+        onChangeText={setOtp}
+        placeholder="000000"
+      />
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <Button label="Confirm Code" onPress={onSubmit} loading={loading} disabled={otp.length < 4} />
+      <Button
+        label="Back to login"
+        variant="ghost"
+        onPress={() => {
+          setView('login');
+          setMfaUserId(null);
+          setOtp('');
+          setError('');
+        }}
+      />
+    </View>
+  );
+
+  const renderLogin = () => (
+    <View style={styles.form}>
+      <AuthBrandHeader
+        systemName={systemName}
+        orgName={orgName}
+        logoUrl={logoUrl}
+        ready={ready}
+        title={systemName}
+        subtitle={orgName}
+      />
+      <Text style={styles.label}>Work Email</Text>
+      <Input
+        autoCapitalize="none"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
+        placeholder="name@company.com"
+      />
+      <Text style={styles.label}>Secure Password</Text>
+      <Input
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+        placeholder="••••••••"
+      />
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <Pressable onPress={() => navigation.navigate('ForgotPassword')} style={styles.forgotWrap}>
+        <Text style={styles.forgot}>Forgot Password?</Text>
+      </Pressable>
+      <Button label="Sign In" onPress={onSubmit} loading={loading} disabled={!email || !password} />
+      <Pressable onPress={() => navigation.navigate('Register')} style={styles.linkBtn}>
+        <Text style={styles.linkText}>New to CIMS? Create Account</Text>
+      </Pressable>
+    </View>
+  );
+
   return (
     <Screen style={styles.wrap}>
       <StatusBar style={theme === 'ink' ? 'light' : 'dark'} />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <View style={styles.topBar}>
         <Pressable onPress={() => navigation.navigate('Landing')}>
           <Text style={styles.back}>← Back to home</Text>
         </Pressable>
-
-        <View style={styles.hero}>
-          <Text style={styles.brand}>CIMS PRO</Text>
-          <Title>Sign In</Title>
-          <Text style={styles.tagline}>Use the same account as the website</Text>
-        </View>
-
-        <View style={styles.form}>
-          {!mfaUserId ? (
-            <>
-              <Text style={styles.label}>Work email</Text>
-              <Input
-                autoCapitalize="none"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
-                placeholder="you@lab.edu"
-              />
-              <Text style={styles.label}>Secure password</Text>
-              <Input
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-                placeholder="••••••••"
-              />
-              <Pressable onPress={() => navigation.navigate('ForgotPassword')} style={styles.forgotWrap}>
-                <Text style={styles.forgot}>Forgot password?</Text>
-              </Pressable>
-            </>
-          ) : (
-            <>
-              <Text style={styles.label}>Verification code</Text>
-              <Input
-                keyboardType="number-pad"
-                value={otp}
-                onChangeText={setOtp}
-                placeholder="6-digit code"
-              />
-            </>
-          )}
-
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-
-          <Button
-            label={mfaUserId ? 'Verify & Continue' : 'Sign In'}
-            onPress={onSubmit}
-            loading={loading}
-            disabled={!mfaUserId ? !email || !password : otp.length < 4}
-          />
-
-          {mfaUserId ? (
-            <Button
-              label="Back to login"
-              variant="ghost"
-              onPress={() => {
-                setMfaUserId(null);
-                setOtp('');
-                setError('');
-              }}
-            />
-          ) : (
-            <Pressable onPress={() => navigation.navigate('Register')} style={styles.linkBtn}>
-              <Text style={styles.linkText}>Create Account</Text>
-            </Pressable>
-          )}
-        </View>
+        <ThemeToggleButton />
+      </View>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        {view === 'locked' ? renderLocked() : view === 'mfa' ? renderMfa() : renderLogin()}
       </KeyboardAvoidingView>
+      <Text style={styles.footerTag}>Secure Access Provided by {orgName}</Text>
     </Screen>
   );
 }
@@ -129,16 +181,13 @@ export default function LoginScreen() {
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
     wrap: { justifyContent: 'center' },
-    back: { color: colors.muted, fontWeight: '700', marginBottom: 16 },
-    hero: { marginBottom: 20 },
-    brand: {
-      color: colors.accent,
-      fontWeight: '900',
-      letterSpacing: 2,
-      fontSize: 12,
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
       marginBottom: 8,
     },
-    tagline: { color: colors.muted, marginTop: 6, fontSize: 13 },
+    back: { color: colors.muted, fontWeight: '700' },
     form: {
       backgroundColor: colors.surface,
       borderRadius: 20,
@@ -164,5 +213,24 @@ function makeStyles(colors: ThemeColors) {
     error: { color: colors.danger, marginBottom: 10, fontWeight: '600' },
     linkBtn: { alignItems: 'center', paddingVertical: 14, marginTop: 4 },
     linkText: { color: colors.accent, fontWeight: '800', fontSize: 15 },
+    footerTag: {
+      color: colors.muted,
+      textAlign: 'center',
+      marginTop: 20,
+      fontSize: 12,
+      opacity: 0.8,
+    },
+    timerBox: {
+      alignItems: 'center',
+      backgroundColor: colors.surface2,
+      borderRadius: 16,
+      padding: 20,
+      marginVertical: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    timerText: { color: colors.danger, fontWeight: '900', fontSize: 32 },
+    timerLabel: { color: colors.muted, marginTop: 6, fontSize: 13 },
+    hint: { color: colors.muted, textAlign: 'center', fontStyle: 'italic', fontSize: 12, marginTop: 8 },
   });
 }
