@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Box, Flame, MapPin, Tag, Calendar, FlaskConical, AlertTriangle } from 'lucide-react';
 import axios from "axios";
 import useUnits from "../../hooks/useUnits";
+import { resolveAssetUrl } from "../../utils/assetUrl";
 import "../../styles/Inventory.css";
 
 const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
@@ -690,7 +691,7 @@ const StockActionModal = ({ chemical, onClose, onSuccess, initialAction }) => {
                           <h4 style={{ fontWeight: 800, color: '#dc2626', marginBottom: '0.75rem', fontSize: '0.875rem' }}>MANDATORY DISPOSAL CHECKLIST</h4>
                           {chemical.disposal_file_url && (
                             <div style={{ marginBottom: '1rem' }}>
-                              <a href={process.env.NODE_ENV === 'production' ? chemical.disposal_file_url : `http://localhost:5001${chemical.disposal_file_url}`} target="_blank" rel="noreferrer" style={{ display: 'inline-block', backgroundColor: '#ef4444', color: 'white', padding: '0.375rem 0.75rem', borderRadius: '0.375rem', textDecoration: 'none', fontSize: '0.75rem', fontWeight: 600 }}>
+                              <a href={resolveAssetUrl(chemical.disposal_file_url)} target="_blank" rel="noreferrer" style={{ display: 'inline-block', backgroundColor: '#ef4444', color: 'white', padding: '0.375rem 0.75rem', borderRadius: '0.375rem', textDecoration: 'none', fontSize: '0.75rem', fontWeight: 600 }}>
                                 ⬇ Download / Read Disposal Protocol PDF
                               </a>
                             </div>

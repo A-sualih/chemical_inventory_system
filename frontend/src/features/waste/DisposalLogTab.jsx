@@ -9,6 +9,7 @@ import useUnits from '../../hooks/useUnits';
 import { IconTrash, IconClock, IconPlus, IconX, IconCheckCircle, IconAlertTriangle, IconFileText, IconSearch } from './WasteIcons';
 import { fmtQty } from '../../utils/formatQuantity';
 import { confirmAction } from '../../utils/confirmAction';
+import { resolveAssetUrl } from '../../utils/assetUrl';
 
 const REASONS = ['Expired', 'Contaminated', 'Damaged', 'Excess stock', 'Experimental waste', 'Other'];
 const METHODS = ['Neutralization', 'Incineration', 'Chemical treatment', 'Recycling', 'Waste contractor pickup', 'Secure hazardous storage'];
@@ -353,7 +354,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                         <div style={{ fontSize: '0.85rem', color: 'var(--secondary-600)', fontWeight: 600 }}>{chemicals.find(c => c._id === form.chemical_id).disposal_file_name || 'Protocol PDF'}</div>
                       </div>
                       <a
-                        href={`http://localhost:5001${chemicals.find(c => c._id === form.chemical_id).disposal_file_url}`}
+                        href={resolveAssetUrl(chemicals.find(c => c._id === form.chemical_id).disposal_file_url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ padding: '0.4rem 0.8rem', background: '#ef4444', color: 'white', borderRadius: '0.5rem', fontSize: '0.7rem', fontWeight: 800, textDecoration: 'none' }}
@@ -373,7 +374,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                         <div style={{ fontSize: '0.85rem', color: 'var(--secondary-600)', fontWeight: 600 }}>{chemicals.find(c => c._id === form.chemical_id).sds_file_name || 'SDS PDF'}</div>
                       </div>
                       <a
-                        href={`http://localhost:5001${chemicals.find(c => c._id === form.chemical_id).sds_file_url}`}
+                        href={resolveAssetUrl(chemicals.find(c => c._id === form.chemical_id).sds_file_url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ padding: '0.4rem 0.8rem', background: 'var(--indigo-600)', color: 'white', borderRadius: '0.5rem', fontSize: '0.7rem', fontWeight: 800, textDecoration: 'none' }}
@@ -693,7 +694,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--secondary-600)' }}>{viewingDisposal.chemical_id.disposal_file_name || 'Protocol PDF Document'}</span>
                     <a
-                      href={`http://localhost:5001${viewingDisposal.chemical_id.disposal_file_url}`}
+                      href={resolveAssetUrl(viewingDisposal.chemical_id.disposal_file_url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn-waste-action"
@@ -710,7 +711,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--secondary-600)' }}>{viewingDisposal.chemical_id.sds_file_name || 'SDS PDF Document'}</span>
                     <a
-                      href={`http://localhost:5001${viewingDisposal.chemical_id.sds_file_url}`}
+                      href={resolveAssetUrl(viewingDisposal.chemical_id.sds_file_url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn-waste-action"
@@ -825,7 +826,7 @@ export default function DisposalLogTab({ externalShowModal, onCloseModal, onOpen
                               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#991b1b' }}>Official Disposal Protocol Attached</span>
                             </div>
                             <a
-                              href={`http://localhost:5001${completingDisposal.chemical_id.disposal_file_url}`}
+                              href={resolveAssetUrl(completingDisposal.chemical_id.disposal_file_url)}
                               target="_blank"
                               rel="noopener noreferrer"
                               style={{ fontSize: '0.7rem', fontWeight: 800, color: '#ef4444', textDecoration: 'underline', textTransform: 'uppercase' }}

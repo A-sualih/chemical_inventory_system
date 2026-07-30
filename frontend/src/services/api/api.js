@@ -1,9 +1,15 @@
- import axios from "axios";
+import axios from 'axios'
 
-const API = axios.create({
-  baseURL: "http://localhost:5000/api/auth"
- });
-export default API;
+/**
+ * In production (Vercel), call Render API directly.
+ * Locally, leave baseURL empty so Vite proxy `/api` → backend works.
+ */
+const apiOrigin = (import.meta.env.VITE_API_ORIGIN || '').replace(/\/$/, '')
 
+if (apiOrigin) {
+  axios.defaults.baseURL = apiOrigin
+}
 
+axios.defaults.timeout = 60000
 
+export default axios

@@ -1,7 +1,19 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/:path*",
+      "destination": "https://chemical-inventory-system-6x49.onrender.com/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://chemical-inventory-system-6x49.onrender.com/uploads/:path*"
+    },
+    {
+      "source": "/((?!assets/).*)",
       "destination": "/index.html"
     }
   ]

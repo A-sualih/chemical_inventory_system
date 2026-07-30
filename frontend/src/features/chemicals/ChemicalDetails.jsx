@@ -7,6 +7,7 @@ import QRCodeLib from "react-qr-code";
 const QRCode = QRCodeLib.default || QRCodeLib;
 import NFPADiamond from "../../components/feedback/NFPADiamond";
 import { confirmAction } from "../../utils/confirmAction";
+import { resolveAssetUrl } from "../../utils/assetUrl";
 import { 
     Shield, 
     AlertTriangle, 
@@ -299,7 +300,7 @@ const ChemicalDetails = () => {
                               <ExternalLink size={14} /> View SDS
                            </button>
                            <a 
-                              href={`http://localhost:5001${chemical.sds_file_url}`} 
+                              href={resolveAssetUrl(chemical.sds_file_url)} 
                               download 
                               className="dashboard-action-btn btn-glass" 
                               style={{ padding: '0.75rem', borderRadius: '14px', fontSize: '0.75rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -582,7 +583,7 @@ const ChemicalDetails = () => {
                
                <div style={{ flex: 1, background: '#f8fafc', position: 'relative' }}>
                   <iframe
-                     src={`http://localhost:5001${chemical.sds_file_url}`}
+                     src={resolveAssetUrl(chemical.sds_file_url)}
                      title="SDS Document Viewer"
                      width="100%"
                      height="100%"
@@ -592,7 +593,7 @@ const ChemicalDetails = () => {
 
                <div className="modal-footer" style={{ borderTop: '1px solid #e2e8f0', padding: '1rem 2rem', background: '#f8fafc', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                   <a
-                     href={`http://localhost:5001${chemical.sds_file_url}`}
+                     href={resolveAssetUrl(chemical.sds_file_url)}
                      download
                      className="dashboard-action-btn btn-primary-glow"
                      style={{ padding: '0.625rem 1.5rem', width: 'auto', borderRadius: '12px', fontSize: '0.8rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
