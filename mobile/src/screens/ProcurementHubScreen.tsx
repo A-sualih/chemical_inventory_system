@@ -5,20 +5,48 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { Screen, Subtitle, Title } from '../components/ui';
 
+const ITEMS = [
+  {
+    title: 'Purchase Orders',
+    screen: 'Orders',
+    icon: 'clipboard-outline' as const,
+    sub: 'Create POs and advance status',
+  },
+  {
+    title: 'Suppliers',
+    screen: 'Suppliers',
+    icon: 'business-outline' as const,
+    sub: 'Vendor directory & blacklist',
+  },
+  {
+    title: 'Order Tracking',
+    screen: 'OrderTracking',
+    icon: 'car-outline' as const,
+    sub: 'Shipments and delivery updates',
+  },
+  {
+    title: 'Analytics',
+    screen: 'ProcurementAnalytics',
+    icon: 'pie-chart-outline' as const,
+    sub: 'Spend, status, top vendors',
+  },
+  {
+    title: 'Vendor Performance',
+    screen: 'VendorPerformance',
+    icon: 'star-outline' as const,
+    sub: 'Reviews and rankings',
+  },
+];
+
 export default function ProcurementHubScreen() {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
 
-  const items = [
-    { title: 'Suppliers', screen: 'Suppliers', icon: 'business-outline' as const, sub: 'Vendor directory' },
-    { title: 'Purchase Orders', screen: 'Orders', icon: 'receipt-outline' as const, sub: 'PO tracking' },
-  ];
-
   return (
     <Screen>
-      <Title>Procurement</Title>
-      <Subtitle>Admin & Lab Manager</Subtitle>
-      {items.map((item) => (
+      <Title>Procurement Hub</Title>
+      <Subtitle>Modern supply chain & inventory acquisition</Subtitle>
+      {ITEMS.map((item) => (
         <Pressable
           key={item.screen}
           onPress={() => navigation.navigate(item.screen)}
