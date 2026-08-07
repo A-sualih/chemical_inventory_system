@@ -81,21 +81,34 @@ const Login = () => {
     setError("");
 
     try {
-      const { data } = await axios.post('/api/auth/login', { email, password });
-      setIsLoading(false);
+      // Single login call (was hitting the API twice before)
+      const res = await login(email, password);
 
-      if (data.requireMfa) {
-        setUserId(data.userId);
-        setMfaType(data.mfaType);
+      if (res.requireMfa) {
+        setUserId(res.userId);
+        setMfaType(res.mfaType);
         setView("mfa");
-      } else {
-        const res = await login(email, password);
-        if (res.success) navigate("/dashboard");
-        else setError(res.error);
+        return;
+      }
+
+      if (res.success) {
+        navigate("/dashboard");
+        return;
+      }
+
+      setError(res.error || "Invalid email or password.");
+      const newAttempts = failedAttempts + 1;
+      setFailedAttempts(newAttempts);
+      if (newAttempts >= 5) {
+        setView("locked");
+        setLockTimer(15 * 60);
       }
     } catch (err) {
-      setIsLoading(false);
-      const msg = err.response?.data?.error || "Invalid credentials.";
+      const msg =
+        err.response?.data?.error ||
+        (err.code === "ECONNABORTED"
+          ? "Server took too long. Wait ~1 minute (Render wake-up) and try again."
+          : "Cannot reach the API.");
       setError(msg);
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);
@@ -103,6 +116,8 @@ const Login = () => {
         setView("locked");
         setLockTimer(15 * 60);
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 

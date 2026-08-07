@@ -111,7 +111,15 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await axios.post('/api/auth/login', { email, password });
-      const { token, user } = response.data;
+      const { token, user, requireMfa, mfaType, userId } = response.data;
+
+      if (requireMfa) {
+        return { success: false, requireMfa: true, mfaType, userId };
+      }
+
+      if (!token || !user) {
+        return { success: false, error: 'Login response was incomplete. Please try again.' };
+      }
 
       setToken(token);
       setUser(user);
@@ -122,9 +130,22 @@ export const AuthProvider = ({ children }) => {
       setSessionExpired(false);
       return { success: true };
     } catch (error) {
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        return {
+          success: false,
+          error:
+            'Server took too long (Render free tier may be waking up). Wait ~1 minute and try again.',
+        };
+      }
+      if (!error.response) {
+        return {
+          success: false,
+          error: 'Cannot reach the API. Check that Render backend is online.',
+        };
+      }
       return {
         success: false,
-        error: error.response?.data?.error || "Login failed due to a server error."
+        error: error.response?.data?.error || 'Invalid email or password.',
       };
     }
   };
