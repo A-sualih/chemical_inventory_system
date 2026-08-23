@@ -1,52 +1,50 @@
-const nodemailer = require('nodemailer');
+const axios = require('axios');
 require('dotenv').config();
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
-
-// Verify connection configuration
-transporter.verify(function (error, success) {
-  if (error) {
-    console.error('SMTP Connection Error:', error);
-  } else {
-    console.log('SMTP Server is ready to take our messages');
-  }
-});
-
-
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
 /**
- * Sends a system email notification.
+ * Sends a system email notification via Brevo (formerly Sendinblue).
+ * Uses Brevo's HTTP API — works on Render free tier (no SMTP ports needed).
  * @param {string} to - Recipient email
  * @param {string} subject - Email subject
  * @param {string} html - Email body (HTML)
  */
 const sendEmail = async (to, subject, html) => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.error('Email credentials missing in environment variables');
-    return { success: false, error: new Error('Email credentials missing') };
+  const apiKey = process.env.BREVO_API_KEY;
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.EMAIL_USER;
+  const senderName = process.env.BREVO_SENDER_NAME || 'Chemical Inventory System';
+
+  if (!apiKey) {
+    console.error('BREVO_API_KEY missing in environment variables');
+    return { success: false, error: new Error('BREVO_API_KEY missing') };
   }
+
   try {
-    const info = await transporter.sendMail({
-      from: `"CIMS Alerts" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      html
-    });
-    console.log('Email sent: %s', info.messageId);
-    return { success: true, messageId: info.messageId };
+    const response = await axios.post(
+      BREVO_API_URL,
+      {
+        sender: { name: senderName, email: senderEmail },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+      },
+      {
+        headers: {
+          'api-key': apiKey,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        timeout: 15000,
+      }
+    );
+
+    console.log('Email sent successfully via Brevo:', response.data?.messageId || response.data);
+    return { success: true, messageId: response.data?.messageId };
   } catch (error) {
-    console.error('Error sending email:', error);
-    return { success: false, error };
+    const errData = error.response?.data || error.message;
+    console.error('Brevo email error:', errData);
+    return { success: false, error: errData };
   }
 };
 
@@ -100,6 +98,3 @@ module.exports = {
   sendEmail,
   formatNotificationEmail
 };
-
-
-
