@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "CIMS Mobile",
-    "slug": "cims-mobile",
+    "name": "Chemical Inventory",
+    "slug": "chemical-inventory-system",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -28,9 +28,10 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "permissions": [
-        "CAMERA",
-        "READ_MEDIA_IMAGES",
-        "READ_EXTERNAL_STORAGE"
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -52,6 +53,12 @@
       "expo-document-picker",
       "expo-secure-store",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "24b1de3d-d323-4c03-bd6c-b103d470c411"
+      }
+    },
+    "owner": "chemical-inventory-system"
   }
 }
