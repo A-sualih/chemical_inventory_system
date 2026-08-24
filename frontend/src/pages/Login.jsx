@@ -12,7 +12,8 @@ function BrandMark({ settings, settingsLoaded, className = "app-logo icon-white"
       <img
         src={settings.systemLogo}
         alt="Logo"
-        style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '1rem' }}
+        className="app-logo-img"
+        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem', display: 'block' }}
       />
     );
   }
@@ -34,6 +35,7 @@ const Login = () => {
   const logoBoxStyle = {
     backgroundColor: settings?.systemLogo ? 'transparent' : '',
     boxShadow: settings?.systemLogo ? 'none' : '',
+    overflow: 'hidden',
   };
   const [view, setView] = useState("login");
   const [email, setEmail] = useState("");

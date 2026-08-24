@@ -73,13 +73,14 @@ const Register = () => {
                 cursor: 'pointer', 
                 transition: 'transform 0.3s',
                 backgroundColor: settings?.systemLogo ? 'transparent' : '',
-                boxShadow: settings?.systemLogo ? 'none' : ''
+                boxShadow: settings?.systemLogo ? 'none' : '',
+                overflow: 'hidden'
               }} 
               onMouseOver={e => e.currentTarget.style.transform = 'rotate(12deg)'} 
               onMouseOut={e => e.currentTarget.style.transform = 'rotate(0)'}
             >
               {settings?.systemLogo ? (
-                <img src={settings.systemLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '1rem' }} />
+                <img src={settings.systemLogo} alt="Logo" className="app-logo-img" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem', display: 'block' }} />
               ) : !settingsLoaded ? (
                 <div aria-hidden style={{ width: '2rem', height: '2rem', borderRadius: '0.5rem', background: 'rgba(148,163,184,0.35)' }} />
               ) : (

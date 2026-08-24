@@ -49,9 +49,9 @@ const ResetPassword = () => {
       <div className="login-card" style={{ maxWidth: '28rem' }}>
         <div className="login-view-wrapper">
           <div className="logo-header-wrapper">
-            <div className="app-logo-box" style={{ backgroundColor: settings?.systemLogo ? 'transparent' : '', boxShadow: settings?.systemLogo ? 'none' : '' }}>
+            <div className="app-logo-box" style={{ backgroundColor: settings?.systemLogo ? 'transparent' : '', boxShadow: settings?.systemLogo ? 'none' : '', overflow: 'hidden' }}>
               {settings?.systemLogo ? (
-                <img src={settings.systemLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '1rem' }} />
+                <img src={settings.systemLogo} alt="Logo" className="app-logo-img" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem', display: 'block' }} />
               ) : !settingsLoaded ? (
                 <div aria-hidden style={{ width: '2rem', height: '2rem', borderRadius: '0.5rem', background: 'rgba(148,163,184,0.35)' }} />
               ) : (
