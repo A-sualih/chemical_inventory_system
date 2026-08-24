@@ -30,7 +30,7 @@ async function initDb() {
         email: 'chemicalinventorysystem@gmail.com',
         password: hash,
         role: 'Admin',
-        mfa_enabled: false
+        mfa_enabled: true
       });
       await admin.save();
       console.log('Primary admin user created: chemicalinventorysystem@gmail.com');

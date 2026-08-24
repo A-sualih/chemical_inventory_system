@@ -41,7 +41,7 @@ exports.login = async (req, res) => {
     }
 
     let requireMfaPrompt = false;
-    if (user.mfa_enabled) {
+    if (user.mfa_enabled !== false) {
       if (!user.last_mfa_verified_at) {
         requireMfaPrompt = true;
       } else {
@@ -144,7 +144,8 @@ exports.register = async (req, res) => {
       password: hash,
       role: userRole,
       labs: [labId],
-      active_lab: labId
+      active_lab: labId,
+      mfa_enabled: true
     });
     await user.save();
 
