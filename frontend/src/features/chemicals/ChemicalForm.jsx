@@ -24,6 +24,7 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
     }
   };
   
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState(initialData ? {
     ...initialData,
     cas_number: initialData.cas_number || "",
@@ -350,19 +351,27 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
 
         {/* Right Form Container */}
         <div className="form-content-area">
-          <form onSubmit={(e) => {
+          <form onSubmit={async (e) => {
             e.preventDefault();
-            const payload = new FormData();
-            Object.keys(formData).forEach(k => {
-              if (['ghs_classes', 'exposure_risks', 'ghs_hazards', 'nfpa_rating', 'hazard_summary', 'ppe_requirements', 'incompatibility', 'emergency_response', 'exposure_details'].includes(k)) {
-                payload.append(k, JSON.stringify(formData[k]));
-              } else {
-                payload.append(k, formData[k]);
-              }
-            });
-            if (sdsFile) payload.append('sds_file', sdsFile);
-            if (disposalFile) payload.append('disposal_file', disposalFile);
-            onSave(payload);
+            if (submitting) return;
+            setSubmitting(true);
+            try {
+              const payload = new FormData();
+              Object.keys(formData).forEach(k => {
+                if (['ghs_classes', 'exposure_risks', 'ghs_hazards', 'nfpa_rating', 'hazard_summary', 'ppe_requirements', 'incompatibility', 'emergency_response', 'exposure_details'].includes(k)) {
+                  payload.append(k, JSON.stringify(formData[k]));
+                } else {
+                  payload.append(k, formData[k]);
+                }
+              });
+              if (sdsFile) payload.append('sds_file', sdsFile);
+              if (disposalFile) payload.append('disposal_file', disposalFile);
+              await onSave(payload);
+            } catch (err) {
+              console.error(err);
+            } finally {
+              setSubmitting(false);
+            }
           }}
             className="form-main"
           >
@@ -876,8 +885,18 @@ const ChemicalForm = ({ initialData, onClose, onSave }) => {
                 </a>
               )}
 
-              <button type="submit" className="submit-button">
-                {initialData ? "Apply Lifecycle Update" : "Authorize System Entry"}
+              <button type="submit" disabled={submitting} className={`submit-button ${submitting ? 'submitting-btn' : ''}`}>
+                {submitting ? (
+                  <span className="submit-loading-text">
+                    <svg className="submit-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <circle className="spinner-track" cx="12" cy="12" r="10" strokeWidth="4" />
+                      <path className="spinner-head" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    {initialData ? "Applying Lifecycle Update..." : "Authorizing System Entry..."}
+                  </span>
+                ) : (
+                  initialData ? "Apply Lifecycle Update" : "Authorize System Entry"
+                )}
               </button>
             </div>
 

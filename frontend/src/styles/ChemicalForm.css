@@ -1749,3 +1749,38 @@
     display: block;
   }
 }
+
+/* Submitting Spinner & Button Loading Styles */
+.submitting-btn {
+  opacity: 0.82;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  transform: none !important;
+}
+
+.submit-loading-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.submit-spinner {
+  width: 1.15rem;
+  height: 1.15rem;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinner-track {
+  opacity: 0.25;
+}
+
+.spinner-head {
+  opacity: 0.9;
+}
+
