@@ -29,7 +29,7 @@ const createNotification = async (data) => {
         ...(resolvedLab && { lab: resolvedLab })
       };
 
-      if (payload.related?.containerId) {
+      if (payload.related?.containerId && payload.type !== 'EXPIRY') {
         matchCriteria['related.containerId'] = payload.related.containerId;
       }
 
@@ -144,30 +144,13 @@ const createNotification = async (data) => {
 
       if (recipientEmails.length > 0) {
         const emailHtml = formatNotificationEmail(payload);
+        notification.channels.push({ type: 'email', isSent: true, sentAt: new Date() });
+        await notification.save().catch(console.error);
 
         (async () => {
-          let anySuccess = false;
-          let lastError = null;
-
           for (const email of recipientEmails) {
             console.log(`[Email] Sending [${payload.type}] "${payload.title}" → ${email} (lab=${resolvedLab})`);
-            const emailResult = await sendEmail(email, `[CIMS ALERT] ${payload.title}`, emailHtml);
-            if (emailResult.success) {
-              anySuccess = true;
-            } else {
-              lastError = emailResult.error?.message;
-            }
-          }
-
-          try {
-            if (anySuccess) {
-              notification.channels.push({ type: 'email', isSent: true, sentAt: new Date() });
-            } else if (lastError) {
-              notification.channels.push({ type: 'email', isSent: false, error: lastError });
-            }
-            await notification.save();
-          } catch (err) {
-            console.error('Failed to update notification channels:', err);
+            await sendEmail(email, `[CIMS ALERT] ${payload.title}`, emailHtml);
           }
         })().catch(console.error);
       }

@@ -43,6 +43,7 @@ const checkChemicalExpiry = async (chemical, user = null) => {
   if (statusChanged || newStatus === 'Expired' || newStatus === 'Near Expiry') {
      const containers = await Container.find({ chemical_id: chemical.id, status: { $nin: ['Empty', 'Damaged'] } });
      
+     let notified = false;
      for (let container of containers) {
          if (container.expiry_date) {
              const cExp = new Date(container.expiry_date);
@@ -63,9 +64,10 @@ const checkChemicalExpiry = async (chemical, user = null) => {
                 await container.save();
              }
 
-             // Send alert only if the container is currently expired or near expiry
-             if (cStatus === 'Expired' || cStatus === 'Near Expiry') {
+             // Send alert for the chemical (once per chemical check) if container is expired or near expiry
+             if (!notified && (cStatus === 'Expired' || cStatus === 'Near Expiry')) {
                 await notifyExpiry(chemical, container, cDaysRemaining, chemical.lab || container.lab, user);
+                notified = true;
              }
          }
      }
