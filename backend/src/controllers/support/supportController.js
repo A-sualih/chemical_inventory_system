@@ -79,7 +79,7 @@ exports.updateSupportStatus = async (req, res) => {
     const updatedRequest = await SupportRequest.findByIdAndUpdate(
       id,
       { status },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!updatedRequest) {

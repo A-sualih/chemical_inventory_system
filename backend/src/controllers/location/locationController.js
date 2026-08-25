@@ -136,7 +136,7 @@ exports.updateLocation = async (req, res) => {
     const location = await Location.findOneAndUpdate(
       { _id: req.params.id, ...labQuery },
       { capacity, x, y, safety_warnings, notes, isActive },
-      { new: true }
+      { returnDocument: 'after' }
     );
     if (!location) return res.status(404).json({ error: 'Location not found' });
 

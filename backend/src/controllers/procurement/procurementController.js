@@ -104,7 +104,7 @@ exports.updateSupplier = async (req, res) => {
     const supplier = await Supplier.findOneAndUpdate(
       { _id: req.params.id, ...labQuery, is_deleted: false },
       req.body,
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
     if (!supplier) return res.status(404).json({ error: 'Supplier not found' });
     await logAction({ entityType: 'Supplier', entityId: supplier._id, entityName: supplier.name, action: 'UPDATED', req, details: `Updated supplier "${supplier.name}"` });
@@ -120,7 +120,7 @@ exports.deleteSupplier = async (req, res) => {
     const supplier = await Supplier.findOneAndUpdate(
       { _id: req.params.id, ...labQuery },
       { is_deleted: true, deleted_at: new Date() },
-      { new: true }
+      { returnDocument: 'after' }
     );
     if (!supplier) return res.status(404).json({ error: 'Supplier not found' });
     await logAction({ entityType: 'Supplier', entityId: supplier._id, entityName: supplier.name, action: 'DELETED', req, details: `Soft-deleted supplier "${supplier.name}"` });
@@ -137,7 +137,7 @@ exports.blacklistSupplier = async (req, res) => {
     const supplier = await Supplier.findOneAndUpdate(
       { _id: req.params.id, ...labQuery },
       { status: 'Blacklisted', notes: `BLACKLISTED: ${reason}` },
-      { new: true }
+      { returnDocument: 'after' }
     );
     if (!supplier) return res.status(404).json({ error: 'Supplier not found' });
     await logAction({ entityType: 'Supplier', entityId: supplier._id, entityName: supplier.name, action: 'BLACKLISTED', req, details: `Blacklisted: ${reason}` });
@@ -384,7 +384,7 @@ exports.deletePurchaseOrder = async (req, res) => {
     const po = await PurchaseOrder.findOneAndUpdate(
       { _id: req.params.id, ...labQuery, is_deleted: false },
       { is_deleted: true },
-      { new: true }
+      { returnDocument: 'after' }
     );
     if (!po) return res.status(404).json({ error: 'PO not found' });
     await logAction({ entityType: 'PurchaseOrder', entityId: po._id, entityName: po.po_number, action: 'DELETED', req, details: `Deleted PO ${po.po_number}` });

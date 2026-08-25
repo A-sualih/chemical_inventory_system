@@ -19,7 +19,7 @@ exports.updateSettings = async (req, res) => {
     if (!settings) {
       settings = await SystemSettings.create(req.body);
     } else {
-      settings = await SystemSettings.findOneAndUpdate({}, req.body, { new: true });
+      settings = await SystemSettings.findOneAndUpdate({}, req.body, { returnDocument: 'after' });
     }
     res.json({ message: 'Settings updated successfully', settings });
   } catch (error) {

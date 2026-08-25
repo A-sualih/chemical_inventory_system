@@ -62,7 +62,7 @@ exports.updateLab = async (req, res) => {
         return res.status(403).json({ error: 'You can only update laboratories you are assigned to.' });
       }
     }
-    const lab = await Lab.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const lab = await Lab.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' });
     if (!lab) return res.status(404).json({ message: 'Lab not found' });
     res.status(200).json(lab);
   } catch (err) {

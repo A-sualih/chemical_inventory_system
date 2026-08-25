@@ -50,7 +50,7 @@ const syncBatch = async (data) => {
     await Batch.findOneAndUpdate(
       { batch_number: batchId, lab: updateData.lab },
       { $set: updateData },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     // Sync back to Chemical model so main inventory list shows the batch

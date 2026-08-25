@@ -58,7 +58,7 @@ const syncContainers = async (data) => {
       await Container.findOneAndUpdate(
         { container_id: containerId, lab: updateData.lab },
         { $set: updateData },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       );
     }
     

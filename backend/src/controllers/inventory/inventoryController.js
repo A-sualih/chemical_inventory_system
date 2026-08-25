@@ -78,7 +78,7 @@ exports.updateChemical = async (req, res) => {
     const chemical = await Chemical.findOneAndUpdate(
       { id: req.params.id, ...(req.activeLabId && { lab: req.activeLabId }) },
       { $set: req.body },
-      { new: true }
+      { returnDocument: 'after' }
     );
     if (!chemical) return res.status(404).json({ error: 'Chemical not found' });
     

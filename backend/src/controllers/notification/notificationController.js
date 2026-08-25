@@ -153,7 +153,7 @@ exports.markAsRead = async (req, res) => {
     const notification = await Notification.findOneAndUpdate(
       { _id: req.params.id, ...labQuery },
       { status: 'read', isRead: true, readAt: new Date() },
-      { new: true }
+      { returnDocument: 'after' }
     );
     if (!notification) return res.status(404).json({ error: 'Notification not found' });
     res.json(notification);
@@ -168,7 +168,7 @@ exports.dismissNotification = async (req, res) => {
     const notification = await Notification.findOneAndUpdate(
       { _id: req.params.id, ...labQuery },
       { status: 'dismissed' },
-      { new: true }
+      { returnDocument: 'after' }
     );
     if (!notification) return res.status(404).json({ error: 'Notification not found' });
     res.json(notification);
