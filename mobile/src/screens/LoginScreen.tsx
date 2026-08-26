@@ -165,72 +165,85 @@ export default function LoginScreen() {
     <Screen style={styles.wrap}>
       <StatusBar style={theme === 'ink' ? 'light' : 'dark'} />
       <View style={styles.topBar}>
-        <Pressable onPress={() => navigation.navigate('Landing')}>
-          <Text style={styles.back}>← Back to home</Text>
-        </Pressable>
-        <ThemeToggleButton />
-      </View>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        {view === 'locked' ? renderLocked() : view === 'mfa' ? renderMfa() : renderLogin()}
-      </KeyboardAvoidingView>
-      <Text style={styles.footerTag}>Secure Access Provided by {orgName}</Text>
-    </Screen>
-  );
+      <Pressable onPress={() => navigation.navigate('Landing')} style={styles.backBtn}>
+        <Ionicons name="arrow-back" size={18} color={colors.accent} />
+        <Text style={styles.backText}>Home</Text>
+      </Pressable>
+      <ThemeToggleButton />
+    </View>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {view === 'locked' ? renderLocked() : view === 'mfa' ? renderMfa() : renderLogin()}
+    </KeyboardAvoidingView>
+    <Text style={styles.footerTag}>Protected & Encrypted • {orgName}</Text>
+  </Screen>
+);
 }
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    wrap: { justifyContent: 'center' },
+    wrap: { justifyContent: 'center', paddingHorizontal: 20 },
     topBar: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: 8,
+      marginBottom: 16,
     },
-    back: { color: colors.muted, fontWeight: '700' },
-    form: {
-      backgroundColor: colors.surface,
-      borderRadius: 20,
+    backBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: colors.accentSoft,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 12,
       borderWidth: 1,
       borderColor: colors.border,
-      padding: 20,
-      shadowColor: '#0f172a',
-      shadowOpacity: 0.06,
-      shadowRadius: 16,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 2,
+    },
+    backText: { color: colors.accent, fontWeight: '700', fontSize: 13 },
+    form: {
+      backgroundColor: colors.surface,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 24,
+      shadowColor: '#000',
+      shadowOpacity: 0.1,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 4,
     },
     label: {
       color: colors.muted,
       fontSize: 11,
       fontWeight: '800',
       textTransform: 'uppercase',
-      letterSpacing: 1,
+      letterSpacing: 0.8,
       marginBottom: 6,
     },
-    forgotWrap: { alignSelf: 'flex-end', marginBottom: 10, marginTop: -4 },
+    forgotWrap: { alignSelf: 'flex-end', marginBottom: 12, marginTop: -2 },
     forgot: { color: colors.accent, fontWeight: '700', fontSize: 13 },
-    error: { color: colors.danger, marginBottom: 10, fontWeight: '600' },
-    linkBtn: { alignItems: 'center', paddingVertical: 14, marginTop: 4 },
+    error: { color: colors.danger, marginBottom: 12, fontWeight: '600', fontSize: 13 },
+    linkBtn: { alignItems: 'center', paddingVertical: 14, marginTop: 6 },
     linkText: { color: colors.accent, fontWeight: '800', fontSize: 15 },
     footerTag: {
       color: colors.muted,
       textAlign: 'center',
-      marginTop: 20,
+      marginTop: 24,
       fontSize: 12,
-      opacity: 0.8,
+      fontWeight: '600',
+      opacity: 0.75,
     },
     timerBox: {
       alignItems: 'center',
       backgroundColor: colors.surface2,
-      borderRadius: 16,
+      borderRadius: 18,
       padding: 20,
       marginVertical: 12,
       borderWidth: 1,
       borderColor: colors.border,
     },
-    timerText: { color: colors.danger, fontWeight: '900', fontSize: 32 },
-    timerLabel: { color: colors.muted, marginTop: 6, fontSize: 13 },
+    timerText: { color: colors.danger, fontWeight: '900', fontSize: 36 },
+    timerLabel: { color: colors.muted, marginTop: 6, fontSize: 13, fontWeight: '600' },
     hint: { color: colors.muted, textAlign: 'center', fontStyle: 'italic', fontSize: 12, marginTop: 8 },
   });
 }
