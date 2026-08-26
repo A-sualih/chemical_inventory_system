@@ -289,10 +289,9 @@ export default function RootNavigator() {
             fontWeight: '800',
             fontSize: 17,
             color: colors.text,
-            letterSpacing: -0.3,
           },
           headerShadowVisible: false,
-          headerBackTitleVisible: false,
+          headerBackTitle: '',
           contentStyle: { backgroundColor: colors.bg },
         }}
       >
