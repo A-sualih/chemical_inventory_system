@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { roleMatches } from '../utils/roles';
 
 import LandingScreen from '../screens/LandingScreen';
@@ -127,12 +128,16 @@ const TAB_DEFS: TabDef[] = [
 function MainTabs() {
   const { colors, theme } = useTheme();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const role = user?.role;
 
   const tabs = useMemo(
     () => TAB_DEFS.filter((t) => roleMatches(role, t.roles)),
     [role]
   );
+
+  const bottomPadding = Math.max(insets.bottom, 10);
+  const barHeight = 60 + bottomPadding;
 
   return (
     <Tabs.Navigator
@@ -149,18 +154,17 @@ function MainTabs() {
           fontWeight: '800',
           fontSize: 17,
           color: colors.text,
-          letterSpacing: -0.3,
         },
         headerShadowVisible: false,
-        headerBackTitleVisible: false,
+        headerBackTitle: '',
 
         // ── Bottom Tab Bar ───────────────────────────────────────────────
         tabBarStyle: {
           backgroundColor: colors.bgDeep,
           borderTopWidth: 1,
           borderTopColor: colors.border,
-          height: 72,
-          paddingBottom: 10,
+          height: barHeight,
+          paddingBottom: bottomPadding,
           paddingTop: 8,
           paddingHorizontal: 6,
           elevation: 16,

@@ -11,10 +11,26 @@ import {
   TextStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 
-export function Screen({ children, style }: { children: React.ReactNode; style?: ViewStyle }) {
+export function Screen({
+  children,
+  style,
+  ignoreTopInset = false,
+  ignoreBottomInset = false,
+}: {
+  children: React.ReactNode;
+  style?: ViewStyle;
+  ignoreTopInset?: boolean;
+  ignoreBottomInset?: boolean;
+}) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+
+  const paddingTop = ignoreTopInset ? 8 : Math.max(insets.top, 12) + 4;
+  const paddingBottom = ignoreBottomInset ? 4 : Math.max(insets.bottom, 4);
+
   return (
     <View
       style={[
@@ -22,8 +38,8 @@ export function Screen({ children, style }: { children: React.ReactNode; style?:
           flex: 1,
           backgroundColor: colors.bg,
           paddingHorizontal: 16,
-          paddingTop: 8,
-          paddingBottom: 4,
+          paddingTop,
+          paddingBottom,
           overflow: 'hidden',
         },
         style,
