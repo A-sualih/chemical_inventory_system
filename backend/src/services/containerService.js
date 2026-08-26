@@ -8,11 +8,8 @@ const syncContainers = async (data) => {
   const numContainers = Number(data.num_containers || data.numContainers || 1);
   const qtyPerContainer = Number(data.quantity_per_container || data.qtyPerContainer || 0);
   const chemicalId = data.id || data.chemical_id;
-  const mfgBarcode = data.barcode; // Manufacturer's barcode scanned during enrollment
+  const mfgBarcode = data.barcode;
 
-  // If a manufacturer barcode was scanned, use it as the container_id directly.
-  // This way scanning the original bottle barcode at check-in/out finds the container immediately.
-  // For multiple containers, fall back to the series ID with index suffix.
   const baseId = (mfgBarcode && numContainers === 1)
     ? mfgBarcode
     : (data.container_id_series || data.containerId || data.id || 'CONT');
@@ -20,48 +17,78 @@ const syncContainers = async (data) => {
   if (!chemicalId) return;
 
   try {
-    for (let i = 1; i <= numContainers; i++) {
-      // For single container with mfg barcode: containerId = the barcode itself
-      // For multiple containers: append index
-      const containerId = numContainers > 1 ? `${baseId}-${i}` : baseId;
-      
-      const updateData = {
-        chemical_id: chemicalId,
-        quantity: qtyPerContainer || (data.quantity / numContainers) || 0,
-        unit: data.unit || 'L',
-        batch_number: data.batch_number || data.batch,
-        building: data.building,
-        room: data.room,
-        cabinet: data.cabinet,
-        shelf: data.shelf,
-        manufacturing_date: data.manufacturing_date || data.mfgDate,
-        expiry_date: data.expiry_date || data.expiry,
-        barcode: data.barcode,
-        container_type: data.container_type || data.containerType || 'Plastic Bottle',
-        status: 'Full',
-        lab: data.lab
-      };
+    const labFilter = data.lab ? { lab: data.lab } : {};
+    const existingContainers = await Container.find({ chemical_id: chemicalId, ...labFilter }).sort({ createdAt: 1 });
 
-      // Determine status based on expiry
-      if (updateData.expiry_date) {
-        const thresholdDays = parseInt(process.env.NEAR_EXPIRY_THRESHOLD) || 30;
-        const exp = new Date(updateData.expiry_date);
-        const now = new Date();
-        const diff = (exp - now) / (1000 * 60 * 60 * 24);
-        if (diff < 0) updateData.status = 'Expired';
-        else if (diff <= thresholdDays) updateData.status = 'Near Expiry';
+    const sharedUpdateData = {
+      chemical_id: chemicalId,
+      quantity: qtyPerContainer || (data.quantity / numContainers) || 0,
+      unit: data.unit || 'L',
+      batch_number: data.batch_number || data.batch,
+      building: data.building,
+      room: data.room,
+      cabinet: data.cabinet,
+      shelf: data.shelf,
+      manufacturing_date: data.manufacturing_date || data.mfgDate,
+      expiry_date: data.expiry_date || data.expiry,
+      barcode: data.barcode,
+      container_type: data.container_type || data.containerType || 'Plastic Bottle',
+      lab: data.lab
+    };
+
+    // Determine status based on expiry
+    if (sharedUpdateData.expiry_date) {
+      const thresholdDays = parseInt(process.env.NEAR_EXPIRY_THRESHOLD) || 30;
+      const exp = new Date(sharedUpdateData.expiry_date);
+      const now = new Date();
+      const diff = (exp - now) / (1000 * 60 * 60 * 24);
+      if (diff < 0) sharedUpdateData.status = 'Expired';
+      else if (diff <= thresholdDays) sharedUpdateData.status = 'Near Expiry';
+      else sharedUpdateData.status = 'Full';
+    }
+
+    // Clean undefined
+    Object.keys(sharedUpdateData).forEach(key => sharedUpdateData[key] === undefined && delete sharedUpdateData[key]);
+
+    if (existingContainers.length > 0) {
+      // Update existing containers in place up to numContainers
+      const countToUpdate = Math.min(existingContainers.length, numContainers);
+      for (let i = 0; i < countToUpdate; i++) {
+        const cont = existingContainers[i];
+        Object.assign(cont, sharedUpdateData);
+        await cont.save();
       }
 
-      // Clean undefined
-      Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+      // If numContainers is greater than existing count, create extra containers
+      if (numContainers > existingContainers.length) {
+        for (let i = existingContainers.length + 1; i <= numContainers; i++) {
+          const containerId = `${baseId}-${i}`;
+          await Container.create({
+            ...sharedUpdateData,
+            container_id: containerId,
+            status: sharedUpdateData.status || 'Full'
+          });
+        }
+      }
 
-      await Container.findOneAndUpdate(
-        { container_id: containerId, lab: updateData.lab },
-        { $set: updateData },
-        { upsert: true, returnDocument: 'after' }
-      );
+      // If numContainers is less than existing count, clean up extra containers
+      if (numContainers < existingContainers.length) {
+        const extraContainers = existingContainers.slice(numContainers);
+        const extraIds = extraContainers.map(c => c._id);
+        await Container.deleteMany({ _id: { $in: extraIds } });
+      }
+    } else {
+      // No containers exist yet: create numContainers
+      for (let i = 1; i <= numContainers; i++) {
+        const containerId = numContainers > 1 ? `${baseId}-${i}` : baseId;
+        await Container.create({
+          ...sharedUpdateData,
+          container_id: containerId,
+          status: sharedUpdateData.status || 'Full'
+        });
+      }
     }
-    
+
     console.log(`[ContainerSync] Synced ${numContainers} containers for ${chemicalId}.`);
   } catch (err) {
     console.error(`[ContainerSync] Failed to sync containers:`, err.message);
