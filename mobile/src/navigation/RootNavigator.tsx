@@ -125,7 +125,7 @@ const TAB_DEFS: TabDef[] = [
 ];
 
 function MainTabs() {
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
   const { user } = useAuth();
   const role = user?.role;
 
@@ -138,22 +138,60 @@ function MainTabs() {
     <Tabs.Navigator
       initialRouteName="Home"
       screenOptions={({ route }) => ({
-        headerStyle: { backgroundColor: colors.bgDeep },
-        headerTintColor: colors.text,
+        // ── Header ──────────────────────────────────────────────────────
+        headerStyle: {
+          backgroundColor: colors.bgDeep,
+          shadowColor: 'transparent',
+          elevation: 0,
+        },
+        headerTintColor: colors.accent,
+        headerTitleStyle: {
+          fontWeight: '800',
+          fontSize: 17,
+          color: colors.text,
+          letterSpacing: -0.3,
+        },
         headerShadowVisible: false,
+        headerBackTitleVisible: false,
+
+        // ── Bottom Tab Bar ───────────────────────────────────────────────
         tabBarStyle: {
           backgroundColor: colors.bgDeep,
+          borderTopWidth: 1,
           borderTopColor: colors.border,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 6,
+          height: 72,
+          paddingBottom: 10,
+          paddingTop: 8,
+          paddingHorizontal: 6,
+          elevation: 16,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: theme === 'ink' ? 0.4 : 0.08,
+          shadowRadius: 12,
         },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.muted,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
-        tabBarIcon: ({ color, size }) => {
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '700',
+          letterSpacing: 0.2,
+          marginTop: 2,
+        },
+        tabBarItemStyle: {
+          borderRadius: 12,
+          marginHorizontal: 2,
+          paddingVertical: 4,
+        },
+        tabBarActiveBackgroundColor: colors.accentSoft,
+        tabBarIcon: ({ color, size, focused }) => {
           const def = TAB_DEFS.find((t) => t.name === route.name);
-          return <Ionicons name={def?.icon || 'ellipse'} size={size} color={color} />;
+          return (
+            <Ionicons
+              name={focused ? (def?.icon?.replace('-outline', '') as any) || 'ellipse' : def?.icon || 'ellipse'}
+              size={focused ? size + 1 : size}
+              color={color}
+            />
+          );
         },
       })}
     >
@@ -243,8 +281,18 @@ export default function RootNavigator() {
     <NavigationContainer theme={navTheme}>
       <Stack.Navigator
         screenOptions={{
-          headerStyle: { backgroundColor: colors.bgDeep },
-          headerTintColor: colors.text,
+          headerStyle: {
+            backgroundColor: colors.bgDeep,
+          },
+          headerTintColor: colors.accent,
+          headerTitleStyle: {
+            fontWeight: '800',
+            fontSize: 17,
+            color: colors.text,
+            letterSpacing: -0.3,
+          },
+          headerShadowVisible: false,
+          headerBackTitleVisible: false,
           contentStyle: { backgroundColor: colors.bg },
         }}
       >

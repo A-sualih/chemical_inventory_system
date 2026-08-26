@@ -18,7 +18,14 @@ export function Screen({ children, style }: { children: React.ReactNode; style?:
   return (
     <View
       style={[
-        { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 16, paddingTop: 8, overflow: 'hidden' },
+        {
+          flex: 1,
+          backgroundColor: colors.bg,
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: 4,
+          overflow: 'hidden',
+        },
         style,
       ]}
     >
@@ -53,6 +60,11 @@ export function Card({ children, style }: { children: React.ReactNode; style?: V
           borderColor: colors.border,
           padding: 16,
           marginBottom: 12,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
+          elevation: 2,
         },
         style,
       ]}
@@ -116,15 +128,25 @@ export function Button({
           justifyContent: 'center',
           marginTop: 4,
           backgroundColor: bg,
-          opacity: disabled || loading ? 0.45 : pressed ? 0.85 : 1,
+          opacity: disabled || loading ? 0.45 : pressed ? 0.82 : 1,
+          transform: [{ scale: pressed ? 0.98 : 1 }],
+          shadowColor: variant === 'primary' ? bg : 'transparent',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: variant === 'primary' ? 4 : 0,
         },
-        variant === 'ghost' && { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface2 },
+        variant === 'ghost' && {
+          borderWidth: 1,
+          borderColor: colors.border,
+          backgroundColor: colors.surface2,
+        },
       ]}
     >
       {loading ? (
         <ActivityIndicator color={textColor} />
       ) : (
-        <Text style={{ fontWeight: '800', fontSize: 15, letterSpacing: 0.3, color: textColor }}>
+        <Text style={{ fontWeight: '800', fontSize: 15, letterSpacing: 0.4, color: textColor }}>
           {label}
         </Text>
       )}
@@ -248,7 +270,7 @@ export function AuthBrandHeader({
         }}
       >
         {showLogo ? (
-          <Image source={{ uri: logoUrl }} style={{ width: 72, height: 72 }} resizeMode="contain" />
+          <Image source={{ uri: logoUrl }} style={{ width: 72, height: 72 }} resizeMode="cover" />
         ) : showPlaceholder ? (
           <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: colors.border }} />
         ) : (
