@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from './config';
-import { storageDelete, storageGet, storageSet } from '../utils/storage';
+import { storageDelete, storageGet, storageSet, largeStorageGet, largeStorageSet, largeStorageDelete } from '../utils/storage';
 
 export const TOKEN_KEY = 'cims_token';
 export const USER_KEY = 'cims_user';
@@ -55,18 +55,36 @@ api.interceptors.response.use(
   }
 );
 
+/**
+ * Save session – token goes into normal (small) storage, user JSON uses
+ * the chunked large-storage helpers so it never exceeds the 2048-byte
+ * SecureStore ceiling on native devices.
+ */
 export async function saveSession(token: string, user: unknown) {
-  await storageSet(TOKEN_KEY, token);
-  await storageSet(USER_KEY, JSON.stringify(user));
+  try {
+    await storageSet(TOKEN_KEY, token);
+    await largeStorageSet(USER_KEY, JSON.stringify(user));
+  } catch (err) {
+    console.warn('[session] saveSession failed:', err);
+  }
 }
 
 export async function clearSession() {
-  await storageDelete(TOKEN_KEY);
-  await storageDelete(USER_KEY);
+  try {
+    await storageDelete(TOKEN_KEY);
+    await largeStorageDelete(USER_KEY);
+  } catch (err) {
+    console.warn('[session] clearSession failed:', err);
+  }
 }
 
 export async function loadSession(): Promise<{ token: string | null; user: unknown | null }> {
-  const token = await storageGet(TOKEN_KEY);
-  const raw = await storageGet(USER_KEY);
-  return { token, user: raw ? JSON.parse(raw) : null };
+  try {
+    const token = await storageGet(TOKEN_KEY);
+    const raw = await largeStorageGet(USER_KEY);
+    return { token, user: raw ? JSON.parse(raw) : null };
+  } catch (err) {
+    console.warn('[session] loadSession failed:', err);
+    return { token: null, user: null };
+  }
 }

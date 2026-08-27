@@ -65,9 +65,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const logout = useCallback(async () => {
+    console.log('[auth] logout initiated');
     setUser(null);
     setToken(null);
-    await clearSession();
+    try {
+      await clearSession();
+      console.log('[auth] session cleared successfully');
+    } catch (err) {
+      console.warn('[auth] clearSession error during logout:', err);
+    }
   }, []);
 
   useEffect(() => {
@@ -76,16 +82,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     (async () => {
       try {
+        console.log('[auth] restoring session…');
         const session = await loadSession();
         if (session.token && session.user) {
           const decoded = jwtDecode<{ exp?: number }>(session.token);
           if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+            console.log('[auth] token expired, clearing session');
             await clearSession();
           } else {
+            console.log('[auth] session restored for', (session.user as any)?.email);
             setToken(session.token);
             setUser(canonicalizeUser(session.user));
           }
+        } else {
+          console.log('[auth] no saved session found');
         }
+      } catch (err) {
+        console.warn('[auth] session restore error:', err);
       } finally {
         setLoading(false);
       }
@@ -95,9 +108,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const applySession = async (nextToken: string, nextUser: User) => {
     const userCanonical = canonicalizeUser(nextUser);
+    console.log('[auth] applying session for', userCanonical?.email);
     setToken(nextToken);
     setUser(userCanonical);
-    await saveSession(nextToken, userCanonical);
+    try {
+      await saveSession(nextToken, userCanonical);
+      console.log('[auth] session saved successfully');
+    } catch (err) {
+      console.warn('[auth] saveSession error:', err);
+    }
   };
 
   const refreshUser = useCallback(async () => {
@@ -121,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string): Promise<LoginResult> => {
     try {
+      console.log('[auth] login attempt for', email);
       const { data } = await api.post('/auth/login', { email, password });
       if (data.requireMfa) {
         return {
@@ -132,8 +152,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
       }
       await applySession(data.token, data.user);
+      console.log('[auth] login succeeded');
       return { success: true };
     } catch (error: any) {
+      const msg = error.response?.data?.error || error.message || 'Login failed';
+      console.warn('[auth] login failed:', msg, 'status:', error.response?.status);
       return {
         success: false,
         error: error.response?.data?.error || 'Login failed',

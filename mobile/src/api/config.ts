@@ -40,3 +40,4 @@ function resolveApiBaseUrl(): string {
 }
 
 export const API_BASE_URL = resolveApiBaseUrl();
+console.log(`[config] Platform: ${Platform.OS} | API_BASE_URL: ${API_BASE_URL}`);
