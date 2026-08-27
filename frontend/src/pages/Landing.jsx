@@ -23,10 +23,17 @@ import {
   Database,
   Lock,
   Layers,
-  ArrowUpRight
+  ArrowUpRight,
+  Smartphone,
+  Download,
+  ExternalLink,
+  CheckCircle,
+  Sparkles
 } from 'lucide-react';
 import '../styles/Landing.css';
 import ThemeToggle from '../components/common/ThemeToggle';
+
+const MOBILE_APP_BUILD_URL = "https://expo.dev/accounts/chemical-inventory-system/projects/chemical-inventory-system/builds/b90d39c0-9c35-4299-a331-3064120739e8";
 
 const Landing = () => {
   const { user } = useAuth();
@@ -103,9 +110,18 @@ const Landing = () => {
         </div>
         <div className="nav-links">
           <a href="#features" className="nav-link">Features</a>
+          <a href="#mobile-app" className="nav-link highlight-nav-link"><Smartphone size={14} className="inline mr-1" /> Mobile App</a>
           <a href="#about" className="nav-link">About</a>
           <a href="#workflow" className="nav-link">Workflow</a>
           <ThemeToggle />
+          <a
+            href={MOBILE_APP_BUILD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-nav-mobile"
+          >
+            <Smartphone size={15} /> Download App
+          </a>
           {user ? (
             <Link to="/dashboard" className="btn-nav-login">Go to Dashboard</Link>
           ) : (
@@ -131,6 +147,14 @@ const Landing = () => {
                 <Link to="/login" className="btn-hero-secondary">Sign In</Link>
               </>
             )}
+            <a
+              href={MOBILE_APP_BUILD_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-hero-secondary btn-hero-mobile"
+            >
+              <Smartphone size={18} /> Download Mobile App
+            </a>
           </div>
         </div>
         <div className="hero-visual">
@@ -208,6 +232,73 @@ const Landing = () => {
             title="Notifications & Alerts"
             desc="Automated warnings for chemical expiry, low-stock levels, and critical safety threshold breaches."
           />
+        </div>
+      </section>
+
+      {/* --- Dedicated Mobile App Banner Section --- */}
+      <section id="mobile-app" className="section-container mobile-app-section">
+        <div className="mobile-app-card">
+          <div className="mobile-app-content">
+            <span className="section-tag" style={{ textAlign: 'left' }}>Take {systemName} On The Go</span>
+            <h2 className="mobile-app-title">Download the {systemName} Native Mobile App</h2>
+            <p className="mobile-app-desc">
+              Perform chemical check-ins, scan container QR/barcodes on physical lab shelves, receive instant expiry alerts, and submit usage requests directly from your mobile device.
+            </p>
+            
+            <div className="mobile-features-list">
+              <div className="mobile-feature-item">
+                <div className="mobile-feature-icon">
+                  <QrCode size={18} />
+                </div>
+                <span><strong>Instant QR & Barcode Scanning</strong> for fast shelf inventory management</span>
+              </div>
+              <div className="mobile-feature-item">
+                <div className="mobile-feature-icon">
+                  <Bell size={18} />
+                </div>
+                <span><strong>Live Expiry & Low-Stock Push Alerts</strong> tailored to your lab assignments</span>
+              </div>
+              <div className="mobile-feature-item">
+                <div className="mobile-feature-icon">
+                  <ShieldCheck size={18} />
+                </div>
+                <span><strong>Secure Chunked Session Storage</strong> & Multi-Factor authentication persistence</span>
+              </div>
+            </div>
+
+            <div className="mobile-app-actions">
+              <a 
+                href={MOBILE_APP_BUILD_URL} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="btn-download-app-primary"
+              >
+                <Download size={20} /> Download Mobile Build (EAS) <ExternalLink size={14} style={{ opacity: 0.8 }} />
+              </a>
+              <span className="build-badge">
+                <CheckCircle size={14} style={{ color: '#10b981' }} /> Official Expo Android & iOS Artifact
+              </span>
+            </div>
+          </div>
+
+          <div className="mobile-app-visual">
+            <div className="phone-mockup-frame">
+              <div className="phone-notch"></div>
+              <div className="phone-screen-content">
+                <div className="phone-app-header">
+                  <Smartphone size={24} />
+                  <span>CIMS Mobile</span>
+                </div>
+                <div className="phone-scan-graphic">
+                  <QrCode size={64} className="text-accent" />
+                  <p>Scan Container Barcode</p>
+                </div>
+                <div className="phone-status-pill">
+                  <CheckCircle size={14} /> Mobile App Active
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -327,6 +418,9 @@ const Landing = () => {
           {systemName}
         </div>
         <div className="footer-links">
+           <a href={MOBILE_APP_BUILD_URL} target="_blank" rel="noopener noreferrer" className="nav-link" style={{ color: 'var(--accent)', fontWeight: 800 }}>
+             <Smartphone size={14} className="inline mr-1" /> Mobile App Build
+           </a>
            <Link to="/privacy" state={{ fromFooter: true }} className="nav-link">Privacy Policy</Link>
            <Link to="/terms" state={{ fromFooter: true }} className="nav-link">Terms of Service</Link>
            <Link to="/support" state={{ fromFooter: true }} className="nav-link">Contact Support</Link>
