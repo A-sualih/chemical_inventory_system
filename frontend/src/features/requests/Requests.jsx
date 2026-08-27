@@ -3,7 +3,31 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import Layout from "../../layout/Layout";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
-import { Calendar as CalendarIcon, Clock, Package as PackageIcon, CheckCircle2, ChevronRight, Hash, FlaskConical, CircleDot, AlertTriangle, Ban, PlusCircle as PlusCircleIcon } from 'lucide-react';
+import { 
+  Calendar as CalendarIcon, 
+  Clock, 
+  Package as PackageIcon, 
+  CheckCircle2, 
+  ChevronRight, 
+  Hash, 
+  FlaskConical, 
+  CircleDot, 
+  AlertTriangle, 
+  Ban, 
+  PlusCircle as PlusCircleIcon,
+  Sparkles,
+  Beaker,
+  Check,
+  X,
+  Layers,
+  FileText,
+  User,
+  ShieldAlert,
+  ArrowRight,
+  TrendingDown,
+  Info,
+  RotateCw
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import { confirmAction } from "../../utils/confirmAction";
 import "../../styles/Requests.css";
@@ -152,6 +176,7 @@ const Requests = () => {
     const chemId = searchParams.get("chemical_id");
     if (chemId && chemicals.length > 0) {
       setSelectedChem(chemId);
+      setShowRequestModal(true);
     }
   }, [searchParams, chemicals]);
 
@@ -330,175 +355,326 @@ const Requests = () => {
     }
   }, [selectedTargetLab]);
 
+  const selectedChemObj = chemicals.find(c => c._id === selectedChem);
+  const selectedContainerObj = containers.find(c => c._id === selectedContainer);
+
+  const calculateUtilization = () => {
+    if (!selectedContainerObj || !quantity) return null;
+    const rates = {
+      'kg': 1, 'g': 0.001, 'mg': 0.000001, 'mcg': 0.000000001,
+      'L': 1, 'l': 1, 'mL': 0.001, 'ml': 0.001, 'ul': 0.000001, 'nl': 0.000000001
+    };
+    const reqBase = Number(quantity) * (rates[unit] || 1);
+    const availBase = Number(selectedContainerObj.available_quantity) * (rates[selectedContainerObj.unit] || 1);
+    if (availBase <= 0) return 100;
+    return Math.min(100, Math.round((reqBase / availBase) * 100));
+  };
+  const utilization = calculateUtilization();
+
+  const PRESET_REASONS = [
+    "Synthesis Reaction",
+    "Analytical Testing",
+    "Quality Control Sampling",
+    "Research Experiment",
+    "Standard Prep"
+  ];
+
   return (
     <Layout>
       <div className="requests-header">
         <div>
-          <h1 className="requests-title">Request & Approval System</h1>
-          <p className="requests-subtitle">Every usage must go through a request → approval process.</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+            <h1 className="requests-title">Request & Allocation System</h1>
+            <span className="req-system-badge"><Beaker size={12} /> Live Inventory</span>
+          </div>
+          <p className="requests-subtitle">Manage lab chemical requisitions, FIFO container allocation, and approval workflows.</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           {hasPermission("submit_request") && user?.role !== "Lab Manager" && user?.role !== "Admin" && (
             <>
-              <button onClick={() => setShowRequestModal(true)} className="btn-primary" style={{ height: '2.5rem', width: 'auto', padding: '0 1.25rem', margin: 0 }}>
-                <PackageIcon size={18} /> Submit Usage Request
+              <button onClick={() => setShowRequestModal(true)} className="btn-primary req-trigger-btn">
+                <Sparkles size={16} /> Submit Usage Request
               </button>
-              <button onClick={() => setShowNewChemModal(true)} className="btn-secondary" style={{ height: '2.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <FlaskConical size={18} /> Request New Chemical
+              <button onClick={() => setShowNewChemModal(true)} className="btn-secondary">
+                <PlusCircleIcon size={16} /> Request Unlisted Chemical
               </button>
             </>
           )}
-          <button onClick={fetchRequests} className="refresh-btn">
-            <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+          <button onClick={fetchRequests} className="refresh-btn" title="Refresh Requests Ledger">
+            <RotateCw size={16} />
           </button>
         </div>
       </div>
 
       <div className="requests-layout">
 
-        {/* Step 5.2 — Submit Request (Normal User Side) - NOW IN MODAL */}
+        {/* --- Premium Submit Usage Request Modal --- */}
         {showRequestModal && (
-          <div className="modal-overlay" onClick={() => setShowRequestModal(false)}>
-            <div className="requests-panel modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', width: '95%' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h2 className="panel-heading" style={{ marginBottom: 0 }}>
-                  <span className="step-indicator step-1">1</span>
-                  Submit Request
-                </h2>
-                <button onClick={() => setShowRequestModal(false)} className="close-modal-btn">
-                  <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+          <div className="premium-modal-overlay" onClick={() => setShowRequestModal(false)}>
+            <div className="premium-modal-card req-modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '640px', width: '95%' }}>
+              <div className="modal-header req-modal-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div className="req-modal-icon-badge">
+                    <Beaker size={20} />
+                  </div>
+                  <div>
+                    <h2 className="modal-title">Submit Chemical Usage Request</h2>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--muted)', margin: 0 }}>Request chemical allocation from current laboratory inventory</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowRequestModal(false)} className="close-btn" aria-label="Close">
+                  <X size={20} />
                 </button>
               </div>
-              <form onSubmit={handleSubmitRequest} className="form-layout">
-                <div>
-                  <label className="form-label">Select Chemical</label>
-                  <select
-                    value={selectedChem}
-                    onChange={(e) => setSelectedChem(e.target.value)}
-                    required
-                    className="form-input"
-                  >
-                    <option value="">-- Choose Chemical --</option>
-                    {chemicals.map(c => (
-                      <option key={c._id} value={c._id}>{c.name} ({c.id})</option>
-                    ))}
-                  </select>
-                </div>
 
-                {selectedChem && (
+              <form onSubmit={handleSubmitRequest} style={{ display: 'flex', flexDirection: 'column' }}>
+                <div className="form-layout req-modal-body" style={{ padding: '1.5rem 2rem' }}>
+                  
+                  {/* Step Bar */}
+                  <div className="req-step-bar">
+                    <div className={`req-step-item ${selectedChem ? 'done' : 'active'}`}>
+                      <span className="req-step-num">1</span>
+                      <span>Chemical & Container</span>
+                    </div>
+                    <ChevronRight size={14} style={{ color: 'var(--muted)' }} />
+                    <div className={`req-step-item ${selectedChem && selectedContainer ? 'active' : ''}`}>
+                      <span className="req-step-num">2</span>
+                      <span>Quantity & Purpose</span>
+                    </div>
+                  </div>
+
+                  {/* 1. Chemical Selection */}
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem', padding: '0 0.25rem' }}>
-                      <label className="form-label" style={{ padding: 0 }}>Select Container</label>
-                      {fifoContainer && (
-                        <span className="fifo-badge"><CircleDot className="w-4 h-4 inline-block mr-1 text-blue-500" /> FIFO auto-selected</span>
+                    <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                      <FlaskConical size={14} /> Select Chemical *
+                    </label>
+                    <select
+                      value={selectedChem}
+                      onChange={(e) => setSelectedChem(e.target.value)}
+                      required
+                      className="form-input"
+                    >
+                      <option value="">-- Choose Chemical from Inventory --</option>
+                      {chemicals.map(c => (
+                        <option key={c._id} value={c._id}>
+                          {c.name} ({c.id}) — {c.quantity} {c.unit} total stock
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Selected Chemical Preview Card */}
+                  {selectedChemObj && (
+                    <div className="selected-chem-preview">
+                      <div className="preview-top">
+                        <div className="preview-title-col">
+                          <span className="preview-chem-name">{selectedChemObj.name}</span>
+                          <span className="preview-chem-id">ID: {selectedChemObj.id} {selectedChemObj.cas_number && `· CAS: ${selectedChemObj.cas_number}`}</span>
+                        </div>
+                        <span className="preview-stock-pill">
+                          Total In Stock: <strong>{selectedChemObj.quantity} {selectedChemObj.unit}</strong>
+                        </span>
+                      </div>
+                      {selectedChemObj.ghs_classes && selectedChemObj.ghs_classes.length > 0 && (
+                        <div className="preview-hazards">
+                          {selectedChemObj.ghs_classes.map((h, idx) => (
+                            <span key={idx} className="preview-hazard-badge">
+                              <ShieldAlert size={10} /> {h}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
-                    <select
-                      value={selectedContainer}
-                      onChange={(e) => { setSelectedContainer(e.target.value); setSubmitError(null); }}
-                      required
-                      className="form-input"
-                    >
-                      <option value="">-- Choose Container --</option>
-                      {containers.map(c => {
-                        const isFifo = fifoContainer && c._id === fifoContainer.fifo_container_id;
-                        return (
-                          <option key={c._id} value={c._id}>
-                            {isFifo ? "[FIFO] " : ""}{c.container_id} — {c.available_quantity} {c.unit} available{c.location ? ` · ${c.location}` : ''}
-                          </option>
-                        );
-                      })}
-                    </select>
+                  )}
 
-                    {/* FIFO deviation warning */}
-                    {fifoContainer && selectedContainer && selectedContainer !== fifoContainer.fifo_container_id && (
-                      <div className="fifo-warning">
-                        <span style={{ color: '#f59e0b', fontSize: '1.125rem', lineHeight: 1 }}><AlertTriangle className="w-5 h-5 inline-block" /></span>
-                        <div style={{ flex: 1 }}>
-                          <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b45309' }}>FIFO Order Warning</p>
-                          <p style={{ fontSize: '11px', color: '#d97706', marginTop: '0.125rem' }}>
-                            You must finish <strong>{fifoContainer.container_id}</strong> first ({fifoContainer.available_quantity} {fifoContainer.unit} left).
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedContainer(fifoContainer.fifo_container_id)}
-                            style={{ marginTop: '0.375rem', fontSize: '11px', fontWeight: 900, color: '#2563eb', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  {/* 2. Container Selection */}
+                  {selectedChem && (
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.375rem' }}>
+                        <label className="form-label" style={{ padding: 0, display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                          <PackageIcon size={14} /> Select Container *
+                        </label>
+                        {fifoContainer && (
+                          <span className="fifo-badge">
+                            <CircleDot size={12} style={{ marginRight: '4px', color: '#2563eb' }} /> FIFO Auto-selected
+                          </span>
+                        )}
+                      </div>
+                      <select
+                        value={selectedContainer}
+                        onChange={(e) => { setSelectedContainer(e.target.value); setSubmitError(null); }}
+                        required
+                        className="form-input"
+                      >
+                        <option value="">-- Choose Container --</option>
+                        {containers.map(c => {
+                          const isFifo = fifoContainer && c._id === fifoContainer.fifo_container_id;
+                          return (
+                            <option key={c._id} value={c._id}>
+                              {isFifo ? "[FIFO PRIORITY] " : ""}{c.container_id} — {c.available_quantity} {c.unit} available {c.location ? `(${c.location})` : ''}
+                            </option>
+                          );
+                        })}
+                      </select>
+
+                      {/* FIFO Deviation Warning */}
+                      {fifoContainer && selectedContainer && selectedContainer !== fifoContainer.fifo_container_id && (
+                        <div className="fifo-warning-card">
+                          <AlertTriangle size={18} className="fifo-warning-icon" />
+                          <div style={{ flex: 1 }}>
+                            <p className="fifo-warning-title">FIFO Rotation Compliance Warning</p>
+                            <p className="fifo-warning-desc">
+                              To prevent chemical expiration, container <strong>{fifoContainer.container_id}</strong> should be used first ({fifoContainer.available_quantity} {fifoContainer.unit} remaining).
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedContainer(fifoContainer.fifo_container_id)}
+                              className="fifo-switch-btn"
+                            >
+                              <RotateCw size={12} /> Switch to FIFO Priority Container
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 3. Quantity & Unit */}
+                  {selectedContainer && (
+                    <div>
+                      <div className="grid-cols-quantity">
+                        <div className="col-span-q">
+                          <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                            <Layers size={14} /> Requested Amount *
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={quantity}
+                            onChange={(e) => setQuantity(e.target.value)}
+                            required
+                            className="form-input"
+                            placeholder="e.g. 250.00"
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label">Unit *</label>
+                          <select
+                            value={unit}
+                            onChange={(e) => setUnit(e.target.value)}
+                            className="form-input"
+                            style={{ fontWeight: 700 }}
                           >
-                            → Switch to FIFO container
-                          </button>
+                            {selectedChemObj?.state?.toLowerCase() === 'liquid' ||
+                              selectedChemObj?.unit === 'L' ||
+                              selectedChemObj?.unit === 'mL' ? (
+                              <>
+                                <option value="L">L (Liters)</option>
+                                <option value="mL">mL (Milliliters)</option>
+                                <option value="ul">µL (Microliters)</option>
+                              </>
+                            ) : (
+                              <>
+                                <option value="kg">kg (Kilograms)</option>
+                                <option value="g">g (Grams)</option>
+                                <option value="mg">mg (Milligrams)</option>
+                              </>
+                            )}
+                          </select>
                         </div>
                       </div>
-                    )}
-                  </div>
-                )}
 
-                <div className="grid-cols-quantity">
-                  <div className="col-span-q">
-                    <label className="form-label">Quantity</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={quantity}
-                      onChange={(e) => setQuantity(e.target.value)}
+                      {/* Live Utilization Gauge Bar */}
+                      {utilization !== null && (
+                        <div className="utilization-gauge">
+                          <div className="utilization-header">
+                            <span>Container Stock Allocation</span>
+                            <span style={{ fontWeight: 800, color: utilization > 90 ? '#ef4444' : 'var(--accent)' }}>
+                              {utilization}% of container
+                            </span>
+                          </div>
+                          <div className="utilization-track">
+                            <div
+                              className="utilization-fill"
+                              style={{
+                                width: `${Math.min(100, utilization)}%`,
+                                background: utilization > 90 
+                                  ? 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)' 
+                                  : 'linear-gradient(90deg, #3b82f6 0%, #6366f1 100%)'
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 4. Reason / Purpose */}
+                  <div>
+                    <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                      <FileText size={14} /> Purpose / Experiment Details *
+                    </label>
+                    <textarea
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
                       required
                       className="form-input"
-                      placeholder="0.00"
-                    />
+                      rows="3"
+                      placeholder="Specify experiment, project code, or protocol name..."
+                    ></textarea>
+
+                    {/* Quick Preset Reason Chips */}
+                    <div className="preset-reasons">
+                      <span className="preset-label">Quick suggestions:</span>
+                      {PRESET_REASONS.map((preset, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          className="preset-chip"
+                          onClick={() => setReason(preset)}
+                        >
+                          + {preset}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div>
-                    <label className="form-label">Unit</label>
-                    <select
-                      value={unit}
-                      onChange={(e) => setUnit(e.target.value)}
-                      className="form-input"
-                      style={{ fontWeight: 700, color: 'var(--secondary-900)' }}
-                    >
-                      {chemicals.find(c => c._id === selectedChem)?.state?.toLowerCase() === 'liquid' ||
-                        chemicals.find(c => c._id === selectedChem)?.unit === 'L' ||
-                        chemicals.find(c => c._id === selectedChem)?.unit === 'mL' ? (
-                        <>
-                          <option value="L">L</option>
-                          <option value="mL">mL</option>
-                          <option value="ul">µL</option>
-                        </>
-                      ) : (
-                        <>
-                          <option value="kg">kg</option>
-                          <option value="g">g</option>
-                          <option value="mg">mg</option>
-                        </>
-                      )}
-                    </select>
-                  </div>
+
+                  {/* Submit Error */}
+                  {submitError && (
+                    <div className="submit-error-box">
+                      <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#b91c1c', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                        <Ban size={16} style={{ color: '#ef4444', flexShrink: 0 }} /> {submitError.error}
+                      </p>
+                    </div>
+                  )}
+
                 </div>
 
-                <div>
-                  <label className="form-label">Reason (Experiment/Project)</label>
-                  <textarea
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                    required
-                    className="form-input"
-                    rows="3"
-                    placeholder="Why do you need this?"
-                  ></textarea>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    onClick={() => setShowRequestModal(false)}
+                    className="btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="btn-primary"
+                    style={{ width: 'auto', padding: '0.75rem 2rem' }}
+                  >
+                    {submitting ? (
+                      <>
+                        <RotateCw size={16} className="animate-spin" /> Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={16} /> Submit Request
+                      </>
+                    )}
+                  </button>
                 </div>
-
-                {submitError && (
-                  <div className="submit-error-box">
-                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b91c1c' }}>
-                      <Ban className="w-4 h-4 inline-block text-red-500 mr-2" /> {submitError.error}
-                    </p>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="btn-primary"
-                >
-                  {submitting ? "Submitting..." : "Submit Request"}
-                </button>
               </form>
             </div>
           </div>
