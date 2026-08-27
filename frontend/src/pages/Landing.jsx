@@ -114,14 +114,6 @@ const Landing = () => {
           <a href="#about" className="nav-link">About</a>
           <a href="#workflow" className="nav-link">Workflow</a>
           <ThemeToggle />
-          <a
-            href={MOBILE_APP_BUILD_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-nav-mobile"
-          >
-            <Smartphone size={15} /> Download App
-          </a>
           {user ? (
             <Link to="/dashboard" className="btn-nav-login">Go to Dashboard</Link>
           ) : (
