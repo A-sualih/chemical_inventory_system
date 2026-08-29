@@ -28,7 +28,9 @@ import {
   Download,
   ExternalLink,
   CheckCircle,
-  Sparkles
+  Sparkles,
+  Menu,
+  X
 } from 'lucide-react';
 import '../styles/Landing.css';
 import ThemeToggle from '../components/common/ThemeToggle';
@@ -41,6 +43,7 @@ const Landing = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showDevModal, setShowDevModal] = React.useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [stats, setStats] = React.useState({
     chemicalsTracked: '...',
     activeLabs: '...',
@@ -102,22 +105,42 @@ const Landing = () => {
           {systemLogo ? (
             <img src={systemLogo} alt="Logo" style={{ height: '32px', width: 'auto', borderRadius: '6px' }} />
           ) : settingsLoaded ? (
-            <FlaskConical size={32} />
+            <FlaskConical size={28} />
           ) : (
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--secondary-100, #e2e8f0)' }} aria-hidden />
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--secondary-100, #e2e8f0)' }} aria-hidden />
           )}
           <span>{systemName}</span>
         </div>
-        <div className="nav-links">
-          <a href="#features" className="nav-link">Features</a>
-          <a href="#mobile-app" className="nav-link highlight-nav-link"><Smartphone size={14} className="inline mr-1" /> Mobile App</a>
-          <a href="#about" className="nav-link">About</a>
-          <a href="#workflow" className="nav-link">Workflow</a>
+
+        <div className="nav-mobile-right">
           <ThemeToggle />
+          <button
+            className="mobile-menu-toggle"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
+
+        <div className={`nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+          <a href="#features" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Features</a>
+          <a href="#mobile-app" className="nav-link highlight-nav-link" onClick={() => setMobileMenuOpen(false)}>
+            <Smartphone size={14} className="inline mr-1" /> Mobile App
+          </a>
+          <a href="#about" className="nav-link" onClick={() => setMobileMenuOpen(false)}>About</a>
+          <a href="#workflow" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Workflow</a>
+          <div className="nav-desktop-theme">
+            <ThemeToggle />
+          </div>
           {user ? (
-            <Link to="/dashboard" className="btn-nav-login">Go to Dashboard</Link>
+            <Link to="/dashboard" className="btn-nav-login" onClick={() => setMobileMenuOpen(false)}>
+              Go to Dashboard
+            </Link>
           ) : (
-            <Link to="/login" className="btn-nav-login" style={{ background: 'var(--accent)', color: 'var(--btn-text)', border: 'none' }}>Sign In</Link>
+            <Link to="/login" className="btn-nav-login" onClick={() => setMobileMenuOpen(false)}>
+              Sign In
+            </Link>
           )}
         </div>
       </nav>
@@ -185,7 +208,7 @@ const Landing = () => {
       </div>
 
       {/* Key Features Section */}
-      <section id="features" className="section-container" style={{ paddingTop: '10rem' }}>
+      <section id="features" className="section-container features-section">
         <span className="section-tag">Powerful Capabilities</span>
         <h2 className="section-title">Everything you need for precise control</h2>
         <div className="features-grid">
@@ -231,7 +254,7 @@ const Landing = () => {
       <section id="mobile-app" className="section-container mobile-app-section">
         <div className="mobile-app-card">
           <div className="mobile-app-content">
-            <span className="section-tag" style={{ textAlign: 'left' }}>Take {systemName} On The Go</span>
+            <span className="section-tag section-tag-left">Take {systemName} On The Go</span>
             <h2 className="mobile-app-title">Download the {systemName} Native Mobile App</h2>
             <p className="mobile-app-desc">
               Perform chemical check-ins, scan container QR/barcodes on physical lab shelves, receive instant expiry alerts, and submit usage requests directly from your mobile device.
@@ -294,9 +317,6 @@ const Landing = () => {
         </div>
       </section>
 
-
-
-
       {/* About Section */}
       <section id="about" className="section-container">
         <div className="about-section">
@@ -304,7 +324,7 @@ const Landing = () => {
              <Database size={80} color="var(--landing-teal)" style={{ opacity: 0.5 }} />
           </div>
           <div className="about-content">
-             <span className="section-tag" style={{ textAlign: 'left' }}>Our Mission</span>
+             <span className="section-tag section-tag-left">Our Mission</span>
              <h2>Instituting Digital Safety in Science</h2>
              <p>
                 {systemName} was developed to bridge the gap between 
@@ -315,34 +335,34 @@ const Landing = () => {
                 By providing institutional-wide visibility, {systemName} helps safety officers and 
                 lab managers maintain a zero-incident environment while optimizing procurement.
              </p>
-             <Link to="/learn-more" className="btn-hero-secondary" style={{ padding: '0.8rem 2rem' }}>Learn More About Our Tech</Link>
+             <Link to="/learn-more" className="btn-hero-secondary btn-about-tech">Learn More About Our Tech</Link>
           </div>
         </div>
       </section>
 
       {/* Safety & Compliance Section */}
-      <section className="section-container" style={{ background: 'rgba(255,255,255,0.01)' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
-          <ShieldAlert size={60} color="#ef4444" style={{ marginBottom: '2rem' }} />
+      <section className="section-container safety-compliance-section">
+        <div className="safety-compliance-box">
+          <ShieldAlert size={54} color="#ef4444" className="safety-alert-icon" />
           <h2 className="section-title">Compliance is not optional</h2>
-          <p className="hero-description" style={{ margin: '0 auto 4rem' }}>
+          <p className="hero-description safety-description">
             Built to exceed safety standards, {systemName} integrates with GHS protocols and provides 
             real-time hazard analysis for every storage location in your facility.
           </p>
           <div className="roles-container">
-             <div className="role-box" style={{ borderLeft: '4px solid #ef4444' }}>
+             <div className="role-box role-box-danger">
                 <h4>SDS Integration</h4>
                 <p>Digital access to safety sheets at the point of use.</p>
              </div>
-             <div className="role-box" style={{ borderLeft: '4px solid #f59e0b' }}>
+             <div className="role-box role-box-warning">
                 <h4>Hazard Tracking</h4>
                 <p>Automatic classification of incompatible materials.</p>
              </div>
-             <div className="role-box" style={{ borderLeft: '4px solid #3b82f6' }}>
+             <div className="role-box role-box-info">
                 <h4>Audit History</h4>
                 <p>Immutable logs for compliance inspections.</p>
              </div>
-             <div className="role-box" style={{ borderLeft: '4px solid #10b981' }}>
+             <div className="role-box role-box-success">
                 <h4>Access Control</h4>
                 <p>Role-based security for sensitive materials.</p>
              </div>
@@ -387,12 +407,12 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="section-container" style={{ textAlign: 'center', padding: '10rem 5%' }}>
-         <h2 style={{ fontSize: '3.5rem', marginBottom: '2rem' }}>Ready to modernize your inventory?</h2>
-         <p className="hero-description" style={{ margin: '0 auto 3rem' }}>
+      <section className="section-container cta-section">
+         <h2 className="cta-title">Ready to modernize your inventory?</h2>
+         <p className="hero-description cta-description">
            Join hundreds of laboratories globally using {systemName} for world-class management.
          </p>
-         <Link to="/register" className="btn-hero-primary" style={{ padding: '1.2rem 4rem', fontSize: '1.2rem' }}>
+         <Link to="/register" className="btn-hero-primary btn-cta-primary">
            Create Your Account <ArrowRight size={20} className="inline ml-2" />
          </Link>
       </section>
