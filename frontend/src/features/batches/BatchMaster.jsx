@@ -226,36 +226,40 @@ const Batches = () => {
                         <tr key={b._id}>
                           {/* Batch Identity */}
                           <td data-label="Batch">
-                            <div className="batch-id-cell">
-                              <div className="batch-id-icon">
-                                <Tag size={20} />
-                              </div>
-                              <div>
-                                <div className="batch-id-text">{b.batch_number}</div>
-                                <div className="batch-chem-text">
-                                  {b.manufacturing_date
-                                    ? `MFG: ${new Date(b.manufacturing_date).toLocaleDateString()}`
-                                    : 'MFG: —'}
+                            <div className="batch-cell-wrapper">
+                              <div className="batch-id-cell">
+                                <div className="batch-id-icon">
+                                  <Tag size={18} />
                                 </div>
+                                <div className="batch-id-text">{b.batch_number}</div>
+                              </div>
+                              <div className="batch-chem-text">
+                                {b.manufacturing_date
+                                  ? `MFG: ${new Date(b.manufacturing_date).toLocaleDateString()}`
+                                  : 'MFG: —'}
                               </div>
                             </div>
                           </td>
 
                           {/* Chemical Reference */}
                           <td data-label="Chemical">
-                            <div className="chem-main-text">{b.chemical_name || '—'}</div>
-                            <div className="chem-id-text">{b._id ? `ID: ${b._id.slice(-8).toUpperCase()}` : '—'}</div>
+                            <div className="batch-cell-wrapper">
+                              <div className="chem-main-text">{b.chemical_name || '—'}</div>
+                              <div className="chem-id-text">{b._id ? `ID: ${b._id.slice(-8).toUpperCase()}` : '—'}</div>
+                            </div>
                           </td>
 
                           {/* Supplier */}
                           <td data-label="Supplier">
-                            <div className="chem-main-text">{b.supplier_name || '—'}</div>
-                            <div className="batch-chem-text">{b.notes ? b.notes.slice(0, 40) : 'No notes'}</div>
+                            <div className="batch-cell-wrapper">
+                              <div className="chem-main-text">{b.supplier_name || '—'}</div>
+                              <div className="batch-chem-text">{b.notes ? b.notes.slice(0, 40) : 'No notes'}</div>
+                            </div>
                           </td>
 
                           {/* Quantity */}
                           <td data-label="Quantity">
-                            <div className="qty-cell">
+                            <div className="batch-cell-wrapper">
                               <p className="qty-line">
                                 {b.total_quantity != null
                                   ? `${b.total_quantity} ${b.unit || ''}`
@@ -269,7 +273,7 @@ const Batches = () => {
 
                           {/* Timeline */}
                           <td data-label="Timeline">
-                            <div className="date-cell">
+                            <div className="batch-cell-wrapper">
                               <span className="date-label">Expires</span>
                               <span className="date-value">{b.expiry_date ? new Date(b.expiry_date).toLocaleDateString() : '—'}</span>
                             </div>

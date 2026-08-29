@@ -109,6 +109,15 @@
   border: 1px solid var(--secondary-200);
   overflow-x: auto;
   max-width: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+}
+
+.expiry-filter-pills::-webkit-scrollbar {
+  display: none;
 }
 
 .expiry-filter-pill {
@@ -122,6 +131,7 @@
   color: var(--secondary-500);
   cursor: pointer;
   white-space: nowrap;
+  flex-shrink: 0 !important;
   transition: all 0.2s;
   letter-spacing: 0.05em;
 }
@@ -364,59 +374,96 @@
 
   .expiry-table,
   .expiry-table tbody,
-  .expiry-table tr,
-  .expiry-table td {
+  .expiry-table tr {
     display: block;
     width: 100%;
   }
 
   .expiry-table tr {
     background: var(--card-bg);
-    margin-bottom: 1.5rem;
-    border-radius: 2rem;
-    border: 1px solid var(--secondary-100);
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
-    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    border-radius: 1.5rem;
+    border: 1px solid var(--secondary-200);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.07);
+    padding: 0.5rem 0;
+    transition: transform 0.2s ease;
+  }
+
+  .expiry-table tr.expired-row {
+    border-left: 5px solid #ef4444 !important;
+    background: color-mix(in srgb, #ef4444 7%, var(--card-bg)) !important;
   }
 
   .expiry-table td {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 1rem 0.5rem;
-    border-bottom: 1px solid var(--secondary-50);
-    text-align: right;
-    gap: 1rem;
+    display: grid !important;
+    grid-template-columns: 5.5rem 1fr !important;
+    align-items: center !important;
+    padding: 0.85rem 1.15rem !important;
+    border-bottom: 1px solid var(--secondary-100) !important;
+    text-align: left !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
   }
 
   .expiry-table td:last-child {
-    border-bottom: none;
-    padding-top: 1.5rem;
+    border-bottom: none !important;
   }
 
   .expiry-table td::before {
     content: attr(data-label);
-    font-size: 0.7rem;
-    font-weight: 900;
-    color: var(--secondary-400);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    flex-shrink: 0;
-    text-align: left;
+    font-size: 0.7rem !important;
+    font-weight: 900 !important;
+    color: var(--secondary-500) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    text-align: left !important;
   }
   
   .substance-identity, .action-cell-content, .origin-info, .calendar-info {
-    justify-content: flex-end;
-    align-items: flex-end;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+    text-align: left !important;
   }
 
   .substance-name {
-    max-width: 220px;
-    word-break: break-word;
+    max-width: 100% !important;
+    font-weight: 900 !important;
+    color: var(--secondary-900) !important;
+    font-size: 0.95rem !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .substance-ref {
+    color: var(--secondary-600) !important;
+    font-weight: 700 !important;
+    font-size: 0.75rem !important;
+  }
+
+  .location-text {
+    color: var(--secondary-600) !important;
+    font-weight: 700 !important;
+    font-size: 0.75rem !important;
+  }
+
+  .calendar-iso {
+    color: var(--secondary-600) !important;
+    font-weight: 700 !important;
+    font-size: 0.75rem !important;
+  }
+
+  .longevity-label {
+    color: var(--secondary-600) !important;
+    font-weight: 800 !important;
   }
 
   .origin-pills {
-    justify-content: flex-end;
+    justify-content: flex-start !important;
   }
 }
 

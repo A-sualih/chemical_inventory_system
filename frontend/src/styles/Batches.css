@@ -436,7 +436,8 @@ tr:hover .batch-id-icon {
 }
 
 /* Responsive Table Mastery */
-@media (max-width: 1300px) {
+/* Responsive Table Mastery - Mobile-First Card Redesign */
+@media (max-width: 1200px) {
   .batches-table-card {
     background: transparent;
     border: none;
@@ -448,64 +449,114 @@ tr:hover .batch-id-icon {
   }
 
   .batches-table,
-  .batches-table tbody,
-  .batches-table tr,
-  .batches-table td {
+  .batches-table tbody {
     display: block;
     width: 100%;
     min-width: unset;
   }
 
   .batches-table tr {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(8px);
-    margin-bottom: 2rem;
-    border-radius: 2.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.05);
-    padding: 1.5rem;
-    transition: transform 0.3s ease;
+    display: block;
+    width: 100%;
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    margin-bottom: 1.25rem;
+    border-radius: 1.5rem;
+    border: 1px solid var(--secondary-200);
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.06);
+    padding: 0.5rem 0;
+    transition: transform 0.2s ease;
+    box-sizing: border-box;
   }
 
   .batches-table tr:active {
-    transform: scale(0.98);
+    transform: scale(0.99);
   }
 
   .batches-table td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.25rem 0.75rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-    text-align: right;
-    gap: 2rem;
-  }
-
-  .batches-table td:last-child {
-    border-bottom: none;
-    padding-top: 1.75rem;
-    justify-content: center;
+    display: grid !important;
+    grid-template-columns: 5.5rem 1fr !important;
+    align-items: center !important;
+    padding: 0.85rem 1rem !important;
+    border-bottom: 1px solid var(--secondary-100) !important;
+    text-align: left !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
   }
 
   .batches-table td::before {
     content: attr(data-label);
-    font-size: 0.65rem;
-    font-weight: 950;
-    color: var(--secondary-400);
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    flex-shrink: 0;
-    text-align: left;
+    font-size: 0.7rem !important;
+    font-weight: 900 !important;
+    color: var(--secondary-400) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.12em !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    text-align: left !important;
+    word-break: normal !important;
+  }
+
+  .batch-cell-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    gap: 0.2rem !important;
+    width: 100% !important;
+    text-align: left !important;
+  }
+
+  .batch-cell-wrapper > * {
+    text-align: left !important;
+    margin: 0 !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .status-indicator {
+    margin-top: 0.25rem !important;
+  }
+
+  .batches-table td[data-label="Actions"] {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    border-bottom: none !important;
+    padding: 0.85rem 1rem !important;
+    width: 100% !important;
+  }
+
+  .batches-table td[data-label="Actions"]::before {
+    display: none !important;
   }
 
   .batch-id-cell {
-    justify-content: flex-end;
+    justify-content: flex-start !important;
+    gap: 0.5rem !important;
   }
 
   .batch-actions {
-    justify-content: center;
-    width: 100%;
-    gap: 1.5rem;
+    justify-content: center !important;
+    width: 100% !important;
+    gap: 1.25rem !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .batches-table td {
+    grid-template-columns: 4.8rem 1fr !important;
+    grid-template-rows: auto auto !important;
+    row-gap: 0.35rem !important;
+  }
+
+  .batches-table td > *:nth-child(2) {
+    grid-column: 2 / -1 !important;
+    text-align: left !important;
+    font-size: 0.75rem !important;
   }
 }
 
@@ -697,6 +748,33 @@ select.form-field-input {
 }
 
 @media (max-width: 768px) {
+  .batches-container {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+
+  .batches-table-wrap {
+    padding: 0 0.25rem !important;
+    margin-bottom: 2rem !important;
+  }
+
+  .batches-stats {
+    padding: 0 0.25rem !important;
+    margin: 1.5rem auto !important;
+    gap: 0.75rem !important;
+  }
+
+  .batches-table tr {
+    margin-bottom: 0.85rem !important;
+    border-radius: 1.15rem !important;
+  }
+
+  .batches-table td {
+    padding: 0.75rem 0.85rem !important;
+    gap: 0.5rem !important;
+    grid-template-columns: 5rem 1fr auto !important;
+  }
+
   .form-grid-2 {
     grid-template-columns: 1fr;
     gap: 1.25rem;

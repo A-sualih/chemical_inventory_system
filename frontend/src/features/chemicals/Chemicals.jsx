@@ -46,6 +46,7 @@ const Chemicals = () => {
   const [selectedFIFOChemical, setSelectedFIFOChemical] = useState(null);
   const [selectedHistoryChemical, setSelectedHistoryChemical] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const { hasPermission } = useAuth();
   const { unitLabel } = useUnits();
 
@@ -188,7 +189,7 @@ const Chemicals = () => {
       </div>
 
       <div className="repository-layout-grid">
-        <div className="filter-sidebar-wrapper">
+        <div className={`filter-sidebar-wrapper ${showMobileFilters ? 'mobile-visible' : 'mobile-hidden'}`}>
           <FilterPanel 
             filters={filters} 
             setFilters={setFilters} 
@@ -201,6 +202,17 @@ const Chemicals = () => {
         </div>
 
         <div className="main-content-wrapper">
+          <button
+            type="button"
+            className="mobile-filter-toggle-btn"
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+          >
+            <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            <span>{showMobileFilters ? "Hide Filter Options" : "Filter Inventory Options"}</span>
+          </button>
+
           <div className="repository-card">
             <div className="search-bar-container">
               <div className="search-input-wrapper">

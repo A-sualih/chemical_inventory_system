@@ -175,78 +175,90 @@ const InventoryLogs = () => {
                     </td>
                   </tr>
                 )}
-                {logs.map(log => (
+                {filteredLogs.map(log => (
                   <tr key={log._id} className="table-row">
                     <td className="table-cell" data-label="Timestamp">
-                      <div className="timestamp-col">
-                        <div className="date-text">{new Date(log.createdAt || log.timestamp).toLocaleDateString()}</div>
-                        <div className="time-text">{new Date(log.createdAt || log.timestamp).toLocaleTimeString()}</div>
-                        <div className="user-tag">
-                           <div className="avatar-mini">{(log.user_name || 'S')[0]}</div>
-                           <div className="role-text">{log.user_role}</div>
+                      <div className="inventory-cell-wrapper">
+                        <div className="timestamp-col">
+                          <div className="date-text">{new Date(log.createdAt || log.timestamp).toLocaleDateString()}</div>
+                          <div className="time-text">{new Date(log.createdAt || log.timestamp).toLocaleTimeString()}</div>
+                          <div className="user-tag">
+                             <div className="avatar-mini">{(log.user_name || 'S')[0]}</div>
+                             <div className="role-text">{log.user_role}</div>
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td className="table-cell" data-label="Chemical">
-                      <div className="identity-name">{log.chemical_name || log.chemical_id}</div>
-                      <div className="identity-meta">
-                         <span className="id-tag">{log.chemical_id}</span>
-                         {log.batch_number && <span className="batch-link">LOT {log.batch_number}</span>}
+                      <div className="inventory-cell-wrapper">
+                        <div className="identity-name">{log.chemical_name || log.chemical_id}</div>
+                        <div className="identity-meta">
+                           <span className="id-tag">{log.chemical_id}</span>
+                           {log.batch_number && <span className="batch-link">LOT {log.batch_number}</span>}
+                        </div>
                       </div>
                     </td>
                     <td className="table-cell" data-label="Action">
-                      <span className={`action-badge ${
-                        log.action === 'IN' ? 'badge-in' : 
-                        log.action === 'OUT' ? 'badge-out' :
-                        log.action === 'TRANSFER' ? 'badge-transfer' :
-                        'badge-disposal'
-                      }`}>
-                        {log.action}
-                      </span>
-                      <div className="verify-tag">Audit Path Verified</div>
+                      <div className="inventory-cell-wrapper">
+                        <span className={`action-badge ${
+                          log.action === 'IN' ? 'badge-in' : 
+                          log.action === 'OUT' ? 'badge-out' :
+                          log.action === 'TRANSFER' ? 'badge-transfer' :
+                          'badge-disposal'
+                        }`}>
+                          {log.action}
+                        </span>
+                        <div className="verify-tag">Audit Path Verified</div>
+                      </div>
                     </td>
                     <td className="table-cell" data-label="Quantity">
-                      <div className={`delta-container ${
-                        log.action === 'IN' ? 'delta-positive' : 
-                        log.action === 'OUT' || log.action === 'DISPOSAL' ? 'delta-negative' : 
-                        'delta-neutral'
-                      }`}>
-                        {log.action === 'IN' ? '+' : (log.action === 'OUT' || log.action === 'DISPOSAL' ? '-' : '')}
-                        {Math.abs(log.quantity_change)}
-                        <span className="unit-label">{unitLabel(log.unit)}</span>
+                      <div className="inventory-cell-wrapper">
+                        <div className={`delta-container ${
+                          log.action === 'IN' ? 'delta-positive' : 
+                          log.action === 'OUT' || log.action === 'DISPOSAL' ? 'delta-negative' : 
+                          'delta-neutral'
+                        }`}>
+                          {log.action === 'IN' ? '+' : (log.action === 'OUT' || log.action === 'DISPOSAL' ? '-' : '')}
+                          {Math.abs(log.quantity_change)}
+                          <span className="unit-label">{unitLabel(log.unit)}</span>
+                        </div>
+                        {log.num_containers_moved > 0 && <div className="vessels-count">{log.num_containers_moved} Individual Vessels</div>}
                       </div>
-                      {log.num_containers_moved > 0 && <div className="vessels-count">{log.num_containers_moved} Individual Vessels</div>}
                     </td>
                     <td className="table-cell" data-label="Location">
-                      {log.action === 'TRANSFER' ? (
-                        <div className="location-trace">
-                          <div className="trace-item">
-                             <span className="trace-label label-origin">Origin</span>
-                             <span className="trace-val">{log.old_location || 'Archive'}</span>
-                          </div>
-                          <div className="trace-item">
-                             <span className="trace-label label-dest">Dest</span>
-                             <span className="trace-val-dest">{log.new_location}</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="simple-location">
-                          <div className="loc-main">
-                             <svg className="loc-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                             {log.building}-{log.room || 'NA'}
-                          </div>
-                          {(log.cabinet || log.shelf) && (
-                            <div className="loc-sub">
-                              CAB {log.cabinet || '-'} / SH {log.shelf || '-'}
+                      <div className="inventory-cell-wrapper">
+                        {log.action === 'TRANSFER' ? (
+                          <div className="location-trace">
+                            <div className="trace-item">
+                               <span className="trace-label label-origin">Origin</span>
+                               <span className="trace-val">{log.old_location || 'Archive'}</span>
                             </div>
-                          )}
-                        </div>
-                      )}
+                            <div className="trace-item">
+                               <span className="trace-label label-dest">Dest</span>
+                               <span className="trace-val-dest">{log.new_location}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="simple-location">
+                            <div className="loc-main">
+                               <svg className="loc-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                               {log.building}-{log.room || 'NA'}
+                            </div>
+                            {(log.cabinet || log.shelf) && (
+                              <div className="loc-sub">
+                                CAB {log.cabinet || '-'} / SH {log.shelf || '-'}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="table-cell audit-notes-cell" data-label="Notes">
-                      <div className="audit-user">{log.user_name || 'System Auto-Log'}</div>
-                      <div className="audit-reason" title={log.reason}>
-                        "{log.reason || 'No specific operational reason provided.'}"
+                      <div className="inventory-cell-wrapper">
+                        <div className="audit-user">{log.user_name || 'System Auto-Log'}</div>
+                        <div className="audit-reason" title={log.reason}>
+                          "{log.reason || 'No specific operational reason provided.'}"
+                        </div>
                       </div>
                     </td>
                   </tr>
