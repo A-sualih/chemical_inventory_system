@@ -749,29 +749,40 @@ html[data-theme='ink'] {
 }
 
 .procurement-modal-footer {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  padding: 1.5rem 2rem;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 1rem !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  padding: 1.5rem 2rem !important;
+  border-top: 1px solid var(--border) !important;
+  background: var(--surface) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-top: 1.5rem !important;
 }
 
 .btn-modal-primary {
-  background: var(--proc-grad);
-  background-size: 200% 200%;
-  color: white;
-  padding: 0.875rem 2rem;
-  border-radius: 1rem;
-  font-size: 0.9375rem;
-  font-weight: 850;
-  border: none;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 10px 25px -5px rgba(168, 85, 247, 0.4);
-  animation: gradientShift 5s ease infinite;
+  background: var(--proc-grad) !important;
+  background-size: 200% 200% !important;
+  color: white !important;
+  padding: 0.875rem 2rem !important;
+  border-radius: 1rem !important;
+  font-size: 0.9375rem !important;
+  font-weight: 850 !important;
+  border: none !important;
+  cursor: pointer !important;
+  position: relative !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 46px !important;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  box-shadow: 0 10px 25px -5px rgba(168, 85, 247, 0.4) !important;
+  animation: gradientShift 5s ease infinite !important;
 }
 
 .btn-modal-primary::after {
@@ -784,8 +795,8 @@ html[data-theme='ink'] {
 }
 
 .btn-modal-primary:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 20px 40px -10px rgba(168, 85, 247, 0.6);
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 20px 40px -10px rgba(168, 85, 247, 0.6) !important;
 }
 
 .btn-modal-primary:hover::after {
@@ -793,25 +804,31 @@ html[data-theme='ink'] {
 }
 
 .btn-modal-primary:active {
-  transform: translateY(1px) scale(0.98);
+  transform: translateY(1px) scale(0.98) !important;
 }
 
 .btn-modal-secondary {
-  background: transparent;
-  color: var(--text);
-  padding: 0.875rem 2rem;
-  border-radius: 1rem;
-  font-size: 0.9375rem;
-  font-weight: 800;
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: all 0.3s;
+  background: transparent !important;
+  color: var(--text) !important;
+  padding: 0.875rem 2rem !important;
+  border-radius: 1rem !important;
+  font-size: 0.9375rem !important;
+  font-weight: 800 !important;
+  border: 1px solid var(--border) !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 46px !important;
+  transition: all 0.3s !important;
 }
 
 .btn-modal-secondary:hover {
-  background: var(--surface2);
-  color: var(--text);
-  border-color: var(--muted);
+  background: var(--surface2) !important;
+  color: var(--text) !important;
+  border-color: var(--muted) !important;
 }
 
 .tracking-card.delayed {
@@ -1607,5 +1624,268 @@ html[data-theme='ink'] {
 @media (max-width: 640px) {
   .modal-overlay .form-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ── VENDOR PERFORMANCE REVIEW CARDS ── */
+.review-card {
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 1.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.review-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 35px -10px rgba(124, 58, 237, 0.15);
+  border-color: var(--proc-primary, #7c3aed);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid var(--border, #f1f5f9);
+}
+
+.review-supplier {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--text, #0f172a);
+  margin: 0 0 0.25rem 0;
+  line-height: 1.2;
+}
+
+.review-po {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--muted, #64748b);
+  margin: 0;
+}
+
+.rating-group {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.rating-val {
+  font-size: 1.25rem;
+  font-weight: 950;
+  color: #f59e0b;
+  margin-left: 0.25rem;
+}
+
+.rating-max {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted, #94a3b8);
+  margin: 0;
+}
+
+.criteria-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  background: var(--surface, #f8fafc);
+  padding: 0.875rem 0.625rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--border, #f1f5f9);
+}
+
+.criteria-box {
+  text-align: center;
+}
+
+.criteria-label {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: var(--muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+}
+
+.criteria-val {
+  font-size: 1rem;
+  font-weight: 950;
+  color: var(--text, #0f172a);
+  margin: 0;
+}
+
+.flag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.flag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.875rem;
+  border-radius: 2rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.flag-success {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.flag-warning {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
+.flag-danger {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.review-comment {
+  font-size: 0.875rem;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--text, #334155);
+  background: var(--surface, #f8fafc);
+  padding: 0.875rem 1.25rem;
+  border-radius: 1rem;
+  border-left: 4px solid var(--proc-primary, #7c3aed);
+  margin: 0;
+}
+
+.review-meta {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted, #64748b);
+  margin: auto 0 0 0;
+  padding-top: 0.5rem;
+}
+
+/* Theme overrides for Paper mode (light theme) */
+html[data-theme='paper'] .review-card,
+body:not([data-theme='ink']) .review-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html[data-theme='paper'] .review-supplier,
+body:not([data-theme='ink']) .review-supplier {
+  color: #0f172a !important;
+}
+
+html[data-theme='paper'] .review-po,
+body:not([data-theme='ink']) .review-po {
+  color: #64748b !important;
+}
+
+html[data-theme='paper'] .criteria-grid,
+body:not([data-theme='ink']) .criteria-grid {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme='paper'] .criteria-val,
+body:not([data-theme='ink']) .criteria-val {
+  color: #0f172a !important;
+}
+
+html[data-theme='paper'] .review-comment,
+body:not([data-theme='ink']) .review-comment {
+  background: #f8fafc !important;
+  color: #1e293b !important;
+}
+
+/* Theme overrides for Ink mode (dark theme) */
+html[data-theme='ink'] .review-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+html[data-theme='ink'] .review-supplier {
+  color: #f8fafc !important;
+}
+
+html[data-theme='ink'] .review-po {
+  color: #94a3b8 !important;
+}
+
+html[data-theme='ink'] .criteria-grid {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+html[data-theme='ink'] .criteria-label {
+  color: #94a3b8 !important;
+}
+
+html[data-theme='ink'] .criteria-val {
+  color: #f8fafc !important;
+}
+
+html[data-theme='ink'] .review-comment {
+  background: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+
+html[data-theme='ink'] .review-meta {
+  color: #94a3b8 !important;
+}
+
+/* Mobile Adaptation for Procurement Modals & Review Cards */
+@media (max-width: 640px) {
+  .procurement-modal-overlay {
+    padding: 0.75rem !important;
+  }
+
+  .procurement-modal-card {
+    border-radius: 1.5rem !important;
+    max-height: 94vh !important;
+    width: 100% !important;
+  }
+
+  .procurement-modal-header {
+    padding: 1rem 1.25rem !important;
+  }
+
+  .procurement-modal-body {
+    padding: 1rem 1.25rem !important;
+  }
+
+  .procurement-modal-footer {
+    padding: 1rem 1.25rem !important;
+    gap: 0.5rem !important;
+    justify-content: stretch !important;
+  }
+
+  .procurement-modal-footer .btn-modal-primary,
+  .procurement-modal-footer .btn-modal-secondary {
+    flex: 1 1 0% !important;
+    padding: 0.75rem 0.5rem !important;
+    min-width: 0 !important;
+    font-size: 0.875rem !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  .criteria-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.5rem 0.25rem !important;
   }
 }

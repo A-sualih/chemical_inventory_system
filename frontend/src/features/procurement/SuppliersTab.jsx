@@ -313,15 +313,15 @@ export default function SuppliersTab() {
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
+        <div className="procurement-modal-overlay">
+          <div className="procurement-modal-card">
+            <div className="procurement-modal-header">
               <div>
-                <h2 className="modal-title">{editing?'Edit Supplier':'Add New Supplier'}</h2>
+                <h2 className="procurement-modal-title">{editing?'Edit Supplier':'Add New Supplier'}</h2>
                 <p className="modal-subtitle">Fill in supplier details and contact information</p>
               </div>
             </div>
-            <form onSubmit={handleSubmit} className="modal-body">
+            <form onSubmit={handleSubmit} className="procurement-modal-body">
               <div className="form-grid">
                 <div className="form-col-full">
                   <label className="form-label">Company Name *</label>
@@ -395,13 +395,13 @@ export default function SuppliersTab() {
 
       {/* Detail Modal */}
       {detailSupplier && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
+        <div className="procurement-modal-overlay">
+          <div className="procurement-modal-card">
+            <div className="procurement-modal-header">
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
                   {detailSupplier.is_preferred && <span className="pref-star"><Star size={16}/></span>}
-                  <h2 className="modal-title">{detailSupplier.name}</h2>
+                  <h2 className="procurement-modal-title">{detailSupplier.name}</h2>
                 </div>
                 <p className="modal-subtitle">{detailSupplier.supplier_id} · {detailSupplier.category}</p>
               </div>
