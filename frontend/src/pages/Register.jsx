@@ -3,7 +3,6 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
-import ThemeToggle from "../components/common/ThemeToggle";
 import "../styles/Login.css";
 
 const Register = () => {
@@ -59,9 +58,7 @@ const Register = () => {
       <div className="bg-blob blob-2"></div>
       <div className="bg-blob blob-3"></div>
 
-      <div className="top-actions-wrapper">
-        <ThemeToggle />
-      </div>
+
 
       <div className="login-card">
         <div className="login-view-wrapper">

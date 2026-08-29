@@ -3,7 +3,6 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
-import ThemeToggle from "../components/common/ThemeToggle";
 import "../styles/Login.css";
 
 function BrandMark({ settings, settingsLoaded, className = "app-logo icon-white" }) {
@@ -360,17 +359,6 @@ const Login = () => {
       <div className="bg-blob blob-1"></div>
       <div className="bg-blob blob-2"></div>
       <div className="bg-blob blob-3"></div>
-
-      {/* Top Right Toggle Buttons */}
-      <div className="top-actions-wrapper">
-        <ThemeToggle />
-        <button
-          onClick={() => setView("login")}
-          className="portal-toggle-btn"
-        >
-          Secure Portal
-        </button>
-      </div>
 
       {/* Glassmorph Card */}
       <div className="login-card">
