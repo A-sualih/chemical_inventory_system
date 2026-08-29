@@ -105,11 +105,14 @@ const Landing = () => {
           {systemLogo ? (
             <img src={systemLogo} alt="Logo" style={{ height: '32px', width: 'auto', borderRadius: '6px' }} />
           ) : settingsLoaded ? (
-            <FlaskConical size={28} />
+            <FlaskConical size={26} />
           ) : (
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--secondary-100, #e2e8f0)' }} aria-hidden />
+            <div style={{ width: 26, height: 26, borderRadius: 6, background: 'var(--secondary-100, #e2e8f0)' }} aria-hidden />
           )}
-          <span>{systemName}</span>
+          <div className="nav-title-text">
+            <span className="nav-title-primary">Chemical</span>
+            <span className="nav-title-secondary">Inventory System</span>
+          </div>
         </div>
 
         <div className="nav-mobile-right">
