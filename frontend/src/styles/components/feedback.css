@@ -17,31 +17,61 @@
   align-items: center;
   justify-content: center;
   color: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  transition: all 0.3s;
+  border-radius: 0.65rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: all 0.25s ease;
   cursor: help;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .hazard-badge-icon:hover {
-  transform: scale(1.1) rotate(3deg);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
 }
 
-.hazard-badge-sm { width: 1.5rem; height: 1.5rem; padding: 0.25rem; font-size: 0.75rem; }
-.hazard-badge-md { width: 2.5rem; height: 2.5rem; padding: 0.5rem; font-size: 0.875rem; }
-.hazard-badge-lg { width: 3.5rem; height: 3.5rem; padding: 0.75rem; font-size: 1rem; }
+.hazard-badge-sm { width: 1.75rem; height: 1.75rem; padding: 0.25rem; font-size: 0.75rem; }
+.hazard-badge-md { width: 2.5rem; height: 2.5rem; padding: 0.45rem; font-size: 0.875rem; }
+.hazard-badge-lg { width: 3.5rem; height: 3.5rem; padding: 0.65rem; font-size: 1rem; }
 
-/* Hazard Badge Colors mapped from Tailwind */
-.hazard-color-orange { background-color: #ea580c; } /* bg-orange-600 */
-.hazard-color-red { background-color: #dc2626; } /* bg-red-600 */
-.hazard-color-red-light { background-color: #ef4444; } /* bg-red-500 */
-.hazard-color-yellow { background-color: #eab308; } /* bg-yellow-500 */
-.hazard-color-blue { background-color: #3b82f6; } /* bg-blue-500 */
-.hazard-color-blue-dark { background-color: #1e40af; } /* bg-blue-800 */
-.hazard-color-gray-dark { background-color: #111827; } /* bg-gray-900 */
-.hazard-color-purple-dark { background-color: #581c87; } /* bg-purple-900 */
-.hazard-color-green-dark { background-color: #15803d; } /* bg-green-700 */
+/* Vibrant Modern Hazard Colors */
+.hazard-color-orange { 
+  background: linear-gradient(135deg, #ff6b00 0%, #ea580c 100%); 
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
+} 
+.hazard-color-red { 
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); 
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+} 
+.hazard-color-red-light { 
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%); 
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+} 
+.hazard-color-yellow { 
+  background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%); 
+  color: #1e293b;
+  box-shadow: 0 4px 12px rgba(202, 138, 4, 0.35);
+} 
+.hazard-color-blue { 
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); 
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+} 
+.hazard-color-blue-dark { 
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); 
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.35);
+} 
+.hazard-color-gray-dark { 
+  background: linear-gradient(135deg, #374151 0%, #111827 100%); 
+  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.35);
+} 
+.hazard-color-purple-dark { 
+  background: linear-gradient(135deg, #9333ea 0%, #581c87 100%); 
+  box-shadow: 0 4px 12px rgba(88, 28, 135, 0.35);
+} 
+.hazard-color-green-dark { 
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); 
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.35);
+}
 
 .hazard-svg {
   width: 100%;
