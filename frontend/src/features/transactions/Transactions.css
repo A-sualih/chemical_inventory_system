@@ -1106,8 +1106,81 @@ html[data-theme='ink'] {
 }
 
 @media (max-width: 768px) {
+    .transactions-container {
+        padding: 1rem 0.75rem;
+    }
+
+    .transactions-header {
+        margin-bottom: 1.5rem;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .transactions-title {
+        font-size: 1.65rem;
+    }
+
+    .transactions-tabs {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .transaction-tab-btn {
+        padding: 0.55rem 0.4rem;
+        font-size: 0.8rem;
+        justify-content: center;
+    }
+
+    .fast-track-card {
+        padding: 1.25rem 0.85rem;
+        border-radius: 1rem;
+    }
+
+    .scanner-controls-container {
+        margin: 1.25rem auto;
+    }
+
+    .scanner-actions-bar {
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .search-bar-wrapper {
+        min-width: 100%;
+        max-width: 100%;
+    }
+
+    .search-bar-wrapper .input-neon {
+        font-size: 0.875rem;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .scan-format-toggle {
+        justify-content: center;
+    }
+
+    .manual-scan-form {
+        padding: 1.25rem 0.85rem;
+        margin-top: 1.25rem;
+    }
+
+    .intelligence-dashboard {
+        padding: 1.25rem 0.85rem !important;
+    }
+
+    .dashboard-metrics-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .metric-box {
+        padding: 0.85rem 0.75rem !important;
+    }
+
     .professional-viewer-layout {
-        padding: 1rem;
+        padding: 0.75rem;
     }
 
     .identity-main-flex {
@@ -1119,8 +1192,16 @@ html[data-theme='ink'] {
         align-items: flex-start;
         margin-top: 1rem;
     }
+}
 
+@media (max-width: 480px) {
     .dashboard-metrics-grid {
         grid-template-columns: 1fr;
+    }
+
+    .btn-submit-glow {
+        width: 100%;
+        padding: 0.85rem 1rem;
+        font-size: 0.9rem;
     }
 }

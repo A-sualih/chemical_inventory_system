@@ -67,10 +67,12 @@
   border-top-right-radius: 2rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 
               0 0 40px color-mix(in srgb, var(--accent) 12%, transparent);
-  overflow: hidden;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
-  height: 94vh;
+  height: 92vh;
+  max-height: 92vh;
   border: 1px solid var(--border);
   color: var(--text);
   animation: container-slide 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -80,6 +82,7 @@
   .chemical-form-container {
     border-radius: 2rem;
     height: 90vh;
+    max-height: 90vh;
     border: 1px solid var(--border);
   }
 }
@@ -88,6 +91,8 @@
   .chemical-form-container {
     flex-direction: row;
     height: 85vh;
+    max-height: 85vh;
+    overflow: hidden !important;
   }
 }
 
@@ -96,12 +101,13 @@
   position: relative;
   width: 100%;
   background: linear-gradient(165deg, #070913 0%, #0e1122 50%, #05060d 100%);
-  padding: 1.75rem;
+  padding: 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  overflow: hidden;
+  overflow-y: visible;
   flex-shrink: 0;
+  height: auto;
   color: #f1f5f9;
 }
 
@@ -112,6 +118,7 @@
     border-bottom: 0;
     border-right: 1px solid rgba(255, 255, 255, 0.05);
     overflow-y: auto;
+    height: 100%;
   }
 }
 
@@ -563,7 +570,7 @@
 /* Cancel / Close button */
 .cancel-button {
   width: 100%;
-  margin-top: auto;
+  margin-top: 1rem;
   padding: 0.75rem;
   font-size: 0.825rem;
   font-weight: 700;
@@ -577,6 +584,12 @@
   letter-spacing: 0.05em;
 }
 
+@media (min-width: 768px) {
+  .cancel-button {
+    margin-top: auto;
+  }
+}
+
 .cancel-button:hover {
   color: #ffffff;
   background: rgba(239, 68, 68, 0.12);
@@ -587,10 +600,18 @@
 /* RIGHT PANEL: Laboratory Dashboard Container */
 .form-content-area {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: visible !important;
   position: relative;
   background-color: var(--surface);
   color: var(--text);
+  height: auto !important;
+}
+
+@media (min-width: 768px) {
+  .form-content-area {
+    overflow-y: auto !important;
+    height: 100% !important;
+  }
 }
 
 .form-main {

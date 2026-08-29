@@ -36,6 +36,7 @@ const Chemicals = () => {
     totalPages: 0
   });
 
+  const [buildings, setBuildings] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [showStockModal, setShowStockModal] = useState(false);
   const [showFIFOModal, setShowFIFOModal] = useState(false);
@@ -47,6 +48,16 @@ const Chemicals = () => {
   const [showArchived, setShowArchived] = useState(false);
   const { hasPermission } = useAuth();
   const { unitLabel } = useUnits();
+
+  useEffect(() => {
+    axios.get('/api/locations/hierarchy')
+      .then(res => {
+        if (res.data && Array.isArray(res.data.buildings)) {
+          setBuildings(res.data.buildings);
+        }
+      })
+      .catch(err => console.error("Error fetching location hierarchy", err));
+  }, []);
 
   const fetchChemicals = async (page = 1, search = searchTerm, currentFilters = filters, isArchived = showArchived) => {
     setLoading(true);
@@ -185,7 +196,7 @@ const Chemicals = () => {
               setSearchTerm("");
               setFilters({ hazard: [], status: [], building: "", room: "", expiryStatus: "" });
             }}
-            buildings={['Block-A', 'Block-B', 'Lab-X']}
+            buildings={buildings}
           />
         </div>
 
