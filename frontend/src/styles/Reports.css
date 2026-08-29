@@ -106,7 +106,9 @@
   color: var(--secondary-300);
 }
 
-.refresh-btn, .export-btn, .export-primary-btn {
+.refresh-btn,
+.export-btn,
+.export-primary-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -163,20 +165,31 @@
 }
 
 @media (min-width: 768px) {
-  .report-grid { grid-template-columns: repeat(2, 1fr); }
+  .report-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (min-width: 1024px) {
-  .report-grid { grid-template-columns: repeat(4, 1fr); }
+  .report-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .report-card {
-  background-color: var(--card-bg);
+  background: #ffffff !important;
+  background-color: #ffffff !important;
   padding: 1.5rem;
   border-radius: 2rem;
-  border: 1px solid var(--secondary-100);
-  transition: all 0.3s;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0 !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 15px -2px rgba(15, 23, 42, 0.05);
+}
+
+html[data-theme='ink'] .report-card {
+  background: #1e293b !important;
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
 }
 
 .report-card:hover {
@@ -234,20 +247,37 @@
 }
 
 @media (min-width: 768px) {
-  .status-list-grid { grid-template-columns: repeat(3, 1fr); }
+  .status-list-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .status-list-card {
-  background-color: var(--card-bg);
+  background: #ffffff !important;
+  background-color: #ffffff !important;
   padding: 1.5rem;
   border-radius: 2.5rem;
-  border: 1px solid transparent;
+  border: 1px solid #e2e8f0;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
 }
 
-.card-red { border-color: #fee2e2; }
-.card-orange { border-color: #ffedd5; }
-.card-blue { border-color: #dbeafe; }
+html[data-theme='ink'] .status-list-card {
+  background: #1e293b !important;
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.card-red {
+  border-color: #fee2e2;
+}
+
+.card-orange {
+  border-color: #ffedd5;
+}
+
+.card-blue {
+  border-color: #dbeafe;
+}
 
 .status-list-title {
   font-size: 1.125rem;
@@ -258,9 +288,17 @@
   gap: 0.5rem;
 }
 
-.title-red { color: #ef4444; }
-.title-orange { color: #f97316; }
-.title-blue { color: #3b82f6; }
+.title-red {
+  color: #ef4444;
+}
+
+.title-orange {
+  color: #f97316;
+}
+
+.title-blue {
+  color: #3b82f6;
+}
 
 .pulse-dot {
   width: 0.5rem;
@@ -269,9 +307,17 @@
   animation: pulse-ring 2s infinite;
 }
 
-.dot-red { background-color: #ef4444; }
-.dot-orange { background-color: #f97316; }
-.dot-blue { background-color: #3b82f6; }
+.dot-red {
+  background-color: #ef4444;
+}
+
+.dot-orange {
+  background-color: #f97316;
+}
+
+.dot-blue {
+  background-color: #3b82f6;
+}
 
 .status-items-container {
   display: flex;
@@ -291,9 +337,20 @@
   align-items: center;
 }
 
-.bg-red-light { background-color: rgba(254, 242, 242, 0.5); border-color: #fee2e2; }
-.bg-orange-light { background-color: rgba(255, 247, 237, 0.5); border-color: #ffedd5; }
-.bg-blue-light { background-color: rgba(239, 246, 255, 0.5); border-color: #dbeafe; }
+.bg-red-light {
+  background-color: rgba(254, 242, 242, 0.5);
+  border-color: #fee2e2;
+}
+
+.bg-orange-light {
+  background-color: rgba(255, 247, 237, 0.5);
+  border-color: #ffedd5;
+}
+
+.bg-blue-light {
+  background-color: rgba(239, 246, 255, 0.5);
+  border-color: #dbeafe;
+}
 
 .item-main-info {
   min-width: 0;
@@ -326,9 +383,17 @@
   flex-shrink: 0;
 }
 
-.badge-red { color: #ef4444; }
-.badge-orange { color: #f97316; }
-.badge-blue { color: #3b82f6; }
+.badge-red {
+  color: #ef4444;
+}
+
+.badge-orange {
+  color: #f97316;
+}
+
+.badge-blue {
+  color: #3b82f6;
+}
 
 /* Charts Layout */
 .charts-grid {
@@ -339,15 +404,24 @@
 }
 
 @media (min-width: 1024px) {
-  .charts-grid { grid-template-columns: repeat(2, 1fr); }
+  .charts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .chart-section-card {
-  background-color: var(--card-bg);
+  background: #ffffff !important;
+  background-color: #ffffff !important;
   padding: 2rem;
   border-radius: 2.5rem;
-  border: 1px solid var(--secondary-100);
+  border: 1px solid #e2e8f0 !important;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+html[data-theme='ink'] .chart-section-card {
+  background: #1e293b !important;
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
 }
 
 .chart-card-header {

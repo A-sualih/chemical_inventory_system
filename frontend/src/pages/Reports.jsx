@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../layout/Layout';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell, AreaChart, Area 
+  PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
-import { 
-  TrendingUp, Package, AlertTriangle, Clock, 
-  FileText, Download, RefreshCw 
+import {
+  TrendingUp, Package, AlertTriangle, Clock,
+  FileText, Download, RefreshCw
 } from 'lucide-react';
 import axios from 'axios';
 import { fmtQty } from '../utils/formatQuantity';
@@ -15,10 +15,10 @@ import '../styles/Reports.css';
 
 const COLORS = ['#0f172a', '#3b82f6', '#f59e0b', '#ef4444', '#10b981', '#6366f1'];
 
-const ReportCard = ({ title, value, icon: Icon, color, trend }) => (
+const ReportCard = ({ title, value, icon: Icon, bg, color, trend }) => (
   <div className="report-card">
     <div className="card-top-row">
-      <div className={`card-icon-box ${color}`} style={{ backgroundColor: color.includes('bg-') ? '' : color }}>
+      <div className="card-icon-box" style={{ backgroundColor: bg, color: color }}>
         <Icon size={24} />
       </div>
       {trend && (
@@ -70,7 +70,7 @@ const Reports = () => {
       const response = await axios.get(`/api/reports/export/${type}`, {
         responseType: 'blob',
       });
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -117,34 +117,34 @@ const Reports = () => {
         </div>
         <div className="reports-actions-group">
           <div className="date-picker-range">
-             <input 
-              type="date" 
+            <input
+              type="date"
               className="date-input"
               value={dateRange.start}
-              onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
-             />
-             <div className="date-separator">→</div>
-             <input 
-              type="date" 
+              onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+            />
+            <div className="date-separator">→</div>
+            <input
+              type="date"
               className="date-input"
               value={dateRange.end}
-              onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
-             />
+              onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+            />
           </div>
-          <button 
+          <button
             onClick={fetchData}
             className="refresh-btn"
           >
             <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
           </button>
-          <button 
+          <button
             onClick={() => handleExport('excel')}
             className="export-btn"
           >
             <Download size={16} />
             <span className="hidden-mobile">XLSX</span>
           </button>
-          <button 
+          <button
             onClick={() => handleExport('pdf')}
             className="export-primary-btn"
           >
@@ -155,30 +155,34 @@ const Reports = () => {
       </div>
 
       <div className="report-grid">
-        <ReportCard 
-          title="Active Assets" 
-          value={inventoryData?.summary?.totalChemicals || 0} 
-          icon={Package} 
-          color="rgba(15, 23, 42, 0.05)" 
+        <ReportCard
+          title="Active Assets"
+          value={inventoryData?.summary?.totalChemicals || 0}
+          icon={Package}
+          bg="rgba(15, 23, 42, 0.08)"
+          color="#0f172a"
           trend="+12% vs last month"
         />
-        <ReportCard 
-          title="Expired Items" 
-          value={inventoryData?.summary?.expired || 0} 
-          icon={AlertTriangle} 
-          color="rgba(239, 68, 68, 0.05)" 
+        <ReportCard
+          title="Expired Items"
+          value={inventoryData?.summary?.expired || 0}
+          icon={AlertTriangle}
+          bg="rgba(239, 68, 68, 0.08)"
+          color="#ef4444"
         />
-        <ReportCard 
-          title="Near Expiry" 
-          value={inventoryData?.summary?.nearExpiry || 0} 
-          icon={Clock} 
-          color="rgba(245, 158, 11, 0.05)" 
+        <ReportCard
+          title="Near Expiry"
+          value={inventoryData?.summary?.nearExpiry || 0}
+          icon={Clock}
+          bg="rgba(245, 158, 11, 0.08)"
+          color="#d97706"
         />
-        <ReportCard 
-          title="Low Stock" 
-          value={inventoryData?.summary?.lowStock || 0} 
-          icon={TrendingUp} 
-          color="rgba(59, 130, 246, 0.05)" 
+        <ReportCard
+          title="Low Stock"
+          value={inventoryData?.summary?.lowStock || 0}
+          icon={TrendingUp}
+          bg="rgba(59, 130, 246, 0.08)"
+          color="#2563eb"
         />
       </div>
 
@@ -271,14 +275,14 @@ const Reports = () => {
               <AreaChart data={usageData?.usageStats}>
                 <defs>
                   <linearGradient id="colorUsage" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="_id" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
-                <Tooltip 
+                <XAxis dataKey="_id" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                <Tooltip
                   contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
                   labelStyle={{ fontWeight: 'black', marginBottom: '4px' }}
                 />
@@ -326,17 +330,17 @@ const Reports = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={usageData?.topChemicals} margin={{ bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis 
-                  dataKey="_id" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fontSize: 9, fontWeight: 'bold', fill: 'var(--secondary-500)'}} 
-                  angle={-35} 
-                  textAnchor="end" 
+                <XAxis
+                  dataKey="_id"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 9, fontWeight: 'bold', fill: 'var(--secondary-500)' }}
+                  angle={-35}
+                  textAnchor="end"
                   height={65}
                 />
-                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
-                <Tooltip 
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                <Tooltip
                   contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', padding: '12px' }}
                 />
                 <Bar dataKey="totalUsed" fill="#0f172a" radius={[10, 10, 0, 0]} barSize={40} />

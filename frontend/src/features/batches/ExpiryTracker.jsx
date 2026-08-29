@@ -279,7 +279,7 @@ const ExpiryTracker = () => {
                 </div>
 
                 <div className="expiry-footer-cards">
-                    <div className="report-card">
+                    <div className="expiry-integrity-card">
                         <h2 className="report-card-title">Integrity Reporting</h2>
                         <p className="report-card-desc">
                             All expiry data is automatically synchronized across the distributed cluster. Compliance flags are triggered 30 days prior to physical expiration.
